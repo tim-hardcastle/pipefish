@@ -2118,10 +2118,11 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 	if len(overlap) < len(lhsTypes) {
 		err := cp.ReserveError("vm/mf/lhs", rhs.GetToken())
 		if len(overlap) == 1 {
-			lhsIsNotListlike = cp.VmConditionalEarlyReturn(vm.Qtyp, sourceList, uint32(overlap[0].(SimpleType)), err)
+			lhsIsNotListlike = cp.VmConditionalEarlyReturn(vm.Qntp, sourceList, uint32(overlap[0].(SimpleType)), err)
 		} else {
 			args := []uint32{sourceList}
-			for _, t := range overlap {
+			badTypes := lhsTypes.without(overlap)
+			for _, t := range badTypes {
 				args = append(args, uint32(t.(SimpleType)))
 			}
 			args = append(args, err)
