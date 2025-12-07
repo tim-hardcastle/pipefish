@@ -358,6 +358,9 @@ func TestPiping(t *testing.T) {
 		{`[1, 2, 3, 4] ?> that mod 2 == 0`, `[2, 4]`},
 		{`ks >> MP[that]`, `["fee", "fie", "fo", "fum"]`},
 		{`foo ks`, `["fee", "fie", "fo", "fum"]`},
+		{`goo ks`, `["fee", "fie", "fo", "fum"]`},
+		{`[1, 2, 3] >> double`, `[2, 4, 6]`},
+		{`boo([1, 2, 3], double)`, `[2, 4, 6]`},
 	}
 	test_helper.RunTest(t, "piping_test.pf", tests, test_helper.TestValues)
 }

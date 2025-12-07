@@ -1,6 +1,11 @@
+newtype
+
+thing = clone list
+
 var 
 
 ks = [1, 2, 3, 4]
+double = func(x) : 2 * x
 
 const
 
@@ -10,3 +15,10 @@ def
 
 foo(x) :
     x >> MP[that]
+
+goo(x list/int) :
+    x >> MP[that]
+
+boo(x, y) :
+    x >> y
+

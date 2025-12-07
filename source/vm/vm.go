@@ -1340,6 +1340,15 @@ loop:
 					loc = args[0]
 				}
 				continue
+			case Qnab:
+				for _, t := range args[1 : len(args)-1] {
+					if vm.Mem[args[0]].T == values.ValueType(t) {
+						loc = args[len(args)-1]
+						continue loop
+					}
+				}
+				loc = loc + 1
+				continue
 			case Qntp:
 				if vm.Mem[args[0]].T != values.ValueType(args[1]) {
 					loc = loc + 1

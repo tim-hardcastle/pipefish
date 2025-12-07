@@ -2121,14 +2121,12 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 			lhsIsNotListlike = cp.VmConditionalEarlyReturn(vm.Qntp, sourceList, uint32(overlap[0].(SimpleType)), err)
 		} else {
 			args := []uint32{sourceList}
-			badTypes := lhsTypes.without(overlap)
-			for _, t := range badTypes {
+			for _, t := range overlap {
 				args = append(args, uint32(t.(SimpleType)))
 			}
 			args = append(args, err)
-			lhsIsNotListlike = cp.VmConditionalEarlyReturn(vm.Qabt, args...)
+			lhsIsNotListlike = cp.VmConditionalEarlyReturn(vm.Qnab, args...)
 		}
-
 	}
 	rhs = desugar(rhs)
 	rhsConst = true
