@@ -533,19 +533,14 @@ NodeTypeSwitch:
 			rtnTypes = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)
 		}
 	case *ast.InfixExpression:
-		resolvingCompiler := cp.getResolvingCompiler(node, ac)
-		if ok, _ := cp.P.CanParse(node.Token, parser.INFIX); ok {
-			cp.pushRCompiler(resolvingCompiler)
-			rtnTypes, rtnConst = resolvingCompiler.createFunctionCall(cp, node, ctxt.x(), node.GetToken().Namespace != "")
-			cp.popRCompiler()
-			break
-		}
 		if node.Operator == "," {
 			rtnTypes, rtnConst = cp.compileComma(node, ctxt.x())
-			break
+			break NodeTypeSwitch
 		}
-		cp.Throw("comp/known/infix", node.GetToken())
-		break
+		resolvingCompiler := cp.getResolvingCompiler(node, ac)
+		cp.pushRCompiler(resolvingCompiler)
+		rtnTypes, rtnConst = resolvingCompiler.createFunctionCall(cp, node, ctxt.x(), node.GetToken().Namespace != "")
+		cp.popRCompiler()
 	case *ast.IntegerLiteral:
 		cp.Reserve(values.INT, node.Value, node.GetToken())
 		rtnTypes, rtnConst = AltType(values.INT), true
@@ -950,15 +945,9 @@ NodeTypeSwitch:
 			rtnTypes = cp.Common.AnyTypeScheme
 			break NodeTypeSwitch
 		}
-		// Or it's a normal function with a prefix.
-		ok, _ = cp.P.CanParse(node.Token, parser.PREFIX)
-		if ok || resolvingCompiler.P.Functions.Contains(node.Operator) {
-			cp.pushRCompiler(resolvingCompiler)
-			rtnTypes, rtnConst = resolvingCompiler.createFunctionCall(cp, node, ctxt.x(), node.GetToken().Namespace != "")
-			cp.popRCompiler()
-			break
-		}
-		cp.Throw("comp/known/prefix", node.GetToken())
+		cp.pushRCompiler(resolvingCompiler)
+		rtnTypes, rtnConst = resolvingCompiler.createFunctionCall(cp, node, ctxt.x(), node.GetToken().Namespace != "")
+		cp.popRCompiler()
 	case *ast.RuneLiteral:
 		cp.Reserve(values.RUNE, node.Value, node.GetToken())
 		rtnTypes, rtnConst = AltType(values.RUNE), true
