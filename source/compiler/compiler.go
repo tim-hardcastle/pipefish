@@ -683,7 +683,7 @@ NodeTypeSwitch:
 			rTypes, rcst := cp.CompileNode(node.Right, ctxt)
 			ifCondition := cp.vmEarlyReturn(cp.That())
 			cp.VmComeFrom(checkLhs)
-			cp.Put(vm.Asgm, values.C_U_OBJ)
+			cp.Put(vm.Asgm, values.C_UNSAT)
 			cp.VmComeFrom(ifCondition, leftTypecheck, leftError)
 			rtnConst = lcst && rcst
 			switch {
@@ -822,7 +822,7 @@ NodeTypeSwitch:
 		}
 		rtnConst = lhsConst && rhsConst
 		break
-	case *ast.PrefixExpression: 
+	case *ast.PrefixExpression:
 		if node.Token.Type == token.NOT {
 			allTypes, cst := cp.CompileNode(node.Args[0], ctxt.x())
 			switch {
@@ -1002,6 +1002,8 @@ NodeTypeSwitch:
 		}
 		cp.Throw("comp/known/suffix", node.GetToken())
 	case *ast.TryExpression:
+		// We may have a variable to store an identifier in, which may or may not already have
+		// been declared.
 		ident := node.VarName
 		v, exists := env.GetVar(ident)
 		if exists && (v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == GLOBAL_CONSTANT_PUBLIC || v.Access == GLOBAL_VARIABLE_PRIVATE ||
@@ -1016,16 +1018,20 @@ NodeTypeSwitch:
 		} else {
 			err = v.MLoc
 		}
+		// Now we compile the expression we're `try`ing.
 		tryTypes, _ := cp.CompileNode(node.Right, ctxt.x())
 		if tryTypes.IsNoneOf(values.ERROR, values.SUCCESSFUL_VALUE) {
 			cp.Throw("comp/try/return", node.GetToken())
 			break
 		}
-		cp.Emit(vm.Qtyp, cp.That(), uint32(values.ERROR), cp.CodeTop()+4)
+		// And now we execute the `try` logic, i.e. if the result `cp.That()` was an error, then
+		// we stash the error away in the place we just reserved for it, and replace it with
+		// an unsatisfied conditional.
+		cp.Emit(vm.Qtyp, cp.That(), uint32(values.ERROR), cp.CodeTop()+3)
 		cp.Emit(vm.Asgm, err, cp.That())
-		cp.Emit(vm.Asgm, cp.That(), values.C_U_OBJ)
-		cp.Emit(vm.Qtyp, cp.That(), uint32(values.ERROR), cp.CodeTop()+2)
-		cp.Emit(vm.Asgm, cp.That(), values.C_OK)
+		cp.Emit(vm.Asgm, cp.That(), values.C_UNSAT)
+		// So now the result is either a `SUCCESSFUL_VALUE` if the operation succeeded, or an
+		// `UNSATISFIED_CONDITIONAL` if it didn't.
 		rtnTypes, rtnConst = AltType(values.UNSATISFIED_CONDITIONAL, values.SUCCESSFUL_VALUE), false
 	case *ast.TypeExpression:
 		resolvingCompiler := cp.getResolvingCompiler(node, ac)
@@ -2269,7 +2275,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 	case CHECK_LAMBDA_PARAMETERS:
 		errorCode = "vm/typcheck"
 	case CHECK_RETURN_TYPES:
-		errorCode = "vm/typcheck/return"	
+		errorCode = "vm/typcheck/return"
 	default:
 		errorCode = "vm/typcheck/assign"
 	}

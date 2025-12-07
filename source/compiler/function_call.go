@@ -120,12 +120,11 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable,
 				cp.Throw("comp/error/arg", arg.GetToken(), cp.P.PrettyPrint(arg))
 				return AltType(values.COMPILE_TIME_ERROR), false
 			}
-			if b.types[i].(AlternateType).Contains(values.ERROR) { // IMPORTANT --- find out if the ret statement is going to cause a problem with thunks as it did below before I fixed it.
-				cp.Emit(vm.Qtyp, cp.That(), uint32(tp(values.ERROR)), cp.CodeTop()+4)
+			if b.types[i].(AlternateType).Contains(values.ERROR) { 
+				cp.Emit(vm.Qtyp, cp.That(), uint32(tp(values.ERROR)), cp.CodeTop()+3)
 				backtrackList[i] = cp.CodeTop()
-				cp.Emit(vm.Asgm, DUMMY, cp.That())
-				cp.Emit(vm.Adtk, cp.That(), cp.That(), cp.ReserveToken(arg.GetToken()))
-				cp.Emit(vm.Ret)
+				cp.Emit(vm.Adtk, DUMMY, cp.That(), cp.ReserveToken(arg.GetToken()))
+				cp.Emit(vm.Jmp, DUMMY)
 			}
 		}
 	}
@@ -147,6 +146,7 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable,
 	for _, v := range backtrackList {
 		if v != DUMMY {
 			cp.Vm.Code[v].Args[0] = cp.That()
+			cp.Vm.Code[v+1].Args[0] = cp.CodeTop()
 		}
 	}
 	if returnTypes.Contains(values.ERROR) {

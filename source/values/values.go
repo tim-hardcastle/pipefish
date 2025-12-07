@@ -69,10 +69,10 @@ type SnippetBindle struct {
 // To implement the set and hash structures.
 // If the type of the value is not comparable, we return that values so we can use it to
 // make an error as required. We return OK for success (this is in fact comparable.)
-func (v Value) compare(w Value) bool { 
+func (v Value) compare(w Value) bool {
 	//It doesn't really matter which order these things are in, so long as there is one.
 	// TODO --- these next few lines will, alas, let us compare things that can't be compared, we need a filter, possibly at the VM end.
-	if v.T < w.T { 
+	if v.T < w.T {
 		return true
 	}
 	if w.T < v.T {
@@ -139,7 +139,7 @@ const (
 	C_UNDEF = iota
 	C_FALSE
 	C_TRUE
-	C_U_OBJ
+	C_UNSAT
 	C_ONE
 	C_BLING
 	C_OK
@@ -158,7 +158,7 @@ func (a AbstractType) String() string {
 }
 
 type AbstractType struct {
-	Types   []ValueType
+	Types []ValueType
 }
 
 func MakeAbstractType(args ...ValueType) AbstractType {
@@ -320,7 +320,7 @@ func (a AbstractType) Without(b AbstractType) AbstractType {
 			rTypes = append(rTypes, t)
 			continue
 		}
-		if (t != b.Types[i]) {
+		if t != b.Types[i] {
 			rTypes = append(rTypes, t)
 		}
 	}
