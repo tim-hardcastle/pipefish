@@ -2098,8 +2098,6 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 	cp.Cm("rhs is "+text.Emph(rhs.String()), tok)
 	cp.Cm("lhsTypes is "+text.Emph(lhsTypes.describe(cp.Vm)), tok)
 	var rhsConst bool
-	var isAttemptedFunc bool
-	var v *Variable
 	inputElement := uint32(DUMMY)
 	typeIsNotFunc := BkEarlyReturn(DUMMY)
 	resultIsError := BkEarlyReturn(DUMMY)
@@ -2109,7 +2107,6 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 	sourceList := cp.That()
 	envWithThat := &Environment{}
 	thatLoc := uint32(DUMMY)
-
 	overlap := lhsTypes.intersect(cp.Common.SharedTypenameToTypeList["clones{list}"])
 	if len(overlap) == 0 {
 		cp.Throw("comp/pipe/mf/list", rhs.GetToken())
@@ -2142,21 +2139,11 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 	cp.Put(vm.Gthi, length, counter)
 	listFinished := cp.vmIf(vm.Qtru, cp.That())
 	cp.Cm("Emit the body of the loop.", tok)
-	if isAttemptedFunc {
-		cp.Cm("The rhs is a variable containing a function.", tok)
-		cp.Put(vm.IdxL, sourceList, counter, DUMMY)
-		inputElement = cp.That()
-		cp.Put(vm.Dofn, v.MLoc, cp.That())
-		types = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR) // Very much TODO. Normally the function is constant and so we know its return types.
-	} else {
-		cp.Cm("The rhs is an expression presumably containing 'that'.", tok)
-		cp.Emit(vm.IdxL, thatLoc, sourceList, counter, DUMMY)
-		inputElement = thatLoc
-
-		newContext := ctxt
-		newContext.Env = envWithThat
-		types, _ = cp.CompileNode(rhs, newContext)
-	}
+	cp.Emit(vm.IdxL, thatLoc, sourceList, counter, DUMMY)
+	inputElement = thatLoc
+	newContext := ctxt
+	newContext.Env = envWithThat
+	types, _ = cp.CompileNode(rhs, newContext)
 	resultElement := cp.That()
 	if types.Contains(values.ERROR) {
 		cp.Cm("If the result of the function's 'that' expression might be an error, we test for that and early-return the error if so.", tok)
