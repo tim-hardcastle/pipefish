@@ -10,138 +10,30 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 	"github.com/tim-hardcastle/pipefish/source/text"
 )
-func TestCompileTimeErrors(t *testing.T) {
+
+func TestBooleans(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`[error "foo"]`, `comp/list/err`},
-		{`break 42`, `comp/break/a`},
-		{`break`, `comp/break/b`},
-		{`w(42)`, `comp/apply/func`},
-		{`("a", "b") ...`, `comp/splat/args`},
-		{`"foo" ...`, `comp/splat/type`},
-		{``, `comp/`},
-	}
-	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestEqualityCompileTimeErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`(error "foo") == 42`, `comp/error/eq/a`},
-		{`42 == (error "foo")`, `comp/error/eq/b`},
-		{`42 == "foo"`, `comp/eq/types`},
-	}
-	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestTypeExpressionCompileTimeErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`clones{string, int}`, `comp/clones/arguments`},
-		{`clones{NULL}`, `comp/clones`},
-		{`struct "foo"`, `comp/type/concrete`},
-		{`("foo") list{int}`, `comp/suffix/b`},
-		{`5 ; (post "foo")`, `comp/sanity`},
-		{`qux.foo 42`, `comp/namespace/private`},
-		{`(error "foo"), 42`, `comp/tuple/err/a`},
-		{`42, (error "foo")`, `comp/tuple/err/b`},
-		{``, `comp/`},
-		{``, `comp/`},
-		{``, `comp/`},
-	}
-	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestVariableCompileTimeErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`i * i = 4`, `comp/assign/lhs/a`},
-		{`w = 42`, `comp/assign/private`},
-		{`X = 42`, `comp/assign/const`},
-		{`noVar = 0`, `comp/assign/repl`},
-		{`blerp`, `comp/ident/known`},
-		{`w`, `comp/ident/private`},
-	}
-	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestIndexingCompileTimeErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`[1, 2, 3][4.0]`, `comp/index/list`},
-		{`"foo"[4.0]`, `comp/index/string`},
-		{`(1, 2, 3)[4.0]`, `comp/index/tuple`},
-		{`(1::2)[4.0]`, `comp/index/pair`},
-		{`SN[4.0]`, `comp/index/snippet`},
-		{`JOHN[lives]`, "comp/index/struct/a"},
-		{`JOHN[42]`, "comp/index/struct/b"},
-	}
-	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestBooleanCompileTimeErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`i * i = 4`, `comp/assign/lhs/a`},
-		{`w = 42`, `comp/assign/private`},
-		{`X = 42`, `comp/assign/const`},
-		{`noVar = 0`, `comp/assign/repl`},
-		{`blerp`, `comp/ident/known`},
-		{`w`, `comp/ident/private`},
-		{`[1, 2, 3][4.0]`, `comp/index/list`},
-		{`"foo"[4.0]`, `comp/index/string`},
-		{`(1, 2, 3)[4.0]`, `comp/index/tuple`},
-		{`(1::2)[4.0]`, `comp/index/pair`},
-		{`SN[4.0]`, `comp/index/snippet`},
-		{`JOHN[lives]`, "comp/index/struct/a"},
-		{`JOHN[42]`, "comp/index/struct/b"},
-		{`5 or true`, `comp/bool/or/left`},
-		{`false or 5`, `comp/bool/or/right`},
-		{`5 and false`, `comp/bool/and/left`},
-		{`true and 5`, `comp/bool/and/right`},
-		{`5 : 5`, `comp/bool/cond`},
-		{`not 5`, `comp/bool/not`},
-		{``, `comp/`},
-		{``, `comp/`},
-		{``, `comp/`},
-		{``, `comp/`},
-		{``, `comp/`},
-		{``, `comp/`},
-	}
-	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestLiterals(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`"foo"`, `"foo"`},
-		{"`foo`", `"foo"`},
-		{`'q'`, `'q'`},
-		{`true`, `true`},
-		{`false`, `false`},
-		{`42.0`, `42.00000000`},
-		{`42`, `42`},
-		{`0b101010`, `42`},
-		{`0o52`, `42`},
-		{`0x2A`, `42`},
-		{`NULL`, `NULL`},
-		{`OK`, `OK`},
-	}
-	test_helper.RunTest(t, "", tests, test_helper.TestValues)
-}
-func TestHardwiredOps(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`5.0 == 2.0`, `false`},
-		{`5.0 != 2.0`, `true`},
-		{`5 == 2`, `false`},
-		{`5 != 2`, `true`},
-		{`true != false`, `true`},
-		{`"foo" == "foo"`, `true`},
-		{`int == int`, `true`},
-		{`struct == struct`, `true`},
-		{`[1, 2, 3] == [1, 2, 3]`, `true`},
-		{`[1, 2, 4] == [1, 2, 3]`, `false`},
-		{`[1, 2, 3, 4] == [1, 2, 3]`, `false`},
-		{`[1, 2, 3] == [1, 2, 3, 4]`, `false`},
-		{`set(1, 2, 3) == set(1, 2, 3)`, `true`},
-		{`set(1, 2, 4) == set(1, 2, 3)`, `false`},
-		{`set(1, 2, 3, 4) == set(1, 2, 3)`, `false`},
-		{`set(1, 2, 3) == set(1, 2, 3, 4)`, `false`},
-		{`1::2 == 1::2`, `true`},
-		{`1::2 == 2::2`, `false`},
-		{`1::2 == 1::1`, `false`},
-		{`map(1::2, 3::4) == map(1::2, 3::4)`, `true`},
-		{`map(1::2, 3::4) == map(1::2, 4::4)`, `false`},
-		{`map(1::2, 3::4) == map(1::2, 3::5)`, `false`},
-		{`map(1::2, 3::4) == map(1::2, 3::4, 5::6)`, `false`},
-		{`map(1::2, 3::4, 5::6) == map(1::2, 3::4)`, `false`},
+		{`true : 5; else : 6`, `5`},
+		{`false : 5; else : 6`, `6`},
+		{`1 == 1 : 5; else : 6`, `5`},
+		{`1 == 2 : 5; else : 6`, `6`},
+		{`testNot true"`, `false`},
+		{`testNot false"`, `true`},
+		{`testNot 5"`, `vm/bool/not`},
+		{`testOr true, false`, `true`},
+		{`testOr false, false`, `false`},
+		{`testOr true, true`, `true`},
+		{`testOr true, false`, `true`},
+		{`testOr 5, false`, `vm/bool/or/left`},
+		{`testOr false, 5`, `vm/bool/or/right`},
+		{`testAnd true, false`, `false`},
+		{`testAnd false, false`, `false`},
+		{`testAnd true, true`, `true`},
+		{`testAnd true, false`, `false`},
+		{`testAnd 5, true`, `vm/bool/and/left`},
+		{`testAnd true, 5`, `vm/bool/and/right`},
+		{`testConditional true`, `true`},
+		{`testConditional false`, `false`},
 		{`not true`, `false`},
 		{`not false`, `true`},
 		{`false and false`, `false`},
@@ -152,19 +44,19 @@ func TestHardwiredOps(t *testing.T) {
 		{`true or false`, `true`},
 		{`false or true`, `true`},
 		{`true or true`, `true`},
-		{`1, (2, 3)`, `(1, 2, 3)`},
 	}
-	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "boolean_test.pf", tests, test_helper.TestValues)
 }
-
-func TestConditionals(t *testing.T) {
+func TestBooleanCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`true : 5; else : 6`, `5`},
-		{`false : 5; else : 6`, `6`},
-		{`1 == 1 : 5; else : 6`, `5`},
-		{`1 == 2 : 5; else : 6`, `6`},
+		{`5 or true`, `comp/bool/or/left`},
+		{`false or 5`, `comp/bool/or/right`},
+		{`5 and false`, `comp/bool/and/left`},
+		{`true and 5`, `comp/bool/and/right`},
+		{`5 : 5`, `comp/bool/cond`},
+		{`not 5`, `comp/bool/not`},
 	}
-	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
 func TestBuiltins(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -236,298 +128,6 @@ func TestBuiltins(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
-func TestLogic(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`testNot true"`, `false`},
-		{`testNot false"`, `true`},
-		{`testNot 5"`, `vm/bool/not`},
-		{`testOr true, false`, `true`},
-		{`testOr false, false`, `false`},
-		{`testOr true, true`, `true`},
-		{`testOr true, false`, `true`},
-		{`testOr 5, false`, `vm/bool/or/left`},
-		{`testOr false, 5`, `vm/bool/or/right`},
-		{`testAnd true, false`, `false`},
-		{`testAnd false, false`, `false`},
-		{`testAnd true, true`, `true`},
-		{`testAnd true, false`, `false`},
-		{`testAnd 5, true`, `vm/bool/and/left`},
-		{`testAnd true, 5`, `vm/bool/and/right`},
-		{`testConditional true`, `true`},
-		{`testConditional false`, `false`},
-
-	}
-	test_helper.RunTest(t, "logic_test.pf", tests, test_helper.TestValues)
-}
-func TestIndexing(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`DARK_BLUE[shade]`, `DARK`},
-		{`myColor[shade]`, `LIGHT`},
-		{`DARK_BLUE[KEY]`, `DARK`},
-		{`myColor[KEY]`, `LIGHT`},
-		{`DARK_BLUE[key]`, `DARK`},
-		{`myColor[key]`, `LIGHT`},
-		{`"Angela"[3]`, `'e'`},
-		{`"Angela"[2::5]`, `"gel"`},
-		{`myWord[2::5]`, `"gel"`},
-		{`myList[2]`, `[5, 6]`},
-		{`myList[myNumber]`, `[5, 6]`},
-		{`myList[0::2]`, `[[1, 2], [3, 4]]`},
-		{`myList[myIntPair]`, `[[1, 2], [3, 4]]`},
-		{`("a", "b", "c", "d")[2]`, `"c"`},
-		{`("a", "b", "c", "d")[myIntPair]`, `("a", "b")`},
-		{`"Angela"[myIntPair]`, `"An"`},
-		{`myWord[myIntPair]`, `"An"`},
-		{`myPair[0]`, `"foo"`},
-		{`myMap["a"]`, `[1, 2]`},
-		{`foo myMap, myIndex`, `[1, 2]`},
-		{`foo myList, myNumber`, `[5, 6]`},
-		{`foo myColor, key`, `LIGHT`},
-		{`foo myPair, myOtherNumber`, `"bar"`},
-		{`foo myWord, myNumber`, `'g'`},
-	}
-	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
-}
-func TestTuples(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`(1, 2), 3`, `(1, 2, 3)`},
-		{`1, (2, 3)`, `(1, 2, 3)`},
-		{`(1, 2), (3, 4)`, `(1, 2, 3, 4)`},
-		{`()`, `()`},
-		{`type tuple "foo", "bar"`, `tuple`},
-		{`len tuple "foo", "bar"`, `2`},
-		{`1 in tuple(1, 2)`, `true`},
-		{`string(X)`, `"(2, 3)"`},
-		{`len tuple 1, X`, `3`},
-		{`len tuple X, 1`, `3`},
-		{`len tuple W, Z`, `8`},
-		{`foo 1, X`, `3`},
-		{`foo X, 1`, `3`},
-		{`foo W, Z`, `8`},
-	}
-	test_helper.RunTest(t, "tuples_test.pf", tests, test_helper.TestValues)
-}
-func TestFunctionSyntaxCalls(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo "bing"`, `"foo bing"`},
-		{`"bing" zort`, `"bing zort"`},
-		{`"bing" troz "bong"`, `"bing troz bong"`},
-		{`moo "bing" goo`, `"moo bing goo"`},
-		{`flerp "bing" blerp "bong"`, `"flerp bing blerp bong"`},
-		{`qux`, `"qux"`},
-	}
-	test_helper.RunTest(t, "function_call_test.pf", tests, test_helper.TestValues)
-}
-func TestFancyFunctions(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo 99`, `"foo _"`},
-		{`spong()`, `"spong _"`},
-		{`blerp`, `"blerp"`},
-		{`moo boo 8`, `"moo boo _"`},
-		{`moo boo coo 8`, `"moo boo coo _"`},
-		{`moo zoo`, `"moo zoo"`},
-		{`9 spoit`, `"_ spoit"`},
-		{`xuq 9 mip`, `"xuq _ mip"`},
-		{`troz 8 nerf 9`, `"troz _ nerf _"`},
-		{`goo 8 hoo 9 spoo 0`, `"goo _ hoo _ spoo _"`},
-		{`gee 8 hee 9 spee`, `"gee _ hee _ spee"`},
-		{`gah 8 hah 9 spah blah`, `"gah _ hah _ spah blah"`},
-		{`8 bing 9 bong`, `"_ bing _ bong"`},
-		{`8 ding 9 dong 0 dang`, `"_ ding _ dong _ dang"`},
-	}
-	test_helper.RunTest(t, "fancy_function_test.pf", tests, test_helper.TestValues)
-}
-func TestVariablesAndConsts(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`A`, `42`},
-		{`getB`, `99`},
-		{`changeZ`, `OK`},
-		{`v`, `true`},
-		{`w`, `42`},
-		{`y = NULL`, "OK"},
-	}
-	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
-}
-func TestVariableAccessErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`B`, `comp/ident/private`},
-		{`A = 43`, `comp/assign/const`},
-		{`z`, `comp/ident/private`},
-		{`secretB`, `comp/private`},
-		{`secretZ`, `comp/private`},
-	}
-	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestUserDefinedTypes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Color(4)`, `BLUE`},
-		{`DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
-		{`type DARK_BLUE`, `Tone`},
-		{`type RED`, `Color`},
-		{`keys DARK_BLUE`, `[shade, color]`},
-		{`DARK_BLUE[shade]`, `DARK`},
-		{`DARK_BLUE[color]`, `BLUE`},
-		{`GREEN == GREEN`, `true`},
-		{`GREEN == ORANGE`, `false`},
-		{`GREEN != GREEN`, `false`},
-		{`GREEN != ORANGE`, `true`},
-		{`PURPLE in MyType`, `true`},
-		{`Tone/Shade/Color`, `MyType`},
-		{`Tone(LIGHT, GREEN)`, `Tone with (shade::LIGHT, color::GREEN)`},
-		{`Tone(LIGHT, GREEN) == DARK_BLUE`, `false`},
-		{`Tone(LIGHT, GREEN) != DARK_BLUE`, `true`},
-		{`troz DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
-		{`foo 3, 5`, `8`},
-		{`Tone with (shade::LIGHT, color::RED)`, `Tone with (shade::LIGHT, color::RED)`},
-	}
-	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
-}
-func TestStructs(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`doug`, `Person with (name::"Douglas", age::42)`},
-		{`tom in Cat`, `true`},
-	}
-	test_helper.RunTest(t, "struct_test.pf", tests, test_helper.TestValues)
-}
-func TestLambdas(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`apply DOUBLE, 42`, `84`},
-		{`apply "DOUBLE", 42`, `vm/apply/func`},
-	}
-	test_helper.RunTest(t, "lambda_test.pf", tests, test_helper.TestValues)
-}
-func TestWith(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
-		{`john with age::23`, `Person with (name::"John", age::23)`},
-		{`myList with diffList`, `["x", "y", "c", "d"]`},
-		{`myMap with "a"::99`, `map("a"::99, "b"::2, "c"::3, "d"::4)`},
-		{`myMap with "z"::42`, `map("a"::1, "b"::2, "c"::3, "d"::4, "z"::42)`},
-		{`myMap with diffMap`, `map("a"::99, "b"::99, "c"::3, "d"::4)`},
-		{`otherMap with ["a", 1]::99`, `map("a"::[0, 99], "b"::[2, 3])`},
-		{`myMap with "a"::99, "z"::42`, `map("a"::99, "b"::2, "c"::3, "d"::4, "z"::42)`},
-		{`myMap without "a"`, `map("b"::2, "c"::3, "d"::4)`},
-		{`myMap without "a", "b"`, `map("c"::3, "d"::4)`},
-	}
-	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
-}
-func TestTypeAccessErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Pair 1, 2`, `comp/private`},
-		{`Suit`, `comp/private/type`},
-		{`HEARTS`, `comp/ident/private`},
-		{`one`, `comp/ident/private`},
-	}
-	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestOverloading(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo 42`, `"int"`},
-		{`foo "zort"`, `"string"`},
-		{`foo 42, true`, `"any?, bool"`},
-		{`foo 42.0, true`, `"any?, bool"`},
-		{`foo true, true`, `"bool, bool"`},
-	}
-	test_helper.RunTest(t, "overloading_test.pf", tests, test_helper.TestValues)
-}
-func TestPiping(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`["fee", "fie", "fo", "fum"] -> len`, `4`},
-		{`["fee", "fie", "fo", "fum"] >> len`, `[3, 3, 2, 3]`},
-		{`["fee", "fie", "fo", "fum"] -> that + ["foo"]`, `["fee", "fie", "fo", "fum", "foo"]`},
-		{`["fee", "fie", "fo", "fum"] >> that + "!"`, `["fee!", "fie!", "fo!", "fum!"]`},
-		{`[1, 2, 3, 4] ?> that mod 2 == 0`, `[2, 4]`},
-		{`ks >> MP[that]`, `["fee", "fie", "fo", "fum"]`},
-		{`foo ks`, `["fee", "fie", "fo", "fum"]`},
-		{`goo ks`, `["fee", "fie", "fo", "fum"]`},
-		{`[1, 2, 3] >> double`, `[2, 4, 6]`},
-		{`boo([1, 2, 3], double)`, `[2, 4, 6]`},
-	}
-	test_helper.RunTest(t, "piping_test.pf", tests, test_helper.TestValues)
-}
-func TestForLoops(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`fib 8`, `21`},
-		{`collatzA 42`, `1`},
-		{`collatzB 42`, `1`},
-		{`evens Color`, `[RED, YELLOW, BLUE]`},
-		{`evens "Angela"`, `['A', 'g', 'l']`},
-		{`evens myList`, `[PURPLE, GREEN, ORANGE]`},
-		{`find GREEN, Color`, `3`},
-		{`find GREEN, myList`, `2`},
-		{`find GREEN, myMap`, `"c"`},
-		{`allKeys myList`, `[0, 1, 2, 3, 4, 5]`},
-		{`allKeys "Angela"`, `[0, 1, 2, 3, 4, 5]`},
-		{`allValues myList`, `[PURPLE, BLUE, GREEN, YELLOW, ORANGE, RED]`},
-		{`showRange 3, 8`, `[0::3, 1::4, 2::5, 3::6, 4::7]`},
-		{`showRangeKeys 3, 8`, `[0, 1, 2, 3, 4]`},
-		{`showRangeValues 3, 8`, `[3, 4, 5, 6, 7]`},
-		{`showRange 8, 3`, `[0::7, 1::6, 2::5, 3::4, 4::3]`},
-		{`showRangeKeys 8, 3`, `[0, 1, 2, 3, 4]`},
-		{`showRangeValues 8, 3 `, `[7, 6, 5, 4, 3]`},
-		{`x`, `10`},
-	}
-	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
-}
-func TestInnerFunctionsAndVariables(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo 42`, `42`},
-		{`zort 3, 5`, `(25, 15)`},
-		{`troz 2`, `2200`},
-	}
-	test_helper.RunTest(t, "inner_test.pf", tests, test_helper.TestValues)
-}
-func TestRecursion(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`fac 5`, `120`},
-		{`power 3, 4`, `81`},
-		{`inFac 5`, `120`},
-	}
-	test_helper.RunTest(t, "recursion_test.pf", tests, test_helper.TestValues)
-}
-func TestImports(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`qux.square 5`, `25`},
-		{`type qux.Color`, `type`},
-		{`qux.RED`, `qux.RED`},
-		{`type qux.RED`, `qux.Color`},
-		{`qux.RED in qux.Color`, `true`},
-		{`qux.Color(4)`, `qux.BLUE`},
-		{`qux.Person "John", 22`, `qux.Person with (name::"John", age::22)`},
-		{`qux.Tone LIGHT, BLUE`, `qux.Tone with (shade::qux.LIGHT, color::qux.BLUE)`},
-		{`troz.sumOfSquares 3, 4`, `25`},
-	}
-	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
-}
-func TestExternals(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`zort.square 5`, `25`},
-		{`type zort.Color`, `type`},
-		{`zort.RED`, `zort.RED`},
-		{`type zort.RED`, `zort.Color`},
-		{`zort.RED in zort.Color`, `true`},
-		{`zort.Color(4)`, `zort.BLUE`},
-		{`zort.Person "John", 22`, `zort.Person with (name::"John", age::22)`},
-		{`zort.Tone LIGHT, BLUE`, `zort.Tone with (shade::zort.LIGHT, color::zort.BLUE)`},
-		{`zort.Qux 5`, `zort.Qux(5)`},
-		{`zort.blerp`, `"Blerp"`},
-		{`zort.spong()`, `"Spong"`},
-		{`zort.moo boo 8`, `"Moo boo"`},
-		{`zort.moo boo coo 8`, `"Moo boo coo"`},
-		{`zort.moo zoo`, `"Moo zoo"`},
-		{`zort.xuq 9 mip`, `"Xuq _ mip"`},
-		{`8 zort.spoit`, `"_ spoit"`},
-		{`8 zort.qux 9`, `"_ qux _"`},
-		{`8 zort.bing 9 bong`, `"_ bing _ bong"`},
-	}
-	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
-}
-func TestRef(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`x ++`, `OK`},
-	}
-	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestValues)
-}
 func TestCast(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`cast "foo", string`, `"foo"`},
@@ -565,23 +165,126 @@ func TestClones(t *testing.T) {
 	}
 	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
 }
-func TestSnippet(t *testing.T) {
+func TestCorners(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`(qux 5)[0]`, `"foo "`},
-		{`(qux 5)[1]`, `10`},
-		{`(qux 5)[2]`, `" bar"`},
+		{`boo x`, `(1, 2, 3)`},
+		{`foo 1, 2`, `3`},
+		{`moo 1, 2`, `3`},
 	}
-	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
 }
-func TestInterface(t *testing.T) {
+func TestEquality(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`BLERP in Addable`, `true`},
-		{`Fnug(5) in Addable`, `true`},
-		{`ZORT in Foobarable`, `true`},
-		{`true in Addable`, `false`},
-		{`Fnug(5) in Foobarable`, `false`},
+		{`5.0 == 2.0`, `false`},
+		{`5.0 != 2.0`, `true`},
+		{`5 == 2`, `false`},
+		{`5 != 2`, `true`},
+		{`true != false`, `true`},
+		{`"foo" == "foo"`, `true`},
+		{`int == int`, `true`},
+		{`struct == struct`, `true`},
+		{`[1, 2, 3] == [1, 2, 3]`, `true`},
+		{`[1, 2, 4] == [1, 2, 3]`, `false`},
+		{`[1, 2, 3, 4] == [1, 2, 3]`, `false`},
+		{`[1, 2, 3] == [1, 2, 3, 4]`, `false`},
+		{`set(1, 2, 3) == set(1, 2, 3)`, `true`},
+		{`set(1, 2, 4) == set(1, 2, 3)`, `false`},
+		{`set(1, 2, 3, 4) == set(1, 2, 3)`, `false`},
+		{`set(1, 2, 3) == set(1, 2, 3, 4)`, `false`},
+		{`1::2 == 1::2`, `true`},
+		{`1::2 == 2::2`, `false`},
+		{`1::2 == 1::1`, `false`},
+		{`map(1::2, 3::4) == map(1::2, 3::4)`, `true`},
+		{`map(1::2, 3::4) == map(1::2, 4::4)`, `false`},
+		{`map(1::2, 3::4) == map(1::2, 3::5)`, `false`},
+		{`map(1::2, 3::4) == map(1::2, 3::4, 5::6)`, `false`},
+		{`map(1::2, 3::4, 5::6) == map(1::2, 3::4)`, `false`},
 	}
-	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+}
+func TestEqualityCompilerErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`(error "foo") == 42`, `comp/error/eq/a`},
+		{`42 == (error "foo")`, `comp/error/eq/b`},
+		{`42 == "foo"`, `comp/eq/types`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestExternals(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`zort.square 5`, `25`},
+		{`type zort.Color`, `type`},
+		{`zort.RED`, `zort.RED`},
+		{`type zort.RED`, `zort.Color`},
+		{`zort.RED in zort.Color`, `true`},
+		{`zort.Color(4)`, `zort.BLUE`},
+		{`zort.Person "John", 22`, `zort.Person with (name::"John", age::22)`},
+		{`zort.Tone LIGHT, BLUE`, `zort.Tone with (shade::zort.LIGHT, color::zort.BLUE)`},
+		{`zort.Qux 5`, `zort.Qux(5)`},
+		{`zort.blerp`, `"Blerp"`},
+		{`zort.spong()`, `"Spong"`},
+		{`zort.moo boo 8`, `"Moo boo"`},
+		{`zort.moo boo coo 8`, `"Moo boo coo"`},
+		{`zort.moo zoo`, `"Moo zoo"`},
+		{`zort.xuq 9 mip`, `"Xuq _ mip"`},
+		{`8 zort.spoit`, `"_ spoit"`},
+		{`8 zort.qux 9`, `"_ qux _"`},
+		{`8 zort.bing 9 bong`, `"_ bing _ bong"`},
+	}
+	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
+}
+func TestFancyFunctions(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 99`, `"foo _"`},
+		{`spong()`, `"spong _"`},
+		{`blerp`, `"blerp"`},
+		{`moo boo 8`, `"moo boo _"`},
+		{`moo boo coo 8`, `"moo boo coo _"`},
+		{`moo zoo`, `"moo zoo"`},
+		{`9 spoit`, `"_ spoit"`},
+		{`xuq 9 mip`, `"xuq _ mip"`},
+		{`troz 8 nerf 9`, `"troz _ nerf _"`},
+		{`goo 8 hoo 9 spoo 0`, `"goo _ hoo _ spoo _"`},
+		{`gee 8 hee 9 spee`, `"gee _ hee _ spee"`},
+		{`gah 8 hah 9 spah blah`, `"gah _ hah _ spah blah"`},
+		{`8 bing 9 bong`, `"_ bing _ bong"`},
+		{`8 ding 9 dong 0 dang`, `"_ ding _ dong _ dang"`},
+	}
+	test_helper.RunTest(t, "fancy_function_test.pf", tests, test_helper.TestValues)
+}
+func TestForLoops(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`fib 8`, `21`},
+		{`collatzA 42`, `1`},
+		{`collatzB 42`, `1`},
+		{`evens Color`, `[RED, YELLOW, BLUE]`},
+		{`evens "Angela"`, `['A', 'g', 'l']`},
+		{`evens myList`, `[PURPLE, GREEN, ORANGE]`},
+		{`find GREEN, Color`, `3`},
+		{`find GREEN, myList`, `2`},
+		{`find GREEN, myMap`, `"c"`},
+		{`allKeys myList`, `[0, 1, 2, 3, 4, 5]`},
+		{`allKeys "Angela"`, `[0, 1, 2, 3, 4, 5]`},
+		{`allValues myList`, `[PURPLE, BLUE, GREEN, YELLOW, ORANGE, RED]`},
+		{`showRange 3, 8`, `[0::3, 1::4, 2::5, 3::6, 4::7]`},
+		{`showRangeKeys 3, 8`, `[0, 1, 2, 3, 4]`},
+		{`showRangeValues 3, 8`, `[3, 4, 5, 6, 7]`},
+		{`showRange 8, 3`, `[0::7, 1::6, 2::5, 3::4, 4::3]`},
+		{`showRangeKeys 8, 3`, `[0, 1, 2, 3, 4]`},
+		{`showRangeValues 8, 3 `, `[7, 6, 5, 4, 3]`},
+		{`x`, `10`},
+	}
+	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
+}
+func TestFunctionOverloading(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 42`, `"int"`},
+		{`foo "zort"`, `"string"`},
+		{`foo 42, true`, `"any?, bool"`},
+		{`foo 42.0, true`, `"any?, bool"`},
+		{`foo true, true`, `"bool, bool"`},
+	}
+	test_helper.RunTest(t, "overloading_test.pf", tests, test_helper.TestValues)
 }
 func TestFunctionSharing(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -593,36 +296,16 @@ func TestFunctionSharing(t *testing.T) {
 	}
 	test_helper.RunTest(t, "function_sharing_test.pf", tests, test_helper.TestValues)
 }
-func TestImperative(t *testing.T) {
+func TestFunctionSyntaxCalls(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`zort false`, `7`},
+		{`foo "bing"`, `"foo bing"`},
+		{`"bing" zort`, `"bing zort"`},
+		{`"bing" troz "bong"`, `"bing troz bong"`},
+		{`moo "bing" goo`, `"moo bing goo"`},
+		{`flerp "bing" blerp "bong"`, `"flerp bing blerp bong"`},
+		{`qux`, `"qux"`},
 	}
-	test_helper.RunTest(t, "imperative_test.pf", tests, test_helper.TestOutput)
-}
-func TestRuntimeTypecheck(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`EvenNumber 2`, `EvenNumber(2)`},
-		{`EvenNumber 3`, `vm/typecheck/fail`},
-	}
-	test_helper.RunTest(t, "runtime_typecheck_test.pf", tests, test_helper.TestValues)
-}
-func TestParameterizedTypes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
-	}
-	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
-}
-func TestTypeInstances(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Z{3}(2) in Z{3}`, `true`},
-	}
-	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
-}
-func TestReflection(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`reflect.isStruct Varchar{8}`, `false`},
-	}
-	test_helper.RunTest(t, "reflect_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "function_call_test.pf", tests, test_helper.TestValues)
 }
 func TestGocode(t *testing.T) {
 	if runtime.GOOS == "windows" { // Windows can't use the plugin package.
@@ -681,13 +364,6 @@ func TestGocode(t *testing.T) {
 	os.Remove(goTestFile)
 	os.WriteFile(locationOfGoTimes, temp, 0644)
 }
-func TestLogging(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo 8`, test_helper.Foo8Result},
-	}
-	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestOutput)
-}
-
 func TestHighlighter(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Type`, `[38;2;78;201;176mType[0m`},
@@ -712,12 +388,267 @@ func TestHighlighter(t *testing.T) {
 	}
 	test_helper.RunTest(t, "highlighter_test.pf", tests, test_helper.TestHighlighter)
 }
+func TestImports(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`qux.square 5`, `25`},
+		{`type qux.Color`, `type`},
+		{`qux.RED`, `qux.RED`},
+		{`type qux.RED`, `qux.Color`},
+		{`qux.RED in qux.Color`, `true`},
+		{`qux.Color(4)`, `qux.BLUE`},
+		{`qux.Person "John", 22`, `qux.Person with (name::"John", age::22)`},
+		{`qux.Tone LIGHT, BLUE`, `qux.Tone with (shade::qux.LIGHT, color::qux.BLUE)`},
+		{`troz.sumOfSquares 3, 4`, `25`},
+	}
+	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
+}
+func TestIndexing(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`DARK_BLUE[shade]`, `DARK`},
+		{`myColor[shade]`, `LIGHT`},
+		{`DARK_BLUE[KEY]`, `DARK`},
+		{`myColor[KEY]`, `LIGHT`},
+		{`DARK_BLUE[key]`, `DARK`},
+		{`myColor[key]`, `LIGHT`},
+		{`"Angela"[3]`, `'e'`},
+		{`"Angela"[2::5]`, `"gel"`},
+		{`myWord[2::5]`, `"gel"`},
+		{`myList[2]`, `[5, 6]`},
+		{`myList[myNumber]`, `[5, 6]`},
+		{`myList[0::2]`, `[[1, 2], [3, 4]]`},
+		{`myList[myIntPair]`, `[[1, 2], [3, 4]]`},
+		{`("a", "b", "c", "d")[2]`, `"c"`},
+		{`("a", "b", "c", "d")[myIntPair]`, `("a", "b")`},
+		{`"Angela"[myIntPair]`, `"An"`},
+		{`myWord[myIntPair]`, `"An"`},
+		{`myPair[0]`, `"foo"`},
+		{`myMap["a"]`, `[1, 2]`},
+		{`foo myMap, myIndex`, `[1, 2]`},
+		{`foo myList, myNumber`, `[5, 6]`},
+		{`foo myColor, key`, `LIGHT`},
+		{`foo myPair, myOtherNumber`, `"bar"`},
+		{`foo myWord, myNumber`, `'g'`},
+	}
+	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
+}
+func TestIndexingCompilerErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`[1, 2, 3][4.0]`, `comp/index/list`},
+		{`"foo"[4.0]`, `comp/index/string`},
+		{`(1, 2, 3)[4.0]`, `comp/index/tuple`},
+		{`(1::2)[4.0]`, `comp/index/pair`},
+		{`SN[4.0]`, `comp/index/snippet`},
+		{`JOHN[lives]`, "comp/index/struct/a"},
+		{`JOHN[42]`, "comp/index/struct/b"},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestImperative(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`zort false`, `7`},
+	}
+	test_helper.RunTest(t, "imperative_test.pf", tests, test_helper.TestOutput)
+}
+func TestInnerFunctionsAndVariables(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 42`, `42`},
+		{`zort 3, 5`, `(25, 15)`},
+		{`troz 2`, `2200`},
+	}
+	test_helper.RunTest(t, "inner_test.pf", tests, test_helper.TestValues)
+}
+func TestInterfaces(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`BLERP in Addable`, `true`},
+		{`Fnug(5) in Addable`, `true`},
+		{`ZORT in Foobarable`, `true`},
+		{`true in Addable`, `false`},
+		{`Fnug(5) in Foobarable`, `false`},
+	}
+	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
+}
+func TestLambdas(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`apply DOUBLE, 42`, `84`},
+		{`apply "DOUBLE", 42`, `vm/apply/func`},
+	}
+	test_helper.RunTest(t, "lambda_test.pf", tests, test_helper.TestValues)
+}
+func TestLiterals(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`"foo"`, `"foo"`},
+		{"`foo`", `"foo"`},
+		{`'q'`, `'q'`},
+		{`true`, `true`},
+		{`false`, `false`},
+		{`42.0`, `42.00000000`},
+		{`42`, `42`},
+		{`0b101010`, `42`},
+		{`0o52`, `42`},
+		{`0x2A`, `42`},
+		{`NULL`, `NULL`},
+		{`OK`, `OK`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+}
+func TestLogging(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 8`, test_helper.Foo8Result},
+	}
+	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestOutput)
+}
+func TestMiscellaneousCompilerErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`[error "foo"]`, `comp/list/err`},
+		{`break 42`, `comp/break/a`},
+		{`break`, `comp/break/b`},
+		{`continue`, `comp/continue`},
+		{`w(42)`, `comp/apply/func`},
+		{`("a", "b") ...`, `comp/splat/args`},
+		{`"foo" ...`, `comp/splat/type`},
+		{`42 >> that`, `comp/pipe/mf/list`},
+		{`[1, 2, 3] ?> 2 * that`, `comp/pipe/filter/bool`},
+		{`-- foo |(1, 2, 3)| bar`, `comp/snippet/tuple`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestParameterizedTypes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
+	}
+	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
+}
+
+func TestPiping(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`["fee", "fie", "fo", "fum"] -> len`, `4`},
+		{`["fee", "fie", "fo", "fum"] >> len`, `[3, 3, 2, 3]`},
+		{`["fee", "fie", "fo", "fum"] -> that + ["foo"]`, `["fee", "fie", "fo", "fum", "foo"]`},
+		{`["fee", "fie", "fo", "fum"] >> that + "!"`, `["fee!", "fie!", "fo!", "fum!"]`},
+		{`[1, 2, 3, 4] ?> that mod 2 == 0`, `[2, 4]`},
+		{`ks >> MP[that]`, `["fee", "fie", "fo", "fum"]`},
+		{`foo ks`, `["fee", "fie", "fo", "fum"]`},
+		{`goo ks`, `["fee", "fie", "fo", "fum"]`},
+		{`[1, 2, 3] >> double`, `[2, 4, 6]`},
+		{`boo([1, 2, 3], double)`, `[2, 4, 6]`},
+	}
+	test_helper.RunTest(t, "piping_test.pf", tests, test_helper.TestValues)
+}
+func TestRecursion(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`fac 5`, `120`},
+		{`power 3, 4`, `81`},
+		{`inFac 5`, `120`},
+	}
+	test_helper.RunTest(t, "recursion_test.pf", tests, test_helper.TestValues)
+}
+func TestReflection(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`reflect.isStruct Varchar{8}`, `false`},
+	}
+	test_helper.RunTest(t, "reflect_test.pf", tests, test_helper.TestValues)
+}
+func TestRef(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`x ++`, `OK`},
+	}
+	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestValues)
+}
+func TestSnippets(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`(qux 5)[0]`, `"foo "`},
+		{`(qux 5)[1]`, `10`},
+		{`(qux 5)[2]`, `" bar"`},
+	}
+	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
+}
+func TestStructs(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`doug`, `Person with (name::"Douglas", age::42)`},
+		{`tom in Cat`, `true`},
+	}
+	test_helper.RunTest(t, "struct_test.pf", tests, test_helper.TestValues)
+}
 func TestTry(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 3`, `4`},
 		{`foo 0`, `"Oops"`},
 	}
 	test_helper.RunTest(t, "try_test.pf", tests, test_helper.TestOutput)
+}
+func TestTuples(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`(1, 2), 3`, `(1, 2, 3)`},
+		{`1, (2, 3)`, `(1, 2, 3)`},
+		{`(1, 2), (3, 4)`, `(1, 2, 3, 4)`},
+		{`()`, `()`},
+		{`type tuple "foo", "bar"`, `tuple`},
+		{`len tuple "foo", "bar"`, `2`},
+		{`1 in tuple(1, 2)`, `true`},
+		{`string(X)`, `"(2, 3)"`},
+		{`len tuple 1, X`, `3`},
+		{`len tuple X, 1`, `3`},
+		{`len tuple W, Z`, `8`},
+		{`foo 1, X`, `3`},
+		{`foo X, 1`, `3`},
+		{`foo W, Z`, `8`},
+	}
+	test_helper.RunTest(t, "tuples_test.pf", tests, test_helper.TestValues)
+}
+func TestTypes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Color(4)`, `BLUE`},
+		{`DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+		{`type DARK_BLUE`, `Tone`},
+		{`type RED`, `Color`},
+		{`keys DARK_BLUE`, `[shade, color]`},
+		{`DARK_BLUE[shade]`, `DARK`},
+		{`DARK_BLUE[color]`, `BLUE`},
+		{`GREEN == GREEN`, `true`},
+		{`GREEN == ORANGE`, `false`},
+		{`GREEN != GREEN`, `false`},
+		{`GREEN != ORANGE`, `true`},
+		{`PURPLE in MyType`, `true`},
+		{`Tone/Shade/Color`, `MyType`},
+		{`Tone(LIGHT, GREEN)`, `Tone with (shade::LIGHT, color::GREEN)`},
+		{`Tone(LIGHT, GREEN) == DARK_BLUE`, `false`},
+		{`Tone(LIGHT, GREEN) != DARK_BLUE`, `true`},
+		{`troz DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+		{`foo 3, 5`, `8`},
+		{`Tone with (shade::LIGHT, color::RED)`, `Tone with (shade::LIGHT, color::RED)`},
+	}
+	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
+}
+func TestTypeAccessErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Pair 1, 2`, `comp/private`},
+		{`Suit`, `comp/private/type`},
+		{`HEARTS`, `comp/ident/private`},
+		{`one`, `comp/ident/private`},
+	}
+	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestTypeExpressionCompilerErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`clones{string, int}`, `comp/clones/arguments`},
+		{`clones{NULL}`, `comp/clones`},
+		{`struct "foo"`, `comp/type/concrete`},
+		{`("foo") list{int}`, `comp/suffix/b`},
+		{`5 ; (post "foo")`, `comp/sanity`},
+		{`qux.foo 42`, `comp/namespace/private`},
+		{`(error "foo"), 42`, `comp/tuple/err/a`},
+		{`42, (error "foo")`, `comp/tuple/err/b`},
+		{``, `comp/`},
+		{``, `comp/`},
+		{``, `comp/`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestTypeInstances(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Z{3}(2) in Z{3}`, `true`},
+	}
+	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
 }
 func TestValid(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -726,11 +657,50 @@ func TestValid(t *testing.T) {
 	}
 	test_helper.RunTest(t, "valid_test.pf", tests, test_helper.TestValues)
 }
-func TestCorners(t *testing.T) {
+func TestVariablesAndConsts(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`boo x`, `(1, 2, 3)`},
-		{`foo 1, 2`, `3`},
-		{`moo 1, 2`, `3`},
+		{`A`, `42`},
+		{`getB`, `99`},
+		{`changeZ`, `OK`},
+		{`v`, `true`},
+		{`w`, `42`},
+		{`y = NULL`, "OK"},
 	}
-	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
+}
+func TestVariableAccessErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`B`, `comp/ident/private`},
+		{`A = 43`, `comp/assign/const`},
+		{`z`, `comp/ident/private`},
+		{`secretB`, `comp/private`},
+		{`secretZ`, `comp/private`},
+	}
+	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestVariableCompilerErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`i * i = 4`, `comp/assign/lhs/a`},
+		{`w = 42`, `comp/assign/private`},
+		{`X = 42`, `comp/assign/const`},
+		{`noVar = 0`, `comp/assign/repl`},
+		{`blerp`, `comp/ident/known`},
+		{`w`, `comp/ident/private`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestWith(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
+		{`john with age::23`, `Person with (name::"John", age::23)`},
+		{`myList with diffList`, `["x", "y", "c", "d"]`},
+		{`myMap with "a"::99`, `map("a"::99, "b"::2, "c"::3, "d"::4)`},
+		{`myMap with "z"::42`, `map("a"::1, "b"::2, "c"::3, "d"::4, "z"::42)`},
+		{`myMap with diffMap`, `map("a"::99, "b"::99, "c"::3, "d"::4)`},
+		{`otherMap with ["a", 1]::99`, `map("a"::[0, 99], "b"::[2, 3])`},
+		{`myMap with "a"::99, "z"::42`, `map("a"::99, "b"::2, "c"::3, "d"::4, "z"::42)`},
+		{`myMap without "a"`, `map("b"::2, "c"::3, "d"::4)`},
+		{`myMap without "a", "b"`, `map("c"::3, "d"::4)`},
+	}
+	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
 }
