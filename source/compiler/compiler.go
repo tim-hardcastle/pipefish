@@ -2593,10 +2593,6 @@ func (cp *Compiler) emitCallOpcode(funcNumber uint32, valLocs []uint32) {
 	}
 }
 
-func (cp *Compiler) Describe(v values.Value) string {
-	return cp.Vm.Literal(v)
-}
-
 func (cp *Compiler) Reserve(t values.ValueType, v any, tok *token.Token) uint32 {
 	if t < values.ValueType(len(cp.Vm.ConcreteTypeInfo)) {
 		cp.Cm("Reserving m"+strconv.Itoa(len(cp.Vm.Mem))+" with initial type "+cp.Vm.DescribeType(t, vm.LITERAL)+".", tok) // E.g. the members of enums get created before their type. TODO --- is there a reason for this?
