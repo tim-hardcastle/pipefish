@@ -2287,14 +2287,8 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 		cp.Emit(vm.Qtyl, loc, typeLoc, DUMMY)
 		checkParameterizedType = bkGoto(cp.CodeTop() - 1)
 	}
-	if len(acceptedSingles) != len(singles) {
-		if tye, ok := sig.GetVarType(0).(*ast.TypeExpression); ok {
-			if tye.TypeArgs == nil {
-				checkSingleType = cp.emitTypeComparison(tye.Operator, loc, tok)
-			}
-		} else {
-			checkSingleType = cp.emitTypeComparison(sig.GetVarType(0), loc, tok)
-		}
+	if _, ok := sig.GetVarType(0).(*ast.TypeExpression); ok && len(acceptedSingles) != len(singles) {
+		checkSingleType = cp.emitTypeComparison(sig.GetVarType(0), loc, tok)
 	}
 	if insert {
 		vData, _ := env.GetVar(sig.GetVarName(0)) // It is assumed that we've already made it exist.

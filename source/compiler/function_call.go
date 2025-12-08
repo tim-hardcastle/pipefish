@@ -389,57 +389,11 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 // reasonably bear. Hence a mass of pernickety little interfaces and functions try to conceal the fact that, again, I have like three-and-
 // a-half ways to represent types, in the parser, in the compiler, and in the VM.
 func (cp *Compiler) emitTypeComparison(typeRepresentation any, mem uint32, tok *token.Token) bkGoto {
-	if typeRepresentation == nil { // Then it is presumptively a nil ast.TypeNode.
-		// TODO, this is obviously brittle af.
-		return bkGoto(DUMMY)
-	}
 	switch typeRepresentation := typeRepresentation.(type) {
-	case string:
-		return cp.emitTypeComparisonFromTypeName(typeRepresentation, mem, tok)
 	case AlternateType:
 		return cp.emitTypeComparisonFromAltType(typeRepresentation, mem, tok)
-	case values.AbstractType:
-		return cp.emitTypeComparisonFromAbstractType(typeRepresentation, mem, tok)
-	case ast.TypeNode:
-		return cp.emitTypeComparisonFromTypeNode(typeRepresentation, mem, tok)
 	}
 	panic("Now this was not meant to happen.")
-}
-
-func (cp *Compiler) emitTypeComparisonFromTypeName(typeAsString string, mem uint32, tok *token.Token) bkGoto {
-	cp.Cm("Emitting type comparison from typename "+text.Emph(typeAsString), tok)
-	// It may be a plain old concrete type.
-	if ty, ok := cp.GetConcreteType(typeAsString); ok {
-		cp.Emit(vm.Qtyp, mem, uint32(ty), DUMMY)
-		return bkGoto(cp.CodeTop() - 1)
-	}
-	// It may be a tuple. TODO --- I'm not sure whether I can instead safely address this case just by adding "tuple" to the cp.TypeNameToTypeList.
-	if typeAsString == "tuple" {
-		cp.Emit(vm.Qtyp, mem, uint32(values.TUPLE), DUMMY)
-		return bkGoto(cp.CodeTop() - 1)
-	}
-	// It may be a user-defined abstract type.
-	var abType values.AbstractType
-	for _, aT := range cp.Vm.AbstractTypes { // TODO --- the lookup here and in the VM could be much faster, this by a map, that by a slice of booleans.
-		if aT.Name == typeAsString {
-			abType = aT.AT
-			break
-		}
-	}
-	// It may be a clone group:
-	if group, ok := cp.Common.SharedTypenameToTypeList[typeAsString]; ok {
-		abType = group.ToAbstractType()
-	}
-	if abType.Types != nil {
-		args := []uint32{mem}
-		for _, t := range abType.Types {
-			args = append(args, uint32(t))
-		}
-		args = append(args, DUMMY)
-		cp.Emit(vm.Qabt, args...)
-		return bkGoto(cp.CodeTop() - 1)
-	}
-	panic("Unknown type: " + typeAsString)
 }
 
 func (cp *Compiler) emitTypeComparisonFromAltType(typeAsAlt AlternateType, mem uint32, tok *token.Token) bkGoto { // TODO --- more of this.
@@ -455,12 +409,6 @@ func (cp *Compiler) emitTypeComparisonFromAltType(typeAsAlt AlternateType, mem u
 	args = append(args, DUMMY)
 	cp.Emit(vm.Qabt, args...)
 	return bkGoto(cp.CodeTop() - 1)
-}
-
-func (cp *Compiler) emitTypeComparisonFromTypeNode(tn ast.TypeNode, mem uint32, tok *token.Token) bkGoto { // TODO --- more of this.
-	cp.Cm("Emitting type comparison from type node "+text.Emph(tn.String()), tok)
-	abType := cp.GetAbstractTypeFromAstType(tn)
-	return cp.emitTypeComparisonFromAbstractType(abType, mem, tok)
 }
 
 func (cp *Compiler) emitTypeComparisonFromAbstractType(abType values.AbstractType, mem uint32, tok *token.Token) bkGoto { // TODO --- more of this.
