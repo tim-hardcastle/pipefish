@@ -1,0 +1,7 @@
+// Some odd little cases
+
+var
+
+x any? = [1, 2, 3]
+
+y int, z string = 42, "foo"
