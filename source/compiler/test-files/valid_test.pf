@@ -1,0 +1,12 @@
+def
+
+foo(i int) :
+    valid sus :
+        sus
+    else :
+        type unwrap sus
+given :
+    sus = bar i
+
+bar(i int) :
+    12 div i 
