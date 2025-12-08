@@ -1326,7 +1326,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	fnenv.Ext = outerEnv
 	cpFn.LoReg = iz.cp.MemTop()
 	referenceVariables := []uint32{}
-	// First we do the local variables that are in the signature of the struct.
+	// First we do the local variables that are in the signature of the function.
 	for _, pair := range izFn.sig {
 		iz.cp.Reserve(values.UNDEFINED_TYPE, DUMMY, &izFn.op)
 		if ast.IsRef(pair.VarType) {
@@ -1334,13 +1334,8 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 			iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.REFERENCE_VARIABLE, iz.cp.Common.AnyTypeScheme, &izFn.op)
 			continue
 		}
-		_, isVarargs := pair.VarType.(*ast.TypeDotDotDot)
-		if isVarargs {
-			iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.FUNCTION_ARGUMENT, compiler.AlternateType{compiler.TypedTupleType{iz.cp.GetAlternateTypeFromTypeAst(pair.VarType)}}, &izFn.op)
-		} else {
-			if !ast.IsAstBling(pair.VarType) {
+		if !ast.IsAstBling(pair.VarType) {
 				iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.FUNCTION_ARGUMENT, iz.cp.GetAlternateTypeFromTypeAst(pair.VarType), &izFn.op)
-			}
 		}
 	}
 	cpFn.HiReg = iz.cp.MemTop()

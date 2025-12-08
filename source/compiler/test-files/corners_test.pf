@@ -11,4 +11,9 @@ def
 boo(x) :
     x ...
 
+foo(a ... any) :
+    a[0] + a[1]
+
+moo(a ... int) :
+    a[0] + a[1]
 

@@ -617,6 +617,8 @@ func TestValid(t *testing.T) {
 func TestCorners(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`boo x`, `(1, 2, 3)`},
+		{`foo 1, 2`, `3`},
+		{`moo 1, 2`, `3`},
 	}
 	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
 }

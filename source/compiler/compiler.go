@@ -426,31 +426,33 @@ NodeTypeSwitch:
 			}
 
 		}
+		// TODO --- you can narrow the return types down given the `containerType`.
 		if containerType.containsOnlyTuples() {
 			if indexType.isOnlyCloneOf(cp.Vm, values.INT) {
 				cp.Put(vm.IdxT, container, index, errTok)
+				rtnTypes = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR)
 				break
 			}
 			if indexType.isOnlyCloneOf(cp.Vm, values.PAIR) {
 				cp.Put(vm.SliT, container, index, errTok)
+				rtnTypes = AltType(values.ERROR, values.TUPLE)
 				break
 			}
 			if indexType.cannotBeACloneOf(cp.Vm, values.INT, values.PAIR) {
 				cp.Throw("comp/index/tuple", node.GetToken())
 				break
 			}
-			rtnTypes = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR)
 		}
 		if containerType.isOnlyCloneOf(cp.Vm, values.PAIR) {
 			if indexType.isOnlyCloneOf(cp.Vm, values.INT) {
 				cp.Put(vm.Idxp, container, index, errTok)
+				rtnTypes = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR)
 				break
 			}
 			if indexType.cannotBeACloneOf(cp.Vm, values.INT) {
 				cp.Throw("comp/index/pair", node.GetToken())
 				break
 			}
-			rtnTypes = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR)
 		}
 		if containerType.isOnlyCloneOf(cp.Vm, values.SNIPPET) {
 			if indexType.isOnlyCloneOf(cp.Vm, values.INT) {

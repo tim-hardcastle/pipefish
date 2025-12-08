@@ -1025,9 +1025,6 @@ func (p *Parser) checkNesting() {
 		}
 	}
 	if p.CurToken.Type == token.EOF {
-		if p.nesting.Len() > 0 {
-			println("Length is", p.nesting.Len())
-		}
 		for popped, poppable := p.nesting.Pop(); poppable; popped, poppable = p.nesting.Pop() {
 			println("Throwing eol", popped.Type, popped.Literal)
 			p.Throw("parse/eol", &p.CurToken, &popped)
