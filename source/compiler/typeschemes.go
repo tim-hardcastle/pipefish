@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/values"
 	"github.com/tim-hardcastle/pipefish/source/vm"
@@ -257,6 +258,36 @@ func AbstractTypeToAlternateType(abType values.AbstractType) AlternateType {
 		result = append(result, SimpleType(ty))
 	}
 	return result
+}
+
+// We may need to combine types gotten in the form of TypeNodes and types gotten in the 
+// form of AlternateTypes. Hence this function.
+func (cp Compiler) typeNodeToAlternateType(tn ast.TypeNode) AlternateType {
+	switch tn := tn.(type) {
+	case *ast.TypeWithName :
+		return cp.TypeNameToTypeScheme[tn.String()]
+	case *ast.TypeWithArguments :
+		return cp.TypeNameToTypeScheme[tn.String()]
+	case *ast.TypeInfix :
+		switch tn.Operator {
+		case "/" :
+			return cp.typeNodeToAlternateType(tn.Left).Union(cp.typeNodeToAlternateType(tn.Right))
+		default :
+			panic("This shouldn't happen.")
+		}
+	case *ast.TypeSuffix :
+		switch tn.Operator {
+		case "?" :
+			return cp.typeNodeToAlternateType(tn.Left).Union(AltType(values.NULL))
+		case "!" :
+			return cp.typeNodeToAlternateType(tn.Left).Union(AltType(values.NULL))
+		default :
+			panic("This shouldn't happen.")
+		}
+	case *ast.TypeDotDotDot:
+		return AlternateType{TypedTupleType{cp.typeNodeToAlternateType(tn.Right)}}
+	}
+	panic("This also shouldn't happen.")
 }
 
 // This assumes that the alternateType came from the typeNameToTypeList array and therefore contains only elements of

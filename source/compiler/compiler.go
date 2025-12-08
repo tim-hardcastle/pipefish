@@ -221,7 +221,7 @@ NodeTypeSwitch:
 		}
 		rtnConst = false // The initialization/mutation in the assignment makes it variable whatever the RHS is.
 		types := rTypes.without(SimpleType(values.ERROR))
-		newSig := cpSig{} // A more flexible form of signature that allows the types to be represented as a string or as an AlternateType.
+		newSig := alternateSig{} // A more flexible form of signature that allows the types to be represented as a string or as an AlternateType.
 		// We need to do typechecking differently according to whether anything on the LHS is a global, in which case we need to early-return an error from the typechecking.
 		flavor := CHECK_LOCAL_CMD_ASSIGNMENTS
 		for i, pair := range sig {
@@ -266,7 +266,7 @@ NodeTypeSwitch:
 				if vType, ok := pair.VarType.(*ast.TypeWithName); ok && vType.OperatorName == "tuple" {
 					cp.Cm("Adding variable in ASSIGN, 1", node.GetToken())
 					cp.AddThatAsVariable(env, pair.VarName, LOCAL_VARIABLE, cp.Common.AnyTuple, node.GetToken())
-					newSig = append(newSig, ast.NameTypeAstPair{pair.VarName, ast.TUPLE_TYPE_AST})
+					newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.Common.AnyTuple})
 				} else {
 					typesAtIndex := typesAtIndex(types, i)
 					cp.Cm("Adding variable in ASSIGN, 2", node.GetToken())
@@ -274,7 +274,7 @@ NodeTypeSwitch:
 					if sig[i].VarType == ast.INFERRED_TYPE_AST {
 						newSig = append(newSig, NameAlternateTypePair{pair.VarName, typesAtIndex})
 					} else {
-						newSig = append(newSig, ast.NameTypeAstPair{pair.VarName, sig[i].VarType})
+						newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.GetAlternateTypeFromTypeAst(sig[i].VarType)})
 					}
 				}
 			}
@@ -1336,7 +1336,7 @@ func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) 
 
 	boundResultLoc := uint32(DUMMY)
 	indexResultLoc := uint32(DUMMY)
-	var boundCpSig, indexCpSig cpSig
+	var boundCpSig, indexCpSig alternateSig
 	var boundVariableTypes, indexVariableTypes AlternateType
 
 	if node.BoundVariables == nil {
@@ -2469,17 +2469,17 @@ type signature interface {
 	Len() int
 }
 
-type cpSig []ast.NameTypePair
+type alternateSig []NameAlternateTypePair
 
-func (cs cpSig) GetVarName(i int) string {
+func (cs alternateSig) GetVarName(i int) string {
 	return cs[i].GetName()
 }
 
-func (cs cpSig) GetVarType(i int) any {
+func (cs alternateSig) GetVarType(i int) any {
 	return cs[i].GetType()
 }
 
-func (cs cpSig) Len() int {
+func (cs alternateSig) Len() int {
 	return len(cs)
 }
 
