@@ -1,0 +1,33 @@
+// Some things we can use to elicit errors with.
+import private 
+
+"qux.pf"
+
+newtype
+
+Person = struct(name string, age int)
+Cat = struct(name string, lives int)
+
+make list{int}
+
+var
+
+v = NULL
+
+private
+
+w = 42 
+
+const 
+
+X = 99
+SN = -- foo
+JOHN = Person("John", 22)
+
+def 
+
+blerp(i int) :
+    1 div i 
+
+derp(x float) :
+    1 / x

@@ -1,0 +1,6 @@
+// Exists to be imported by the compile time errors test.
+
+def
+
+foo(i int) :
+    i

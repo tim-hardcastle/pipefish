@@ -105,6 +105,9 @@ func TestOutput(cp *compiler.Compiler, s string) (string, error) {
 }
 
 func TestCompilerErrors(cp *compiler.Compiler, s string) (string, error) {
+	if s == "" {
+		return "comp/", nil
+	}
 	v := cp.Do(s)
 	if !cp.ErrorsExist() {
 		return "", errors.New("unexpected successful evaluation returned " + text.Emph(cp.Vm.Literal(v)))

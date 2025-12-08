@@ -234,7 +234,7 @@ NodeTypeSwitch:
 						break NodeTypeSwitch
 					}
 				}
-				if v.Access != REFERENCE_VARIABLE { // TODO --- THere's probably a more elgant way of dealing with the reference variable thing if I think about it, but as I intend to type them anyway and this will get refactored away it's not a big deal.
+				if v.Access != REFERENCE_VARIABLE { // TODO --- There's probably a more elgant way of dealing with the reference variable thing if I think about it, but as I intend to type them anyway and this will get refactored away it's not a big deal.
 					newSig = append(newSig, NameAlternateTypePair{pair.VarName, v.Types})
 				} else {
 					newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)})
@@ -284,9 +284,6 @@ NodeTypeSwitch:
 		cp.Put(vm.Asgm, values.C_OK)
 		cp.VmComeFrom(rhsIsError, typeCheckFailed)
 		break NodeTypeSwitch
-	case *ast.Bling:
-		cp.Throw("comp/bling/wut", node.GetToken())
-		break
 	case *ast.BooleanLiteral:
 		cp.Reserve(values.BOOL, node.Value, node.GetToken())
 		rtnTypes, rtnConst = AltType(values.BOOL), true
@@ -402,6 +399,7 @@ NodeTypeSwitch:
 			if indexType.isOnlyCloneOf(cp.Vm, values.PAIR) {
 				cp.Put(vm.SliL, container, index, errTok)
 				rtnTypes = containerType
+				break
 			}
 			if indexType.cannotBeACloneOf(cp.Vm, values.INT, values.PAIR) {
 				cp.Throw("comp/index/list", node.GetToken())
@@ -464,7 +462,6 @@ NodeTypeSwitch:
 				cp.Throw("comp/index/snippet", node.GetToken())
 				break
 			}
-			rtnTypes = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR)
 		}
 		structT, ok := cp.alternateTypeIsOnlyStruct(containerType)
 		if ok {
@@ -804,7 +801,7 @@ NodeTypeSwitch:
 		rtnTypes, rtnConst = AlternateType{FiniteTupleType{}}, true
 	case *ast.PipingExpression: // I.e. -> >> and -> and ?> .
 		lhsTypes, lhsConst := cp.CompileNode(node.Left, ctxt.x())
-		if cp.P.ErrorsExist() {
+		if lhsTypes.Contains(values.COMPILE_TIME_ERROR) {
 			break
 		}
 		// And that's about all the streaming operators really do have in common under the hood, so let's do a switch on the operators.
@@ -914,11 +911,11 @@ NodeTypeSwitch:
 			}
 			operands := []uint32{v.MLoc}
 			for _, arg := range node.Args {
-				cp.CompileNode(arg, ctxt.x())
+				types, _ :=cp.CompileNode(arg, ctxt.x())
+				if types.Contains(values.COMPILE_TIME_ERROR) {
+					break NodeTypeSwitch
+				}
 				operands = append(operands, cp.That())
-			}
-			if cp.P.ErrorsExist() {
-				break NodeTypeSwitch
 			}
 			switch {
 			case v.Types.isOnly(values.FUNC):
@@ -984,14 +981,10 @@ NodeTypeSwitch:
 			rtnTypes = altType(values.ERROR, values.TUPLE)
 			break NodeTypeSwitch
 		}
-		ok, _ := cp.P.CanParse(node.Token, parser.SUFFIX)
-		if ok {
-			cp.pushRCompiler(resolvingCompiler)
-			rtnTypes, rtnConst = resolvingCompiler.createFunctionCall(cp, node, ctxt.x(), node.GetToken().Namespace != "")
-			cp.popRCompiler()
-			break
-		}
-		cp.Throw("comp/known/suffix", node.GetToken())
+		cp.pushRCompiler(resolvingCompiler)
+		rtnTypes, rtnConst = resolvingCompiler.createFunctionCall(cp, node, ctxt.x(), node.GetToken().Namespace != "")
+		cp.popRCompiler()
+		break
 	case *ast.TryExpression:
 		// We may have a variable to store an identifier in, which may or may not already have
 		// been declared.
@@ -1078,11 +1071,6 @@ NodeTypeSwitch:
 		}
 	case *ast.TypeSuffixExpression: // Clone types can have type suffixes as constructors so you can use them as units.
 		if ty, ok := node.Operator.(*ast.TypeWithName); ok {
-			typeInfo, conc := cp.getTypeInformation(ty.OperatorName)
-			if !conc || !typeInfo.IsClone() {
-				cp.Throw("comp/suffix/a", node.GetToken())
-				break
-			}
 			// The fact that we're compiling this node means that we're not in a signature. Hence
 			// the compiler can do what the parser can't, and turn it into a normal suffix expression,
 			// which can then be compiled.
@@ -1111,7 +1099,7 @@ NodeTypeSwitch:
 	if ac == DEF && !rtnTypes.IsLegalDefReturn() {
 		cp.Throw("comp/fcis", node.GetToken())
 	}
-	if cp.P.ErrorsExist() {
+	if rtnTypes.Contains(values.COMPILE_TIME_ERROR) {
 		return AltType(values.COMPILE_TIME_ERROR), true
 	}
 	// If the node we evaluated is potentially a return value of a function we're compiling, then
@@ -1119,7 +1107,7 @@ NodeTypeSwitch:
 	if ctxt.IsReturn {
 		cp.checkInferredTypesAgainstContext(rtnTypes, ctxt.Typecheck, node.GetToken())
 	}
-	if cp.P.ErrorsExist() {
+	if rtnTypes.Contains(values.COMPILE_TIME_ERROR) {
 		return AltType(values.COMPILE_TIME_ERROR), true
 	}
 	// We do a little logging.
@@ -1186,12 +1174,8 @@ func (cp *Compiler) getResolvingCompiler(node ast.Node, ac CpAccess) *Compiler {
 	}
 	resolvingCompiler := cp
 	for _, name := range namespace[:len(namespace)-1] {
-		var ok bool
-		resolvingCompiler, ok = resolvingCompiler.Modules[name]
-		if !ok {
-			cp.Throw("comp/namespace/exist", node.GetToken(), name)
-			return nil
-		}
+		// We checked that it exists during parsing.
+		resolvingCompiler, _ = resolvingCompiler.Modules[name]
 		if resolvingCompiler.P.Private && (ac == REPL || len(namespace) > 1) {
 			cp.Throw("comp/namespace/private", node.GetToken(), name)
 			return nil
@@ -1987,6 +1971,7 @@ func (cp *Compiler) compileEquals(node *ast.ComparisonExpression, ctxt Context) 
 		return AltType(values.ERROR), true
 	}
 	if len(oL) == 0 {
+		println("TYPES ARE\n" + lTypes.describe(cp.Vm) + "\n" + rTypes.describe(cp.Vm))
 		cp.Throw("comp/eq/types", node.GetToken(), lTypes.describe(cp.Vm), rTypes.describe(cp.Vm))
 		return AltType(values.ERROR), true
 	}

@@ -10,7 +10,95 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 	"github.com/tim-hardcastle/pipefish/source/text"
 )
-
+func TestCompileTimeErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`[error "foo"]`, `comp/list/err`},
+		{`break 42`, `comp/break/a`},
+		{`break`, `comp/break/b`},
+		{`w(42)`, `comp/apply/func`},
+		{`("a", "b") ...`, `comp/splat/args`},
+		{`"foo" ...`, `comp/splat/type`},
+		{``, `comp/`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestEqualityCompileTimeErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`(error "foo") == 42`, `comp/error/eq/a`},
+		{`42 == (error "foo")`, `comp/error/eq/b`},
+		{`42 == "foo"`, `comp/eq/types`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestTypeExpressionCompileTimeErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`clones{string, int}`, `comp/clones/arguments`},
+		{`clones{NULL}`, `comp/clones`},
+		{`struct "foo"`, `comp/type/concrete`},
+		{`("foo") list{int}`, `comp/suffix/b`},
+		{`5 ; (post "foo")`, `comp/sanity`},
+		{`qux.foo 42`, `comp/namespace/private`},
+		{`(error "foo"), 42`, `comp/tuple/err/a`},
+		{`42, (error "foo")`, `comp/tuple/err/b`},
+		{``, `comp/`},
+		{``, `comp/`},
+		{``, `comp/`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestVariableCompileTimeErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`i * i = 4`, `comp/assign/lhs/a`},
+		{`w = 42`, `comp/assign/private`},
+		{`X = 42`, `comp/assign/const`},
+		{`noVar = 0`, `comp/assign/repl`},
+		{`blerp`, `comp/ident/known`},
+		{`w`, `comp/ident/private`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestIndexingCompileTimeErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`[1, 2, 3][4.0]`, `comp/index/list`},
+		{`"foo"[4.0]`, `comp/index/string`},
+		{`(1, 2, 3)[4.0]`, `comp/index/tuple`},
+		{`(1::2)[4.0]`, `comp/index/pair`},
+		{`SN[4.0]`, `comp/index/snippet`},
+		{`JOHN[lives]`, "comp/index/struct/a"},
+		{`JOHN[42]`, "comp/index/struct/b"},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestBooleanCompileTimeErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`i * i = 4`, `comp/assign/lhs/a`},
+		{`w = 42`, `comp/assign/private`},
+		{`X = 42`, `comp/assign/const`},
+		{`noVar = 0`, `comp/assign/repl`},
+		{`blerp`, `comp/ident/known`},
+		{`w`, `comp/ident/private`},
+		{`[1, 2, 3][4.0]`, `comp/index/list`},
+		{`"foo"[4.0]`, `comp/index/string`},
+		{`(1, 2, 3)[4.0]`, `comp/index/tuple`},
+		{`(1::2)[4.0]`, `comp/index/pair`},
+		{`SN[4.0]`, `comp/index/snippet`},
+		{`JOHN[lives]`, "comp/index/struct/a"},
+		{`JOHN[42]`, "comp/index/struct/b"},
+		{`5 or true`, `comp/bool/or/left`},
+		{`false or 5`, `comp/bool/or/right`},
+		{`5 and false`, `comp/bool/and/left`},
+		{`true and 5`, `comp/bool/and/right`},
+		{`5 : 5`, `comp/bool/cond`},
+		{`not 5`, `comp/bool/not`},
+		{``, `comp/`},
+		{``, `comp/`},
+		{``, `comp/`},
+		{``, `comp/`},
+		{``, `comp/`},
+		{``, `comp/`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
 func TestLiterals(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`"foo"`, `"foo"`},
