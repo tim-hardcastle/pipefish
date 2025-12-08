@@ -5,3 +5,10 @@ var
 x any? = [1, 2, 3]
 
 y int, z string = 42, "foo"
+
+def 
+
+boo(x) :
+    x ...
+
+

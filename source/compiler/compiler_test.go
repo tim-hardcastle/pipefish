@@ -473,6 +473,7 @@ func TestClones(t *testing.T) {
 		{`StringClone("aardvark") == StringClone("aardvark")`, `true`},
 		{`StringClone("aardvark") == StringClone("zebra")`, `false`},
 		{`5 apples + 3 apples`, `apples(8)`},
+		{`clones{list}`, `clones{list}`},
 	}
 	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
 }
@@ -636,4 +637,10 @@ func TestValid(t *testing.T) {
 		{`foo 0`, `Error`},
 	}
 	test_helper.RunTest(t, "valid_test.pf", tests, test_helper.TestValues)
+}
+func TestCorners(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`boo x`, `(1, 2, 3)`},
+	}
+	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
 }
