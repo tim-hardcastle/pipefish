@@ -1,12 +1,5 @@
 package compiler_test
 
-// This largely repeats the tests in `vm_test.go`. This is not entirely superfluous,
-// as while those tests would still ensure that the bits of the compiler being used
-// were working, this doesn't show up as line coverage in VSCode and so I wouldn't
-// know which those bits are.
-//
-// It would be useful to reduce any tests that don't contribute to coverage. TODO.
-
 import (
 	"os"
 	"path/filepath"
@@ -636,4 +629,11 @@ func TestTry(t *testing.T) {
 		{`foo 0`, `"Oops"`},
 	}
 	test_helper.RunTest(t, "try_test.pf", tests, test_helper.TestOutput)
+}
+func TestValid(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 3`, `4`},
+		{`foo 0`, `Error`},
+	}
+	test_helper.RunTest(t, "valid_test.pf", tests, test_helper.TestValues)
 }

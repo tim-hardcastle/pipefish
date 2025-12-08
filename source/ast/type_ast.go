@@ -231,7 +231,6 @@ var (
 	DEFAULT_TYPE_AST               = &TypeWithName{token.Token{}, "*default*"}
 	DUMMY_TYPE_AST                 = &TypeWithName{token.Token{}, "*dummy*"}
 	TUPLE_TYPE_AST                 = &TypeWithName{token.Token{}, "tuple"}
-	ERROR_OR_UNWRAPPED_ERROR       = &TypeSuffix{token.Token{}, "!", &TypeWithName{token.Token{}, "ERROR"}}
 )
 
 // Contains bling for when the parser needs to treat it as a type.

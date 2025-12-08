@@ -599,11 +599,17 @@ func TestCast(t *testing.T) {
 	}
 	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
 }
-
 func TestTry(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 3`, `4`},
 		{`foo 0`, `"Oops"`},
 	}
 	test_helper.RunTest(t, "try_test.pf", tests, test_helper.TestOutput)
+}
+func TestValid(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 3`, `4`},
+		{`foo 0`, `Error`},
+	}
+	test_helper.RunTest(t, "valid_test.pf", tests, test_helper.TestValues)
 }

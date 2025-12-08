@@ -853,7 +853,7 @@ NodeTypeSwitch:
 			_, rtnConst = cp.CompileNode(node.Args[0], ctxt.x())
 			errTok := cp.ReserveToken(node.GetToken())
 			cp.Put(vm.Uwrp, cp.That(), errTok)
-			rtnTypes = cp.GetAlternateTypeFromTypeAst(ast.ERROR_OR_UNWRAPPED_ERROR)
+			rtnTypes = AltType(values.ERROR).Union(cp.GetAlternateTypeFromConcreteTypeName("Error"))
 			break
 		}
 		if node.Token.Type == token.GLOBAL { // This is in effect a compiler directive, it doesn't need to emit any code besides `ok`, it just mutates the environment.
