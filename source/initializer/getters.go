@@ -120,7 +120,6 @@ func (iz *Initializer) makeRetsFromTokenizedReturns(ts parser.TokReturns) ast.As
 	return as
 }
 
-// If this has {...} in it, it's a type expression.
 func (iz *Initializer) makeReturnTypeFromTokens(toks []token.Token) ast.TypeNode {
 	var nilRtn ast.TypeNode
 	if len(toks) == 0 {
@@ -133,12 +132,18 @@ func (iz *Initializer) makeReturnTypeFromTokens(toks []token.Token) ast.TypeNode
 		ts := token.MakeCodeChunk(toks[2:len(toks)-1], false)
 		if ts.Length() == 0 {
 			iz.P.Throw("init/param/missing", &toks[0])
-			return values.MakeAbstractType()
+			return nil
 		}
 		iz.P.PrimeWithTokenSupplier(ts)
 		typeArgsNode := iz.P.ParseExpression(parser.LOWEST)
 		typeArgs := iz.P.RecursivelyListify(typeArgsNode)
-		return &ast.TypeExpression{Token: toks[0], Operator: toks[0].Literal, TypeArgs: typeArgs}
+		typeNode := iz.cp.P.ToAstType(&ast.TypeExpression{Token: toks[0], Operator: toks[0].Literal, TypeArgs: typeArgs})
+		if typeNode, ok := typeNode.(*ast.TypeWithArguments); ok {
+			return typeNode
+		} else { // Otherwise it's a computed type so we just throw together all the 
+		         // things it could be and call it a day.
+			return &ast.TypeWithName{toks[0], toks[0].Literal+"{_}"}
+		}
 	}
 	return iz.makeTypeAstFromTokens(toks)
 }

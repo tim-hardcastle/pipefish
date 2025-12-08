@@ -3770,6 +3770,15 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"vm/typecheck/return": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "failed typecheck on return type"
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "You placed constraints on the return type of this expression which you then violated."
+		},
+	},
+
 	"vm/types/a": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "<For reasons, possibly bad ones, the actual error message is generated in the compiler.>"

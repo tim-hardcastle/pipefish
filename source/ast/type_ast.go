@@ -10,6 +10,7 @@ import (
 // The base TypeNode interface
 type TypeNode interface {
 	String() string
+	tn() // ust to distinguish members of the interface from everything else that's stringable.
 }
 
 // TODO --- will this work if removed 'cos of them all being the same object?
@@ -29,6 +30,9 @@ type TypeWithName struct {
 
 func (tl *TypeWithName) String() string {
 	return tl.OperatorName
+}
+
+func (tl *TypeWithName) tn() {
 }
 
 // Contains a parameter for parameterizing types
@@ -59,6 +63,9 @@ func (twp *TypeWithParameters) String() string {
 	}
 	out.WriteString("}")
 	return out.String()
+}
+
+func (twp *TypeWithParameters) tn() {
 }
 
 func (twp *TypeWithParameters) Blank() *TypeWithParameters {
@@ -150,6 +157,9 @@ func (twa *TypeWithArguments) String() string {
 	return out.String()
 }
 
+func (twa *TypeWithArguments) tn() {
+}
+
 // Has '/' or '&' as an operator.
 type TypeInfix struct {
 	Token       token.Token
@@ -169,6 +179,9 @@ func (ti *TypeInfix) String() string {
 	return out.String()
 }
 
+func (ti *TypeInfix) tn() {
+}
+
 // Has '?' or '!' as an operator.
 type TypeSuffix struct {
 	Token    token.Token
@@ -181,6 +194,9 @@ func (ts *TypeSuffix) String() string {
 	out.WriteString(ts.Left.String())
 	out.WriteString(ts.Operator)
 	return out.String()
+}
+
+func (ts *TypeSuffix) tn() {
 }
 
 // Has '...' as an operator.
@@ -196,6 +212,9 @@ func (td *TypeDotDotDot) String() string {
 		out.WriteString(td.Right.String())
 	}
 	return out.String()
+}
+
+func (tddd *TypeDotDotDot) tn() {
 }
 
 func MakeAstTypeFrom(s string) TypeNode {
@@ -223,6 +242,9 @@ type TypeBling struct {
 
 func (tb *TypeBling) String() string {
 	return tb.Bling
+}
+
+func (tb *TypeBling) tn() {
 }
 
 func AsBling(s string) TypeNode {

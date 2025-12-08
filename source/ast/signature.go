@@ -5,11 +5,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
 
-// This exists because we have too many ways of representing types. There I said it.
-type NameTypePair interface {
-	GetName() string
-	GetType() any // TODO --- actually some sort of interface over all the type representations might be quite useful if I could figure out what it should do.
-}
+// Sigs where the type is represented as a TypeNode.
 
 type NameTypeAstPair struct {
 	VarName string
@@ -25,6 +21,8 @@ func (ntp NameTypeAstPair) GetType() any {
 }
 
 type AstSig []NameTypeAstPair
+
+// Sigs where the type is represented as an AbstractType.
 
 type NameAbstractTypePair struct {
 	VarName string

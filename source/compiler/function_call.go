@@ -448,7 +448,7 @@ func (cp *Compiler) emitTypeComparisonFromAltType(typeAsAlt AlternateType, mem u
 		cp.Emit(vm.Qtyp, mem, uint32(typeAsAlt[0].(SimpleType)), DUMMY)
 		return bkGoto(cp.CodeTop() - 1)
 	}
-	args := []uint32{}
+	args := []uint32{mem}
 	for _, t := range typeAsAlt {
 		args = append(args, uint32(t.(SimpleType)))
 	}
@@ -626,9 +626,9 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) {  // The 
 						}
 						functionAndType.T = AlternateType{ft}
 					case "type_with":
-						functionAndType.T = AlternateType{cp.GetAlternateTypeFromTypeAst(ast.STRUCT_TYPE_AST)}.Union(AltType(values.ERROR))
+						functionAndType.T = cp.TypeNameToTypeScheme["struct"].Union(AltType(values.ERROR))
 					case "struct_with":
-						functionAndType.T = AlternateType{cp.GetAlternateTypeFromTypeAst(ast.STRUCT_TYPE_AST)}.Union(AltType(values.ERROR))
+						functionAndType.T = cp.TypeNameToTypeScheme["struct"].Union(AltType(values.ERROR))
 					default: // TODO --- at this point functionAndType.T is entirely cruft, never used for permanent storage.
 						functionAndType.T = F.RtnTypes
 					}

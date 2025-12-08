@@ -25,6 +25,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 
 	"github.com/tim-hardcastle/pipefish/source/database"
+	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/pf"
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/text"
@@ -241,6 +242,9 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 
 	if val.T == pf.ERROR && !external {
 		e := val.V.(*pf.Error)
+		if e.Message == "" {
+			e = err.CreateErr(e.ErrorId, e.Token, e.Args...)
+		}
 		hub.WriteString("\n")
 		hub.WritePretty("[0] " + text.ERROR + e.Message + text.DescribePos(e.Token))
 		hub.WriteString("\n\n")

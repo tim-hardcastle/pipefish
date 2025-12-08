@@ -178,9 +178,9 @@ func (cp *Compiler) GetAbstractTypeFromAstType(typeNode ast.TypeNode) values.Abs
 		return cp.GetAbstractTypeFromTypeName(typeNode.Blank().String())
 	case *ast.TypeExpression:
 		if typeNode.TypeArgs == nil {
-			return cp.GetAbstractTypeFromTypeName(typeNode.Operator)
+				return cp.GetAbstractTypeFromTypeName(typeNode.Operator)
 		} else {
-			return cp.P.ParTypes[typeNode.Operator].PossibleReturnTypes
+				return cp.P.ParTypes[typeNode.Operator].PossibleReturnTypes
 		}
 	}
 	panic("Can't compile type node " + typeNode.String() + " with type " + reflect.TypeOf(typeNode).String())

@@ -1762,7 +1762,7 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 	LF.Model.ResultLocation = cp.That()
 	if fnNode.NameRets != nil {
 		cp.Cm("Typechecking returns from lambda.", fnNode.GetToken())
-		cp.EmitTypeChecks(LF.Model.ResultLocation, types, env, rTypes, LAMBDA, tok, CHECK_RETURN_TYPES, ctxt.x())
+		cp.EmitTypeChecks(LF.Model.ResultLocation, types, env, cp.AstSigToAltSig(rTypes), LAMBDA, tok, CHECK_RETURN_TYPES, ctxt.x())
 	}
 	cp.Emit(vm.Ret)
 	cp.popLambdaStart()
@@ -1926,7 +1926,7 @@ func (cp *Compiler) compileOneGivenChunk(node *ast.AssignmentExpression, ctxt Co
 		return
 	}
 	cp.Cm("Typechecking and inserting result into local variables.", node.GetToken())
-	cp.EmitTypeChecks(resultLocation, types, ctxt.Env, sig, ctxt.Access, node.GetToken(), CHECK_GIVEN_ASSIGNMENTS, ctxt.x())
+	cp.EmitTypeChecks(resultLocation, types, ctxt.Env, cp.AstSigToAltSig(sig), ctxt.Access, node.GetToken(), CHECK_GIVEN_ASSIGNMENTS, ctxt.x())
 	if thisExists {
 		ctxt.Env.Data["this"] = *oldThis
 	} else {
@@ -2248,11 +2248,11 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 	errorCode := ""
 	switch flavor {
 	case CHECK_LAMBDA_PARAMETERS:
-		errorCode = "vm/typcheck"
+		errorCode = "vm/typech"
 	case CHECK_RETURN_TYPES:
-		errorCode = "vm/typcheck/return"
+		errorCode = "vm/typecheck/return"
 	default:
-		errorCode = "vm/typcheck/assign"
+		errorCode = "vm/typecheck/assign"
 	}
 	errorLocation := cp.ReserveError(errorCode, tok)
 	lengthCheck := bkIf(DUMMY)

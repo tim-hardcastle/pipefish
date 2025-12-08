@@ -474,6 +474,9 @@ func (t *TypeExpression) String() string {
 	return out.String()
 }
 
+func (t *TypeExpression) tn() { // This makes it a TypeNode for the purpose of slurping return signatures.
+}
+
 type TypeLiteral struct {
 	Token token.Token
 	Value TypeNode

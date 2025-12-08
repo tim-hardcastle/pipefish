@@ -226,7 +226,7 @@ func (p *Parser) RecursivelySlurpReturnTypes(node ast.Node) ast.AstSig {
 		return ast.AstSig{ast.NameTypeAstPair{VarName: "", VarType: typednode}}
 	case *ast.SuffixExpression:
 		if typednode.Operator == "?" || typednode.Operator == "!" {
-			return ast.AstSig{ast.NameTypeAstPair{VarName: "", VarType: &ast.TypeSuffix{typednode.Token, typednode.Operator, p.RecursivelySlurpReturnTypes(typednode.Args[0])}}}
+			return ast.AstSig{ast.NameTypeAstPair{VarName: "", VarType: &ast.TypeSuffix{typednode.Token, typednode.Operator, p.RecursivelySlurpReturnTypes(typednode.Args[0])[0].VarType}}}
 		}
 	default:
 		println("node is", typednode.String(), reflect.TypeOf(typednode).String())

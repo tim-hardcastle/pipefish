@@ -260,35 +260,48 @@ func AbstractTypeToAlternateType(abType values.AbstractType) AlternateType {
 	return result
 }
 
-// We may need to combine types gotten in the form of TypeNodes and types gotten in the 
+// We may need to combine types gotten in the form of TypeNodes and types gotten in the
 // form of AlternateTypes. Hence this function.
 func (cp Compiler) typeNodeToAlternateType(tn ast.TypeNode) AlternateType {
 	switch tn := tn.(type) {
-	case *ast.TypeWithName :
+	case *ast.TypeWithName:
 		return cp.TypeNameToTypeScheme[tn.String()]
-	case *ast.TypeWithArguments :
+	case *ast.TypeWithArguments:
 		return cp.TypeNameToTypeScheme[tn.String()]
-	case *ast.TypeInfix :
+	case *ast.TypeWithParameters:
+		return cp.TypeNameToTypeScheme[tn.String()]
+	case *ast.TypeInfix:
 		switch tn.Operator {
-		case "/" :
+		case "/":
 			return cp.typeNodeToAlternateType(tn.Left).Union(cp.typeNodeToAlternateType(tn.Right))
-		default :
+		default:
 			panic("This shouldn't happen.")
 		}
-	case *ast.TypeSuffix :
+	case *ast.TypeSuffix:
 		switch tn.Operator {
-		case "?" :
+		case "?":
 			return cp.typeNodeToAlternateType(tn.Left).Union(AltType(values.NULL))
-		case "!" :
+		case "!":
 			return cp.typeNodeToAlternateType(tn.Left).Union(AltType(values.NULL))
-		default :
+		default:
 			panic("This shouldn't happen.")
 		}
 	case *ast.TypeDotDotDot:
 		return AlternateType{TypedTupleType{cp.typeNodeToAlternateType(tn.Right)}}
 	}
-	panic("This also shouldn't happen.")
+	panic("Failed to convert node of type " + reflect.TypeOf(tn).String())
 }
+
+// This wraps around the previous function to convert sigs.
+func (cp Compiler) AstSigToAltSig(sig ast.AstSig) alternateSig {
+	result := alternateSig{}
+	for _, pair := range sig {
+		result = append(result, NameAlternateTypePair{pair.VarName, cp.typeNodeToAlternateType(pair.VarType)})
+	}
+	return result
+}
+
+
 
 // This assumes that the alternateType came from the typeNameToTypeList array and therefore contains only elements of
 // type SimpleType. TODO: this probably shouldn't exist. Truth is meant to flow from abstract types to alternate types.
@@ -318,6 +331,16 @@ func (vL AlternateType) intersect(wL AlternateType) AlternateType {
 		wix++
 	}
 	return x
+}
+
+func (aS alternateSig) Describe(mc *vm.Vm) string {
+	result := ""
+	sep := ""
+	for _, pair := range aS {
+		result = result + sep + pair.VarName + " " + pair.VarType.describe(mc) 
+		sep = ", "
+	}
+	return result
 }
 
 func (aT AlternateType) describe(mc *vm.Vm) string {

@@ -285,8 +285,18 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 				}
 			}
 		}
+		// We find the corresponding parameterized type.
 		argIndex := iz.findParameterizedType(ty.Name, ty.Values())
 		parTypeInfo := iz.parameterizedTypes[ty.Name][argIndex]
+		
+		ultratype := ty.Name + "{_}"
+		if _, ok := iz.cp.TypeMap[ultratype]; !ok {
+			iz.cp.TypeMap[ty.Name + ultratype] = values.AbstractType{}
+		}
+		if _, ok := iz.cp.TypeMap[parTypeInfo.Supertype]; !ok {
+			iz.cp.TypeMap[parTypeInfo.Supertype] = values.AbstractType{}
+		}
+
 		private := parTypeInfo.IsPrivate
 		isClone := !(parTypeInfo.ParentType == "struct")
 		newEnv := compiler.NewEnvironment()
@@ -322,6 +332,8 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 			iz.cp.Vm.ConcreteTypeInfo[typeNo] = stT
 		}
 		iz.cp.TypeMap[ty.String()] = values.AbstractType{[]values.ValueType{typeNo}}
+		iz.cp.TypeMap[parTypeInfo.Supertype] = iz.cp.TypeMap[parTypeInfo.Supertype].Insert(typeNo)
+		iz.cp.TypeMap[ultratype] = iz.cp.TypeMap[ultratype].Insert(typeNo)
 		iz.cp.P.Typenames = iz.cp.P.Typenames.Add(ty.Token.Literal)
 		if opInfo, ok := typeOperators[ty.Name]; ok {
 			opInfo.returnTypes = opInfo.returnTypes.Union(altType(typeNo))
@@ -388,7 +400,7 @@ func (iz *Initializer) findShareableFunctions() {
 func (iz *Initializer) shareable(f *parsedFunction) bool {
 	for _, pair := range f.sig {
 		ty := pair.VarType
-		if _, ok := ty.(*ast.Bling); ok {
+		if _, ok := ty.(*ast.TypeBling); ok {
 			continue
 		}
 		if t, ok := ty.(*ast.TypeDotDotDot); ok {
@@ -1455,7 +1467,8 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		cpFn.OutReg = iz.cp.That()
 		// We check the return types.
 		if izFn.callInfo.ReturnTypes != nil && !(izFn.body.GetToken().Type == token.GOLANG) {
-			iz.cp.EmitTypeChecks(cpFn.OutReg, cpFn.RtnTypes, fnenv, izFn.callInfo.ReturnTypes, ac, &izFn.op, compiler.CHECK_RETURN_TYPES, bodyContext)
+			iz.cp.CmR("Ast sig is " + izFn.callInfo.ReturnTypes.String() + " ; Alt sig is " + iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes).Describe(iz.cp.Vm), &token.Token{})
+			iz.cp.EmitTypeChecks(cpFn.OutReg, cpFn.RtnTypes, fnenv, iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes), ac, &izFn.op, compiler.CHECK_RETURN_TYPES, bodyContext)
 		}
 		// Or, alternatively, if it's a command and it has reference variables then we may have
 		// inserted an error into them, in which case we need to return that instead of OK.
