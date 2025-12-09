@@ -124,8 +124,8 @@ func (p *Parser) SlurpBlock(safe bool) (*TokenizedCodeChunk, bool) {
 	} else {
 		getToken = p.NextToken
 	}
-	if !(p.CurTokenIs(token.COLON) || p.CurTokenIs(token.GIVEN)) {
-		panic("Unhandled ill-formed declaration: " + string(p.CurToken.Type) + ", " + p.CurToken.Literal)
+	if !(p.CurTokenIs(token.COLON) || p.CurTokenIs(token.GIVEN)) && !safe {
+		return p.SlurpBlock(true)
 	}
 	indexToken := p.CurToken
 	code := []token.Token{}
