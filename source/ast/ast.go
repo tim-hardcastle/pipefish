@@ -480,21 +480,6 @@ func (t *TypeExpression) String() string {
 func (t *TypeExpression) tn() { // This makes it a TypeNode for the purpose of slurping return signatures.
 }
 
-type TypeLiteral struct {
-	Token token.Token
-	Value TypeNode
-}
-
-func (t *TypeLiteral) Children() []Node       { return []Node{} }
-func (t *TypeLiteral) GetToken() *token.Token { return &t.Token }
-func (t *TypeLiteral) String() string {
-	if t.Value == nil {
-		return "nil"
-	} else {
-		return t.Value.String()
-	}
-}
-
 type TypePrefixExpression struct {
 	Token    token.Token
 	Operator string
@@ -527,36 +512,6 @@ func (tpe *TypePrefixExpression) String() string {
 		sep = ", "
 	}
 
-	out.WriteString(")")
-
-	return out.String()
-}
-
-type SigTypePrefixExpression struct {
-	Token    token.Token
-	Operator TypeNode
-	Args     []Node
-}
-
-func (tpe *SigTypePrefixExpression) Children() []Node       { return tpe.Args }
-func (tpe *SigTypePrefixExpression) GetArgs() []Node        { return tpe.Args }
-func (tpe *SigTypePrefixExpression) GetToken() *token.Token { return &tpe.Token }
-func (tpe *SigTypePrefixExpression) String() string {
-	var out bytes.Buffer
-
-	out.WriteString("(")
-	out.WriteString(tpe.Operator.String())
-	out.WriteString(" ")
-	for i, v := range tpe.Args {
-		out.WriteString(v.String())
-		if i < (len(tpe.Args)-1) && !(reflect.TypeOf(v) == reflect.TypeOf(&Bling{})) &&
-			!(reflect.TypeOf(tpe.Args[i+1]) == reflect.TypeOf(&Bling{})) {
-			out.WriteString(",")
-		}
-		if i < (len(tpe.Args) - 1) {
-			out.WriteString(" ")
-		}
-	}
 	out.WriteString(")")
 
 	return out.String()
@@ -717,11 +672,6 @@ func ExtractAllNames(node Node) dtypes.Set[string] {
 			result.AddSet(ExtractAllNames(v))
 		}
 		return result.Add(n.Operator)
-	case *SigTypePrefixExpression: // TODO --- presumably now obsolete.
-		for _, v := range n.Children() {
-			result.AddSet(ExtractAllNames(v))
-		}
-		return result.Add(n.Operator.String())
 	case *InfixExpression:
 		for _, v := range n.Children() {
 			result.AddSet(ExtractAllNames(v))

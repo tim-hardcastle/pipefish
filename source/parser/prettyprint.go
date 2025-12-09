@@ -46,8 +46,6 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		out.WriteString(node.Value)
 	case *ast.BooleanLiteral:
 		out.WriteString(node.Token.Literal)
-	case *ast.BuiltInExpression:
-		panic("Found secret 'builtin' keyword in prettyprinter")
 	case *ast.ComparisonExpression:
 		out.WriteString(p.prettyPrint(node.Left, inlineCtxt))
 		out.WriteString(" ")
@@ -76,22 +74,24 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		if node.Update != nil {
 			out.WriteString(p.prettyPrint(node.Update, inlineCtxt))
 		}
-		out.WriteString(" : ")
+		out.WriteString(" :")
 		switch ctxt.flavor {
 		case ppOUTER:
 			out.WriteString("\n")
 			out.WriteString(p.prettyPrint(node.Body, ctxt.in()))
 		case ppINLINE:
+			out.WriteString(" ")
 			out.WriteString(p.prettyPrint(node.Body, inlineCtxt))
 		}
 	case *ast.FuncExpression:
 		out.WriteString("func ")
-		out.WriteString(node.NameSig.String() + " : ")
+		out.WriteString(node.NameSig.String() + " :")
 		switch ctxt.flavor {
 		case ppOUTER:
 			out.WriteString("\n")
 			out.WriteString(p.prettyPrint(node.Body, ctxt.in()))
 		case ppINLINE:
+			out.WriteString(" ")
 			out.WriteString(p.prettyPrint(node.Body, inlineCtxt))
 		}
 		if node.Given != nil {
@@ -104,8 +104,6 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 				out.WriteString(p.prettyPrint(node.Body, inlineCtxt))
 			}
 		}
-	case *ast.GolangExpression:
-		panic("Found golang expression in prettyprinter.")
 	case *ast.Identifier:
 		out.WriteString(node.Value)
 	case *ast.IndexExpression:
@@ -216,8 +214,6 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		out.WriteString("[")
 		out.WriteString(p.prettyPrint(node.List, inlineCtxt))
 		out.WriteString("]")
-	case *ast.LogExpression:
-		panic("Found log statement in prettyprinter.")
 	case *ast.Nothing:
 		out.WriteString("()")
 	case *ast.PipingExpression:
@@ -355,47 +351,19 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			}
 		}
 		out.WriteString(")")
-	case *ast.TypeLiteral:
-		out.WriteString(node.String())
-	case *ast.SigTypePrefixExpression:
-		out.WriteString(node.Operator.String())
-		if ctxt.mustBracket {
-			out.WriteString("(")
-		} else {
-			out.WriteString(" ")
-		}
-		for i, arg := range node.Args {
-			if i == 0 {
-				if len(node.Args) > 1 {
-					out.WriteString(p.prettyPrint(arg, prefixCtxt))
-				} else {
-					out.WriteString(p.prettyPrint(arg, inlineCtxt))
-				}
-				continue
-			} else {
-				out.WriteString(", ")
-				if i+1 < len(node.Args) {
-					out.WriteString(p.prettyPrint(arg, prefixCtxt))
-				} else {
-					out.WriteString(p.prettyPrint(arg, inlineCtxt))
-				}
-				if ctxt.mustBracket {
-					out.WriteString(")")
-				}
-			}
-		}
 	case *ast.TryExpression:
 		out.WriteString("try ")
 		if node.VarName != "" {
 			out.WriteString(node.VarName)
 			out.WriteString(" ")
 		}
-		out.WriteString(": ")
+		out.WriteString(":")
 		switch ctxt.flavor {
 		case ppOUTER:
 			out.WriteString("\n")
 			out.WriteString(p.prettyPrint(node.Right, ctxt.in()))
 		case ppINLINE:
+			out.WriteString(" ")
 			out.WriteString(p.prettyPrint(node.Right, inlineCtxt))
 		}
 	case *ast.UnfixExpression:
