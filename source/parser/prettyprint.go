@@ -128,7 +128,10 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 				}
 			}
 		}
-		leftNeedsBrackets := pos > 1 || p.hasLowerPrecedence(node.Args[0], node.Args[1]) && !isLeaf(node.Args[0])
+		_, isPrefix := node.Args[0].(*ast.PrefixExpression)
+		_, isList := node.Args[0].(*ast.ListExpression)
+		leftNeedsPrefix := isPrefix && pos == 1
+		leftNeedsBrackets := !leftNeedsPrefix && !isList && (pos > 1 || p.hasLowerPrecedence(node.Args[0], node.Args[1]) && !isLeaf(node.Args[0]))
 		rhsHasBling := false 
 		for i := pos + 1; i < len(node.Args); i++ {
 			if _, ok := node.Args[i].(*ast.Bling); ok {
@@ -143,15 +146,23 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		sep := ""
 		for i := 0; i < pos; i++ {
 			out.WriteString(sep)
-			out.WriteString(p.prettyPrint(node.Args[i], inlineCtxt))
+			if leftNeedsPrefix {
+				out.WriteString(p.prettyPrint(node.Args[i], prefixCtxt))
+			} else {
+				out.WriteString(p.prettyPrint(node.Args[i], inlineCtxt))
+			}
 			sep = ", "
 		}
 		if leftNeedsBrackets {
 			out.WriteString(")")
 		}
-		out.WriteString(" ")
+		if node.Operator != "," && node.Operator != "::" {
+			out.WriteString(" ")
+		}
 		out.WriteString(node.Operator)
-		out.WriteString(" ")
+		if node.Operator != "::" {
+			out.WriteString(" ")
+		}
 		if rightNeedsBrackets {
 			out.WriteString("(")
 		}
@@ -210,11 +221,13 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 	case *ast.Nothing:
 		out.WriteString("()")
 	case *ast.PipingExpression:
-		if p.hasLowerPrecedence(node.Left, node) && !isLeaf(node.Left) {
+		_, isList := node.Left.(*ast.ListExpression)
+		leftNeedsBrackets := p.hasLowerPrecedence(node.Left, node) && !isList && !isLeaf(node.Left)
+		if leftNeedsBrackets {
 			out.WriteString("(")
 		}
 		out.WriteString(p.prettyPrint(node.Left, inlineCtxt))
-		if p.hasLowerPrecedence(node.Left, node) && !isLeaf(node.Left) {
+		if leftNeedsBrackets {
 			out.WriteString(")")
 		}
 		out.WriteString(" ")
@@ -273,10 +286,10 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 				} else {
 					out.WriteString(p.prettyPrint(arg, inlineCtxt))
 				}
-				if ctxt.mustBracket {
-					out.WriteString(")")
-				}
 			}
+		}
+		if ctxt.mustBracket {
+			out.WriteString(")")
 		}
 	case *ast.RuneLiteral:
 		out.WriteString(strconv.QuoteRune(node.Value))

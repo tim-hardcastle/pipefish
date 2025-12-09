@@ -8,6 +8,40 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestPrettyPrint(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`2 + 2 == 4`, `2 + 2 == 4`},
+		{`2 + 2 * 3`, `2 + 2 * 3`},
+		{`true and (true or false)`, `true and (true or false)`},
+		{`(true and true) or false`, `true and true or false`},
+		{`"foo"[3]`, `"foo"[3]`},
+		{`("foo" + "bar")[3]`, `("foo" + "bar")[3]`},
+		{`[1, 2, 3]`, `[1, 2, 3]`},
+		{`2 + 2`, `2 + 2`},
+		{`foo 99`, `foo 99`},
+		{`foo 99, 99`, `foo 99, 99`},
+		{`foo(99) + 1`, `foo(99) + 1`},
+		{`(foo 99, 99) + 1`, `foo(99, 99) + 1`},
+		{`blerp`, `blerp`},
+		{`moo boo 8`, `moo boo 8`},
+		{`moo boo coo 8`, `moo boo coo 8`},
+		{`moo zoo`, `moo zoo`},
+		{`9 spoit`, `9 spoit`},
+		{`xuq 9 mip`, `xuq 9 mip`},
+		{`troz 8 nerf 9`, `troz 8 nerf 9`},
+		{`goo 8 hoo 9 spoo 0`, `goo 8 hoo 9 spoo 0`},
+		{`gee 8 hee 9 spee`, `gee 8 hee 9 spee`},
+		{`gah 8 hah 9 spah blah`, `gah 8 hah 9 spah blah`},
+		{`8 bing 9 bong`, `8 bing 9 bong`},
+		{`8 ding 9 dong 0 dang`, `8 ding 9 dong 0 dang`},
+		{`spong()`, `spong()`},
+		{`[1, 2, 3] -> len`, `[1, 2, 3] -> len that`},
+		{`()`, `()`},
+		
+	}
+	test_helper.RunTest(t, "prettyprint_test.pf", tests, testPrettyPrinter)
+}
+
 func TestBuiltins(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`2 + 2`, `(2 + 2)`},
@@ -85,39 +119,6 @@ func TestFancyFunctionSyntax(t *testing.T) {
 		{`spong()`, `(spong ())`},
 	}
 	test_helper.RunTest(t, "fancy_function_test.pf", tests, testParserOutput)
-}
-func TestPrettyPrint(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`2 + 2`, `2 + 2`},
-		{`foo 99`, `foo 99`},
-		{`foo 99, 99`, `foo 99, 99`},
-		{`blerp`, `blerp`},
-		{`moo boo 8`, `moo boo 8`},
-		{`moo boo coo 8`, `moo boo coo 8`},
-		{`moo zoo`, `moo zoo`},
-		{`9 spoit`, `9 spoit`},
-		{`xuq 9 mip`, `xuq 9 mip`},
-		{`troz 8 nerf 9`, `troz 8 nerf 9`},
-		{`goo 8 hoo 9 spoo 0`, `goo 8 hoo 9 spoo 0`},
-		{`gee 8 hee 9 spee`, `gee 8 hee 9 spee`},
-		{`gah 8 hah 9 spah blah`, `gah 8 hah 9 spah blah`},
-		{`8 bing 9 bong`, `8 bing 9 bong`},
-		{`8 ding 9 dong 0 dang`, `8 ding 9 dong 0 dang`},
-		{`spong()`, `spong()`},
-		{``, ``},
-		{``, ``},
-		{``, ``},
-		{``, ``},
-		{``, ``},
-		{``, ``},
-		{``, ``},
-		{``, ``},
-		{``, ``},
-		{``, ``},
-		{``, ``},
-		
-	}
-	test_helper.RunTest(t, "prettyprint_test.pf", tests, testPrettyPrinter)
 }
 
 func TestSnippets(t *testing.T) {
