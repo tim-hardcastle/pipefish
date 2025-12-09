@@ -117,7 +117,7 @@ func (p *Parser) PrimeWithString(source, input string) {
 
 // Sets the parser up with the appropriate relexer and position to parse a string.
 func (p *Parser) PrimeWithTokenSupplier(source lexer.TokenSupplier) {
-	if tcc, ok := source.(*token.TokenizedCodeChunk); ok {
+	if tcc, ok := source.(*TokenizedCodeChunk); ok {
 		tcc.ToStart()
 	}
 	p.TokenizedCode = source

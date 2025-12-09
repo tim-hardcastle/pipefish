@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/tim-hardcastle/pipefish/source/token"
 )
 
@@ -113,9 +115,9 @@ func (p *Parser) ChunkReturns() (TokReturns, bool) {
 }
 
 // At this point the current token should be the colon that introduces the block.
-// If we've goven up on processing the block and we're calling this from 'finishChunk' then
+// If we've given up on processing the block and we're calling this from 'finishChunk' then
 // 'safe' is turned on so that we don't produce bracket-matching errors.
-func (p *Parser) SlurpBlock(safe bool) (*token.TokenizedCodeChunk, bool) {
+func (p *Parser) SlurpBlock(safe bool) (*TokenizedCodeChunk, bool) {
 	var getToken func()
 	if safe {
 		getToken = p.SafeNextToken
@@ -147,9 +149,9 @@ func (p *Parser) SlurpBlock(safe bool) (*token.TokenizedCodeChunk, bool) {
 	}
 	if len(code) == 0 {
 		p.Throw("parse/block/empty", &indexToken)
-		return token.NewCodeChunk(), false
+		return NewCodeChunk(), false
 	}
-	return token.MakeCodeChunk(code, false), true
+	return MakeCodeChunk(code, false), true
 }
 
 // Sometimes our type signatures will have `any?` as the default, but in assignment signatures
@@ -334,4 +336,69 @@ func StringifyTypeName(toks []token.Token) string {
 		}
 	}
 	return result
+}
+
+type TokenizedCodeChunk struct {
+	position int
+	code     []token.Token
+	Private  bool
+}
+
+func NewCodeChunk() *TokenizedCodeChunk {
+	tcc := &TokenizedCodeChunk{
+		position: -1,
+		code:     []token.Token{},
+	}
+	return tcc
+}
+
+func MakeCodeChunk(code []token.Token, private bool) *TokenizedCodeChunk {
+	tcc := &TokenizedCodeChunk{
+		position: -1,
+		code:     code,
+		Private:  private,
+	}
+	return tcc
+}
+
+func (tcc *TokenizedCodeChunk) Change(newToken token.Token) {
+	tcc.code[tcc.position] = newToken
+}
+
+func (tcc *TokenizedCodeChunk) Append(tokenToAppend token.Token) {
+	tcc.code = append(tcc.code, tokenToAppend)
+}
+
+func (tcc *TokenizedCodeChunk) Length() int {
+	return len(tcc.code)
+}
+
+func (tcc *TokenizedCodeChunk) IndexToken() *token.Token {
+	return &tcc.code[0]
+}
+
+func (tcc *TokenizedCodeChunk) NextToken() token.Token {
+	if tcc.position+1 < len(tcc.code) {
+		tcc.position++
+		return tcc.code[tcc.position]
+	}
+	return token.Token{Type: token.EOF, Literal: "EOF",
+		Line: tcc.code[tcc.position].Line, ChStart: tcc.code[tcc.position].ChStart,
+		ChEnd: tcc.code[tcc.position].ChEnd, Source: tcc.code[tcc.position].Source}
+}
+
+func (tcc *TokenizedCodeChunk) String() string {
+	output := ""
+	tcc.ToStart()
+	for j := 0; j < tcc.Length(); j++ {
+		output = output + fmt.Sprintf("%v\n", tcc.NextToken())
+	}
+	// for j := 0; j < len(tcc.code); j++ {
+	// output = output + fmt.Sprintf("%v\n", tcc.code[j])
+	// }
+	return output + "\n"
+}
+
+func (tcc *TokenizedCodeChunk) ToStart() {
+	tcc.position = -1
 }

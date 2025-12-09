@@ -129,7 +129,7 @@ func (iz *Initializer) makeReturnTypeFromTokens(toks []token.Token) ast.TypeNode
 		return &ast.TypeWithName{toks[0], toks[0].Literal}
 	}
 	if toks[1].Type == token.LBRACE {
-		ts := token.MakeCodeChunk(toks[2:len(toks)-1], false)
+		ts := parser.MakeCodeChunk(toks[2:len(toks)-1], false)
 		if ts.Length() == 0 {
 			iz.P.Throw("init/param/missing", &toks[0])
 			return nil
@@ -149,7 +149,7 @@ func (iz *Initializer) makeReturnTypeFromTokens(toks []token.Token) ast.TypeNode
 }
 
 func (iz *Initializer) makeTypeAstFromTokens(toks []token.Token) ast.TypeNode {
-	ts := token.MakeCodeChunk(toks, false)
+	ts := parser.MakeCodeChunk(toks, false)
 	iz.P.PrimeWithTokenSupplier(ts)
 	node := iz.P.ParseTypeFromCurTok(parser.LOWEST)
 	if node, ok := node.(*ast.TypeWithArguments); ok {

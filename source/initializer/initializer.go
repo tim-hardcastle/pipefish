@@ -96,7 +96,7 @@ func NewCommonInitializerBindle(store *values.Map, services map[string]*compiler
 type parameterizedTypeInstance struct {
 	astType   ast.TypeNode
 	env       *compiler.Environment
-	typeCheck *token.TokenizedCodeChunk
+	typeCheck *parser.TokenizedCodeChunk
 	fields    ast.AstSig
 	vals      []values.Value
 }
@@ -288,10 +288,10 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		// We find the corresponding parameterized type.
 		argIndex := iz.findParameterizedType(ty.Name, ty.Values())
 		parTypeInfo := iz.parameterizedTypes[ty.Name][argIndex]
-		
+
 		ultratype := ty.Name + "{_}"
 		if _, ok := iz.cp.TypeMap[ultratype]; !ok {
-			iz.cp.TypeMap[ty.Name + ultratype] = values.AbstractType{}
+			iz.cp.TypeMap[ty.Name+ultratype] = values.AbstractType{}
 		}
 		if _, ok := iz.cp.TypeMap[parTypeInfo.Supertype]; !ok {
 			iz.cp.TypeMap[parTypeInfo.Supertype] = values.AbstractType{}
@@ -1335,7 +1335,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 			continue
 		}
 		if !ast.IsAstBling(pair.VarType) {
-				iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.FUNCTION_ARGUMENT, iz.cp.GetAlternateTypeFromTypeAst(pair.VarType), &izFn.op)
+			iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.FUNCTION_ARGUMENT, iz.cp.GetAlternateTypeFromTypeAst(pair.VarType), &izFn.op)
 		}
 	}
 	cpFn.HiReg = iz.cp.MemTop()
@@ -1456,13 +1456,13 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		// We compile a check on the return types.
 		bodyContext := compiler.Context{fnenv, functionName, ac, true, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), cpFn.LoReg, areWeTracking, compiler.LF_NONE, altType()}
 		cpFn.RtnTypes, _ = iz.cp.CompileNode(izFn.body, bodyContext) // TODO --- could we in fact do anything useful if we knew it was a constant?
-		if len(paramChecks) > 0 { // If we had to check the types of the parameters, then the function may return an error no matter what its body might do.
+		if len(paramChecks) > 0 {                                    // If we had to check the types of the parameters, then the function may return an error no matter what its body might do.
 			cpFn.RtnTypes = cpFn.RtnTypes.Union(altType(values.ERROR))
 		}
 		cpFn.OutReg = iz.cp.That()
 		// We check the return types.
 		if izFn.callInfo.ReturnTypes != nil && !(izFn.body.GetToken().Type == token.GOLANG) {
-			iz.cp.CmR("Ast sig is " + izFn.callInfo.ReturnTypes.String() + " ; Alt sig is " + iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes).Describe(iz.cp.Vm), &token.Token{})
+			iz.cp.CmR("Ast sig is "+izFn.callInfo.ReturnTypes.String()+" ; Alt sig is "+iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes).Describe(iz.cp.Vm), &token.Token{})
 			iz.cp.EmitTypeChecks(cpFn.OutReg, cpFn.RtnTypes, fnenv, iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes), ac, &izFn.op, compiler.CHECK_RETURN_TYPES, bodyContext)
 		}
 		// Or, alternatively, if it's a command and it has reference variables then we may have

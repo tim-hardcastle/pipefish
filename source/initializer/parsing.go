@@ -428,7 +428,7 @@ func (iz *Initializer) createBoilerplate() {
 		}
 		// So we have at least one reference variable.
 		newSig := parser.TokSig{}
-		newBody := token.TokenizedCodeChunk{}
+		newBody := parser.TokenizedCodeChunk{}
 		newBody.Append(token.Token{Type: token.LPAREN, Literal: "|->"})
 		if cmd.pos == prefix {
 			newSig = append(newSig, parser.TokPair{cmd.op,
@@ -973,7 +973,7 @@ func (iz *Initializer) makeLabelsFromSig(sig ast.AstSig, private bool, indexTok 
 	return labelsForStruct
 }
 
-func (iz *Initializer) registerParameterizedType(name string, ty *ast.TypeWithParameters, opList []token.Token, typeCheck *token.TokenizedCodeChunk, parentType string, private bool, tok *token.Token) bool {
+func (iz *Initializer) registerParameterizedType(name string, ty *ast.TypeWithParameters, opList []token.Token, typeCheck *parser.TokenizedCodeChunk, parentType string, private bool, tok *token.Token) bool {
 	info, ok := iz.parameterizedTypes[name]
 	if ok {
 		if iz.paramTypeExists(ty) == DUMMY {

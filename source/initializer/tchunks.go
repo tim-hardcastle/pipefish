@@ -75,7 +75,7 @@ type tokenizedCloneDeclaration struct {
 	params    parser.TokSig             // The type parameters, if any.
 	parentTok token.Token               // The type being cloned.
 	requests  []token.Token             // Types requested by the 'using' clause
-	body      *token.TokenizedCodeChunk // Validation, if any.
+	body      *parser.TokenizedCodeChunk // Validation, if any.
 	docString string                    // Documents what it does.
 }
 
@@ -108,7 +108,7 @@ type tokenizedConstOrVarDeclaration struct {
 	private     bool                      // Whether it's declared private.
 	sig         parser.TokSig             // The signature of the assignment
 	assignToken token.Token               // The assignment operator '='.
-	body        *token.TokenizedCodeChunk // The rhs of the assignment.
+	body        *parser.TokenizedCodeChunk // The rhs of the assignment.
 	docString   string                    // Documents what it does.
 }
 
@@ -176,8 +176,8 @@ type tokenizedFunctionDeclaration struct {
 	pos           opPosition                // Whether it's a prefix, infix, suffix, or unfix.
 	sig           parser.TokSig             // The call signature, with the names of arguments as tokens and the types as lists of tokens.
 	rets          parser.TokReturns         // The return types, as lists of tokens.
-	body          *token.TokenizedCodeChunk // The body of the function.
-	given         *token.TokenizedCodeChunk // The 'given' block, if any.
+	body          *parser.TokenizedCodeChunk // The body of the function.
+	given         *parser.TokenizedCodeChunk // The 'given' block, if any.
 	docString     string                    // Documents what it does.
 	isBoilerplate bool                      // If the function has a body generated in Pipefish, i.e. presently only the `post` boilerplate around commands with refs.
 }
@@ -281,7 +281,7 @@ type tokenizedStructDeclaration struct {
 	op        token.Token               // The type operator.
 	params    parser.TokSig             // The type parameters, if any.
 	sig       parser.TokSig             // The signature of the struct.
-	body      *token.TokenizedCodeChunk // Validation logic, if any.
+	body      *parser.TokenizedCodeChunk // Validation logic, if any.
 	docString string                    // Documents what it does.
 }
 
@@ -329,7 +329,7 @@ func (iz *Initializer) ChunkConstOrVarDeclaration(isConst, private bool, docStri
 		}
 		toks = append(toks, iz.P.CurToken)
 	}
-	return &tokenizedConstOrVarDeclaration{decType, private, sig, assignTok, token.MakeCodeChunk(toks, private), docString}, true
+	return &tokenizedConstOrVarDeclaration{decType, private, sig, assignTok, parser.MakeCodeChunk(toks, private), docString}, true
 }
 
 func (iz *Initializer) ChunkGolangDeclaration(private bool) (tokenizedCode, bool) {
@@ -536,7 +536,7 @@ func (iz *Initializer) chunkClone(opTok token.Token, private bool, docString str
 			}
 		}
 	}
-	validation := token.NewCodeChunk()
+	validation := parser.NewCodeChunk()
 	if iz.P.CurTokenIs(token.COLON) {
 		validation, ok = iz.P.SlurpBlock(false)
 	}
@@ -710,7 +710,7 @@ func (iz *Initializer) chunkStruct(opTok token.Token, private bool, docString st
 		return &tokenizedStructDeclaration{}, false
 	}
 	iz.P.NextToken()
-	validation := token.NewCodeChunk()
+	validation := parser.NewCodeChunk()
 	if iz.P.CurTokenIs(token.COLON) {
 		validation, ok = iz.P.SlurpBlock(false)
 	}
@@ -920,7 +920,7 @@ type parameterInfo struct {
 	Names      []string
 	Types      []values.ValueType
 	Operations []token.Token
-	Typecheck  *token.TokenizedCodeChunk
+	Typecheck  *parser.TokenizedCodeChunk
 	ParentType string     // 'struct' if not a clone
 	Sig        ast.AstSig // nil if not a struct (because the sig of a clone is implicit in the parent type).
 	IsPrivate  bool
