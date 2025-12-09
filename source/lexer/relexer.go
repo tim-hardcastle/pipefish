@@ -1,7 +1,7 @@
 package lexer
 
 // The original relexer. Most of its functions have been transferred either to the bucket chain in
-// trelexers.go in this package; or to the parser and initializer. Eventually it should be possible
+// relexers.go in this package; or to the parser and initializer. Eventually it should be possible
 // to eliminate it completely by dispersing it in this way.
 
 import (

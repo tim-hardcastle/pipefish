@@ -8,7 +8,7 @@ import (
 
 
 func TestLiterals(t *testing.T) {
-	input := `0x0A 0o12 0b1010 'q' '\n' '\r' '\t' '\'' '\\' '\e' "q\n\r\t\e"`
+	input := `0x0A 0o12 0b1010 'q' '\n' '\r' '\t' '\'' '\\' '\e' "q\n\r\t\e\\\""`
 
 	items := []testItem{
 		{token.INT, "10", 1},
@@ -21,7 +21,7 @@ func TestLiterals(t *testing.T) {
 		{token.RUNE, "'", 1},
 		{token.RUNE, "\\", 1},
 		{token.RUNE, "\033", 1},
-		{token.STRING, "q\n\r\t\033", 1},
+		{token.STRING, "q\n\r\t\033\\\"", 1},
 	}
 	testLexingString(t, input, items)
 }

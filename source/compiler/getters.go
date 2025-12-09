@@ -260,7 +260,7 @@ func (cp *Compiler) Highlight(code []rune, fonts *values.Map) string {
 			out.WriteString(wrapFont(string(runes.CurrentRune()), "reserved", fonts))
 		// A formatted string literal.
 		case runes.CurrentRune() == '"':
-			result, ok := runes.ReadFormattedString()
+			result, ok := runes.ReadPlaintextString('"')
 			result = `"` + result
 			if ok {
 				result = result + `"`
@@ -268,7 +268,7 @@ func (cp *Compiler) Highlight(code []rune, fonts *values.Map) string {
 			out.WriteString(wrapFont(result, "string", fonts))
 		// A plaintext string literal.
 		case runes.CurrentRune() == '`':
-			result, ok := runes.ReadPlaintextString()
+			result, ok := runes.ReadPlaintextString('`')
 			result = "`" + result
 			if ok {
 				result = result + "`"

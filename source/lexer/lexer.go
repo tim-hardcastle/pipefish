@@ -122,7 +122,7 @@ func (l *lexer) getTokens() []token.Token {
 		return []token.Token{l.NewToken(token.STRING, s)}
 	// Or a plaintext string.
 	case '`':
-		s, ok := l.runes.ReadPlaintextString()
+		s, ok := l.runes.ReadPlaintextString('`')
 		if !ok {
 			return []token.Token{l.Throw("lex/quote/b")}
 		}
@@ -484,7 +484,7 @@ func (l *lexer) readGolang() string {
 	}
 	if l.runes.PeekRune() == '`' {
 		l.runes.Next()
-		s, ok := l.runes.ReadPlaintextString()
+		s, ok := l.runes.ReadPlaintextString('`')
 		if !ok {
 			l.Throw("lex/quote/d", l.NewToken(token.ILLEGAL, "bad quote"))
 		}
@@ -542,22 +542,19 @@ func (runes *RuneSupplier) ReadRuneLiteral() (string, bool, bool) {
 }
 
 func (runes *RuneSupplier) ReadFormattedString() (string, bool) {
-	escape := false
+	previousCharWasEscape := false
 	result := ""
 	for {
 		runes.Next()
-		if (runes.CurrentRune() == '"' && !escape) || runes.CurrentRune() == 0 || runes.CurrentRune() == 13 || runes.CurrentRune() == 10 {
+		if (runes.CurrentRune() == '"' && !previousCharWasEscape) || runes.CurrentRune() == 0 || runes.CurrentRune() == 13 || runes.CurrentRune() == 10 {
 			break
 		}
-		if runes.CurrentRune() == '\\' {
-			escape = true
+		if runes.CurrentRune() == '\\' && !previousCharWasEscape {
+			previousCharWasEscape = true
 			continue
 		}
-
 		charToAdd := runes.CurrentRune()
-
-		if escape {
-			escape = false
+		if previousCharWasEscape {
 			switch runes.CurrentRune() {
 			case 'n':
 				charToAdd = '\n'
@@ -574,6 +571,7 @@ func (runes *RuneSupplier) ReadFormattedString() (string, bool) {
 			}
 		}
 		result = result + string(charToAdd)
+		previousCharWasEscape = false
 	}
 	if runes.CurrentRune() == 13 || runes.CurrentRune() == 0 || runes.CurrentRune() == 10 {
 		return result, false
@@ -581,11 +579,11 @@ func (runes *RuneSupplier) ReadFormattedString() (string, bool) {
 	return result, true
 }
 
-func (runes *RuneSupplier) ReadPlaintextString() (string, bool) {
+func (runes *RuneSupplier) ReadPlaintextString(ch rune) (string, bool) {
 	result := ""
 	for {
 		runes.Next()
-		if runes.CurrentRune() == '`' || runes.CurrentRune() == 0 || runes.CurrentRune() == 13 || runes.CurrentRune() == 10 {
+		if runes.CurrentRune() == ch || runes.CurrentRune() == 0 || runes.CurrentRune() == 13 || runes.CurrentRune() == 10 {
 			break
 		}
 		result = result + string(runes.CurrentRune())
