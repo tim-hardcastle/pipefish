@@ -37,6 +37,15 @@ func TestPrettyPrint(t *testing.T) {
 		{`spong()`, `spong()`},
 		{`[1, 2, 3] -> len`, `[1, 2, 3] -> len that`},
 		{`()`, `()`},
+		{`bool`, `bool`},
+		{`list{int}`, `list{int}`},
+		{`int "5"`, `int("5")`},
+		{`list{int}"5"`, `list{int}("5")`},
+		{`list{int}("5", "3")`, `list{int}("5", "3")`},
+		{`list{int, string}"5"`, `list{int, string}("5")`},
+		{`'q'`, `'q'`},
+		{`true : 1 ; else : 2`, "true :\n    1\nelse :\n    2"},
+		{`x = 99`, `x = 99`},
 		
 	}
 	test_helper.RunTest(t, "prettyprint_test.pf", tests, testPrettyPrinter)

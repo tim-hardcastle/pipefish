@@ -1,3 +1,7 @@
+var
+
+x = 42
+
 def
 
 foo (i int) :

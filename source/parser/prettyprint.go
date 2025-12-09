@@ -208,7 +208,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			}
 			if node.Token.Type == token.COLON {
 				out.WriteString(p.prettyPrint(node.Left, inlineCtxt))
-				out.WriteString(" : \n")
+				out.WriteString(" :\n")
 				out.WriteString(p.prettyPrint(node.Right, ctxt.in()))
 			}
 		}
@@ -313,6 +313,9 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		out.WriteString(node.Operator)
 	case *ast.TypeExpression:
 		out.WriteString(node.Operator)
+		if len(node.TypeArgs) == 0 {
+			break
+		}
 		out.WriteString("{")
 		sep := []byte("")
 		for _, arg := range node.TypeArgs {
@@ -322,15 +325,17 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		}
 		out.WriteString("}")
 	case *ast.TypePrefixExpression:
-		out.WriteString(node.Operator)
-		out.WriteString("{")
-		sep := []byte("")
-		for _, arg := range node.TypeArgs {
-			out.Write(sep)
-			out.WriteString(p.prettyPrint(arg, prefixCtxt))
-			sep = []byte(", ")
+			out.WriteString(node.Operator)
+			if len(node.TypeArgs) > 0 {
+			out.WriteString("{")
+			sep := []byte("")
+			for _, arg := range node.TypeArgs {
+				out.Write(sep)
+				out.WriteString(p.prettyPrint(arg, prefixCtxt))
+				sep = []byte(", ")
+			}
+			out.WriteString("}")
 		}
-		out.WriteString("}")
 		out.WriteString("(")
 		for i, arg := range node.Args {
 			if i == 0 {
@@ -348,8 +353,8 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 					out.WriteString(p.prettyPrint(arg, inlineCtxt))
 				}
 			}
-			out.WriteString(")")
 		}
+		out.WriteString(")")
 	case *ast.TypeLiteral:
 		out.WriteString(node.String())
 	case *ast.SigTypePrefixExpression:
