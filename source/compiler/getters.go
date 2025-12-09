@@ -255,7 +255,7 @@ func (cp *Compiler) Highlight(code []rune, fonts *values.Map) string {
 			out.WriteRune(runes.CurrentRune())
 			out.WriteString(text.RESET)
 		// We could be looking at protected punctuation.
-		case lexer.IsProtectedPunctuation(runes.CurrentRune()) ||
+		case IsProtectedPunctuation(runes.CurrentRune()) ||
 			(runes.CurrentRune() == '!' && runes.PeekRune() == '='):
 			out.WriteString(wrapFont(string(runes.CurrentRune()), "reserved", fonts))
 		// A formatted string literal.
@@ -335,6 +335,10 @@ func (cp *Compiler) Highlight(code []rune, fonts *values.Map) string {
 		runes.Next()
 	}
 	return out.String()
+}
+
+func IsProtectedPunctuation(ch rune) bool {
+	return ch == ',' || ch == ':' || ch == ';' || ch == '.' || ch == '='
 }
 
 func (cp *Compiler) GetMarkdowner(leftMargin string, rightMargin int, fonts *values.Map) func(string) string {

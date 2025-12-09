@@ -284,25 +284,28 @@ var whitespaceDescriptions = map[rune]string{' ': "space", '\n': "newline", '\t'
 
 func describeWhitespace(s string) string {
 	if len(s) == 0 {
-		return "no indentation"
+		return "empty string"
 	}
 	if len(s) == 1 {
 		return "1 " + whitespaceDescriptions[rune(s[0])]
 	}
 	result := ""
+	ch := rune(0)
 	cur := rune(s[0]) //
 	count := 1
-	for i, ch := range s[1:] {
-		if ch != cur || i == len(s)-2 {
-			if i == len(s)-2 {
-				count++
-			}
-			singular := whitespaceDescriptions[ch]
+	for i := 1; i <= len(s); i++ {
+		if i == len(s) {
+			ch = '!' // An arbitrary buffer character to trigger output.
+		} else {
+			ch = rune(s[i])
+		}
+		if ch != cur {
+			singular := whitespaceDescriptions[cur]
 			result = result + strconv.Itoa(count) + " " + singular
 			if count > 1 {
 				result = result + "s"
 			}
-			if i < len(s)-1 {
+			if i < len(s) {
 				result = result + ", "
 			}
 			cur = ch
@@ -629,14 +632,6 @@ func IsHexDigit(ch rune) bool {
 func IsProtectedPunctuationBracketOrWhitespace(ch rune) bool {
 	return ch == '(' || ch == ')' || ch == '[' || ch == ']' || ch == '{' || ch == '}' || ch == ' ' || ch == ',' ||
 		ch == ':' || ch == ';' || ch == '.' || ch == '\t' || ch == '\n' || ch == '\r' || ch == 0
-}
-
-func IsProtectedPunctuation(ch rune) bool {
-	return ch == ',' || ch == ':' || ch == ';' || ch == '.' || ch == '='
-}
-
-func IsWhitespace(ch rune) bool {
-	return ch == '\t' || ch == '\n' || ch == '\r' || ch == 0
 }
 
 func IsSymbol(ch rune) bool {

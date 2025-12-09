@@ -6,6 +6,82 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/token"
 )
 
+
+func TestLiterals(t *testing.T) {
+	input := `0x0A 0o12 0b1010 'q' '\n' '\r' '\t' '\'' '\\' '\e' "q\n\r\t\e"`
+
+	items := []testItem{
+		{token.INT, "10", 1},
+		{token.INT, "10", 1},
+		{token.INT, "10", 1},
+		{token.RUNE, "q", 1},
+		{token.RUNE, "\n", 1},
+		{token.RUNE, "\r", 1},
+		{token.RUNE, "\t", 1},
+		{token.RUNE, "'", 1},
+		{token.RUNE, "\\", 1},
+		{token.RUNE, "\033", 1},
+		{token.STRING, "q\n\r\t\033", 1},
+	}
+	testLexingString(t, input, items)
+}
+
+func TestPlaintext(t *testing.T) {
+	input := "`Hello world!`"
+
+	items := []testItem{
+		{token.STRING, "Hello world!", 1},
+	}
+	testLexingString(t, input, items)
+}
+
+func TestPunctuation(t *testing.T) {
+	input := `= ; .. .. : ... ?> , { } [ ]`
+
+	items := []testItem{
+		{token.ASSIGN, "=", 1},
+		{token.SEMICOLON, ";", 1},
+		{token.COLON, ":", 1},
+		{token.DOTDOTDOT, "...", 1},
+		{token.FILTER, "?>", 1},
+		{token.COMMA, ",", 1},
+		{token.LBRACE, "{", 1},
+		{token.RBRACE, "}", 1},
+		{token.LBRACK, "[", 1},
+		{token.RBRACK, "]", 1},
+
+		
+	}
+	testLexingString(t, input, items)
+}
+
+func TestInlineSnippet(t *testing.T) {
+	input := "-- foo |bar| spong"
+
+	items := []testItem{
+		{token.EMDASH, "foo |bar| spong", 1},
+	}
+	testLexingString(t, input, items)
+}
+
+func TestBlockSnippet(t *testing.T) {
+	input := "-- \n\tfoo |bar| spong\n\tzort\n"
+
+	items := []testItem{
+		{token.EMDASH, "foo |bar| spong\nzort", 1},
+	}
+	testLexingString(t, input, items)
+}
+
+func TestBlockSnippetEndingWithZeroChar(t *testing.T) {
+	input := "-- \n\tfoo |bar| spong\n\tzort"
+
+	items := []testItem{
+		{token.EMDASH, "foo |bar| spong\nzort", 1},
+	}
+	testLexingString(t, input, items)
+}
+
 func TestCommentsAndIndents(t *testing.T) {
 	input :=
 		`line one
@@ -110,22 +186,27 @@ func TestGolang(t *testing.T) {
 
 		`golang "qux"
 golang "foo"
-
+` +
+"golang `foo`" +
+`
 golang {
     foo
-}`
+}` 
 
 	items := []testItem{
 		{token.GOLANG, "qux", 1},
 		{token.NEWLINE, ";", 1},
 		{token.GOLANG, "foo", 2},
 		{token.NEWLINE, ";", 2},
+		{token.GOLANG, "foo", 3},
 		{token.NEWLINE, ";", 3},
 		{token.GOLANG, "\n    foo\n", 4},
 		{token.NEWLINE, ";", 4},
 	}
 	testLexingString(t, input, items)
 }
+
+
 
 type testItem struct {
 	expectedType    token.TokenType
@@ -153,6 +234,26 @@ func runTest(t *testing.T, ts TokenSupplier, items []testItem) {
 		if tok.Line != tt.expectedLine {
 			t.Fatalf("tests[%d] - line wrong. expected=%d, got=%d",
 				i, tt.expectedLine, tok.Line)
+		}
+	}
+}
+
+type whiteSpaceTest struct{input string
+	                       output string}
+
+func TestWhiteSpaceDescriptors(t *testing.T) {
+	items := []whiteSpaceTest{
+		{"  ", "2 spaces"},
+		{"\t", "1 tab"},
+		{"\n", "1 newline"},
+		{"\n\n\t", "2 newlines, 1 tab"},
+		{"", "empty string"},
+	}
+	for i, item := range items {
+		got := describeWhitespace(item.input)
+		if item.output != got {
+			t.Fatalf("tests[%d] - description wrong. expected=%q, got=%q",
+				i, item.output, got)
 		}
 	}
 }
