@@ -363,6 +363,9 @@ func (pe *PrefixExpression) String() string {
 			out.WriteString(" ")
 		}
 	}
+	if len(pe.Args) == 0 {
+		out.WriteString("()")
+	}
 	out.WriteString(")")
 
 	return out.String()
@@ -393,7 +396,7 @@ func (sl *SnippetLiteral) Children() []Node {
 	return result
 }
 func (sl *SnippetLiteral) GetToken() *token.Token { return &sl.Token }
-func (sl *SnippetLiteral) String() string         { return "--" + sl.Value }
+func (sl *SnippetLiteral) String() string         { return "(-- " + sl.Value + ")"}
 
 type StringLiteral struct {
 	Token token.Token

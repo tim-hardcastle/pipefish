@@ -129,7 +129,14 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			}
 		}
 		leftNeedsBrackets := pos > 1 || p.hasLowerPrecedence(node.Args[0], node.Args[1]) && !isLeaf(node.Args[0])
-		rightNeedsBrackets := (len(node.Args)-pos) > 2 || p.hasHigherOrEqualPrecedence(node.Args[pos], node.Args[pos+1]) && !isLeaf(node.Args[pos+1])
+		rhsHasBling := false 
+		for i := pos + 1; i < len(node.Args); i++ {
+			if _, ok := node.Args[i].(*ast.Bling); ok {
+				rhsHasBling = true 
+				break
+			}
+		}
+		rightNeedsBrackets := !rhsHasBling && (len(node.Args)-pos) > 2 || p.hasHigherOrEqualPrecedence(node.Args[pos], node.Args[pos+1]) && !isLeaf(node.Args[pos+1])
 		if leftNeedsBrackets {
 			out.WriteString("(")
 		}
@@ -222,6 +229,10 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		}
 	case *ast.PrefixExpression:
 		out.WriteString(node.Operator)
+		if len(node.Args) == 0 {
+			out.WriteString("()")
+			break
+		}
 		if ctxt.mustBracket {
 			out.WriteString("(")
 		} else {
@@ -231,6 +242,9 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			if i == 0 {
 				if len(node.Args) > 1 {
 					out.WriteString(p.prettyPrint(arg, prefixCtxt))
+					if ast.IsBling(arg) {
+						out.WriteString(" ")
+					}
 				} else {
 					out.WriteString(p.prettyPrint(arg, inlineCtxt))
 				}
@@ -238,11 +252,15 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			}
 			if ast.IsBling(arg) {
 				if ctxt.mustBracket && !ast.IsBling(node.Args[i-1]) {
-					out.WriteString(")")
+					out.WriteString(") ")
 				}
-				out.WriteString(" ")
+				if !ast.IsBling(node.Args[i-1]) {
+					out.WriteString(" ")
+				}
 				out.WriteString(p.prettyPrint(arg, inlineCtxt))
-				out.WriteString(" ")
+				if i < len(node.Args) - 1 {
+					out.WriteString(" ")
+				}
 				if ctxt.mustBracket && i+1 < len(node.Args) && !ast.IsBling(node.Args[i+1]) {
 					out.WriteString("(")
 				}

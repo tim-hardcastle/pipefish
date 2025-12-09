@@ -8,7 +8,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-func TestParser(t *testing.T) {
+func TestBuiltins(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`2 + 2`, `(2 + 2)`},
 		{`2 + 3 * 4`, `(2 + (3 * 4))`},
@@ -67,6 +67,66 @@ func TestFunctionSyntax(t *testing.T) {
 	}
 	test_helper.RunTest(t, "function_syntax_test.pf", tests, testParserOutput)
 }
+func TestFancyFunctionSyntax(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 99`, `(foo 99)`},
+		{`blerp`, `(blerp)`},
+		{`moo boo 8`, `(moo boo 8)`},
+		{`moo boo coo 8`, `(moo boo coo 8)`},
+		{`moo zoo`, `(moo zoo)`},
+		{`9 spoit`, `(9 spoit)`},
+		{`xuq 9 mip`, `(xuq 9 mip)`},
+		{`troz 8 nerf 9`, `(troz 8 nerf 9)`},
+		{`goo 8 hoo 9 spoo 0`, `(goo 8 hoo 9 spoo 0)`},
+		{`gee 8 hee 9 spee`, `(gee 8 hee 9 spee)`},
+		{`gah 8 hah 9 spah blah`, `(gah 8 hah 9 spah blah)`},
+		{`8 bing 9 bong`, `(8 bing 9 bong)`},
+		{`8 ding 9 dong 0 dang`, `(8 ding 9 dong 0 dang)`},
+		{`spong()`, `(spong ())`},
+	}
+	test_helper.RunTest(t, "fancy_function_test.pf", tests, testParserOutput)
+}
+func TestPrettyPrint(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`2 + 2`, `2 + 2`},
+		{`foo 99`, `foo 99`},
+		{`foo 99, 99`, `foo 99, 99`},
+		{`blerp`, `blerp`},
+		{`moo boo 8`, `moo boo 8`},
+		{`moo boo coo 8`, `moo boo coo 8`},
+		{`moo zoo`, `moo zoo`},
+		{`9 spoit`, `9 spoit`},
+		{`xuq 9 mip`, `xuq 9 mip`},
+		{`troz 8 nerf 9`, `troz 8 nerf 9`},
+		{`goo 8 hoo 9 spoo 0`, `goo 8 hoo 9 spoo 0`},
+		{`gee 8 hee 9 spee`, `gee 8 hee 9 spee`},
+		{`gah 8 hah 9 spah blah`, `gah 8 hah 9 spah blah`},
+		{`8 bing 9 bong`, `8 bing 9 bong`},
+		{`8 ding 9 dong 0 dang`, `8 ding 9 dong 0 dang`},
+		{`spong()`, `spong()`},
+		{``, ``},
+		{``, ``},
+		{``, ``},
+		{``, ``},
+		{``, ``},
+		{``, ``},
+		{``, ``},
+		{``, ``},
+		{``, ``},
+		{``, ``},
+		{``, ``},
+		
+	}
+	test_helper.RunTest(t, "prettyprint_test.pf", tests, testPrettyPrinter)
+}
+
+func TestSnippets(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`-- foo |bar| qux`, `(-- foo |bar| qux)`},
+		{`true -- foo |bar| qux`, `(true , (-- foo |bar| qux))`},
+	}
+	test_helper.RunTest(t, "function_syntax_test.pf", tests, testParserOutput)
+}
 func TestTypeParser(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`string/int`, `(string / int)`},
@@ -115,6 +175,14 @@ func testParserOutput(cp *compiler.Compiler, s string) (string, error) {
 		return "", errors.New("compilation error")
 	}
 	return astOfLine.String(), nil
+}
+
+func testPrettyPrinter(cp *compiler.Compiler, s string) (string, error) {
+	astOfLine := cp.P.ParseLine("test", s)
+	if cp.P.ErrorsExist() {
+		return "", errors.New("compilation error")
+	}
+	return cp.P.PrettyPrint(astOfLine), nil
 }
 
 func testTypeParserOutput(cp *compiler.Compiler, s string) (string, error) {
