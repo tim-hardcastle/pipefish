@@ -467,7 +467,7 @@ func (iz *Initializer) populateInterfaceTypes() {
 			for _, fn := range funcsToAdd[ty] {
 				conflictingFunction := iz.Add(fn.op.Literal, fn)
 				if conflictingFunction != nil && conflictingFunction != fn {
-					iz.P.Throw("init/overload/b", &fn.op, fn.op.Literal, conflictingFunction.op)
+					iz.throw("init/overload/b", &fn.op, fn.op.Literal, conflictingFunction.op)
 				}
 			}
 		}
@@ -577,7 +577,7 @@ func (iz *Initializer) makeFunctionTable() {
 			iz.parsedCode[j][i].(*parsedFunction).callInfo = functionToAdd.callInfo
 			conflictingFunction := iz.Add(functionName, functionToAdd)
 			if conflictingFunction != nil && conflictingFunction != functionToAdd {
-				iz.P.Throw("init/overload/a", &fn.op, functionName, &conflictingFunction.op)
+				iz.throw("init/overload/a", &fn.op, functionName, &conflictingFunction.op)
 				return
 			}
 		}
@@ -617,7 +617,7 @@ func (iz *Initializer) makeFunctionTrees() {
 				rc = refs
 			} else {
 				if refs != rc {
-					iz.P.Throw("init/overload/ref", &v[i].op)
+					iz.throw("init/overload/ref", &v[i].op)
 					break
 				}
 			}
@@ -891,7 +891,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			for _, name := range names {
 				existingName, alreadyExists := namesToDeclarations[name]
 				if alreadyExists {
-					iz.P.Throw("init/name/exists/a", parsedDec.indexTok, existingName[0].chunk.getToken(), name)
+					iz.throw("init/name/exists/a", parsedDec.indexTok, existingName[0].chunk.getToken(), name)
 					return nil
 				}
 				namesToDeclarations[name] = []labeledParsedCodeChunk{{parsedDec, dT, i, name, parsedDec.indexTok}}
@@ -908,10 +908,10 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 				names := namesToDeclarations[name]
 				for _, existingName := range names {
 					if existingName.decType == variableDeclaration || existingName.decType == constantDeclaration { // We can't redeclare variables or constants.
-						iz.P.Throw("init/name/exists/b", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
+						iz.throw("init/name/exists/b", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
 					}
 					if existingName.decType == functionDeclaration && dT == commandDeclaration { // We don't want to overload anything so it can be both a command and a function 'cos that would be weird.
-						iz.P.Throw("init/name/exists/c", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
+						iz.throw("init/name/exists/c", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
 					}
 				}
 				namesToDeclarations[name] = append(names, labeledParsedCodeChunk{izFn, dT, i, name, ixPtr(iz.tokenizedCode[dT][i])})
@@ -981,11 +981,11 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 						// We check for forbidden relationships.
 						for _, rhsDec := range rhsDecs {
 							if rhsDec.decType == commandDeclaration {
-								iz.P.Throw("init/depend/cmd", dec.chunk.getToken())
+								iz.throw("init/depend/cmd", dec.chunk.getToken())
 								return nil
 							}
 							if rhsDec.decType == variableDeclaration && dec.decType == constantDeclaration {
-								iz.P.Throw("init/depend/var", dec.chunk.getToken())
+								iz.throw("init/depend/var", dec.chunk.getToken())
 								return nil
 							}
 						}
@@ -1039,12 +1039,12 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			decType := namesToDeclarations[svName][0].decType
 			decNumber := namesToDeclarations[svName][0].decNumber
 			if len(rhs) > 0 {
-				iz.P.Throw("init/service/depends", tok, svName)
+				iz.throw("init/service/depends", tok, svName)
 				return nil
 			}
 			iz.compileGlobalConstantOrVariable(decType, decNumber)
 			if !svData.alt.Contains(iz.cp.Vm.Mem[iz.cp.That()].T) {
-				iz.P.Throw("init/service/type", tok, svName, compiler.Describe(svData.alt, iz.cp.Vm))
+				iz.throw("init/service/type", tok, svName, compiler.Describe(svData.alt, iz.cp.Vm))
 				return nil
 			}
 			delete(graph, svName)
@@ -1123,7 +1123,9 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			iz.cp.Vm.Code[addr+2].Args[1] = iz.cp.Fns[funcNumber].OutReg
 		}
 	}
-
+    if iz.errorsExist() {
+		return result
+	} 
 	// We make a note of where "stringify" is.
 	callInfoForStringify := iz.cp.FunctionForest["stringify"].Tree.Branch[0].Node.Branch[0].Node.CallInfo
 	stringifyFn := callInfoForStringify.Compiler.Fns[callInfoForStringify.Number]
@@ -1179,15 +1181,15 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 		tupleLen = len(result.V.([]values.Value))
 	}
 	if !lastIsTuple && tupleLen > len(sig) {
-		iz.P.Throw("comp/assign/a", asgn.indexTok, tupleLen, len(sig))
+		iz.throw("comp/assign/a", asgn.indexTok, tupleLen, len(sig))
 		return
 	}
 	if !lastIsTuple && tupleLen < len(sig) {
-		iz.P.Throw("comp/assign/b", asgn.indexTok, tupleLen, len(sig))
+		iz.throw("comp/assign/b", asgn.indexTok, tupleLen, len(sig))
 		return
 	}
 	if lastIsTuple && tupleLen < len(sig)-1 {
-		iz.P.Throw("comp/assign/c", asgn.indexTok, tupleLen, len(sig))
+		iz.throw("comp/assign/c", asgn.indexTok, tupleLen, len(sig))
 		return
 	}
 	loopTop := len(sig)
@@ -1217,7 +1219,7 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 		} else {
 			allowedTypes := iz.cp.GetAlternateTypeFromTypeAst(sig[i].VarType)
 			if allowedTypes.IsNoneOf(head[i].T) {
-				iz.P.Throw("comp/assign/type/a", asgn.indexTok, sig[i].VarName, iz.cp.GetTypeNameFromNumber(head[i].T))
+				iz.throw("comp/assign/type/a", asgn.indexTok, sig[i].VarName, iz.cp.GetTypeNameFromNumber(head[i].T))
 				return
 			} else {
 				iz.cp.AddThatAsVariable(envToAddTo, sig[i].VarName, vAcc, allowedTypes, rhs.GetToken())
@@ -1476,10 +1478,10 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	}
 	iz.cp.Fns = append(iz.cp.Fns, &cpFn)
 	if ac == compiler.DEF && !cpFn.RtnTypes.IsLegalDefReturn() {
-		iz.P.Throw("comp/return/def", &izFn.op)
+		iz.throw("comp/return/def", &izFn.op)
 	}
 	if ac == compiler.CMD && !cpFn.RtnTypes.IsLegalCmdReturn() {
-		iz.P.Throw("comp/return/cmd", &izFn.op)
+		iz.throw("comp/return/cmd", &izFn.op)
 	}
 	iz.setDeclaration(decFUNCTION, &izFn.op, DUMMY, &cpFn)
 

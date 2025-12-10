@@ -1090,6 +1090,9 @@ func (p *Parser) ParseTokenizedChunk() ast.Node {
 // Functions for dealing with Pipefish errors.
 
 func (p *Parser) Throw(errorID string, tok *token.Token, args ...any) {
+	if settings.SHOW_ERRORS {
+		println(text.ORANGE + "Throwing error " + errorID + text.RESET)
+	}
 	c := *tok
 	p.Common.Errors = err.Throw(errorID, p.Common.Errors, &c, args...)
 }
@@ -1116,4 +1119,3 @@ func newError(ident string, tok *token.Token, args ...any) *err.Error {
 	errorToReturn.Trace = []*token.Token{tok}
 	return errorToReturn
 }
-

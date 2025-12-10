@@ -354,11 +354,13 @@ NodeTypeSwitch:
 		if !ok {
 			cp.Throw("comp/ident/known", node.GetToken(), node.Value)
 			cp.GlobalConsts.Ext = nil
+			rtnTypes = AltType(values.COMPILE_TIME_ERROR)
 			break
 		}
 		if (v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == GLOBAL_VARIABLE_PRIVATE) && ac == REPL {
 			cp.Throw("comp/ident/private", node.GetToken())
 			cp.GlobalConsts.Ext = nil
+			rtnTypes = AltType(values.COMPILE_TIME_ERROR)
 			break
 		}
 		if v.Access == LOCAL_VARIABLE_THUNK || v.Access == LOCAL_FUNCTION_THUNK {

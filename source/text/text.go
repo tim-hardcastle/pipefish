@@ -194,6 +194,7 @@ const (
 	MASK                   = '▪'
 	RT_ERROR               = "<R>Error</>: "
 	ERROR                  = "<R>Error</>: "
+	ORANGE                 = "\033[38;2;255;165;0m"
 )
 
 func HighlightLine(plainLine string, highlighter rune) (string, rune) {

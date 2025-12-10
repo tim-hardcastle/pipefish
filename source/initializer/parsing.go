@@ -161,7 +161,7 @@ func (iz *Initializer) addToNameSpace(thingsToImport []*tokenizedExternalOrImpor
 			libDat, err = os.ReadFile(path)
 		}
 		if err != nil {
-			iz.P.Throw("init/import/found", &token.Token{}, path)
+			iz.throw("init/import/found", &token.Token{}, path)
 		}
 		stdImp := strings.TrimRight(string(libDat), "\n") + "\n"
 		iz.cmI("Making new relexer with filepath '" + path + "'")
@@ -742,7 +742,7 @@ func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.Valu
 				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"%", ast.AsBling("&")}, ast.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("mod", sig, "modulo_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
-				iz.P.Throw("init/request/int", tok1, op)
+				iz.throw("init/request/int", tok1, op)
 			}
 		case values.LIST:
 			switch op {
@@ -829,7 +829,7 @@ func (iz *Initializer) makeCloneFunction(fnName string, sig ast.AstSig, builtinT
 	iz.Common.functions[funcSource{tok.Source, tok.Line, fnName, pos}] = fn
 	conflictingFunction := iz.Add(fnName, fn)
 	if conflictingFunction != nil && conflictingFunction != fn {
-		iz.P.Throw("init/overload/c", tok, fnName, &conflictingFunction.op)
+		iz.throw("init/overload/c", tok, fnName, &conflictingFunction.op)
 	}
 }
 

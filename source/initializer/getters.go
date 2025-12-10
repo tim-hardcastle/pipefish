@@ -56,7 +56,7 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 		}
 	}
 	if !foundSelf {
-		iz.P.Throw("init/interface/self", tok)
+		iz.throw("init/interface/self", tok)
 		return values.MakeAbstractType()
 	}
 	for i := 0; i < sigToMatch.rtnSig.Len(); i++ {
@@ -131,7 +131,7 @@ func (iz *Initializer) makeReturnTypeFromTokens(toks []token.Token) ast.TypeNode
 	if toks[1].Type == token.LBRACE {
 		ts := parser.MakeCodeChunk(toks[2:len(toks)-1], false)
 		if ts.Length() == 0 {
-			iz.P.Throw("init/param/missing", &toks[0])
+			iz.throw("init/param/missing", &toks[0])
 			return nil
 		}
 		iz.P.PrimeWithTokenSupplier(ts)
@@ -140,9 +140,9 @@ func (iz *Initializer) makeReturnTypeFromTokens(toks []token.Token) ast.TypeNode
 		typeNode := iz.cp.P.ToAstType(&ast.TypeExpression{Token: toks[0], Operator: toks[0].Literal, TypeArgs: typeArgs})
 		if typeNode, ok := typeNode.(*ast.TypeWithArguments); ok {
 			return typeNode
-		} else { // Otherwise it's a computed type so we just throw together all the 
-		         // things it could be and call it a day.
-			return &ast.TypeWithName{toks[0], toks[0].Literal+"{_}"}
+		} else { // Otherwise it's a computed type so we just throw together all the
+			// things it could be and call it a day.
+			return &ast.TypeWithName{toks[0], toks[0].Literal + "{_}"}
 		}
 	}
 	return iz.makeTypeAstFromTokens(toks)
