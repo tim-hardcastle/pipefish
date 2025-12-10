@@ -10,6 +10,8 @@ import (
 
 func TestPrettyPrint(t *testing.T) {
 	tests := []test_helper.TestItem{
+		{`func(x int) : x`, "func(x int) :\n    x"},
+		{`func(x) : x`, "func(x any?) :\n    x"},
 		{`2 + 2 == 4`, `2 + 2 == 4`},
 		{`2 + 2 * 3`, `2 + 2 * 3`},
 		{`true and (true or false)`, `true and (true or false)`},

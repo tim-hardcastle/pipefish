@@ -84,7 +84,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			out.WriteString(p.prettyPrint(node.Body, inlineCtxt))
 		}
 	case *ast.FuncExpression:
-		out.WriteString("func ")
+		out.WriteString("func")
 		out.WriteString(node.NameSig.String() + " :")
 		switch ctxt.flavor {
 		case ppOUTER:
@@ -101,6 +101,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 				out.WriteString(p.prettyPrint(node.Body, ctxt.in()))
 				out.WriteString("\n")
 			case ppINLINE:
+				out.WriteString("given : ")
 				out.WriteString(p.prettyPrint(node.Body, inlineCtxt))
 			}
 		}
@@ -130,10 +131,10 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		_, isList := node.Args[0].(*ast.ListExpression)
 		leftNeedsPrefix := isPrefix && pos == 1
 		leftNeedsBrackets := !leftNeedsPrefix && !isList && (pos > 1 || p.hasLowerPrecedence(node.Args[0], node.Args[1]) && !isLeaf(node.Args[0]))
-		rhsHasBling := false 
+		rhsHasBling := false
 		for i := pos + 1; i < len(node.Args); i++ {
 			if _, ok := node.Args[i].(*ast.Bling); ok {
-				rhsHasBling = true 
+				rhsHasBling = true
 				break
 			}
 		}
@@ -267,7 +268,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 					out.WriteString(" ")
 				}
 				out.WriteString(p.prettyPrint(arg, inlineCtxt))
-				if i < len(node.Args) - 1 {
+				if i < len(node.Args)-1 {
 					out.WriteString(" ")
 				}
 				if ctxt.mustBracket && i+1 < len(node.Args) && !ast.IsBling(node.Args[i+1]) {
@@ -321,8 +322,8 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		}
 		out.WriteString("}")
 	case *ast.TypePrefixExpression:
-			out.WriteString(node.Operator)
-			if len(node.TypeArgs) > 0 {
+		out.WriteString(node.Operator)
+		if len(node.TypeArgs) > 0 {
 			out.WriteString("{")
 			sep := []byte("")
 			for _, arg := range node.TypeArgs {
