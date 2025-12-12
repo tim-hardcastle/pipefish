@@ -42,8 +42,8 @@ func newAccessor(supplier tokensSupplier) *tokenAccessor {
 	return &tokenAccessor{supplier, []token.Token{}}
 }
 
-// We can ask to look at the ith token, where 0 is the current one. The accessor
-// will keep asking the supplier for
+// We can ask to look at the [i]th token, where 0 is the current one. The accessor
+// will keep asking the supplier for tokens until there *is* an [i]th tokem to return.
 func (ta *tokenAccessor) tok(i int) token.Token {
 	for len(ta.buffer) <= i {
 		ta.buffer = append(ta.buffer, ta.supplier.getTokens()...)
@@ -51,13 +51,14 @@ func (ta *tokenAccessor) tok(i int) token.Token {
 	return ta.buffer[i]
 }
 
+// Moves on to the next token.
 func (ta *tokenAccessor) next() {
 	ta.tok(0) // To ensure there is something there to discard.
 	ta.buffer = ta.buffer[1:]
 }
 
 // The relexer needs to be an interface because some of them are going to need to
-// have state.
+// have state. The `chain` method sets where it gets its tokens from.
 type relexer interface {
 	chain(ts tokensSupplier)
 	getTokens() []token.Token

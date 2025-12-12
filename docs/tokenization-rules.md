@@ -10,7 +10,7 @@ Whitespace. You can't use this in an identifier.
 
 The "protected punctuation", the characters `(`, `)`, `[`, `]`, `{`, `}`, `,`, `;`, `:`, `.`, `"`, `` ` ``, `'` and `|`. You can't use any of these in an identifier.
 
-Alphabetic characters together with `$` and `?`. You can use any of these in an identifier.
+Alphabetic characters. You can use any of these in an identifier.
 
 The numerals `0` ... `9`. You can use these in an identifier, but you can't use them to start an identifier.
 
