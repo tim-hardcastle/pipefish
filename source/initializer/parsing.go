@@ -68,22 +68,38 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 	iz.cmI("Making boilerplate in tokenized function form.")
 	iz.createBoilerplate()
 
-	iz.cmI("Initializing imports.")
-	unnamespacedImports := iz.recursivelyParseImports()
-	if iz.errorsExist() {
-		return
-	}
+	// An unnamespaced import may itself contain imports, namespaced or unnamespaced.
+	// So we need to keep going round until we've pulled everything into the namespace.
+	
+	// The second and subsequent times we go around, we need to start further down the lists
+	// of imports and externals so we don't do anything twice.
+	importsStartAt := 0
+	externalsStartAt := 0
+	for {
+		iz.cmI("Initializing imports.")
+		unnamespacedImports := iz.parseImports(importsStartAt)
+		if iz.errorsExist() {
+			return
+		}
 
-	iz.cmI("Initializing external services.")
-	iz.initializeExternals()
-	if iz.errorsExist() {
-		return
-	}
+		iz.cmI("Initializing external services.")
+		iz.initializeExternals(externalsStartAt)
+		if iz.errorsExist() {
+			return
+		}
 
-	iz.cmI("Adding unnamespaced imports to namespace.")
-	iz.addToNameSpace(unnamespacedImports)
-	if iz.errorsExist() {
-		return
+		importsStartAt = len(iz.tokenizedCode[importDeclaration])
+		externalsStartAt = len(iz.tokenizedCode[externalDeclaration])
+
+		iz.cmI("Adding unnamespaced imports to namespace.")
+		iz.addToNameSpace(unnamespacedImports)
+		if iz.errorsExist() {
+			return
+		}
+		if importsStartAt == len(iz.tokenizedCode[importDeclaration]) &&
+		   externalsStartAt == len(iz.tokenizedCode[externalDeclaration]) {
+			break
+		}
 	}
 
 	iz.cmI("Creating enums.")
@@ -174,9 +190,9 @@ func (iz *Initializer) addToNameSpace(thingsToImport []*tokenizedExternalOrImpor
 // This spawns a child initializer for each namespaced import and then calls its
 // `parseEverythingFromFilepath` method. It returns a list of `NULL`-namespaced imports which
 // can then be thrown into the parent initializer's namespace using the `addToNamespace` method.
-func (iz *Initializer) recursivelyParseImports() []*tokenizedExternalOrImportDeclaration {
+func (iz *Initializer) parseImports(startAt int) []*tokenizedExternalOrImportDeclaration {
 	unnamespacedImports := []*tokenizedExternalOrImportDeclaration{}
-	for _, tc := range iz.tokenizedCode[importDeclaration] {
+	for _, tc := range iz.tokenizedCode[importDeclaration][startAt:] {
 		dec := tc.(*tokenizedExternalOrImportDeclaration)
 		if dec.golang {
 			iz.goBucket.imports[dec.path.Source] = append(iz.goBucket.imports[dec.path.Source], dec.path.Literal)
@@ -216,9 +232,9 @@ func (iz *Initializer) recursivelyParseImports() []*tokenizedExternalOrImportDec
 // Either way, we then need to extract a stub of the external service's public functions, types, etc.
 //
 // Details of the external services are kept in the vm, because it will have to make the external calls.
-func (iz *Initializer) initializeExternals() {
+func (iz *Initializer) initializeExternals(startAt int) {
 	hasPort, _ := regexp.Compile(":[0-9]+$")
-	for _, tc := range iz.tokenizedCode[externalDeclaration] {
+	for _, tc := range iz.tokenizedCode[externalDeclaration][startAt:] {
 		dec := tc.(*tokenizedExternalOrImportDeclaration)
 		name := dec.name.Literal
 		path := dec.path.Literal
