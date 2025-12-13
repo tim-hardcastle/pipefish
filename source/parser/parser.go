@@ -741,7 +741,6 @@ func (p *Parser) parseLambdaExpression() ast.Node {
 		return nil
 	}
 	expression.NameSig, _ = p.RecursivelySlurpSignature(root.(*ast.LazyInfixExpression).Left, ast.ANY_NULLABLE_TYPE_AST)
-	println("Slurped sig", expression.NameSig)
 	bodyRoot := root.(*ast.LazyInfixExpression).Right
 	if bodyRoot.GetToken().Type == token.GIVEN {
 		expression.Body = bodyRoot.(*ast.InfixExpression).Args[0]

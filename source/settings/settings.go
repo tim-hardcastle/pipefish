@@ -7,14 +7,13 @@ package settings
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 )
 
 // This can be changed during initialization.
-var MandatoryImports = []string{"rsc-pf/builtins.pf", "rsc-pf/world.pf", "rsc-pf/interfaces.pf", "rsc-pf/generics.pf"}
+var MandatoryImports = []string{"rsc-pf/builtins.pf", "rsc-pf/interfaces.pf", "rsc-pf/generics.pf"}
 
 // And so this is a function. TODO --- init it instead.
 func MandatoryImportSet() dtypes.Set[string] {
@@ -22,14 +21,13 @@ func MandatoryImportSet() dtypes.Set[string] {
 }
 
 var ThingsToIgnore = (dtypes.MakeFromSlice(MandatoryImports)).
-	Add("rsc-pf/hub.pf").Add("Builtin constant").
-	Add("rsc-pf/worldlite.pf").Add("user/themes.pf")
+	Add("rsc-pf/hub.pf").Add("Builtin constant").Add("user/themes.pf")
 
-var StandardLibraries = dtypes.MakeFromSlice([]string{"fmt", "html", "math", "math/rand", "path", "path/filepath", "reflect", "regexp", "sql", "strings", "terminal", "time", "unicode"})
+var StandardLibraries = dtypes.MakeFromSlice([]string{"files", "fmt", "html", "math", "math/rand", "path", "path/filepath", "reflect", "regexp", "sql", "strings", "terminal", "time", "unicode"})
 
 const (
-	OMIT_BUILTINS      = false // If true then the file builtins.pf, world.pf, etc, will not be added to the service. Note that this means the hub won't work.
-	IGNORE_BOILERPLATE = true  // Should usually be left true. Means that the flags below won't show instrumentation when compiling buitins.pf, world.pf, etc.
+	OMIT_BUILTINS      = false // If true then the file builtins.pf, etc, will not be added to the service. Note that this means the hub won't work.
+	IGNORE_BOILERPLATE = true  // Should usually be left true. Means that the flags below won't show instrumentation when compiling buitins.pf, etc.
 
 	FUNCTION_TO_PEEK = "" // Shows the function table entry and function tree associated with the function named in the string, if non-empty.
 
@@ -62,8 +60,5 @@ func init() {
 	} else {
 		appDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 		PipefishHomeDirectory = appDir + "/"
-	}
-	if runtime.GOOS == "windows" { // This allows a cut-down version that doesn't require the plugins package.
-		MandatoryImports = []string{"rsc-pf/builtins.pf", "rsc-pf/worldlite.pf", "rsc-pf/interfaces.pf", "rsc-pf/generics.pf"}
 	}
 }

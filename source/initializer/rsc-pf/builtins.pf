@@ -119,3 +119,16 @@ stringify(x any?) -> string :
 
 (x float) % :
     x / 100.0
+
+(x type)? :
+    x/null
+
+newtype
+
+Output = struct()
+
+cmd
+
+posttooutputmaker(x any?) : builtin "post_to_output"
+post (x any?) to (o Output): posttooutputmaker(x)
+post (x any?) : builtin "post_to_output"
