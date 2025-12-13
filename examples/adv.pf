@@ -61,7 +61,7 @@ doTheThing(input string, S GameState) :
         S with output::"The verb " + verb + " requires no noun."
     specialEffects(verb, noun, S) 
     verb == "go" :
-        doMove(noun, S)
+        doMove(noun, S) 
     verb == "look" :
         doLook(S)
     verb == "take" :
@@ -81,11 +81,11 @@ given :
 
 // Functions for parsing input.
 
-parseUserInput(input string) :
+parseUserInput(input string) : 
     input -> strings.toLower -> strings.split(that, " ") ..
        .. >> substituteSynonyms -> addImplicitGo
 
-substituteSynonyms(s string) :
+substituteSynonyms(s string) : 
     s in keys SYNONYMS :
         SYNONYMS[s]
     else :
@@ -192,8 +192,9 @@ specialEffects(verb, noun string, S GameState) :
 
 slurpLocations(L list) : 
     from M = map() for i = 0; i < len(L); i + 6 :
-        M with L[i]::Location(L[i + 1], L[i + 2], L[i + 3], L[i + 4], L[i + 5])
+        M with L[i]::cast(L[i+1::i+6], Location)
 
 slurpObjects(L list) : 
     from M = map() for i = 0; i < len(L); i + 3 :
-        M with L[i]::Object(L[i + 1], L[i + 2])
+        M with L[i]::cast(L[i+1::i+3], Object)
+

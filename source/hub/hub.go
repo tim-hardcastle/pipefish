@@ -554,7 +554,7 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 		}
 		filepath, _ := serviceToReset.GetFilepath()
 		hub.WritePretty("Restarting script <C>\"" + filepath +
-			"\" as service <C>\"" + hub.currentServiceName() + "\"</>.\n")
+			"\"</> as service <C>\"" + hub.currentServiceName() + "\"</>.\n")
 		hub.StartAndMakeCurrent(username, hub.currentServiceName(), filepath)
 		hub.lastRun = []string{hub.currentServiceName()}
 		return false

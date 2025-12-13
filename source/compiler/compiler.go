@@ -2107,8 +2107,10 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 	rhsConst = true
 	thatLoc = cp.Reserve(values.UNDEFINED_TYPE, DUMMY, rhs.GetToken())
 	envWithThat = &Environment{Data: map[string]Variable{"that": {MLoc: cp.That(), Access: VERY_LOCAL_VARIABLE, Types: cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)}}, Ext: env}
-	counter := cp.Reserve(values.INT, 0, rhs.GetToken())
-	accumulator := cp.Reserve(values.TUPLE, []values.Value{}, rhs.GetToken())
+	cp.Put(vm.Asgm, values.C_ZERO)
+	counter := cp.That()
+    cp.Put(vm.Asgm, values.C_EMPTY_TUPLE)
+	accumulator := cp.That()
 	cp.Put(vm.LenL, sourceList)
 	length := cp.That()
 	cp.Cm("Start of loop.", tok)

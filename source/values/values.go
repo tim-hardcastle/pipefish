@@ -129,6 +129,7 @@ var (
 	FALSE = Value{BOOL, false}
 	TRUE  = Value{BOOL, true}
 	U_OBJ = Value{T: UNSATISFIED_CONDITIONAL}
+	ZERO  = Value{INT, 0}
 	ONE   = Value{INT, 1}
 	BLNG  = Value{BLING, "bling"}
 	OK    = Value{SUCCESSFUL_VALUE, nil}
@@ -140,6 +141,7 @@ const (
 	C_FALSE
 	C_TRUE
 	C_UNSAT
+	C_ZERO
 	C_ONE
 	C_BLING
 	C_OK

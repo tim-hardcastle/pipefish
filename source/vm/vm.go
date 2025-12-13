@@ -138,7 +138,7 @@ type HTMLInjector struct {
 }
 
 // These inhabit the first few memory addresses of the VM.
-var CONSTANTS = []values.Value{values.UNDEF, values.FALSE, values.TRUE, values.U_OBJ, values.ONE, values.BLNG, values.OK, values.EMPTY}
+var CONSTANTS = []values.Value{values.UNDEF, values.FALSE, values.TRUE, values.U_OBJ, values.ZERO, values.ONE, values.BLNG, values.OK, values.EMPTY}
 
 // Type names in upper case are things the user should never see.
 var nativeTypeNames = []string{"UNDEFINED VALUE", "INT ARRAY", "THUNK", "CREATED LOCAL CONSTANT",
