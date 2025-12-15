@@ -22,9 +22,9 @@ given :
 
 slurpLine(code string, lineNumber int) -> list : 
     first from tokens, pos = [], 0 for :
-        nextChar == len word :
+        pos == len code :
             break
-        unicode.isLower word[0] :
+        unicode.isLower word[0] : // congnate treats such words as comments.
             tokens, nextChar
         else :
             tokens + [Token(word, lineNumber, firstChar)], nextChar
