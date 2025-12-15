@@ -1,4 +1,7 @@
-import "strings"
+import
+
+"strings"
+"unicode"
 
 const
 
@@ -21,13 +24,16 @@ slurpLine(code string, lineNumber int) -> list :
     first from tokens, pos = [], 0 for :
         word in null :
             break 
+        unicode.isLower word[0] :
+            tokens, nextChar
         else :
-            tokens + [Token(word, lineNumber, firstChar)], 
-         .. firstChar + len word
+            tokens + [Token(word, lineNumber, firstChar)], nextChar
+         .. 
     given :
         unprocessedCode = code[pos::len code]
         firstChar = pos + skipWhitespace unprocessedCode
         word = slurpNext code[firstChar::len code]
+        nextChar = firstChar + len word
 
 slurpNext(code string) -> string? : 
     code == "" :
