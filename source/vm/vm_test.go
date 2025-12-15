@@ -477,8 +477,8 @@ func TestRuntimeTypecheck(t *testing.T) {
 		{`EvenNumber 2`, `EvenNumber(2)`},
 		{`EvenNumber 3`, `vm/typecheck/fail`},
 		{`Person "Doug", 42`, `Person with (name::"Doug", age::42)`},
-		{`Person "", 42`, "vm/typecheck/fail"},
-		{`Person "Doug", -99`, "vm/typecheck/fail"},
+		{`Person "", 42`, `vm/typecheck/fail`},
+		{`Person "Doug", -99`, `vm/typecheck/fail`},
 	}
 	test_helper.RunTest(t, "runtime_typecheck_test.pf", tests, test_helper.TestValues)
 }
@@ -597,6 +597,8 @@ func TestCast(t *testing.T) {
 		{`cast 99, Color`, `vm/cast/enum`},
 		{`cast ["John", 22, true], Person`, `vm/cast/fields`},
 		{`cast ["John", "22"], Person`, `vm/cast/types`},
+		{`float "foo"`, `vm/string/float`},
+		{`int "foo"`, `vm/string/int`},
 	}
 	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
 }

@@ -3267,6 +3267,25 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"vm/string/int": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "string has wrong form to convert to int"
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "To be converted into an integer, a string must consist exclusively of the digits `0` ... `9`."
+		},
+	},
+
+	"vm/string/float": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "string has wrong form to convert to float"
+		},
+		// TODO --- look up the spec of the conversion and see if this is true.
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "To be converted into an float, a string must consist exclusively of the digits `0` ... `9` and the decimal point."
+		},
+	},
+
 	"vm/label/exist": {
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't convert string %v to a label", emphStr(args[0]))

@@ -204,7 +204,7 @@ func (cp *Compiler) btFloatOfInt(tok *token.Token, dest uint32, args []uint32) {
 }
 
 func (cp *Compiler) btFloatOfString(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Flts, dest, args[0])
+	cp.Emit(vm.Flts, dest, args[0], cp.ReserveToken(tok))
 }
 
 func (cp *Compiler) btGetFromInput(tok *token.Token, dest uint32, args []uint32) {
@@ -258,7 +258,7 @@ func (cp *Compiler) btIntOfFloat(tok *token.Token, dest uint32, args []uint32) {
 }
 
 func (cp *Compiler) btIntOfString(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Ints, dest, args[0])
+	cp.Emit(vm.Ints, dest, args[0], cp.ReserveToken(tok))
 }
 
 func (cp *Compiler) btKeysOfMap(tok *token.Token, dest uint32, args []uint32) {

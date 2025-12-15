@@ -809,7 +809,7 @@ loop:
 			case Flts:
 				i, err := strconv.ParseFloat(vm.Mem[args[1]].V.(string), 64)
 				if err != nil {
-					vm.Mem[args[0]] = values.Value{values.ERROR, DUMMY}
+					vm.Mem[args[0]] = vm.makeError("vm/string/float", args[2], args[1])
 				} else {
 					vm.Mem[args[0]] = values.Value{values.FLOAT, i}
 				}
@@ -913,7 +913,7 @@ loop:
 			case Ints:
 				i, err := strconv.Atoi(vm.Mem[args[1]].V.(string))
 				if err != nil {
-					vm.Mem[args[0]] = values.Value{values.ERROR, DUMMY}
+					vm.Mem[args[0]] = vm.makeError("vm/string/int", args[2], args[1])
 				} else {
 					vm.Mem[args[0]] = values.Value{values.INT, i}
 				}

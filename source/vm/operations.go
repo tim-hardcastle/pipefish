@@ -142,7 +142,7 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Eqxx: {"eqxx", operands{dst, mem, mem, tok}},
 	Extn: {"extn", operands{dst, mem, mem, mem, mem, tup}}, // Operands are: the external service to call; whether the function is PREFIX, INFIX, or POSTFIX; the remainder of the namespace of the function as a string; the name of the function as a string; the locations of the arguments.
 	Flti: {"flti", operands{dst, mem}},
-	Flts: {"flts", operands{dst, mem}},
+	Flts: {"flts", operands{dst, mem, tok}},
 	Gofn: {"gofn", operands{dst, mem, gfn, tup}}, // Mem contains the location of a *mutable* error, i.e. we will copy its token but change its contents when returning it. 
 	Gsql: {"gsql", operands{dst, mem, mem, mem, mem, num, tok}},
 	Gtef: {"gtef", operands{dst, mem, mem}},
@@ -163,7 +163,7 @@ var OPERANDS = map[Opcode]opDescriptor{
 	InxT: {"inxT", operands{dst, mem, mem}},
 	Inte: {"inte", operands{dst, mem}},
 	Intf: {"intf", operands{dst, mem}},
-	Ints: {"ints", operands{dst, mem}},
+	Ints: {"ints", operands{dst, mem, tok}},
 	Itgk: {"itgk", operands{dst, mem}},
 	Itkv: {"itgv", operands{dst, dst, mem}},
 	Itgv: {"itgv", operands{dst, mem}},
