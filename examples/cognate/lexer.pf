@@ -11,44 +11,39 @@ Token = struct(lit string, line, ch int)
 
 def 
 
-tokenize(code string) :
+tokenize(code string) -> list :
     from tokens = [] for i::s = range lines :
-        tokens + slurpLine(s, i + 1)
+        tokens + slurpLine s, i + 1
 given :
     lines = strings.split code, "\n"
 
-slurpLine(code string, lineNumber int) : 
+slurpLine(code string, lineNumber int) -> list : 
     first from tokens, pos = [], 0 for :
-        startAt == -1 :
+        word in null :
             break 
         else :
-            tokens + [Token(s, lineNumber, startAt)], startAt + len s 
+            tokens + [Token(word, lineNumber, firstChar)], 
+         .. firstChar + len word
     given :
-        s, startAt = slurpNext(code, pos)
+        unprocessedCode = code[pos::len code]
+        firstChar = pos + skipWhitespace unprocessedCode
+        word = slurpNext code[firstChar::len code]
 
-slurpNext(code string, pos int) : 
-    startAt == len code :
-        "", -1
-    firstChar == '"' : 
-        "\"" + slurpTo(code, startAt+1, '"') + "\"", startAt
-    firstChar == '\'' :
-        "'" + slurpTo(code, startAt+1, '\'') + "'", startAt
-    firstChar in PUNCTUATION :
-        string(firstChar), startAt
+slurpNext(code string) -> string? : 
+    code == "" :
+        NULL
+    code[0] == '"' : 
+        slurpTo(code, set("\""))
+    code[0] in PUNCTUATION :
+        string(code[0])
     else :
-        slurpTo(code, startAt, ' ', '\t'), startAt
-given :
-    startAt = skipWhitespace(code, pos)   
-    firstChar = code[startAt]
+        slurpTo(code, WHITESPACE + PUNCTUATION)
 
-skipWhitespace(code string, pos int) :
-    from startAt = pos for :
-        startAt == len(code) or not code[startAt] in set(' ', '\t') :
-            break startAt
-        else :
-            startAt + 1
+skipWhitespace(code string) -> int :
+    from count = 0 for i = 0; i < len(code) and code[i] in WHITESPACE; i + 1 :
+        count + 1
 
-slurpTo (code string, startAt int, terminators ... rune) : 
-    from result = "" for i = startAt; not (i == len code or code[i] in terminators); i + 1 :
+slurpTo (code string, terminators set) : 
+    from result = "" for i = 0; not (i == len code or code[i] in terminators); i + 1 :
         result + code[i] 
 

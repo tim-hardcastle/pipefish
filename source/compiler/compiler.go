@@ -1967,19 +1967,25 @@ func (cp *Compiler) compileEquals(node *ast.ComparisonExpression, ctxt Context) 
 	lTypes, lcst := cp.CompileNode(node.Left, ctxt.x())
 	if lTypes.isOnly(values.ERROR) {
 		cp.Throw("comp/error/eq/a", node.GetToken())
-		return AltType(values.ERROR), true
+		return AltType(values.ERROR), false
+	}
+	if lTypes.isOnly(values.COMPILE_TIME_ERROR) {
+		return AltType(values.COMPILE_TIME_ERROR), false
 	}
 	leftRg := cp.That()
 	rTypes, rcst := cp.CompileNode(node.Right, ctxt.x())
 	if rTypes.isOnly(values.ERROR) {
 		cp.Throw("comp/error/eq/b", node.GetToken())
-		return AltType(values.ERROR), true
+		return AltType(values.ERROR), false
+	}
+	if rTypes.isOnly(values.COMPILE_TIME_ERROR) {
+		return AltType(values.COMPILE_TIME_ERROR), false
 	}
 	rightRg := cp.That()
 	oL := lTypes.intersect(rTypes)
 	if oL.isOnly(values.ERROR) {
 		cp.Throw("comp/error/eq/c", node.GetToken())
-		return AltType(values.ERROR), true
+		return AltType(values.ERROR), false
 	}
 	if len(oL) == 0 {
 		cp.Throw("comp/eq/types", node.GetToken(), lTypes.describe(cp.Vm), rTypes.describe(cp.Vm))

@@ -579,7 +579,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"comp/index/string": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "string index is not of type" + emph("int") + " or " + emph("pair")
+			return "string index is not of type " + emph("int") + " or " + emph("pair")
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "A string may be indexed by an integer, to select a particular value, or by a pair of integers, to take a slice."

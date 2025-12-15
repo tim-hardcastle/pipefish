@@ -643,7 +643,6 @@ func (t FiniteTupleType) compare(u TypeScheme) int {
 
 func (fT FiniteTupleType) describe(mc *vm.Vm) string {
 	var buf strings.Builder
-	fmt.Fprint(&buf, "tuple{")
 	lastWasBling := true // Which is a lie, but stops us from putting a comma right at the start.
 	for i, v := range fT {
 		_, thisIsBling := v.(blingType)
@@ -656,7 +655,6 @@ func (fT FiniteTupleType) describe(mc *vm.Vm) string {
 		fmt.Fprint(&buf, v.describe(mc))
 		lastWasBling = thisIsBling
 	}
-	fmt.Fprint(&buf, "}")
 	return buf.String()
 }
 

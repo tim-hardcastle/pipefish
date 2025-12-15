@@ -54,7 +54,7 @@ func GetList(ers Errors) string {
 	sep := ""
 	for i, v := range ers {
 		result = result + sep + "[" + strconv.Itoa(i) + "] " + text.ERROR + (v.Message) + text.DescribePos(v.Token)
-		sep = ".\n\n"
+		sep = "\n\n"
 	}
 	return result
 }
