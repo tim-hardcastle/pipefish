@@ -1,0 +1,54 @@
+import "strings"
+
+const
+
+WHITESPACE = set(' ', '\t')
+PUNCTUATION = set('(', ')', ';')
+
+newtype 
+
+Token = struct(lit string, line, ch int)
+
+def 
+
+tokenize(code string) :
+    from tokens = [] for i::s = range lines :
+        tokens + slurpLine(s, i + 1)
+given :
+    lines = strings.split code, "\n"
+
+slurpLine(code string, lineNumber int) : 
+    first from tokens, pos = [], 0 for :
+        startAt == -1 :
+            break 
+        else :
+            tokens + [Token(s, lineNumber, startAt)], startAt + len s 
+    given :
+        s, startAt = slurpNext(code, pos)
+
+slurpNext(code string, pos int) : 
+    startAt == len code :
+        "", -1
+    firstChar == '"' : 
+        "\"" + slurpTo(code, startAt+1, '"') + "\"", startAt
+    firstChar == '\'' :
+        "'" + slurpTo(code, startAt+1, '\'') + "'", startAt
+    firstChar in PUNCTUATION :
+        string(firstChar), startAt
+    else :
+        slurpTo(code, startAt, ' ', '\t'), startAt
+given :
+    startAt = skipWhitespace(code, pos)   
+    firstChar = code[startAt]
+
+skipWhitespace(code string, pos int) :
+    from startAt = pos for :
+        startAt == len(code) or not code[startAt] in set(' ', '\t') :
+            break startAt
+        else :
+            startAt + 1
+
+slurpTo (code string, startAt int, terminators ... rune) : 
+    from result = "" for i = startAt; not (i == len code or code[i] in terminators); i + 1 :
+        result + code[i] 
+
