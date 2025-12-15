@@ -6,7 +6,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/token"
 )
 
-// The lowest level of signature representation. We just store everything as tokens until
+// The lowest level of representation. We just store everything as tokens until
 // we find out what to do with them.
 
 // Type declarations.
@@ -393,9 +393,6 @@ func (tcc *TokenizedCodeChunk) String() string {
 	for j := 0; j < tcc.Length(); j++ {
 		output = output + fmt.Sprintf("%v\n", tcc.NextToken())
 	}
-	// for j := 0; j < len(tcc.code); j++ {
-	// output = output + fmt.Sprintf("%v\n", tcc.code[j])
-	// }
 	return output + "\n"
 }
 

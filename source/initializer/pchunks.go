@@ -63,3 +63,11 @@ type parsedTypeInstance struct {
 }
 
 func (pc *parsedTypeInstance) getToken() *token.Token { return pc.instantiatedAt }
+
+type parsedAlias struct {
+	decNumber   int
+	indexTok    *token.Token
+	aliasedtype ast.TypeNode
+}
+
+func (pc *parsedAlias) getToken() *token.Token { return pc.indexTok }

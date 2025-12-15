@@ -132,6 +132,12 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 		return
 	}
 
+	iz.cmI("Creating alias types.")
+	iz.createAliasTypes()
+	if iz.errorsExist() {
+		return
+	}
+
 	iz.cmI("Creating struct labels.")
 	iz.createStructLabels()
 	if iz.errorsExist() {
@@ -1083,7 +1089,7 @@ func (iz *Initializer) createAbstractTypes() {
 	}
 }
 
-// Phase 1L of compilation. Creates the interface types as names but doesn't populate them: parses the signatures
+// Creates the interface types as names but doesn't populate them: parses the signatures
 // of the functions in the interface definitions.
 func (iz *Initializer) createInterfaceTypes() {
 	for _, tc := range iz.tokenizedCode[interfaceDeclaration] {
@@ -1110,6 +1116,24 @@ func (iz *Initializer) createInterfaceTypes() {
 	}
 }
 
+// Creates the alias types as names.
+func (iz *Initializer) createAliasTypes() {
+	for _, tc := range iz.tokenizedCode[aliasDeclaration] {
+		dec := tc.(*tokenizedAliasDeclaration)
+		nameTok := dec.op
+		newTypename := nameTok.Literal
+		iz.cp.P.Typenames.Add(newTypename)
+		if settings.MandatoryImportSet().Contains(nameTok.Source) {
+			iz.unserializableTypes.Add(newTypename)
+		}
+		iz.cp.TypeMap[newTypename] = values.MakeAbstractType() // We can't populate the interface types before we've parsed everything.
+		_, typeExists := iz.getDeclaration(decALIAS, &nameTok, DUMMY)
+		if !typeExists {
+			iz.setDeclaration(decALIAS, &nameTok, DUMMY, nil)
+		}
+	}
+}
+
 // Auxilliary function to the type-defining function which adds the constructors to the builtins.
 func (iz *Initializer) addToBuiltins(sig ast.AstSig, builtinTag string, returnTypes compiler.AlternateType, private bool, tok *token.Token) uint32 {
 	cpF := &compiler.CpFunc{RtnTypes: returnTypes, Builtin: builtinTag}
@@ -1125,9 +1149,9 @@ func (iz *Initializer) addToBuiltins(sig ast.AstSig, builtinTag string, returnTy
 }
 
 // Having declared the names of the various types and functions of the namespaces, we can now parse the
-// chunks of actual code in the function bodies, `given` blcoks, assignments, validation.
+// chunks of actual code in the function bodies, `given` blocks, assignments, validation.
 var PARSEABLE = []declarationType{cloneDeclaration, structDeclaration, constantDeclaration,
-	variableDeclaration, functionDeclaration, commandDeclaration}
+	variableDeclaration, functionDeclaration, commandDeclaration, aliasDeclaration}
 
 func (iz *Initializer) parseEverythingElse() {
 	iz.parsedCode = make([][]parsedCode, len(iz.tokenizedCode))
@@ -1204,6 +1228,12 @@ func (iz *Initializer) parse(decType declarationType, decNumber int) parsedCode 
 			indexTok:   ixPtr(tc),
 			parameters: iz.makeAstSigFromTokenizedSig(tc.params),
 			body:       body,
+		}
+	case *tokenizedAliasDeclaration:
+		return &parsedAlias{
+			decNumber: decNumber,
+			indexTok: ixPtr(tc),
+			aliasedtype: iz.makeTypeAstFromTokens(tc.typeAliased),
 		}
 	default:
 		panic("You're not meant to parse that!")

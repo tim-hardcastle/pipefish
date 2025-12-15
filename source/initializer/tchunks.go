@@ -60,11 +60,36 @@ func (tc *tokenizedAbstractDeclaration) api() (string, string, bool) {
 	if tc.private || settings.MandatoryImportSet().Contains(tc.op.Source) {
 		return "", "", false
 	}
-	result := tc.op.Literal + " = "
+	result := tc.op.Literal + " = abstract "
 	sep := ""
 	for _, ty := range tc.types {
 		result = result + sep + parser.StringifyTypeName(ty)
 		sep = "/"
+	}
+	return result, tc.docString, true
+}
+
+type tokenizedAliasDeclaration struct {
+	private     bool            // Whether it's declared private.
+	op          token.Token     // The type operator.
+	typeAliased []token.Token   // The type being aliased.
+	docString   string          // Documents what it does.
+}
+
+func (tc *tokenizedAliasDeclaration) getDeclarationType() declarationType {
+	return aliasDeclaration
+}
+
+
+func (tc *tokenizedAliasDeclaration) indexToken() token.Token { return tc.op }
+
+func (tc *tokenizedAliasDeclaration) api() (string, string, bool) {
+	if tc.private || settings.MandatoryImportSet().Contains(tc.op.Source) {
+		return "", "", false
+	}
+	result := tc.op.Literal + " = alias "
+	for _, tok := range tc.typeAliased {
+		result = result + tok.Literal
 	}
 	return result, tc.docString, true
 }
@@ -419,6 +444,8 @@ func (iz *Initializer) ChunkTypeDeclaration(private bool, docString string) (tok
 	switch decliteral {
 	case "abstract":
 		return iz.chunkAbstract(opTok, private, docString)
+	case "alias":
+		return iz.chunkAlias(opTok, private, docString)
 	case "clone":
 		return iz.chunkClone(opTok, private, docString)
 	case "enum":
@@ -466,6 +493,24 @@ func (iz *Initializer) chunkAbstract(opTok token.Token, private bool, docString 
 		iz.P.NextToken()
 	}
 	return &tokenizedAbstractDeclaration{private, opTok, types, docString}, true
+}
+
+// Starts after the word 'alias', ends on NEWLINE or EOF.
+func (iz *Initializer) chunkAlias(opTok token.Token, private bool, docString string) (tokenizedCode, bool) {
+	toks := []token.Token{}
+	for {
+		if iz.P.CurTokenIs(token.NEWLINE) || iz.P.CurTokenIs(token.EOF) {
+			break
+		}
+		toks = append(toks, iz.P.CurToken)
+		iz.P.NextToken()
+	}
+	if len(toks) == 0 {
+		iz.throw("init/alias", &iz.P.CurToken)
+		iz.finishChunk()
+			return &tokenizedAliasDeclaration{}, false
+	}
+	return &tokenizedAliasDeclaration{private, opTok, toks, docString}, false
 }
 
 // Starts after the word 'clone', ends on NEWLINE or EOF.

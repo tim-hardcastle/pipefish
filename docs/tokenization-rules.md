@@ -42,8 +42,68 @@ def
     x == -y 
 ```
 
+
+My plan is to implement a (small portion of) some classic text-based adventure game, Zork or ADVENT or whatever, in (a cut-down version of) Cognate, which I will write in Pipefish.
+
+Pipefish is my own language, an attempt, so far successful, to write a functional language that you can really hack stuff out in, with a special orientation to CRUD apps, middleware, microservices and DSLs. To see what it looks like:
+
+
+* The lexer for this jam.
+* A little text-based adventure game in Pipefish. 
+* A little demo of a CRUD app to demonstrate how we do DSLs (in this case HTML and SQL).
+* A little text-munging program used as part of my tooling for developing Pipefish.
+* And the wiki. https://github.com/tim-hardcastle/Pipefish/wiki
+
+It is pretty much feature-complete, but rquires some thorough testing, a fuzzer, optimization, more tooling, a few more standard libraries, etc.
+
+Cognate is the brainchild of a guy who goes by Stavromula on the internet. Like a million other people he thought "What if Forth was also Lisp?" but he made it work. Here is some Cognate:
+
+```
+Def Factor (Zero? Modulo Swap);
+
+Def Primes (
+	Fold (
+		Let I be our potential prime;
+		Let Primes be the found primes;
+		Let To-check be Take-while (<= Sqrt I) Primes;
+		When None (Factor of I) To-check
+			(Append List (I)) to Primes;
+	) from List () over Range from 2
+);
+
+Print Primes up to 1000;
+```
+I have three purposes in this besides having fun.
+
+* Pipefish is long overdue for some heavy dogfooding. It still has a tendency to crash when trying to compile/exeecute *malformed* code, when the user strays off the happy path. Ergonomic improvements will occur to me. I'll see the typos in the error messages.
+
+The second is to show off both Pipefish and Cognate. Each is in its own way a charming and original language.
+
+* The third is that I'd like to do a full implementation of Cognate eventually and this will be a good start.
+
+For this last reason, although I'm not going to do all the tricky parts of the syntax and semantics, I *am* going to be doing the very hardest part (essentially, closures) although I won't need them to write an adventure game. Because retrofitting them would be such a PITA.
+
+
+
+
+
+
+
+
+
 In the first version the actual underlying syntax and semantics are being disguised by writing the `~` and the `R` identifier without whitespace between them, but with or without whitespace a token boundary is there, and they are two different identifiers.
 
+
+Variables and functions exist in the scope of the block in which they are defined, and may be declared in any order. This allows, for example, for binary recursion.
+
+
+
+// We won't usually want to see all the fields, so we overload the string function.
+string(t Token) -> string : 
+    t[val] in null :
+        string t[tokenType]
+    else :
+        (string t[tokenType]) + "(" + (string t[val]) + ")"
 
 
 
@@ -62,6 +122,34 @@ The gods Šamaš (and) Adad] placed at my disposal the lore of the diviner, a cr
  but you know perfectly well that you haven't done the math, and that you're just reciting the party line. (While complaining about "useful idiots".
 If you look at all the other first world countries, not only is universal healthcare cheaper per capita than our dumpster fire, it also costs less per capita of taxpayers' money. We're actually paying more in taxes to prop up our system of Potemkin capitalism and pretend we have a free market system, then they are to cover everyone and have no premiums or copays.
 Can you think of any particular thing that would make America incapable of doing what everyone else can do? (I mean, apart from the Republican Party?)
+
+
+
+
+, I also think that stupid superstitions were enforced by men. But no-one (I've ever heard) claims that there's a special paternal instinct that allows fathers to diagnose and cure there children's diseases, so I didn't mention that.
+The history of dentistry tells us that the nonexistence of toothworms and that sugar causes caries was discovered by a guy with a microscope. His name was Pierre Fauchard.
+There's a lot of bad things done by Big Pharma. The book "Bad Science: Quacks, Hacks, and Big Pharma Flacks" by Ben Goldacre does a good all-round job of showing up Bad Medicine, I recommend it.
+Individual doctors and nurses, not so much. Remember they're people like you and me who just took a different major in college. Most of them did so with the idea that healing people is a noble profession. Same with medical researchers. They *want* to cure cancer and heart disease, 'cos they all know people who've died of those things, and also there's kudos in winning Nobel Prizes and stuff. There's no point in their education where the professor takes them aside and says "I know you went into scientific research to discover the truth and help people, but actually what we do is conceal the truth and make people ill, for money. Promise not to tell?"
+In the UK, a general practitioner (primary physician if you're American) is paid for how many patients they have registered with them, not per visit. A doctor who keeps their patients healthier can therefore either take on more patients, thereby getting richer, or they can spend more time on the golf course or whatever, so their incentives align with their mission.
+
+
+It's 
+
+
+
+If you want a meme about how the second law of thermodynamics proves that the Earth is flat, you go to a flat-Earther. But if you want someonewho can use the laws of thermodynamics to design a fidge or an engine, you go to a globetard.
+
+If you want a meme saying you should ignore the evidence of your own eyes if it contradicts the flat arth, because of perspe ctive, you go to a flat-Earther. If you want someone to use the laws of perspective to make a VR headset or a flight simulator or a computer game, you go to a globetard.
+
+If you want a meme saying that gravity doesn't exist, you go to a flat-Earther. If you want someone who'll use the law of gravity to design a bridge that will stay up or a plane that will fly, you go to a globetard.
+
+If you want a meme about "dEnSiTy aNd bUoYanCy", you go to a flat-Earther. If you want someone to design a ship that won't capsize, you go to a globetard.
+
+If you want a meme about how seeing the moon in daytime proves the Earth is flat, you go to a flat-Earther. If you want to predict a solar or lunar eclipse to the minute, you go to a globetard.
+
+Etc, etc. If you're the ones who understand how things work, we is it that the globetards are the people who actually make things that work, and all you make is memes?
+
+
 
 
 
