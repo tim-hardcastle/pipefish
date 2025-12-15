@@ -5,7 +5,7 @@ import
 
 newtype 
 
-TokenType = enum IDENT, LPAREN, NUMBER, RPAREN, SEMICOLON, STRING
+TokenType = enum BOOLEAN, IDENT, INTEGER, LPAREN, RPAREN, SEMICOLON, STRING
 Acceptable = abstract int/string/null
 MetaData = struct(lit string, line, ch int)
 Token = struct(tokenType TokenType, val Acceptable, md MetaData)
@@ -34,16 +34,16 @@ lex(code string) -> list :
 given :
     lines = code -> strings.split(that, "\n") >> strings.trim(that, " ")
 
-slurpLine(code string, lineNumber int) -> list : 
+slurpLine(code string, lineINTEGER int) -> list : 
     first from tokens, pos = [], 0 for :
         pos >= len code :
             break
         word[0] == '"' : \\
-            tokens + [makeToken(word + '"', lineNumber, firstChar)], nextChar
+            tokens + [makeToken(word + '"', lineINTEGER, firstChar)], nextChar
         unicode.isLower word[0] : // Cognate treats such words as comments.
             tokens, nextChar
         else :
-            tokens + [makeToken(word, lineNumber, firstChar)], nextChar
+            tokens + [makeToken(word, lineINTEGER, firstChar)], nextChar
     given :
         unprocessedCode = code[pos::len code] 
         firstChar = pos + skipWhitespace unprocessedCode 
@@ -67,15 +67,17 @@ slurpTo (code string, terminators list) :
     from result = "" for i = 0; not (i == len code or code[i] in terminators); i + 1 :
         result + code[i] 
 
-makeToken(word string, lineNumber, firstChar int) : 
+makeToken(word string, lineINTEGER, firstChar int) : 
     word[0] in PUNCTUATION :
         Token(PUNCTUATION_MAP[word], NULL, metadata)
     word[0] == '"' :
         Token(STRING, word[1::len(word)-2], metadata)
     valid int word : 
-        Token(NUMBER, int(word), metadata)
+        Token(INTEGER, int(word), metadata)
+    word in ["True", "False"] :
+        Token(BOOLEAN, word, metadata)
     else :
         Token(IDENT, word, metadata)
 given :
-    metadata = MetaData(word, lineNumber, firstChar)
+    metadata = MetaData(word, lineINTEGER, firstChar)
 
