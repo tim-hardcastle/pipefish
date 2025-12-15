@@ -59,8 +59,14 @@ The gods Šamaš (and) Adad] placed at my disposal the lore of the diviner, a cr
 
 
 
+ but you know perfectly well that you haven't done the math, and that you're just reciting the party line. (While complaining about "useful idiots".
+If you look at all the other first world countries, not only is universal healthcare cheaper per capita than our dumpster fire, it also costs less per capita of taxpayers' money. We're actually paying more in taxes to prop up our system of Potemkin capitalism and pretend we have a free market system, then they are to cover everyone and have no premiums or copays.
+Can you think of any particular thing that would make America incapable of doing what everyone else can do? (I mean, apart from the Republican Party?)
 
 
+
+
+You may remember 
 
 
 import

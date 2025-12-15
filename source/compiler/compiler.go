@@ -534,6 +534,10 @@ NodeTypeSwitch:
 			rtnTypes = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)
 		}
 	case *ast.InfixExpression:
+		if node.Operator == "given" {
+			cp.Throw("comp/expect/given", &node.Token)
+			break
+		}
 		if node.Operator == "," {
 			rtnTypes, rtnConst = cp.compileComma(node, ctxt.x())
 			break NodeTypeSwitch
@@ -1978,7 +1982,6 @@ func (cp *Compiler) compileEquals(node *ast.ComparisonExpression, ctxt Context) 
 		return AltType(values.ERROR), true
 	}
 	if len(oL) == 0 {
-		println("TYPES ARE\n" + lTypes.describe(cp.Vm) + "\n" + rTypes.describe(cp.Vm))
 		cp.Throw("comp/eq/types", node.GetToken(), lTypes.describe(cp.Vm), rTypes.describe(cp.Vm))
 		return AltType(values.ERROR), true
 	}
