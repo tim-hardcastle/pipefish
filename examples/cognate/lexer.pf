@@ -22,8 +22,8 @@ given :
 
 slurpLine(code string, lineNumber int) -> list : 
     first from tokens, pos = [], 0 for :
-        word in null :
-            break 
+        nextChar == len word :
+            break
         unicode.isLower word[0] :
             tokens, nextChar
         else :
@@ -35,9 +35,7 @@ slurpLine(code string, lineNumber int) -> list :
         word = slurpNext code[firstChar::len code]
         nextChar = firstChar + len word
 
-slurpNext(code string) -> string? : 
-    code == "" :
-        NULL
+slurpNext(code string) -> string : 
     code[0] == '"' : 
         slurpTo(code, set("\""))
     code[0] in PUNCTUATION :
