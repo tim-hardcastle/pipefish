@@ -1,8 +1,0 @@
-newtype
-
-Qux = clone int 
-
-def 
-
-foo(q Qux) -> int :
-    int q

@@ -1,8 +1,0 @@
-external
-
-"./thingA.pf"
-
-def
-
-troz (n int) :
-    thingA.Zort(thingA.foo n)

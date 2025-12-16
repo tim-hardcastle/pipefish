@@ -1,3 +1,5 @@
+~~ This shows how we can, if we wish, make Pipefish math look more maths-y.
+
 // We wish to calculate the top (dT), bottom (dB), and height (q) of a symmetric
 // parallelogram such that n of them will exactly circumscribe a symmetric truncated 
 // cone having top radius rT, bottom radius rB, and height h.
@@ -5,12 +7,12 @@
 import
 
 NULL::"math"
-"fmt"
 
-const π = 3.141592
+const
+
+π = 3.141592
 
 def 
-
 
 solveFor(rT, rB, h float, n int) :
     dT, dB, q
@@ -23,16 +25,9 @@ given :
 circumscribingLength(r float, n int) :
     2*r*tan(π/n)
 
-
-
-
 √(x float) :
     sqrt(x)
 
-
 (x float)² :
-    x*x 
-
-
-
+    x * x 
 

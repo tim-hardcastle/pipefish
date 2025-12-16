@@ -1,0 +1,16 @@
+~~ Uses the service defined in `crud.pf` as an external service.
+
+// By making `crud` private, we can ensure that the users of the client
+// can only use it as their public commands allow them to.
+external private
+
+"http://localhost/crud"
+
+// So for example we can make the client only able to see the adults in the
+// database.
+
+cmd 
+
+~~ Shows all adults in the database, and their ages.
+show all :
+    crud.show >= 18

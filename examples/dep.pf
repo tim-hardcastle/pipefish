@@ -1,8 +1,0 @@
-import
-
-"examples/lib.pf"
-
-def 
-
-zort(i int) :
-    lib.double(i)

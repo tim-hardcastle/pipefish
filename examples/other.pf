@@ -1,6 +1,0 @@
-
-def
-
-qux(x int) :
-    2 * x
-

@@ -1,3 +1,5 @@
+~~ A little example of how Pipefish can share types with embedded Go.
+
 newtype
 
 Dragon = struct(name string, color Color, temperature Temperature)

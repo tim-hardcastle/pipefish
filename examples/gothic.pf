@@ -1,0 +1,17 @@
+~~ An example of overloading the `string` function, in this case for the
+~~ type `string` itself, converting alphabetic characters into Black Letter.
+
+def
+
+string(s string) :
+    from result = "" for _::ch = range s :
+        result + rune gothicLetter codepoint ch
+
+gothicLetter(cp int) :
+    cp >= 65 and cp < 91 :
+        cp + 120107
+    cp >= 97 and cp < 123 :
+        cp + 120101
+    else :
+        cp
+

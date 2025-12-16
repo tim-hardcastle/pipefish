@@ -1,8 +1,0 @@
-var
-
-h = "Hello world!"
-x = MONTHS_IN_A_YEAR
-
-const
-
-MONTHS_IN_A_YEAR = 12

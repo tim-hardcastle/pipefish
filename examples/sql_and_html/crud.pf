@@ -1,0 +1,64 @@
+~~ An example CRUD app to show how we query SQL, and, in this case, emit HTML.
+
+var 
+
+$_logTime = true         // We set environment variables saying what sort of data to log and where to.
+$_logPath = "crud.log"
+
+import private
+
+NULL::"sql"           // A standard library. `NULL` means we're importing the library without a namespace.
+NULL::"htmlFormat.pf" // In this folder. Renders Pipefish values as HTML.
+
+const private // We make an accessor object.
+SQL = SqlDb(POSTGRESQL, "localhost", 5432, "postgres", $_env["SQL username"], $_env["SQL password"])
+// (The username and password are obtained from the environment.)
+
+newtype 
+
+// This will correspond to the structure of a row of our SQL table.
+Person = struct(name Varchar{32}, age int) :
+    len(name) > 0
+    age >= 0
+
+cmd // Now let's add some public commands.
+
+~~ Adds a person with the given name and age to the database.
+// The `\\` token here and elsewhere tells Pipefish you want it to log something. If you leave
+// it empty, as here, it figures it out, e.g. in this case it will log the name of the function
+// called and its parameters, plus the time.
+add(name string, age int) : \\
+    post to SQL -- 
+        INSERT INTO People VALUES(|name|, |age|)
+
+~~ Shows the name and age of the person with the given name.
+show(name string) : \\
+    get person as Person from SQL --
+        SELECT * FROM People
+        WHERE name=|name| 
+    post person to Output()
+
+~~ Shows everyone in the database.
+show all : \\
+    get peopleList like list{Person} from SQL -- 
+        SELECT * FROM People
+        ORDER BY name
+    post Html --
+        <h3>List of all people</h3>
+        |peopleList|
+
+~~ Shows everyone of the given age or older.
+show >= (minAge int) : \\
+    get peopleList like list{Person} from SQL -- 
+        SELECT * FROM People
+        WHERE age > |minAge|
+        ORDER BY name
+    post Html --
+        <h3>List of people over <font style="color:Green;">|minAge|</font></h3>
+        |peopleList|
+
+private 
+// The `init` command of a module is run immediately after it compiles.
+init :
+    post to SQL -- 
+        CREATE TABLE IF NOT EXISTS People |Person|

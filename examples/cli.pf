@@ -1,6 +1,0 @@
-cmd
-
-main :
-    post($_cliDirectory)
-    post("Hello " + $_cliArguments[0] + "!")
-    
