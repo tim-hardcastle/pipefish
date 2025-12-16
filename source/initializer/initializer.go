@@ -146,6 +146,9 @@ func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*co
 		iz.cp.P.Common.IsBroken = true
 		return result
 	}
+
+	iz.finishMakingAliasTypes()
+
 	iz.cmI("Finding shareable functions.")
 	iz.findAllShareableFunctions()
 	if iz.errorsExist() {
@@ -251,9 +254,9 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		dependencyIz.instantiateParameterizedTypes()
 	}
 	twas := map[string]*ast.TypeWithArguments{}
-	// We get these from three different places. Either they're in `make` statements in
-	// a `newtype` section, or the initializer stashed them away while making type signatures,
-	// or the parser stashed them away while parsing.
+	// We get these from four different places. Either they're in `make` statements in
+	// a `newtype` section, or they're aliased types, or the initializer stashed them away 
+	// while making type signatures, or the parser stashed them away while parsing.
 	for _, tc := range iz.tokenizedCode[makeDeclaration] {
 		dec := tc.(*tokenizedMakeDeclaration)
 		typeAst := iz.makeTypeAstFromTokens(dec.typeToks)
@@ -268,8 +271,20 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		}
 		twas[ty.String()] = ty
 	}
+	for _, tc := range iz.tokenizedCode[aliasDeclaration] {
+		dec := tc.(*tokenizedAliasDeclaration)
+		typeAst := iz.makeTypeAstFromTokens(dec.typeAliased)
+		if typeAst == nil {
+			iz.throw("init/alias/type", &dec.typeAliased[0])
+			continue
+		}
+		ty, ok := typeAst.(*ast.TypeWithArguments)
+		if !ok {
+			continue
+		}
+		twas[ty.String()] = ty
+	}
 	maps.Copy(twas, iz.P.ParTypeInstances)
-	iz.P.ParTypeInstances = nil // Having to keep this in the parser is an annoying kludge, so we remove the data manually now we've used it.
 	typeOperators := make(map[string]typeOperatorInfo)
 	for _, ty := range twas {
 		// The parser doesn't know the types and values of enums, 'cos of being a
@@ -367,6 +382,21 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		iz.cp.P.Functions.Add(name)
 		iz.Add(name, fn)
 	}
+}
+
+func (iz *Initializer) finishMakingAliasTypes() {
+	for _, dec := range iz.tokenizedCode[aliasDeclaration] {
+		tc := dec.(*tokenizedAliasDeclaration)
+		aliasedType := iz.makeTypeAstFromTokens(tc.typeAliased)
+		aliasedTypeName := aliasedType.String()
+		typeNumber, ok := iz.cp.GetConcreteType(aliasedTypeName)
+		if !ok {
+			iz.throw("init/alias/type", &tc.op, aliasedTypeName)
+			continue
+		}
+		iz.cp.TypeMap[tc.op.Literal] = values.AbstractType{Types: []values.ValueType{typeNumber}}
+	}
+	iz.P.ParTypeInstances = nil // Having to keep this in the parser is an annoying kludge, so we remove the data manually now we've used it.
 }
 
 // We find the shareable functions.

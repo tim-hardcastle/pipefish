@@ -169,13 +169,9 @@ type TypeInfix struct {
 
 func (ti *TypeInfix) String() string {
 	var out bytes.Buffer
-	out.WriteString("(")
 	out.WriteString(ti.Left.String())
-	out.WriteString(" ")
 	out.WriteString(ti.Operator)
-	out.WriteString(" ")
 	out.WriteString(ti.Right.String())
-	out.WriteString(")")
 	return out.String()
 }
 

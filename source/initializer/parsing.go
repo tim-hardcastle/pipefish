@@ -1151,7 +1151,7 @@ func (iz *Initializer) addToBuiltins(sig ast.AstSig, builtinTag string, returnTy
 // Having declared the names of the various types and functions of the namespaces, we can now parse the
 // chunks of actual code in the function bodies, `given` blocks, assignments, validation.
 var PARSEABLE = []declarationType{cloneDeclaration, structDeclaration, constantDeclaration,
-	variableDeclaration, functionDeclaration, commandDeclaration, aliasDeclaration}
+	variableDeclaration, functionDeclaration, commandDeclaration}
 
 func (iz *Initializer) parseEverythingElse() {
 	iz.parsedCode = make([][]parsedCode, len(iz.tokenizedCode))
@@ -1228,22 +1228,6 @@ func (iz *Initializer) parse(decType declarationType, decNumber int) parsedCode 
 			indexTok:   ixPtr(tc),
 			parameters: iz.makeAstSigFromTokenizedSig(tc.params),
 			body:       body,
-		}
-	case *tokenizedAliasDeclaration:
-		// TODO --- this should happen somewhere else rather than being bodged into this bit
-		// of the pipeline.
-		aliasedType := iz.makeTypeAstFromTokens(tc.typeAliased)
-		aliasedTypeName := aliasedType.String()
-		typeNumber, ok := iz.cp.GetConcreteType(aliasedTypeName)
-		if !ok {
-			iz.throw("init/alias/type", &tc.op, aliasedTypeName)
-			return nil
-		}
-		iz.cp.TypeMap[tc.op.Literal] = values.AbstractType{Types: []values.ValueType{typeNumber}}
-		return &parsedAlias{
-			decNumber: decNumber,
-			indexTok: ixPtr(tc),
-			aliasedtype: aliasedType,
 		}
 	default:
 		panic("You're not meant to parse that!")
