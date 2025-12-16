@@ -1,14 +1,16 @@
 ~~ An example CRUD app to show how we query SQL, and, in this case, emit HTML.
 
-var 
-
-$_logTime = true         // We set environment variables saying what sort of data to log and where to.
-$_logPath = "crud.log"
-
 import private
 
 NULL::"sql"           // A standard library. `NULL` means we're importing the library without a namespace.
+NULL::"files"         // The standard `files` library.
 NULL::"htmlFormat.pf" // In this folder. Renders Pipefish values as HTML.
+
+var 
+
+// We set environment variables saying what sort of data to log and where to.
+$_logTime = true            
+$_logPath = File("log.md")
 
 const private // We make an accessor object.
 SQL = SqlDb(POSTGRESQL, "localhost", 5432, "postgres", $_env["SQL username"], $_env["SQL password"])
@@ -36,7 +38,8 @@ show(name string) : \\
     get person as Person from SQL --
         SELECT * FROM People
         WHERE name=|name| 
-    post person to Output()
+    post Html -- 
+        |person|
 
 ~~ Shows everyone in the database.
 show all : \\
@@ -60,5 +63,4 @@ show >= (minAge int) : \\
 private 
 // The `init` command of a module is run immediately after it compiles.
 init :
-    post to SQL -- 
-        CREATE TABLE IF NOT EXISTS People |Person|
+    post to SQL -- CREATE TABLE IF NOT EXISTS People |Person|

@@ -4,9 +4,10 @@ NULL::"sql"
 
 var
 
-allServices = map(`hub`::`hub/hub.hub`)
+allServices = map(`crud`::`/home/tim/Pf/Pipefish/examples/sql_and_html/crud.pf`,
+               .. `hub`::`hub/hub.hub`)
 
-currentService string? = NULL
+currentService string? = `crud`
 
 isLive = true
 

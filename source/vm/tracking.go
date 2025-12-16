@@ -74,7 +74,6 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 				out.WriteString(".\n")
 			}
 		case TR_FNCALL:
-			println("Here!")
 			if logTime {
 				out.WriteString("At ")
 				out.WriteString(time.Format("15:04:05"))

@@ -359,7 +359,6 @@ loop:
 			case Asgm:
 				vm.Mem[args[0]] = vm.Mem[args[1]]
 			case Auto:
-				println("Auto")
 				if vm.logging {
 					staticData := vm.Tracking[args[0]]
 					newData := TrackingData{staticData.Flavor, staticData.Tok, staticData.LogToLoc, staticData.LogTimeLoc, make([]any, len(staticData.Args))}
