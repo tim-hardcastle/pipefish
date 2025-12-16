@@ -1021,6 +1021,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	serviceVariables := map[string]serviceVariableData{
 		"$_logging":         {loggingOptionsType, 1, altType(loggingOptionsType)},
 		"$_logTo":           {terminalStructType, []values.Value{}, logToTypes},
+		"$_logTime":         {values.BOOL, false, altType(values.BOOL)},
 		"$_outputAs":        {outputOptionsType, 1, altType(outputOptionsType)},
 		"$_cliDirectory":    {values.STRING, dir, altType(values.STRING)},
 		"$_cliArguments":    {values.LIST, cliArgs, altType(values.LIST)},
@@ -1030,7 +1031,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	// Service variables which tell the compiler how to compile things must be
 	// set before we compile the functions, and so can't be calculated but must
 	// be literal.
-	compilerDirectives := dtypes.MakeFromSlice([]string{"$_logging", "$_logTo"})
+	compilerDirectives := dtypes.MakeFromSlice([]string{"$_logging", "$_logTo", "$_logTime"})
 	// Add variables to environment.
 	for svName, svData := range serviceVariables {
 		rhs, ok := graph[svName]

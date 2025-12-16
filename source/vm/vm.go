@@ -359,9 +359,10 @@ loop:
 			case Asgm:
 				vm.Mem[args[0]] = vm.Mem[args[1]]
 			case Auto:
+				println("Auto")
 				if vm.logging {
 					staticData := vm.Tracking[args[0]]
-					newData := TrackingData{staticData.Flavor, staticData.Tok, DUMMY, make([]any, len(staticData.Args))}
+					newData := TrackingData{staticData.Flavor, staticData.Tok, staticData.LogToLoc, staticData.LogTimeLoc, make([]any, len(staticData.Args))}
 					copy(newData.Args, staticData.Args) // This is because only things of tye uint32 are meant to be replaced.
 					for i, v := range newData.Args {
 						if v, ok := v.(uint32); ok {
@@ -1624,7 +1625,7 @@ loop:
 				vm.Mem[args[0]] = tup[len(tup)-1]
 			case Trak:
 				staticData := vm.Tracking[args[0]]
-				newData := TrackingData{staticData.Flavor, staticData.Tok, DUMMY, make([]any, len(staticData.Args))}
+				newData := TrackingData{staticData.Flavor, staticData.Tok, staticData.LogToLoc, staticData.LogTimeLoc, make([]any, len(staticData.Args))}
 				copy(newData.Args, staticData.Args) // This is because only things of tye uint32 are meant to be replaced.
 				for i, v := range newData.Args {
 					if v, ok := v.(uint32); ok {
