@@ -799,10 +799,10 @@ func (iz *Initializer) tweakValue(v values.Value) values.Value {
 	return v
 }
 
-// This is brittlely couples with the descriptionTypes in the api.go file of the compiler module.
+// This is brittlely coupled with the descriptionTypes in the api.go file of the compiler module.
 var declarationDescriptors = [][]declarationType{
 	{importDeclaration, externalDeclaration},
-	{enumDeclaration, cloneDeclaration, structDeclaration, abstractDeclaration, interfaceDeclaration},
+	{enumDeclaration, cloneDeclaration, structDeclaration, aliasDeclaration, abstractDeclaration, interfaceDeclaration},
 	{constantDeclaration},
 	{variableDeclaration},
 	{commandDeclaration},
