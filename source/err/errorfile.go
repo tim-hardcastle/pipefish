@@ -1239,6 +1239,15 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"init/alias/type": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "trying to alias unknown type " + emph(args[0])
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "You can't alias a type unless it exists."
+		},
+	},
+
 	"init/assign": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected assignment"

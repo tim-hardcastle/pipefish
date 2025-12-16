@@ -132,14 +132,14 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 		return
 	}
 
-	iz.cmI("Creating alias types.")
-	iz.createAliasTypes()
+	iz.cmI("Creating struct labels.")
+	iz.createStructLabels()
 	if iz.errorsExist() {
 		return
 	}
 
-	iz.cmI("Creating struct labels.")
-	iz.createStructLabels()
+	iz.cmI("Creating alias types.")
+	iz.createAliasTypes()
 	if iz.errorsExist() {
 		return
 	}
@@ -1116,7 +1116,7 @@ func (iz *Initializer) createInterfaceTypes() {
 	}
 }
 
-// Creates the alias types as names.
+// Creates the alias types as names and hooks them up to the appropriate builtins.
 func (iz *Initializer) createAliasTypes() {
 	for _, tc := range iz.tokenizedCode[aliasDeclaration] {
 		dec := tc.(*tokenizedAliasDeclaration)
@@ -1230,10 +1230,20 @@ func (iz *Initializer) parse(decType declarationType, decNumber int) parsedCode 
 			body:       body,
 		}
 	case *tokenizedAliasDeclaration:
+		// TODO --- this should happen somewhere else rather than being bodged into this bit
+		// of the pipeline.
+		aliasedType := iz.makeTypeAstFromTokens(tc.typeAliased)
+		aliasedTypeName := aliasedType.String()
+		typeNumber, ok := iz.cp.GetConcreteType(aliasedTypeName)
+		if !ok {
+			iz.throw("init/alias/type", &tc.op, aliasedTypeName)
+			return nil
+		}
+		iz.cp.TypeMap[tc.op.Literal] = values.AbstractType{Types: []values.ValueType{typeNumber}}
 		return &parsedAlias{
 			decNumber: decNumber,
 			indexTok: ixPtr(tc),
-			aliasedtype: iz.makeTypeAstFromTokens(tc.typeAliased),
+			aliasedtype: aliasedType,
 		}
 	default:
 		panic("You're not meant to parse that!")

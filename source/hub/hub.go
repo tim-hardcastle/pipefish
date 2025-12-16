@@ -205,11 +205,6 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 		return passedServiceName, false
 	}
 
-	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
-		hub.WriteString("")
-		return passedServiceName, false
-	}
-
 	if hub.currentServiceName() == "#snap" {
 		hub.snap.AddInput(line)
 	}
@@ -230,6 +225,11 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 		if serviceToUse.IsBroken() {
 			return passedServiceName, false
 		}
+	}
+
+	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
+		hub.WriteString("")
+		return passedServiceName, false
 	}
 
 	// *** THIS IS THE BIT WHERE WE DO THE THING!
