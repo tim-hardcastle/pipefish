@@ -79,14 +79,19 @@ func (iz *Initializer) SerializeApi() string {
 			buf.WriteString("PARTYPE | ")
 			buf.WriteString(name)
 			buf.WriteString(" | ")
+			if info.ParentType == "struct" {
+				buf.WriteString("STRUCT | ")
+			} else {
+				buf.WriteString("CLONE | ")
+			}
 			for i, parname := range info.Names {
 				buf.WriteString(parname)
 				buf.WriteString(" ")
 				buf.WriteString(iz.cp.GetTypeNameFromNumber(info.Types[i]))
 				buf.WriteString(" | ")
 			}
+			buf.WriteString("*END PARAMS*")
 			if info.ParentType == "struct" {
-				buf.WriteString("STRUCT")
 				for _, pair := range info.Sig { // We iterate by the label and not by the value so that we can have hidden fields in the structs, as we do for efficiency when making a compilable snippet.
 					buf.WriteString(" | ")
 					buf.WriteString(pair.VarName)
@@ -94,7 +99,6 @@ func (iz *Initializer) SerializeApi() string {
 					buf.WriteString(iz.serializeAbstractType(iz.cp.GetAbstractTypeFromAstType(pair.VarType)))
 				}
 			} else {
-				buf.WriteString("CLONE")
 				buf.WriteString(" | ")
 				buf.WriteString(info.ParentType)
 				for _, using := range info.Operations {
@@ -125,6 +129,9 @@ func (iz *Initializer) SerializeApi() string {
 		if !ok {
 			continue
 		}
+		if isPTI(info) {
+			continue
+		}
 		if !info.IsPrivate() && !info.IsMandatoryImport() {
 			buf.WriteString("CLONE | ")
 			buf.WriteString(info.GetName(vm.DEFAULT))
@@ -145,6 +152,9 @@ func (iz *Initializer) SerializeApi() string {
 			continue
 		}
 		if !iz.cp.Vm.ConcreteTypeInfo[ty].IsStruct() {
+			continue
+		}
+		if isPTI(iz.cp.Vm.ConcreteTypeInfo[ty]) {
 			continue
 		}
 		if !iz.cp.Vm.ConcreteTypeInfo[ty].IsPrivate() && !iz.cp.Vm.ConcreteTypeInfo[ty].IsMandatoryImport() {
@@ -169,6 +179,15 @@ func (iz *Initializer) SerializeApi() string {
 			buf.WriteString(ty.Name)
 			buf.WriteString(" | ")
 			buf.WriteString(iz.serializeAbstractType(ty.AT))
+			buf.WriteString("\n")
+		}
+	}
+
+	for i := int(values.FIRST_DEFINED_TYPE); i < len(iz.cp.Vm.ConcreteTypeInfo); i++ {
+		info := iz.cp.Vm.ConcreteTypeInfo[i]
+		if isPTI(info) {
+			buf.WriteString("MAKE | ")
+			buf.WriteString(info.GetName(vm.DEFAULT))
 			buf.WriteString("\n")
 		}
 	}
@@ -214,6 +233,11 @@ func (iz *Initializer) SerializeApi() string {
 		println("Api serialization:\n\n" + buf.String() + "\n")
 	}
 	return buf.String()
+}
+
+func isPTI(ty vm.TypeInformation) bool {
+	name := ty.GetName(vm.DEFAULT)
+	return name[len(name)-1] == '}' // TODO --- this is gross.
 }
 
 func (iz *Initializer) serializeAbstractType(ty values.AbstractType) string {

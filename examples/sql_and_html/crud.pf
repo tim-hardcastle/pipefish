@@ -38,7 +38,7 @@ show(name string) : \\
     get person as Person from SQL --
         SELECT * FROM People
         WHERE name=|name| 
-    post Html -- 
+    post string Html -- 
         |person|
 
 ~~ Shows everyone in the database.
@@ -46,7 +46,7 @@ show all : \\
     get peopleList like list{Person} from SQL -- 
         SELECT * FROM People
         ORDER BY name
-    post Html --
+    post string Html --
         <h3>List of all people</h3>
         |peopleList|
 
@@ -56,8 +56,8 @@ show >= (minAge int) : \\
         SELECT * FROM People
         WHERE age > |minAge|
         ORDER BY name
-    post Html --
-        <h3>List of people over <font style="color:Green;">|minAge|</font></h3>
+    post string Html --
+        <h3>List of people aged <font style="color:Green;">|minAge|</font> and over</h3>
         |peopleList|
 
 private 

@@ -24,13 +24,13 @@ func (iz *Initializer) SerializedAPIToDeclarations(serializedAPI string, xserve 
 	var buf strings.Builder
 	lines := strings.Split(strings.TrimRight(serializedAPI, "\n"), "\n")
 	lineNo := 0
-	hasHappened := map[string]bool{"ENUM": false, "STRUCT": false, "ABSTRACT": false, "COMMAND": false, "FUNCTION": false}
-	types := dtypes.MakeFromSlice([]string{"ENUM", "CLONE", "STRUCT", "ABSTRACT"})
+	hasHappened := map[string]bool{"ENUM": false, "STRUCT": false, "PARTYPE": false, "MAKE":false, "ABSTRACT": false, "COMMAND": false, "FUNCTION": false}
+	types := dtypes.MakeFromSlice([]string{"ENUM", "CLONE", "STRUCT", "MAKE", "PARTYPE", "ABSTRACT"})
 	for lineNo < len(lines) {
 		line := lines[lineNo]
 		parts := strings.Split(line, " | ")
 		if types.Contains(parts[0]) && !hasHappened["ENUM"] && !hasHappened["CLONE"] &&
-			!hasHappened["STRUCT"] && !hasHappened["ABSTRACT"] {
+			!hasHappened["STRUCT"] && !hasHappened["ABSTRACT"] && !hasHappened["PARTYPE"] && !hasHappened["MAKE"] {
 			buf.WriteString("newtype\n\n")
 		}
 		switch parts[0] {
@@ -64,6 +64,52 @@ func (iz *Initializer) SerializedAPIToDeclarations(serializedAPI string, xserve 
 			}
 			buf.WriteString(")\n\n")
 			lineNo++
+		case "MAKE":
+			buf.WriteString("make ")
+			buf.WriteString(parts[1])
+			buf.WriteString("\n\n")
+			lineNo++
+		case "PARTYPE":
+			println("Deserializing partype.")
+			isClone := false
+			buf.WriteString(parts[1])
+			if parts[2] == "CLONE" {
+				buf.WriteString(" = clone{")
+				isClone = true
+			}
+			if parts[2] == "STRUCT" {
+				buf.WriteString(" = struct{")
+			}
+			stopAt := 0
+			sep := ""
+			for i := 3; parts[i] != "*END PARAMS*"; i++ {
+				buf.WriteString(sep)
+				buf.WriteString(parts[i])
+				stopAt = i
+				sep = ", "
+			}
+			buf.WriteString("}")
+			if isClone {
+				buf.WriteString(" ")
+				buf.WriteString(parts[stopAt + 2])
+				if stopAt + 3 < len(parts) {
+					sep := ""
+					for i := stopAt + 3; i < len(parts); i++ {
+						buf.WriteString(sep)
+						buf.WriteString(parts[i])
+					}
+				}
+			} else {
+				buf.WriteString("(")
+				sep := ""
+				for i := stopAt + 3; i < len(parts); i++ {
+					buf.WriteString(sep)
+					buf.WriteString(parts[i])
+				}
+				buf.WriteString(")")
+			}
+			buf.WriteString("\n\n")
+			lineNo++
 		case "ABSTRACT":
 			buf.WriteString(parts[1])
 			buf.WriteString(" = abstract ")
@@ -81,7 +127,6 @@ func (iz *Initializer) SerializedAPIToDeclarations(serializedAPI string, xserve 
 		case "":
 			lineNo++
 		default:
-			panic(parts[0])
 			iz.throw("init/external", &token.Token{}, parts[0])
 		}
 		hasHappened[parts[0]] = true
