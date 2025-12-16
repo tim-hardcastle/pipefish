@@ -10,7 +10,7 @@ var
 
 // We set environment variables saying what sort of data to log and where to.
 $_logTime = true            
-$_logPath = File("log.md")
+$_logTo = File("log.md")
 
 const private // We make an accessor object.
 SQL = SqlDb(POSTGRESQL, "localhost", 5432, "postgres", $_env["SQL username"], $_env["SQL password"])

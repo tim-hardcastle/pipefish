@@ -1435,6 +1435,15 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"init/external": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "failed to get API with error " + emph(args[0])
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return `Hopefully the error returned will tell you the nature of the problem.`
+		},
+	},
+
 	"init/external/exist/a": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "service " + emph(tok.Literal) + " does not exist"

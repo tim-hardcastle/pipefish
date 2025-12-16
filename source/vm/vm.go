@@ -368,12 +368,12 @@ loop:
 							newData.Args[i] = vm.Mem[v]
 						}
 					}
-					prettyString := vm.TrackingToString([]TrackingData{newData})
+					trackingString := vm.TrackingToString([]TrackingData{newData})
 					switch vm.Mem[staticData.LogToLoc].T {
 					case vm.UsefulTypes.Terminal:
-						print(text.Pretty(prettyString, 0, 90))
+						print(text.Pretty(trackingString, 0, 90))
 					case vm.UsefulTypes.Output:
-						vm.OutHandle.Write(text.Pretty(prettyString, 0, 90))
+						vm.OutHandle.Write(text.Pretty(trackingString, 0, 90))
 					case vm.UsefulTypes.File:
 						// TODO --- this is obviously very wasteful. Make $_logTo into a constant?
 						filename := vm.Mem[staticData.LogToLoc].V.([]values.Value)[0].V.(string)
@@ -393,7 +393,7 @@ loop:
 								panic(err)
 							}
 						}
-						f.WriteString(text.Pretty(prettyString, 0, 90))
+						f.WriteString(trackingString)
 					}
 				}
 			case Call:

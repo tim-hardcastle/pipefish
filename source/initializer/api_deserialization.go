@@ -20,7 +20,7 @@ import (
 
 // TODO --- malformed data would crash the deserializer with e.g. indexing errors.
 // We need to make this a method of the initializer so it can Throw.
-func SerializedAPIToDeclarations(serializedAPI string, xserve uint32) string {
+func (iz *Initializer) SerializedAPIToDeclarations(serializedAPI string, xserve uint32) string {
 	var buf strings.Builder
 	lines := strings.Split(strings.TrimRight(serializedAPI, "\n"), "\n")
 	lineNo := 0
@@ -81,7 +81,7 @@ func SerializedAPIToDeclarations(serializedAPI string, xserve uint32) string {
 		case "":
 			lineNo++
 		default:
-			panic("Oops, found " + parts[0] + " instead. Drat.")
+			iz.throw("init/external", &token.Token{}, parts[0])
 		}
 		hasHappened[parts[0]] = true
 	}

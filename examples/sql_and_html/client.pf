@@ -2,7 +2,7 @@
 
 // By making `crud` private, we can ensure that the users of the client
 // can only use it as their public commands allow them to.
-external private
+external 
 
 "http://localhost/crud"
 

@@ -337,7 +337,7 @@ func (iz *Initializer) addAnyExternalService(handlerForService vm.ExternalCallHa
 	iz.cp.CallHandlerNumbersByName[name] = externalServiceOrdinal
 	iz.cp.Vm.ExternalCallHandlers = append(iz.cp.Vm.ExternalCallHandlers, handlerForService)
 	serializedAPI := handlerForService.GetAPI()
-	sourcecode := SerializedAPIToDeclarations(serializedAPI, externalServiceOrdinal) // This supplies us with a stub that know how to call the external servie.
+	sourcecode := iz.SerializedAPIToDeclarations(serializedAPI, externalServiceOrdinal) // This supplies us with a stub that know how to call the external servie.
 	if settings.SHOW_EXTERNAL_STUBS {
 		println("Making stub for external service '", name, "'.\n\n")
 		println(sourcecode)
@@ -877,7 +877,7 @@ func (iz *Initializer) createStructNames() {
 		switch dec.op.Literal {
 		case "Error":
 			iz.cp.Vm.UsefulTypes.UnwrappedError = typeNo
-		case "File":
+		case "File": 
 			iz.cp.Vm.UsefulTypes.File = typeNo
 		case "Terminal":
 			iz.cp.Vm.UsefulTypes.Terminal = typeNo

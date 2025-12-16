@@ -4,8 +4,8 @@ NULL::"sql"
 
 var
 
-allServices = map(`crud`::`/home/tim/Pf/Pipefish/examples/sql_and_html/crud.pf`,
-               .. `hub`::`hub/hub.hub`)
+allServices = map(`hub`::`hub/hub.hub`,
+               .. `crud`::`/home/tim/Pf/Pipefish/examples/sql_and_html/crud.pf`)
 
 currentService string? = `crud`
 
