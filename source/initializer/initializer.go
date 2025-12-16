@@ -290,8 +290,9 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		parTypeInfo := iz.parameterizedTypes[ty.Name][argIndex]
 
 		ultratype := ty.Name + "{_}"
+		iz.cp.GeneratedAbstractTypes.Add(ultratype)
 		if _, ok := iz.cp.TypeMap[ultratype]; !ok {
-			iz.cp.TypeMap[ty.Name+ultratype] = values.AbstractType{}
+			iz.cp.TypeMap[ultratype] = values.AbstractType{}
 		}
 		if _, ok := iz.cp.TypeMap[parTypeInfo.Supertype]; !ok {
 			iz.cp.TypeMap[parTypeInfo.Supertype] = values.AbstractType{}

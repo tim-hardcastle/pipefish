@@ -70,8 +70,41 @@ func (es ExternalHttpCallHandler) GetAPI() string {
 
 // For a description of the file format, see README-api-serialization.md
 func (iz *Initializer) SerializeApi() string {
-
 	var buf strings.Builder
+	for name, infoForTypes := range iz.parameterizedTypes {
+		for _, info := range infoForTypes {
+			if settings.MandatoryImportSet().Contains(info.Token.Source) {
+				continue
+			}
+			buf.WriteString("PARTYPE | ")
+			buf.WriteString(name)
+			buf.WriteString(" | ")
+			for i, parname := range info.Names {
+				buf.WriteString(parname)
+				buf.WriteString(" ")
+				buf.WriteString(iz.cp.GetTypeNameFromNumber(info.Types[i]))
+				buf.WriteString(" | ")
+			}
+			if info.ParentType == "struct" {
+				buf.WriteString("STRUCT")
+				for _, pair := range info.Sig { // We iterate by the label and not by the value so that we can have hidden fields in the structs, as we do for efficiency when making a compilable snippet.
+					buf.WriteString(" | ")
+					buf.WriteString(pair.VarName)
+					buf.WriteString(" ")
+					buf.WriteString(iz.serializeAbstractType(iz.cp.GetAbstractTypeFromAstType(pair.VarType)))
+				}
+			} else {
+				buf.WriteString("CLONE")
+				buf.WriteString(" | ")
+				buf.WriteString(info.ParentType)
+				for _, using := range info.Operations {
+					buf.WriteString(" | ")
+					buf.WriteString(using.Literal)
+				}
+			}
+			buf.WriteString("\n")
+		}
+	}
 	for i := int(values.FIRST_DEFINED_TYPE); i < len(iz.cp.Vm.ConcreteTypeInfo); i++ {
 		if !iz.cp.Vm.ConcreteTypeInfo[i].IsEnum() {
 			continue

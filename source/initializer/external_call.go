@@ -36,7 +36,7 @@ func Do(host, service, line, username, password string) string {
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
-		return "error \"Can't get response from '" + host + "'\""
+		return "error: `" + err.Error() + "`"
 	}
 
 	defer response.Body.Close()

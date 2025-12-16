@@ -139,7 +139,6 @@ func (hub *Hub) getFonts() *values.Map {
 // as an instruction to the os if it begins with 'os', and as an expression to be passed to
 // the current service if none of the above hold.
 func (hub *Hub) Do(line, username, password, passedServiceName string, external bool) (string, bool) {
-
 	if hub.administered && !hub.listeningToHttpOrHttps && hub.Password == "" &&
 		!(line == "hub register" || line == "hub log on" || line == "hub quit") {
 		hub.WriteError("this is an administered hub and you aren't logged on. Please enter either " +
@@ -154,22 +153,6 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 	if !ok {
 		hub.WriteError("the hub can't find the service <C>\"" + passedServiceName + "\"</>.")
 		return passedServiceName, false
-	}
-
-	// The service may be broken, in which case we'll let the empty service handle the input.
-
-	if serviceToUse.IsBroken() {
-		serviceToUse = hub.services[""]
-	}
-	hub.Sources["REPL input"] = []string{line}
-	needsUpdate := hub.serviceNeedsUpdate(hub.currentServiceName())
-	if hub.isLive() && needsUpdate {
-		path, _ := hub.services[hub.currentServiceName()].GetFilepath()
-		hub.StartAndMakeCurrent(hub.Username, hub.currentServiceName(), path)
-		serviceToUse = hub.services[hub.currentServiceName()]
-		if serviceToUse.IsBroken() {
-			return passedServiceName, false
-		}
 	}
 
 	// We may be talking to the hub itself.
@@ -229,6 +212,24 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 
 	if hub.currentServiceName() == "#snap" {
 		hub.snap.AddInput(line)
+	}
+
+	// The service may be broken, in which case we'll let the empty service handle the input.
+	if serviceToUse.IsBroken() {
+		serviceToUse = hub.services[""]
+	}
+
+	hub.Sources["REPL input"] = []string{line}
+
+	// If we're livecoding we may need to recompile.
+	needsUpdate := hub.serviceNeedsUpdate(hub.currentServiceName())
+	if hub.isLive() && needsUpdate {
+		path, _ := hub.services[hub.currentServiceName()].GetFilepath()
+		hub.StartAndMakeCurrent(hub.Username, hub.currentServiceName(), path)
+		serviceToUse = hub.services[hub.currentServiceName()]
+		if serviceToUse.IsBroken() {
+			return passedServiceName, false
+		}
 	}
 
 	// *** THIS IS THE BIT WHERE WE DO THE THING!

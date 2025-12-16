@@ -81,6 +81,7 @@ func (iz *Initializer) SerializedAPIToDeclarations(serializedAPI string, xserve 
 		case "":
 			lineNo++
 		default:
+			panic(parts[0])
 			iz.throw("init/external", &token.Token{}, parts[0])
 		}
 		hasHappened[parts[0]] = true
