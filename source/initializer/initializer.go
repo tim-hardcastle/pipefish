@@ -148,9 +148,12 @@ func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*co
 		iz.cp.P.Common.IsBroken = true
 		return result
 	}
-
+	iz.cmI("Finishing alias types.")
 	iz.finishMakingAliasTypes()
-
+	if iz.errorsExist() {
+		iz.cp.P.Common.IsBroken = true
+		return result
+	}
 	iz.cmI("Finding shareable functions.")
 	iz.findAllShareableFunctions()
 	if iz.errorsExist() {
