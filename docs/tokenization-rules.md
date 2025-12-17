@@ -43,20 +43,9 @@ def
 ```
 
 
-My plan is to implement a (small portion of) some classic text-based adventure game, Zork or ADVENT or whatever, in (a cut-down version of) Cognate, which I will write in Pipefish.
+My plan is to implement a (small portion of) some classic text-based adventure game, Zork or ADVENT or whatever, in (a cut-down version of) Cognate, which I will write in Pipefish. So I should tell you what those are.
 
-Pipefish is my own language, an attempt, so far successful, to write a functional language that you can really hack stuff out in, with a special orientation to CRUD apps, middleware, microservices and DSLs. To see what it looks like:
-
-
-* The lexer for this jam.
-* A little text-based adventure game in Pipefish. 
-* A little demo of a CRUD app to demonstrate how we do DSLs (in this case HTML and SQL).
-* A little text-munging program used as part of my tooling for developing Pipefish.
-* And the wiki. https://github.com/tim-hardcastle/Pipefish/wiki
-
-It is pretty much feature-complete, but rquires some thorough testing, a fuzzer, optimization, more tooling, a few more standard libraries, etc.
-
-Cognate is the brainchild of a guy who goes by Stavromula on the internet. Like a million other people he thought "What if Forth was also Lisp?" but he made it work. Here is some Cognate:
+Cognate is the brainchild of someone who goes by Stavromula on the internet. (They are advising me on the project, though not doing any of the code, and will therefore be put down as my team-mate.) Like a million other people they thought "What if Forth was also Lisp?" but they made it work really well. (I'm not the only person who thinks so, it has more than one implmentation and an online playground courtesy of its fans. Here's the landing page, and, for the impatient, here's some Cognate):
 
 ```
 Def Factor (Zero? Modulo Swap);
@@ -73,19 +62,39 @@ Def Primes (
 
 Print Primes up to 1000;
 ```
+It is and will remain tiny, but it is very powerful for its size. 
+
+Pipefish is my own language, an attempt, so far successful, to write a functional language that you can really hack stuff out in, with a special orientation to CRUD apps, middleware, microservices and DSLs. To see what it looks like, there's a [wiki](The wiki. https://github.com/tim-hardcastle/Pipefish/wiki) and an [examples folder]().
+
+The `sql_and_html` subfolder has little demo of a CRUD app, showing off some of the more advanced features of Pipefish: the SQL library, Golang interop, DSLs, logging, and microservices.
+To see something more like Plain Old Functional Programming, have a look at the adventure game, or the lexer for Cognate.
+
+It is pretty much feature-complete, but requires some thorough testing, a fuzzer, optimization, more tooling, a few more standard libraries, etc.
+
 I have three purposes in this besides having fun.
 
-* Pipefish is long overdue for some heavy dogfooding. It still has a tendency to crash when trying to compile/exeecute *malformed* code, when the user strays off the happy path. Ergonomic improvements will occur to me. I'll see the typos in the error messages.
+* Pipefish is long overdue for some heavy dogfooding. It still has a tendency to crash when trying to compile/execute *malformed* code, when the user strays off the happy path. Ergonomic improvements will occur to me. I'll see the typos in the error messages. Etc.
 
-The second is to show off both Pipefish and Cognate. Each is in its own way a charming and original language.
+* To show off both Pipefish and Cognate. Each is in its own way a charming and original language, they both deserve more fans.
 
-* The third is that I'd like to do a full implementation of Cognate eventually and this will be a good start.
+* I'd like to do a full implementation of Cognate eventually and this will be a good start.
 
-For this last reason, although I'm not going to do all the tricky parts of the syntax and semantics, I *am* going to be doing the very hardest part (essentially, closures) although I won't need them to write an adventure game. Because retrofitting them would be such a PITA.
+For this last reason, although I'm not going to do all the tricky parts of the syntax and semantics, I *am* going to be doing the very hardest part (essentially, closures) although I won't need them to write an adventure game, just because retrofitting them would be such a PITA, all the data structures and semantics need to fit around it.
+
+Having got off to a flying start with the lexer, I got distracted by improving various bits of Pipefish, but today I will write a parser, at the very least. Cognate, being basically a Forth and having no preceedence, doesn't need much parsing, but it does need some.
+
+
+
+When I hear you having a hard time, I come running to help and ask what I can do. You punish me for showing signs of grief, or stress, or frustration, or physical pain or weakness. "The beatings will continue until morale improves."
+
+It is normal for me to feel sad right now. That is not something for which I need therapy. It would be normal for you to be feeling sad too and for you to be talking to me about it.
 
 
 
 
+If you want something doing, it would be *easier* to tell me to do it, than to do it yourslf and then nag me about not having done it. If you prefer the second, I can only suppose that despite the effort involved, you think it's more *fun*.
+
+Can't you find another hobby?
 
 
 

@@ -1,3 +1,10 @@
+~~ A tiny adventure game. Verbs are : `drop <object>`, `ex`/`examine <object>`, 
+~~ `inv`/`inventory`, `go` (optional), before directions `n`/`north`, `s`/`south`,
+~~ `e`/`east`, `w`/`west`, `look`, `quit`, and `take <object>`.
+
+// NOTE: There are no puzzles, nor a winning condition, but there are "special effects"
+// in the `specialEffects` function to show how puzzles would work.
+
 import
 
 "strings"
@@ -18,16 +25,7 @@ state = GameState(map(), map(), "", "")
 
 cmd // The imperative shell.
 
-init :
-    global state
-    get info from File (filepath.join $_moduleDirectory, "locations.rsc")
-    linesToProcess = strings.split(info, "\n")
-    lines = linesToProcess
-    state = state with locations::slurp(linesToProcess, Location)
-    state = state with playerLocation::linesToProcess[0]
-    get info from File (filepath.join $_moduleDirectory, "objects.rsc")
-    state = state with objects::slurp (strings.split(info, "\n"), Object)
-
+~~ Starts the game.
 main :
     global state
     post "\n" + describe(state[playerLocation], state) + "\n"
@@ -38,6 +36,18 @@ main :
         else :
             state = doTheThing(userInput, state)
             post "\n" + state[output] + "\n"
+
+private
+
+init : // We gt the data from the resource files on startup.
+    global state
+    get info from File (filepath.join $_moduleDirectory, "locations.rsc")
+    linesToProcess = strings.split(info, "\n")
+    lines = linesToProcess
+    state = state with locations::slurp(linesToProcess, Location)
+    state = state with playerLocation::linesToProcess[0]
+    get info from File (filepath.join $_moduleDirectory, "objects.rsc")
+    state = state with objects::slurp (strings.split(info, "\n"), Object)
    
 // And the functional core.
 const
@@ -49,7 +59,7 @@ SYNONYMS = map("get"::"take", "inv"::"inventory", "ex"::"examine", "n"::"north",
 DIRECTIONS = map("north"::north, "south"::south, "east"::east, "west"::west)
 VOWELS = set("a", "e", "i", "o", "u")
 
-def
+def 
 
 // This selects which function to call based on the parsed user input.
 doTheThing(input string, S GameState) :

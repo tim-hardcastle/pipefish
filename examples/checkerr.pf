@@ -1,5 +1,5 @@
-// A little app to go through the sourcecode and see if any error codes are either unmatched
-// in the error file, or duplicated, or declared in the error file but unused.
+~~ A little app to go through the sourcecode and see if any error codes are either unmatched
+~~ in the error file, or duplicated, or declared in the error file but unused.
 
 import
 
@@ -10,15 +10,16 @@ NULL::"files"
 
 const 
 
-// Things that have the right format to be error codes but aren't (or in the case of
-// 'vm/user', shouldn't have an error message, or in the case of 'lex/wsp' appears
-// in a '_test.go' file).
+~~ Things that have the right format to be error codes but aren't (or in the case of
+~~ 'vm/user', shouldn't have an error message, or in the case of 'lex/wsp' appears
+~~ in a '_test.go' file).
 FALSE_POSITIVES = set(`"database/sql"`, `"encoding/json"`, `"math/rand"`, `"net/http"`, 
                    .. `"os/exec"`, `"path/filepath"`, `"html/template"`, `"vm/user"`,
                    .. `"lex/wsp"`, `"crypto/aes"`, `"crypto/cipher"`, `"crypto/rand"`)
 
 cmd
 
+~~ Does the thing!
 main :
     global $_moduleDirectory
     get filenames from Filenames($_moduleDirectory + "/../source", RECURSIVE)

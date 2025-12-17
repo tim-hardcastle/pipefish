@@ -1,8 +1,6 @@
 package compiler
 
 import (
-	"strings"
-
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
@@ -17,11 +15,11 @@ func (cp *Compiler) Api(name string, fonts *values.Map, width int) string {
 	result := ""
 	if name != "" || cp.DocString != "" {
 		title := "# " + name
-		if name != "" && cp.DocString != "" {
-			title = title + " — "
-		}
-		title = title + strings.TrimSpace(cp.DocString)
-		result = "\n" + markdowner.Render([]string{title})
+		result = "\n" + markdowner.Render([]string{title}) + "\n"
+	}
+	result = result + markdowner.Render([]string{cp.DocString})
+	if cp.DocString != "" {
+		result = result + "\n"
 	}
 	for i, items := range cp.ApiDescription {
 		if len(items) == 0 {
