@@ -102,6 +102,12 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 		}
 	}
 
+	iz.cmI("Making reverse alias list.")
+	iz.makeReverseAliasList()
+	if iz.errorsExist() {
+		return
+	}
+
 	iz.cmI("Creating enums.")
 	iz.createEnums()
 	if iz.errorsExist() {
@@ -558,6 +564,19 @@ func (iz *Initializer) addWordsToParser(tc *tokenizedFunctionDeclaration) {
 }
 
 // Now we can start creating the user-defined types.
+
+func (iz *Initializer) makeReverseAliasList() {
+	for _, dec := range iz.tokenizedCode[aliasDeclaration] {
+		aD := dec.(*tokenizedAliasDeclaration)
+		aliasedType :=  iz.makeTypeAstFromTokens(aD.typeAliased).String()
+		types, _ := iz.reverseAliasMap[aliasedType]
+		if types == nil {
+			types = []string{}
+		}
+		types = append(types, aD.op.Literal)
+		iz.reverseAliasMap[aliasedType] = types
+	}
+}
 
 // We compile the enums.
 //
@@ -1123,6 +1142,7 @@ func (iz *Initializer) createAliasTypes() {
 		nameTok := dec.op
 		newTypename := nameTok.Literal
 		iz.cp.P.Typenames.Add(newTypename)
+		iz.P.Functions.Add(newTypename)
 		if settings.MandatoryImportSet().Contains(nameTok.Source) {
 			iz.unserializableTypes.Add(newTypename)
 		}

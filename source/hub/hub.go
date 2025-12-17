@@ -217,14 +217,10 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 	hub.Sources["REPL input"] = []string{line}
 
 	// If we're livecoding we may need to recompile.
-	needsUpdate := hub.serviceNeedsUpdate(hub.currentServiceName())
-	if hub.isLive() && needsUpdate {
-		path, _ := hub.services[hub.currentServiceName()].GetFilepath()
-		hub.StartAndMakeCurrent(hub.Username, hub.currentServiceName(), path)
-		serviceToUse = hub.services[hub.currentServiceName()]
-		if serviceToUse.IsBroken() {
-			return passedServiceName, false
-		}
+	hub.update()
+	serviceToUse = hub.services[hub.currentServiceName()]
+	if serviceToUse.IsBroken() {
+		return passedServiceName, false
 	}
 
 	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
@@ -261,6 +257,14 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 		}
 	}
 	return passedServiceName, false
+}
+
+func (hub *Hub) update() {
+needsUpdate := hub.serviceNeedsUpdate(hub.currentServiceName())
+	if hub.isLive() && needsUpdate {
+		path, _ := hub.services[hub.currentServiceName()].GetFilepath()
+		hub.StartAndMakeCurrent(hub.Username, hub.currentServiceName(), path)
+	}
 }
 
 func (hub *Hub) ParseHubCommand(line string) (string, []values.Value) {
@@ -354,6 +358,7 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 		hub.WriteString(GREEN_OK + "\n")
 		return false
 	case "api":
+		hub.update()
 		hub.WriteString(hub.services[hub.currentServiceName()].Api(hub.currentServiceName(), hub.getFonts(), hub.getSV("width").V.(int)))
 		return false
 	case "config-admin":

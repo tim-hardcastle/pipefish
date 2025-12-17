@@ -46,6 +46,7 @@ type Initializer struct {
 	Common                              *commonInitializerBindle     // The information all the initializers have in Common.
 	structDeclarationNumberToTypeNumber map[int]values.ValueType     // Maps the order of the declaration of the struct in the script to its type number in the VM. TODO --- there must be something better than this.
 	unserializableTypes                 dtypes.Set[string]           // Keeps track of which abstract types are mandatory imports/singletons of a concrete type so we don't try to serialize them.
+	reverseAliasMap map[string][]string                              // Maps a type to the types that alias it.
 
 	functionTable functionTable // Intermediate step towards constructing the FunctinTree used by the compiler.
 
@@ -65,6 +66,7 @@ func NewInitializer(common *commonInitializerBindle) *Initializer {
 		functionTable:            make(functionTable),
 		parameterizedTypes:       make(map[string][]parameterInfo),
 		parameterizedInstanceMap: make(map[string]parameterizedTypeInstance),
+		reverseAliasMap:          make(map[string][]string),
 		Common:                   common,
 	}
 	iz.newGoBucket()

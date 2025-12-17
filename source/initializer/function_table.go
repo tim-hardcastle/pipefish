@@ -12,12 +12,16 @@ type functionTable map[string][]*parsedFunction
 // Methods for manipulating the function table.
 
 func (iz *Initializer) Add(functionName string, f *parsedFunction) *parsedFunction {
-	if functions, ok := iz.functionTable[functionName]; ok {
-		functions, conflictingFunction := iz.AddInOrder(functions, f)
-		iz.functionTable[functionName] = functions
-		return conflictingFunction
+	aliases := iz.reverseAliasMap[functionName] 
+	aliases = append(aliases, functionName)
+	for _, name := range aliases {
+		if functions, ok := iz.functionTable[name]; ok {
+			functions, conflictingFunction := iz.AddInOrder(functions, f)
+			iz.functionTable[name] = functions
+			return conflictingFunction
+		}
+		iz.functionTable[name] = []*parsedFunction{f}
 	}
-	iz.functionTable[functionName] = []*parsedFunction{f}
 	return nil
 }
 
