@@ -46,7 +46,7 @@ const (
 	SHOW_EXTERNAL_STUBS    = false
 	SHOW_TESTS             = true // Says whether the tests should say what is being tested, useful if one of them crashes and we don't know which.
 	SHOW_BLING_TREE        = false
-	ALLOW_PANICS           = false // If turned on, permits panics in the vm instead of turning them into error messages.
+	ALLOW_PANICS           = true // If turned on, permits panics in the vm instead of turning them into error messages.
 	SHOW_ERRORS            = false
 )
 

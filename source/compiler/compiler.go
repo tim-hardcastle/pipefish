@@ -400,7 +400,7 @@ NodeTypeSwitch:
 			}
 			if indexType.isOnlyCloneOf(cp.Vm, values.PAIR) {
 				cp.Put(vm.SliL, container, index, errTok)
-				rtnTypes = containerType
+				rtnTypes = containerType.Union(AltType(values.ERROR))
 				break
 			}
 			if indexType.cannotBeACloneOf(cp.Vm, values.INT, values.PAIR) {
@@ -1212,10 +1212,10 @@ func (cp *Compiler) compileComma(node *ast.InfixExpression, ctxt Context) (Alter
 	leftIsError := BkEarlyReturn(DUMMY)
 	rightIsError := BkEarlyReturn(DUMMY)
 	if lTypes.Contains(values.ERROR) {
-		leftIsError = cp.VmConditionalEarlyReturn(vm.Qtyp, left, uint32(tp(values.ERROR)), left)
+		leftIsError = cp.VmConditionalEarlyReturn(vm.Qtyp, left, uint32(values.ERROR), left)
 	}
 	if rTypes.Contains(values.ERROR) {
-		rightIsError = cp.VmConditionalEarlyReturn(vm.Qtyp, right, uint32(tp(values.ERROR)), right)
+		rightIsError = cp.VmConditionalEarlyReturn(vm.Qtyp, right, uint32(values.ERROR), right)
 	}
 	leftMustBeSingle, leftMustBeTuple := lTypes.mustBeSingleOrTuple()
 	rightMustBeSingle, rightMustBeTuple := rTypes.mustBeSingleOrTuple()

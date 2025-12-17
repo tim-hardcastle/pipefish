@@ -1026,7 +1026,6 @@ func (p *Parser) checkNesting() {
 	}
 	if p.CurToken.Type == token.EOF {
 		for popped, poppable := p.nesting.Pop(); poppable; popped, poppable = p.nesting.Pop() {
-			println("Throwing eol", popped.Type, popped.Literal)
 			p.Throw("parse/eol", &p.CurToken, &popped)
 		}
 	}
@@ -1118,3 +1117,4 @@ func newError(ident string, tok *token.Token, args ...any) *err.Error {
 	errorToReturn.Trace = []*token.Token{tok}
 	return errorToReturn
 }
+

@@ -1,9 +1,44 @@
+~~ Parser for Cognate.
+
+// We parse in two stages. First we just naively turn it into blocks of tokeens, then we 
+// go through again, register the functions (which have scope in the entire block where 
+// thye're defined, wherever they're defined in the block).
+
 import 
 
-"lexer.pf"
+NULL::"lexer.pf"        // A `NULL` import means we're just amalgamating the given files     
+// NULL::"parser-test.pf"  // into this namespace.
+
+newtype
+
+Block = clone list using +
 
 def 
 
 do(code string) :
-    code -> lexer.lex
+    code -> lex -> toBlocks 
+
+toBlocks(L list) -> Block :
+    len(tail) > 0 :
+        error "unexpected `)` terminated block" // This is the only way it can happen.
+    else :
+        result
+given:
+    result, tail = recursiveToBlocks(Block[], L)
+
+recursiveToBlocks(B Block, L list) -> Block, list :   
+    L == [] :
+        B, []
+    head[tokenType] == RPAREN :   
+        B, tail   
+    head[tokenType] == LPAREN :          
+        recursiveToBlocks(B + Block[nextBlock], remainder)       
+    else :
+        recursiveToBlocks(B + Block[head], tail) 
+given :
+    head = L[0]
+    tail = L[1::len L]
+    nextBlock, remainder = recursiveToBlocks Block[], tail
+
+
 

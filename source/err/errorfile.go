@@ -2682,7 +2682,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "found " + text.DescribeTok(tok) + " in function declaration, expected `,` or `)`"
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "A function`s call parameters should be seperated by commas and terminated by a closing parenthesis."
+			return "A function's call parameters should be seperated by commas and terminated by a closing parenthesis."
 		},
 	},
 
