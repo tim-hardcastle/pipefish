@@ -1717,6 +1717,8 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 		}
 	}
 
+	cp.StartPushMem() // !!! Anything that early-returned from this function would have to clean up the PushMem artefacts.
+
 	cp.Cm("Adding function parameters", tok)
 	// Add the function parameters.
 	for _, pair := range nameSig { // It doesn't matter what we put in here either, because we're going to have to copy the values any time we call the function.
@@ -1765,6 +1767,7 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 	cp.Emit(vm.Ret)
 	cp.popLambdaStart()
 	cp.VmComeFrom(skipLambdaCode)
+	cp.ResolveMemPush(cp.MemTop())
 
 	// We have made our lambda factory! But do we need it? If there are no captures, then the function is a constant, and we
 	// can just reserve it in memory.
@@ -2541,6 +2544,9 @@ type bkMemPush int // When we make a recursive call, we don't know how much memo
 func (cp *Compiler) ResolveMemPush(top uint32) {
 	bks := cp.memPushData[len(cp.memPushData)-1]
 	for _, bk := range bks {
+		if cp.Vm.Code[bk].Opcode != vm.Rpsh {
+			panic("Oops.")
+		}
 		cp.Vm.Code[bk].Args[1] = top
 	}
 	cp.memPushData = cp.memPushData[:len(cp.memPushData)-1]

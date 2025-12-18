@@ -1351,9 +1351,10 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	functionName := izFn.op.Literal
 
 	iz.cp.Cm("Compiling function '"+functionName+"' with sig "+izFn.sig.String()+".", &izFn.op)
-	if iz.errorsExist() {
+	if iz.errorsExist() { // TODO --- why?
 		return nil
 	}
+	iz.cp.StartPushMem() // !!! Anything that early-returned from this function would have to clean up the PushMem artefacts.
 	if izFn.body.GetToken().Type == token.XCALL {
 		Xargs := izFn.body.(*ast.PrefixExpression).Args
 		cpFn.Xcall = &compiler.XBindle{ExternalServiceOrdinal: uint32(Xargs[0].(*ast.IntegerLiteral).Value),
@@ -1513,6 +1514,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		iz.cp.VmComeFrom(paramChecks...)
 		iz.cp.Emit(vm.Ret)
 	}
+	iz.cp.ResolveMemPush(iz.cp.MemTop())
 	iz.cp.Fns = append(iz.cp.Fns, &cpFn)
 	if ac == compiler.DEF && !cpFn.RtnTypes.IsLegalDefReturn() {
 		iz.throw("comp/return/def", &izFn.op)
