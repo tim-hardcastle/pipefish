@@ -5,8 +5,8 @@ import
 
 newtype 
 
-TokenType = enum BOOLEAN, IDENT, INTEGER, LPAREN, RPAREN, SEMICOLON, STRING
-Acceptable = abstract int/string/null
+TokenType = enum BOOLEAN, DEF, IDENT, INTEGER, LET, LPAREN, RPAREN, SEMICOLON, STRING
+Acceptable = abstract int/string/bool/null
 MetaData = struct(lit string, line, ch int)
 Token = struct(tokenType TokenType, val Acceptable, md MetaData)
 
@@ -50,7 +50,6 @@ slurpLine(code string, lineINTEGER int) -> list :
         word = slurpNext code[firstChar::len code] 
         nextChar = firstChar + len word
         
-
 slurpNext(code string) -> string : 
     code[0] == '"' : 
         '"' + slurpTo(code[1::len(code)], DOUBLEQUOTE) + '"'
@@ -75,7 +74,11 @@ makeToken(word string, lineINTEGER, firstChar int) :
     valid int word : 
         Token(INTEGER, int(word), metadata)
     word in ["True", "False"] :
-        Token(BOOLEAN, word, metadata)
+        Token(BOOLEAN, (word == "True"), metadata)
+    word in ["Def"] :
+        Token(DEF, word, metadata)
+    word in ["Let"] :
+        Token(LET, word, metadata)
     else :
         Token(IDENT, word, metadata)
 given :

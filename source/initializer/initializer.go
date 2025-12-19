@@ -1500,6 +1500,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 			cpFn.RtnTypes = cpFn.RtnTypes.Union(altType(values.ERROR))
 		}
 		cpFn.OutReg = iz.cp.That()
+		iz.cp.ResolveMemPush(iz.cp.That()-1)
 		// We check the return types.
 		if izFn.callInfo.ReturnTypes != nil && !(izFn.body.GetToken().Type == token.GOLANG) {
 			iz.cp.CmR("Ast sig is "+izFn.callInfo.ReturnTypes.String()+" ; Alt sig is "+iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes).Describe(iz.cp.Vm), &token.Token{})
@@ -1514,7 +1515,6 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		iz.cp.VmComeFrom(paramChecks...)
 		iz.cp.Emit(vm.Ret)
 	}
-	iz.cp.ResolveMemPush(iz.cp.MemTop())
 	iz.cp.Fns = append(iz.cp.Fns, &cpFn)
 	if ac == compiler.DEF && !cpFn.RtnTypes.IsLegalDefReturn() {
 		iz.throw("comp/return/def", &izFn.op)

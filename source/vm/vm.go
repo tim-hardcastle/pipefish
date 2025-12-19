@@ -744,6 +744,14 @@ loop:
 			case Equt:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(values.AbstractType).Equals(vm.Mem[args[2]].V.(values.AbstractType))}
 			case Eqxx:
+				if vm.Mem[args[1]].T == values.ERROR {
+					vm.Mem[args[0]] = vm.Mem[args[1]]
+					break
+				}
+				if vm.Mem[args[2]].T == values.ERROR {
+					vm.Mem[args[0]] = vm.Mem[args[2]]
+					break
+				}
 				if vm.Mem[args[1]].T != vm.Mem[args[2]].T {
 					vm.Mem[args[0]] = vm.Mem[args[3]]
 				} else {

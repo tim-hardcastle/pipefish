@@ -290,12 +290,19 @@ NodeTypeSwitch:
 		rtnTypes, rtnConst = AltType(values.BOOL), true
 		break
 	case *ast.ComparisonExpression:
+		var ok bool
 		if node.Operator == "==" {
-			rtnTypes, rtnConst = cp.compileEquals(node, ctxt.x())
+			rtnTypes, rtnConst, ok = cp.compileEquals(node, ctxt.x())
+			if !ok {
+				return AltType(values.COMPILE_TIME_ERROR), false
+			}
 			break
 		}
 		if node.Operator == "!=" {
-			rtnTypes, rtnConst = cp.compileEquals(node, ctxt.x())
+			rtnTypes, rtnConst, ok = cp.compileEquals(node, ctxt.x())
+			if !ok {
+				return AltType(values.COMPILE_TIME_ERROR), false
+			}
 			cp.Put(vm.Notb, cp.That())
 			break
 		}
@@ -562,7 +569,7 @@ NodeTypeSwitch:
 			lTypes, lcst := cp.CompileNode(node.Left, ctxt.x())
 			if !lTypes.Contains(values.BOOL) && lTypes.IsNoneOf(values.COMPILE_TIME_ERROR) {
 				cp.Throw("comp/bool/or/left", node.GetToken(), lTypes.describe(cp.Vm))
-				break
+				return AltType(values.COMPILE_TIME_ERROR), false
 			}
 			leftRg := cp.That()
 			if !lTypes.isOnly(values.BOOL) {
@@ -578,7 +585,7 @@ NodeTypeSwitch:
 			rTypes, rcst := cp.CompileNode(node.Right, ctxt.x())
 			if !rTypes.Contains(values.BOOL) && rTypes.IsNoneOf(values.COMPILE_TIME_ERROR) {
 				cp.Throw("comp/bool/or/right", node.GetToken(), rTypes.describe(cp.Vm))
-				break
+				return AltType(values.COMPILE_TIME_ERROR), false
 			}
 			rightRg := cp.That()
 			if !rTypes.areOnly(values.BOOL, values.ERROR) {
@@ -609,7 +616,7 @@ NodeTypeSwitch:
 			lTypes, lcst := cp.CompileNode(node.Left, ctxt.x())
 			if !lTypes.Contains(values.BOOL) && lTypes.IsNoneOf(values.ERROR, values.COMPILE_TIME_ERROR) {
 				cp.Throw("comp/bool/and/left", node.GetToken(), lTypes.describe(cp.Vm))
-				break
+				return AltType(values.COMPILE_TIME_ERROR), false
 			}
 			leftRg := cp.That()
 			if !lTypes.isOnly(values.BOOL) {
@@ -625,7 +632,7 @@ NodeTypeSwitch:
 			rTypes, rcst := cp.CompileNode(node.Right, ctxt.x())
 			if !rTypes.Contains(values.BOOL) && rTypes.IsNoneOf(values.COMPILE_TIME_ERROR) {
 				cp.Throw("comp/bool/and/right", node.GetToken(), rTypes.describe(cp.Vm))
-				break
+				return AltType(values.COMPILE_TIME_ERROR), false
 			}
 			rightRg := cp.That()
 			if !rTypes.isOnly(values.BOOL) {
@@ -908,7 +915,8 @@ NodeTypeSwitch:
 			recursion := false
 			if v.Access == LOCAL_FUNCTION_THUNK || v.Access == LOCAL_FUNCTION_CONSTANT {
 				if cp.Vm.Mem[v.MLoc].V == nil { // Then it's uninitialized because we're doing recursion in a given block and we haven't compiled that function yet.
-					cp.Emit(vm.Rpsh, cp.getLambdaStart(), cp.MemTop())
+				cp.PushMem(cp.CodeTop())	
+				cp.Emit(vm.Rpsh, cp.getLambdaStart(), cp.MemTop())
 					recursion = true
 				}
 			}
@@ -1760,6 +1768,7 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 	// Compile the main body of the lambda.
 	types, _ := cp.CompileNode(fnNode.Body, newContext)
 	LF.Model.ResultLocation = cp.That()
+	cp.ResolveMemPush(cp.That()-1)
 	if fnNode.NameRets != nil {
 		cp.Cm("Typechecking returns from lambda.", fnNode.GetToken())
 		cp.EmitTypeChecks(LF.Model.ResultLocation, types, env, cp.AstSigToAltSig(rTypes), LAMBDA, tok, CHECK_RETURN_TYPES, ctxt.x())
@@ -1767,7 +1776,6 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 	cp.Emit(vm.Ret)
 	cp.popLambdaStart()
 	cp.VmComeFrom(skipLambdaCode)
-	cp.ResolveMemPush(cp.MemTop())
 
 	// We have made our lambda factory! But do we need it? If there are no captures, then the function is a constant, and we
 	// can just reserve it in memory.
@@ -1967,33 +1975,33 @@ func (cp *Compiler) ReserveTypeCheckError(node ast.Node, typename string, valLoc
 }
 
 // Compiles a test for equality.
-func (cp *Compiler) compileEquals(node *ast.ComparisonExpression, ctxt Context) (AlternateType, bool) {
+func (cp *Compiler) compileEquals(node *ast.ComparisonExpression, ctxt Context) (AlternateType, bool, bool) {
 	lTypes, lcst := cp.CompileNode(node.Left, ctxt.x())
 	if lTypes.isOnly(values.ERROR) {
 		cp.Throw("comp/error/eq/a", node.GetToken())
-		return AltType(values.ERROR), false
+		return AltType(values.ERROR), false, false
 	}
 	if lTypes.isOnly(values.COMPILE_TIME_ERROR) {
-		return AltType(values.COMPILE_TIME_ERROR), false
+		return AltType(values.COMPILE_TIME_ERROR), false, false
 	}
 	leftRg := cp.That()
 	rTypes, rcst := cp.CompileNode(node.Right, ctxt.x())
 	if rTypes.isOnly(values.ERROR) {
 		cp.Throw("comp/error/eq/b", node.GetToken())
-		return AltType(values.ERROR), false
+		return AltType(values.ERROR), false, false
 	}
 	if rTypes.isOnly(values.COMPILE_TIME_ERROR) {
-		return AltType(values.COMPILE_TIME_ERROR), false
+		return AltType(values.COMPILE_TIME_ERROR), false, false
 	}
 	rightRg := cp.That()
 	oL := lTypes.intersect(rTypes)
 	if oL.isOnly(values.ERROR) {
 		cp.Throw("comp/error/eq/c", node.GetToken())
-		return AltType(values.ERROR), false
+		return AltType(values.ERROR), false, false
 	}
 	if len(oL) == 0 {
 		cp.Throw("comp/eq/types", node.GetToken(), lTypes.describe(cp.Vm), rTypes.describe(cp.Vm))
-		return AltType(values.ERROR), true
+		return AltType(values.ERROR), false, false
 	}
 	if len(oL) == 1 && len(lTypes) == 1 && len(rTypes) == 1 {
 		switch el := oL[0].(type) { // TODO --- we can do as much of this stuff as actually makes things performant before handing it over to Eqxx
@@ -2001,24 +2009,24 @@ func (cp *Compiler) compileEquals(node *ast.ComparisonExpression, ctxt Context) 
 			switch el {
 			case tp(values.INT):
 				cp.Put(vm.Equi, leftRg, rightRg)
-				return AltType(values.BOOL), lcst && rcst
+				return AltType(values.BOOL), lcst && rcst, true
 			case tp(values.STRING):
 				cp.Put(vm.Equs, leftRg, rightRg)
-				return AltType(values.BOOL), lcst && rcst
+				return AltType(values.BOOL), lcst && rcst, true
 			case tp(values.BOOL):
 				cp.Put(vm.Equb, leftRg, rightRg)
-				return AltType(values.BOOL), lcst && rcst
+				return AltType(values.BOOL), lcst && rcst, true
 			case tp(values.FLOAT):
 				cp.Put(vm.Equf, leftRg, rightRg)
-				return AltType(values.BOOL), lcst && rcst
+				return AltType(values.BOOL), lcst && rcst, true
 			case tp(values.TYPE):
 				cp.Put(vm.Equt, leftRg, rightRg)
-				return AltType(values.BOOL), lcst && rcst
+				return AltType(values.BOOL), lcst && rcst, true
 			}
 		}
 	}
 	cp.Put(vm.Eqxx, leftRg, rightRg, cp.ReserveToken(node.GetToken()))
-	return AltType(values.ERROR, values.BOOL), lcst && rcst
+	return AltType(values.ERROR, values.BOOL), lcst && rcst, true
 }
 
 // Compiles a logging expression.

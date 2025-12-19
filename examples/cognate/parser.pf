@@ -7,16 +7,36 @@
 import 
 
 NULL::"lexer.pf"        // A `NULL` import means we're just amalgamating the given files     
-// NULL::"parser-test.pf"  // into this namespace.
+NULL::"parser-test.pf"  // into this namespace.
 
 newtype
 
-Block = clone list using +
+// The tokens, having been assigned values by the lexer if they're literals, can now be
+// parsed. The tokens themselves can remain the basic atoms of meaning, but they are grouped
+// together by the syntax into larger units, represented by these data structures.
+
+// Parsing is done in three stages.
+
+// (1) We chunk the tokens, where applicable into Blocks, Defs, and Lets.
+
+Block = clone list using +              // Containing other Blocks, Tokens, Defs, and lets.
+Def   = struct(name string, body Block)  // A function definition.
+Let   = struct(name string)              // A variable declaration.
+
+// (2) We desugar Cognate into an RRN language by reversing semicolon-separated sequences 
+// within each Block.
+
+// (3) We hoist the Defs out of each block and turn them colletively into a map from their 
+// names to their contents, while producing a Block with the Defs removed. The map and Block
+// are contained in a Structure. (OK, what would you call it?)
+
+Defs       = clone map
+Structure  = struct(defs Defs, body Block)
 
 def 
 
 do(code string) :
-    code -> lex -> toBlocks 
+    code -> lex -> toBlocks -> desugar
 
 toBlocks(L list) -> Block :
     len(tail) > 0 :
@@ -32,13 +52,39 @@ recursiveToBlocks(B Block, L list) -> Block, list :
     head[tokenType] == RPAREN :   
         B, tail   
     head[tokenType] == LPAREN :          
-        recursiveToBlocks(B + Block[nextBlock], remainder)       
+        recursiveToBlocks(B + Block[(recursiveToBlocks Block[], tail)[0]], 
+                       .. (recursiveToBlocks Block[], tail)[1])    
+    head[tokenType] == LET :
+        tail == [] or tail[0][tokenType] != IDENT :
+            error "malformed `let` statement" 
+        else :
+            recursiveToBlocks B + Block[Let(tail[0][val])], tail[1::len(tail)]
+    head[tokenType] == DEF :
+        len tail < 2 or tail[0][tokenType] != IDENT or tail[1][tokenType] != LPAREN:
+            error "malformed `def` statement" 
+        else :
+            recursiveToBlocks B + Block[Def(tail[0][val], (recursiveToBlocks Block[], tail[2::len(tail)])[0])], 
+                           .. (recursiveToBlocks Block[], tail[2::len(tail)])[1]
     else :
         recursiveToBlocks(B + Block[head], tail) 
 given :
     head = L[0]
     tail = L[1::len L]
-    nextBlock, remainder = recursiveToBlocks Block[], tail
+
+
+// We recursively split blocks up by their semicolons.
+desugar(input Block) -> Block :                                              
+    first from result, ac = Block[], Block[] for i::_ = range 0::(len(input) + 1) :
+        i == len(input) :                                     
+            result + ac, Block[]  
+        type input[i] == Block :                                               
+            result,  ac + Block[desugar input[i]]
+        (type input[i] == Token) and (input[i][tokenType] == SEMICOLON) :
+            result + ac, Block[]   
+        type input[i] == Def :
+            result, ac + Block[input[i] with body::desugar(input[i][body])]                                                                     
+        else :               // A Let or just a plain old Token.                                            
+            result, ac + Block[input[i]]                                     
 
 
 
