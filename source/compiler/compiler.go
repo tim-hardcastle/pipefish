@@ -2565,7 +2565,8 @@ func (cp *Compiler) StartPushMem() {
 }
 
 func (cp *Compiler) PushMem(addr uint32) {
-	cp.memPushData[len(cp.memPushData)-1] = append(cp.memPushData[len(cp.memPushData)-1], bkMemPush(addr))
+	// Temporarily disabled while I make compilation deterministic.
+	// cp.memPushData[len(cp.memPushData)-1] = append(cp.memPushData[len(cp.memPushData)-1], bkMemPush(addr))
 }
 
 // The `VmComeFrom` function knows how to resolve the various bits of backtracking data.

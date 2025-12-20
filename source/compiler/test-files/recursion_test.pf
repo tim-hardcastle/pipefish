@@ -12,12 +12,12 @@ power(a, n int) :
     else :
         a * power a, n - 1
 
-// inFac(i int) :
-//     f(i)
-// given :
-//     f(i int) :
-//         i == 0 :
-//             1
-//         else :
-//             i * f i - 1
+inFac(i int) :
+    f(i)
+given :
+    f(i int) :
+        i == 0 :
+            1
+        else :
+            i * f i - 1
 
