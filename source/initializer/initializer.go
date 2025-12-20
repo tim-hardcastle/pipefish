@@ -1503,7 +1503,6 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		iz.cp.ResolveMemPush(iz.cp.That()-1)
 		// We check the return types.
 		if izFn.callInfo.ReturnTypes != nil && !(izFn.body.GetToken().Type == token.GOLANG) {
-			iz.cp.CmR("Ast sig is "+izFn.callInfo.ReturnTypes.String()+" ; Alt sig is "+iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes).Describe(iz.cp.Vm), &token.Token{})
 			iz.cp.EmitTypeChecks(cpFn.OutReg, cpFn.RtnTypes, fnenv, iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes), ac, &izFn.op, compiler.CHECK_RETURN_TYPES, bodyContext)
 		}
 		// Or, alternatively, if it's a command and it has reference variables then we may have
