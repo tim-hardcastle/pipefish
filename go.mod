@@ -13,6 +13,8 @@ require (
 	github.com/apache/arrow/go/v12 v12.0.1 // indirect
 	github.com/apache/thrift v0.17.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/bahlo/generic-list-go v0.2.0 // indirect
+	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/caddyserver/zerossl v0.1.3 // indirect
 	github.com/coreos/go-oidc/v3 v3.5.0 // indirect
 	github.com/dnephin/pflag v1.0.7 // indirect
@@ -39,6 +41,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
 	github.com/lmorg/murex v0.0.0-20250115225944-b4c429617fd4 // indirect
+	github.com/mailru/easyjson v0.9.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
@@ -56,6 +59,7 @@ require (
 	github.com/rs/zerolog v1.28.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	gitlab.com/nyarla/go-crypt v0.0.0-20160106005555-d9a5dc2b789b // indirect
@@ -71,6 +75,7 @@ require (
 	golang.org/x/tools v0.35.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
 	gonum.org/v1/gonum v0.12.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/gotestsum v1.8.2 // indirect
 	modernc.org/gc/v3 v3.0.0-20240107210532-573471604cb6 // indirect
 	modernc.org/libc v1.55.3 // indirect

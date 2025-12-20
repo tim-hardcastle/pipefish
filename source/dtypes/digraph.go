@@ -2,56 +2,29 @@ package dtypes
 
 import (
 	"fmt"
+
+	"github.com/tim-hardcastle/pipefish/source/dtypes"
+	"github.com/wk8/go-ordered-map/v2"
 )
 
-type Digraph[E comparable] map[E]Set[E]
+type Digraph = orderedmap.OrderedMap[string, Set[string]]
 
-func (D Digraph[E]) String() string {
+func String(D *Digraph) string {
 	result := "{\n"
-	for k, v := range D {
-		result += fmt.Sprintf("%v : %v", k, v.String())
+	for pair := D.Oldest(); pair != nil; pair = pair.Next() {
+		result += fmt.Sprintf("%v : %v", pair, v.String())
 	}
 	result += "}\n"
 	return result
 }
 
-func Ordering[E comparable](D Digraph[E]) ([]E, []E) {
-	result := []E{}
-	for leafnodes := D.StripLeafnodes(); len(leafnodes) > 0; leafnodes = D.StripLeafnodes() {
-		result = append(result, leafnodes.ToSlice()...)
-	}
-	return result, extractCycle(D)
-}
-
-// This is just for the Ordering function to use: *IF* the digraph at the end of the
-// Ordering function is non-empty, then it consists of a bunch of cycles, and we can
-// choose one of them to return as proof of this fact.
-func extractCycle[E comparable](D Digraph[E]) []E {
-	start, ok := D.GetArbitraryNode()
-	if !ok {
-		return nil
-	}
-	result := []E{start}
-	for next, ok := ((D)[start]).GetArbitraryElement(); true; next, ok = ((D)[next]).GetArbitraryElement() {
-		if !ok {
-			panic("extractCycle has found a leaf node, this is bad.")
-		}
-		if i := Index(result, next); i != -1 {
-			result = result[i:]
-			break
-		}
-		result = append(result, next)
-	}
-
-	return result
-}
-
-type data[E comparable] struct {
-	graph  Digraph[E]
+// Used for performing the Tarjan sort.
+type data struct {
+	graph  Digraph
 	nodes  []node
-	stack  []E
-	index  map[E]int
-	output [][]E
+	stack  []string
+	index  map[string]int
+	output [][]string
 }
 
 type node struct {
@@ -60,28 +33,28 @@ type node struct {
 }
 
 // This partitions the graph into strongly-connected components
-func (graph Digraph[E]) Tarjan() [][]E {
-	g := &data[E]{
+func Tarjan(graph Digraph)  [][]string {
+	data := &data{
 		graph: graph,
-		nodes: make([]node, 0, len(graph)),
-		index: make(map[E]int, len(graph)),
+		nodes: make([]node, 0, graph.Len()),
+		index: make(map[string]int, graph.Len()),
 	}
-	for v := range g.graph {
-		if _, ok := g.index[v]; !ok {
-			g.getStronglyConnectedComponent(v)
+	for pair := graph.Oldest(); pair != nil; pair = pair.Next() {
+		if _, ok := data.index[pair.Key]; !ok {
+			data.getStronglyConnectedComponent(pair.Key)
 		}
 	}
-	return g.output
+	return data.output
 }
 
-func (data *data[E]) getStronglyConnectedComponent(v E) *node {
+func (data *data) getStronglyConnectedComponent(v E) *node {
 	index := len(data.nodes)
 	data.index[v] = index
 	data.stack = append(data.stack, v)
 	data.nodes = append(data.nodes, node{lowlink: index, stacked: true})
 	node := &data.nodes[index]
-
-	for w := range data.graph[v] {
+	R, _ := data.graph.Get(v)
+	for w := range R {
 		i, seen := data.index[w]
 		if !seen {
 			n := data.getStronglyConnectedComponent(w)
@@ -96,7 +69,7 @@ func (data *data[E]) getStronglyConnectedComponent(v E) *node {
 	}
 
 	if node.lowlink == index {
-		var vertices []E
+		var vertices []string
 		i := len(data.stack) - 1
 		for {
 			w := data.stack[i]
@@ -115,29 +88,26 @@ func (data *data[E]) getStronglyConnectedComponent(v E) *node {
 	return node
 }
 
-func (D Digraph[E]) SetOfNodes() *Set[E] {
-	result := Set[E]{}
-	for x := range D {
-		result.Add(x)
+func SetOfNodes(D *Digraph) *Set[string] {
+	result := Set[string]{}
+	for pair := D.Oldest(); pair != nil; pair = pair.Next() {
+		result.Add(pair.Key)
 	}
 	return &result
 }
 
-func (D Digraph[E]) GetArbitraryNode() (E, bool) {
-	var result E
-	var ok bool
-	for k := range D { // There should be a less clumsy way to do this but ...
-		result = k
-		ok = true
-		break
-	}
-	return result, ok
+func (D Digraph) GetArbitraryNode() (string, bool) {
+	return D.Oldest().Key, D.Len() != 0
 }
 
 // This checks to see if a node already has an entry before adding it to the digraph.
-func (D Digraph[E]) AddSafe(node E, neighbors []E) bool {
-	if !D.SetOfNodes().Contains(node) {
-		D.Add(node, neighbors)
+func AddSafe(D *Digraph, node string, neighbors []string) bool {
+	if !SetOfNodes(D).Contains(node) {
+		neighborSet := Set[string]{}
+		for _, neighbor := range neighbors {
+			neighborSet = neighborSet.Add(neighbor)
+		}
+		D.Set(node, neighborSet)
 		return true
 	}
 	return false
@@ -145,23 +115,29 @@ func (D Digraph[E]) AddSafe(node E, neighbors []E) bool {
 
 // This adds an arrow with transitive closure to a digraph, on the assumption that it is
 // already transitively closed.
-func (D Digraph[E]) AddTransitiveArrow(a, b E) {
-	if !D.SetOfNodes().Contains(a) {
-		(D)[a] = Set[E]{b: struct{}{}}
+func AddTransitiveArrow(D *Digraph, a, b string) {
+	if !SetOfNodes(D).Contains(b) {
+		D.Set(b, Set[string]{})
 	}
-	if !D.SetOfNodes().Contains(b) {
-		(D)[b] = Set[E]{}
+	if !SetOfNodes(D).Contains(a) {
+		D.Set(a, Set[string]{})
 	}
+	AddArrow(D, a, b)
 	(D)[a].Add(b)
 	(D)[a].AddSet((D)[b])
 	for e := range *(D.ArrowsTo(a)) {
-		(D)[e].Add(b)
-		(D)[e].AddSet((D)[b])
+		(D)[string].Add(b)
+		(D)[string].AddSet((D)[b])
 	}
 }
 
-func (D Digraph[E]) ArrowsTo(e E) *Set[E] {
-	result := Set[E]{}
+// This supposes that the nodes already exist.
+func AddArrow(D *Digraph, a, b string) {
+
+}
+
+func  ArrowsTo(D Digraph, e string) *Set[string] {
+	result := Set[string]{}
 	for k, V := range D {
 		if V.Contains(e) {
 			result.Add(k)
@@ -170,28 +146,12 @@ func (D Digraph[E]) ArrowsTo(e E) *Set[E] {
 	return &result
 }
 
-func (D *Digraph[E]) Add(node E, neighbors []E) {
+func Add(D *Digraph, node string, neighbors []string) {
 	s := MakeFromSlice(neighbors)
-	(*D)[node] = s
+	D.Set(node, s)
 }
 
-func (D *Digraph[E]) StripLeafnodes() Set[E] {
-	result := Set[E]{}
-	for k, v := range *D {
-		if v.IsEmpty() {
-			result.Add(k)
-		}
-	}
-	for k := range result {
-		delete(*D, k)
-	}
-	for _, V := range *D {
-		for e := range result {
-			delete(V, e)
-		}
-	}
-	return result
-}
+
 
 func Index[E comparable](slice []E, element E) int {
 	result := -1
@@ -204,6 +164,6 @@ func Index[E comparable](slice []E, element E) int {
 	return result
 }
 
-func (T *Digraph[E]) PointsTo(candidate, target E) bool {
+func (T *Digraph[string]) PointsTo(candidate, target E) bool {
 	return (*T)[candidate].Contains(target)
 }
