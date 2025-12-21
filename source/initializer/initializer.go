@@ -21,7 +21,6 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/vm"
 
 	"src.elv.sh/pkg/persistent/vector"
-	"github.com/wk8/go-ordered-map/v2"
 )
 
 //go:embed rsc-pf/*
@@ -1003,9 +1002,9 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 
 	iz.cmI("Building digraph of dependencies.")
 	// We build a digraph of the dependencies between the constant/variable/function/command declarations.
-	graph := orderedmap.New[string, dtypes.Set[string]]()
+	graph := dtypes.NewDigraph()
 	for name, decs := range namesToDeclarations { // The same name may be used for different overloaded functions.
-		dtypes.Add(graph, name, []string{})
+		dtypes.Add(graph, name)
 		for _, dec := range decs {
 			rhsNames := iz.extractNamesFromCodeChunk(dec)
 			// IMPORTANT NOTE. 'extractNamesFromCodeChunk' will also slurp up a lot of cruft: type names, for example; bling; local true variables in cmds.
@@ -1076,7 +1075,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			tok := namesToDeclarations[svName][0].chunk.getToken()
 			decType := namesToDeclarations[svName][0].decType
 			decNumber := namesToDeclarations[svName][0].decNumber
-			if len(rhs) > 0 {
+			if rhs.Len() > 0 {
 				iz.throw("init/service/depends", tok, svName)
 				return nil
 			}

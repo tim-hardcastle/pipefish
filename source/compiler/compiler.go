@@ -18,7 +18,6 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
 	"github.com/tim-hardcastle/pipefish/source/vm"
-	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
 //go:embed test-files/*
@@ -1796,7 +1795,7 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 func (cp *Compiler) CompileGivenBlock(given ast.Node, ctxt Context) {
 	cp.Cm("Compiling 'given' block.", given.GetToken())
 	nameToNode := map[string]*ast.AssignmentExpression{}
-	nameGraph := orderedmap.New[string, dtypes.Set[string]]()
+	nameGraph := dtypes.NewDigraph()
 	chunks := cp.SplitOnNewlines(given)
 	for _, chunk := range chunks {
 		if chunk.GetToken().Type != token.GVN_ASSIGN {
