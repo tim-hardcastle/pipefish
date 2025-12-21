@@ -1,7 +1,7 @@
 cmd
 
 greet :
-    post "Hello world!"
+    post "Hi there world!"
 
 def
 

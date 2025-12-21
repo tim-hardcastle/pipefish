@@ -21,6 +21,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/vm"
 
 	"src.elv.sh/pkg/persistent/vector"
+	"github.com/wk8/go-ordered-map/v2"
 )
 
 //go:embed rsc-pf/*
@@ -1002,9 +1003,9 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 
 	iz.cmI("Building digraph of dependencies.")
 	// We build a digraph of the dependencies between the constant/variable/function/command declarations.
-	graph := dtypes.Digraph[string]{}
+	graph := orderedmap.New[string, dtypes.Set[string]]()
 	for name, decs := range namesToDeclarations { // The same name may be used for different overloaded functions.
-		graph.Add(name, []string{})
+		dtypes.Add(graph, name, []string{})
 		for _, dec := range decs {
 			rhsNames := iz.extractNamesFromCodeChunk(dec)
 			// IMPORTANT NOTE. 'extractNamesFromCodeChunk' will also slurp up a lot of cruft: type names, for example; bling; local true variables in cmds.
@@ -1027,7 +1028,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 						}
 					}
 					// And if there are no forbidden relationships we can add the dependency to the graph.
-					graph.AddTransitiveArrow(name, rhsName)
+					dtypes.AddTransitiveArrow(graph, name, rhsName)
 				}
 			}
 		}
@@ -1070,7 +1071,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	compilerDirectives := dtypes.MakeFromSlice([]string{"$_logging", "$_logTo", "$_logTime"})
 	// Add variables to environment.
 	for svName, svData := range serviceVariables {
-		rhs, ok := graph[svName]
+		rhs, ok := graph.Get(svName)
 		if ok && compilerDirectives.Contains(svName) { // Then we've declared a service variable which is also a compiler directive, and must compile the declaration.
 			tok := namesToDeclarations[svName][0].chunk.getToken()
 			decType := namesToDeclarations[svName][0].decType
@@ -1084,7 +1085,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 				iz.throw("init/service/type", tok, svName, compiler.Describe(svData.alt, iz.cp.Vm))
 				return nil
 			}
-			delete(graph, svName)
+			graph.Delete(svName)
 		} else if !ok { // Then the service variable isn't declared, and we need to stick in a default value.
 			dummyTok := token.Token{}
 			iz.cp.Reserve(svData.t, svData.v, &dummyTok)
@@ -1095,7 +1096,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	}
 	iz.cp.Vm.UsefulValues.OutputAs = iz.cp.GlobalVars.Data["$_outputAs"].MLoc
 	iz.cmI("Performing sort on digraph.")
-	order := graph.Tarjan()
+	order := dtypes.Tarjan(graph)
 
 	// We now have a list of lists of names to declare. We're off to the races!
 	iz.cmI("Compiling the variables/functions in the order given by the sort.")

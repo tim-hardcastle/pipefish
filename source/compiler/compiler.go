@@ -18,6 +18,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
 	"github.com/tim-hardcastle/pipefish/source/vm"
+	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
 //go:embed test-files/*
@@ -1795,7 +1796,7 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 func (cp *Compiler) CompileGivenBlock(given ast.Node, ctxt Context) {
 	cp.Cm("Compiling 'given' block.", given.GetToken())
 	nameToNode := map[string]*ast.AssignmentExpression{}
-	nameGraph := dtypes.Digraph[string]{}
+	nameGraph := orderedmap.New[string, dtypes.Set[string]]()
 	chunks := cp.SplitOnNewlines(given)
 	for _, chunk := range chunks {
 		if chunk.GetToken().Type != token.GVN_ASSIGN {
@@ -1824,26 +1825,28 @@ func (cp *Compiler) CompileGivenBlock(given ast.Node, ctxt Context) {
 				}
 			}
 			for v := range rhs {
-				nameGraph.AddTransitiveArrow(pair.VarName, v)
+				dtypes.AddTransitiveArrow(nameGraph, pair.VarName, v)
 			}
 			if len(rhs) == 0 {
-				nameGraph.AddTransitiveArrow(pair.VarName, "")
+				dtypes.AddTransitiveArrow(nameGraph, pair.VarName, "")
 			}
 		}
 	}
-	order, cycle := dtypes.Ordering(nameGraph)
-	if cycle != nil {
-		cp.Throw("comp/given/cycle", given.GetToken(), cycle)
-	} else {
-		used := dtypes.Set[string]{} // If we have a multiple assignment, we only want to compile the rhs once.
-		for _, v := range order {
-			node, ok := nameToNode[v]
-			if ok && !used.Contains(v) {
-				used.AddSet(dtypes.MakeFromSlice(cp.P.GetVariablesFromSig(node.Left)))
-				cp.compileOneGivenChunk(node, ctxt)
-			}
+	order := dtypes.Tarjan(nameGraph)
+	used := dtypes.Set[string]{} // If we have a multiple assignment, we only want to compile the rhs once.
+	for _, partition := range order {
+		if len(partition) > 1 {
+			cp.Throw("comp/given/order", given.GetToken(), partition)
+			break
+		}
+		v := partition[0]
+		node, ok := nameToNode[v]
+		if ok && !used.Contains(v) {
+			used.AddSet(dtypes.MakeFromSlice(cp.P.GetVariablesFromSig(node.Left)))
+			cp.compileOneGivenChunk(node, ctxt)
 		}
 	}
+
 }
 
 // Function auxiliary to the previous one, `CompileGivenBlock`, to break down a `given` block into its

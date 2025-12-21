@@ -2,8 +2,6 @@ package dtypes
 
 import (
 	"fmt"
-
-	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/wk8/go-ordered-map/v2"
 )
 
@@ -12,7 +10,7 @@ type Digraph = orderedmap.OrderedMap[string, Set[string]]
 func String(D *Digraph) string {
 	result := "{\n"
 	for pair := D.Oldest(); pair != nil; pair = pair.Next() {
-		result += fmt.Sprintf("%v : %v", pair, v.String())
+		result += fmt.Sprintf("%v : %v", pair.Key, pair.Value.String())
 	}
 	result += "}\n"
 	return result
@@ -20,7 +18,7 @@ func String(D *Digraph) string {
 
 // Used for performing the Tarjan sort.
 type data struct {
-	graph  Digraph
+	graph  *Digraph
 	nodes  []node
 	stack  []string
 	index  map[string]int
@@ -32,8 +30,9 @@ type node struct {
 	stacked bool
 }
 
-// This partitions the graph into strongly-connected components
-func Tarjan(graph Digraph)  [][]string {
+// This partitions the graph into strongly-connected components, while performing a
+// topological search on them.
+func Tarjan(graph *Digraph)  [][]string {
 	data := &data{
 		graph: graph,
 		nodes: make([]node, 0, graph.Len()),
@@ -47,7 +46,7 @@ func Tarjan(graph Digraph)  [][]string {
 	return data.output
 }
 
-func (data *data) getStronglyConnectedComponent(v E) *node {
+func (data *data) getStronglyConnectedComponent(v string) *node {
 	index := len(data.nodes)
 	data.index[v] = index
 	data.stack = append(data.stack, v)
@@ -96,21 +95,8 @@ func SetOfNodes(D *Digraph) *Set[string] {
 	return &result
 }
 
-func (D Digraph) GetArbitraryNode() (string, bool) {
+func GetArbitraryNode(D *Digraph) (string, bool) {
 	return D.Oldest().Key, D.Len() != 0
-}
-
-// This checks to see if a node already has an entry before adding it to the digraph.
-func AddSafe(D *Digraph, node string, neighbors []string) bool {
-	if !SetOfNodes(D).Contains(node) {
-		neighborSet := Set[string]{}
-		for _, neighbor := range neighbors {
-			neighborSet = neighborSet.Add(neighbor)
-		}
-		D.Set(node, neighborSet)
-		return true
-	}
-	return false
 }
 
 // This adds an arrow with transitive closure to a digraph, on the assumption that it is
@@ -123,27 +109,51 @@ func AddTransitiveArrow(D *Digraph, a, b string) {
 		D.Set(a, Set[string]{})
 	}
 	AddArrow(D, a, b)
-	(D)[a].Add(b)
-	(D)[a].AddSet((D)[b])
-	for e := range *(D.ArrowsTo(a)) {
-		(D)[string].Add(b)
-		(D)[string].AddSet((D)[b])
+	
+	// Note again that we depend on the digraph already being transitiviely
+	// closed.
+	// So we don't have to look recursively through the graph to find what
+	// b transitively leads to, because those are already its immmediate
+	// neighbors.
+	arrowsFromB, _ := D.Get(b)
+	for k := range arrowsFromB {
+		AddArrow(D, a, k)
+	}
+	for k := range ArrowsTo(D, a) {
+		AddArrow(D, k, b)
+		ns, _ := D.Get(b)
+		for v := range ns {
+			AddArrow(D, k, v)
+		}
 	}
 }
 
 // This supposes that the nodes already exist.
 func AddArrow(D *Digraph, a, b string) {
-
+	neighbors, _ := D.Get(a)
+	neighbors.Add(b)
+	D.Set(a, neighbors)
 }
 
-func  ArrowsTo(D Digraph, e string) *Set[string] {
-	result := Set[string]{}
-	for k, V := range D {
-		if V.Contains(e) {
-			result.Add(k)
+func  ArrowsTo(D *Digraph, x string) Set[string] {
+	target := Set[string]{}
+	target.Add(x)
+	results := Set[string]{}
+	for {
+		newResults := false
+		for pair := D.Oldest(); pair != nil; pair = pair.Next() {
+			if pair.Value.OverlapsWith(target) {
+				if !results.Contains(pair.Key) {
+					results.Add(pair.Key)
+					newResults = true
+				}
+			}
+		}
+		if !newResults {
+			break
 		}
 	}
-	return &result
+	return results
 }
 
 func Add(D *Digraph, node string, neighbors []string) {
@@ -162,8 +172,4 @@ func Index[E comparable](slice []E, element E) int {
 		}
 	}
 	return result
-}
-
-func (T *Digraph[string]) PointsTo(candidate, target E) bool {
-	return (*T)[candidate].Contains(target)
 }
