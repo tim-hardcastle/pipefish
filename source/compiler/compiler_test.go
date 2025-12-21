@@ -125,6 +125,8 @@ func TestBuiltins(t *testing.T) {
 		{`tuple 1`, `tuple(1)`},
 		{`type true`, `bool`},
 		{`type bool`, `type`},
+		{`[1, 2, 3] & 4`, `[1, 2, 3, 4]`},
+		{`4 in (set(1, 2, 3) & 4)`, `true`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }

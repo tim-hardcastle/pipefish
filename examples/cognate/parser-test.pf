@@ -1,0 +1,24 @@
+newtype
+
+Item = struct(input, expected string) 
+
+def
+
+test() :
+    from message = "Parser tests passed." for i::item = range TEST_ITEMS :
+        result != item[expected] :
+            break "Item `" + string(i) + "`, expected `" + item[expected] + "`; got `" + result + "`."
+        else :
+            continue
+    given :
+        result = string (item[input] -> lex -> toBlocks -> desugar)
+
+const
+
+TEST_ITEMS = [Item(`(Foo); (Bar)`, `Block[Block[IDENT(Foo)], Block[IDENT(Bar)]]`),
+           .. Item(`Def X (Foo  Bar)`, `Block[Def with (name::X, body::Block[IDENT(Bar), IDENT(Foo)])]`),
+           .. Item(`Def X (Foo ; Bar)`, `Block[Def with (name::X, body::Block[IDENT(Foo), IDENT(Bar)])]`),
+           .. Item(`Let X`, `Block[Let with (name::X)]`),
+           .. Item(`Foo ((Moo)) Spong`, `Block[IDENT(Spong), Block[Block[IDENT(Moo)]], IDENT(Foo)]`)]
+
+

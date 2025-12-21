@@ -607,6 +607,10 @@ loop:
 				vm.Mem[args[0]] = values.Value{values.TYPE, abType}
 			case CoSn:
 				vm.Mem[args[0]] = values.Value{values.SNIPPET, values.Snippet{vm.Mem[args[1]].V.([]values.Value), nil}}
+			case ConL:
+				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(vector.Vector).Conj(vm.Mem[args[2]])}
+			case ConS:
+				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(values.Set).Add(vm.Mem[args[2]])}
 			case Cpnt:
 				vm.Mem[args[0]] = values.Value{values.INT, int(vm.Mem[args[1]].V.(rune))}
 			case Cv1T:

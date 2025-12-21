@@ -43,33 +43,19 @@ def
 ```
 
 
-My plan is to implement a (small portion of) some classic text-based adventure game, Zork or ADVENT or whatever, in (a cut-down version of) Cognate, which I will write in Pipefish. So I should tell you what those are.
+My plan is to implement a (small portion of) some classic text-based adventure game, Zork or ADVENT or whatever, in (a cut-down version of) Cognate, which I will write in Pipefish. So I should tell you what those things are.
 
-Cognate is the brainchild of someone who goes by Stavromula on the internet. (They are advising me on the project, though not doing any of the code, and will therefore be put down as my team-mate.) Like a million other people they thought "What if Forth was also Lisp?" but they made it work really well. (I'm not the only person who thinks so, it has more than one implmentation and an online playground courtesy of its fans. Here's the landing page, and, for the impatient, here's some Cognate):
+Cognate is the brainchild of someone who goes by Stavromula on the internet. (They are advising me on the project, though not doing any of the code, and will therefore be put down as my team-mate.) Like a million other people they thought "What if Forth was also Lisp?" but they made it work really well. I'm not the only person who thinks so, it has more than one implementation and an [online playground](https://cognate-playground.hedy.dev/) courtesy of its fans. [Here's](https://cognate-lang.github.io/) the landing page.
 
-```
-Def Factor (Zero? Modulo Swap);
+It is and will remain tiny, but it's very powerful for its size. 
 
-Def Primes (
-	Fold (
-		Let I be our potential prime;
-		Let Primes be the found primes;
-		Let To-check be Take-while (<= Sqrt I) Primes;
-		When None (Factor of I) To-check
-			(Append List (I)) to Primes;
-	) from List () over Range from 2
-);
+Pipefish is my own language, an attempt, so far successful, to write a functional language that you can really hack stuff out in, with a special orientation toward CRUD apps, middleware, microservices and DSLs. To see what it looks like, there's a [wiki](The wiki. https://github.com/tim-hardcastle/Pipefish/wiki) and an [examples folder](https://github.com/tim-hardcastle/pipefish/tree/main/examples).
 
-Print Primes up to 1000;
-```
-It is and will remain tiny, but it is very powerful for its size. 
+The `sql_and_html` subfolder of `examples` has a little demo of a CRUD app, showing off some of the more advanced features of Pipefish: the SQL library, Golang interop, DSLs, logging, and microservices. To see something more like Plain Old Functional Programming, have a look at the adventure game, or the lexer for Cognate.
 
-Pipefish is my own language, an attempt, so far successful, to write a functional language that you can really hack stuff out in, with a special orientation to CRUD apps, middleware, microservices and DSLs. To see what it looks like, there's a [wiki](The wiki. https://github.com/tim-hardcastle/Pipefish/wiki) and an [examples folder]().
+It is pretty much feature-complete, but requires some thorough testing and debugging, a fuzzer, optimization, more tooling, a few more standard libraries, a security audit, etc.
 
-The `sql_and_html` subfolder has little demo of a CRUD app, showing off some of the more advanced features of Pipefish: the SQL library, Golang interop, DSLs, logging, and microservices.
-To see something more like Plain Old Functional Programming, have a look at the adventure game, or the lexer for Cognate.
-
-It is pretty much feature-complete, but requires some thorough testing, a fuzzer, optimization, more tooling, a few more standard libraries, etc.
+Neither Cognate nor Pipefish has graphics capabilities, so I'll go with a text-based adventure game like in my youth. I will probably re-use a classic because I'm not good at thinking of traps.
 
 I have three purposes in this besides having fun.
 
@@ -81,11 +67,30 @@ I have three purposes in this besides having fun.
 
 For this last reason, although I'm not going to do all the tricky parts of the syntax and semantics, I *am* going to be doing the very hardest part (essentially, closures) although I won't need them to write an adventure game, just because retrofitting them would be such a PITA, all the data structures and semantics need to fit around it.
 
-Having got off to a flying start with the lexer, I got distracted by improving various bits of Pipefish, but today I will write a parser, at the very least. Cognate, being basically a Forth and having no preceedence, doesn't need much parsing, but it does need some.
+Having got off to a flying start with the lexer, I got distracted by improving various bits of Pipefish, but now I've 
 
 
 
-When I hear you having a hard time, I come running to help and ask what I can do. You punish me for showing signs of grief, or stress, or frustration, or physical pain or weakness. "The beatings will continue until morale improves."
+ I meant agreeing with Ben, not Hitler.
+
+I would accept that Hitler used Darwinism as an excuse for his crimes if any creationist claiming this could ever, ever supply a shred of evidence that he did. But in Mein Kampf, he explicitly endorses creationism:
+
+* "For it was by the Will of God that men were made of a certain bodily shape, were given their natures and their faculties. Whoever destroys His work wages war against God's Creation and God's Will."
+
+... and rejects evolution:
+
+* "The fox remains always a fox, the goose remains a goose, and the tiger will retain the character of a tiger. The only difference that can exist within the species must be in the various degrees of structural strength and active power, in the intelligence, efficiency, endurance, etc., with which the individual specimens are endowed."
+
+
+
+I would accept that Hitler used Darwinism as an excuse for his crimes if any creationist claiming this could ever, ever supply a shred of evidence that he 
+
+
+
+
+When I know that you're having a hard time, I ask what I can do to help. I see you struggling with something, I say, can I do that for you? I hear you cry out in frustation, I come running to help.
+
+You punish me for showing signs of grief, or stress, or frustration, or physical pain or weakness. "The beatings will continue until morale improves."
 
 It is normal for me to feel sad right now. That is not something for which I need therapy. It would be normal for you to be feeling sad too and for you to be talking to me about it.
 

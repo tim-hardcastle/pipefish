@@ -30,6 +30,8 @@ var BUILTINS = map[string]functionAndReturnType{
 	"cast_to_snippet":           {(*Compiler).btCastToSnippet, AltType(values.SNIPPET)},
 	"cast_to_string":            {(*Compiler).btCastToString, AltType(values.STRING)},
 	"codepoint":                 {(*Compiler).btCodepoint, AltType(values.INT)},
+	"concat_to_list":            {(*Compiler).btConcatToList, AltType(values.LIST)},
+	"concat_to_set":             {(*Compiler).btConcatToSet, AltType(values.SET)},
 	"divide_floats":             {(*Compiler).btDivideFloats, AltType(values.ERROR, values.FLOAT)},
 	"divide_float_by_integer":   {(*Compiler).btDivideFloatByInteger, AltType(values.ERROR, values.FLOAT)},
 	"divide_integers":           {(*Compiler).btDivideIntegers, AltType(values.ERROR, values.INT)},
@@ -169,6 +171,14 @@ func (cp *Compiler) btCastToSnippet(tok *token.Token, dest uint32, args []uint32
 
 func (cp *Compiler) btCastToString(tok *token.Token, dest uint32, args []uint32) {
 	cp.Emit(vm.Cast, dest, args[0], uint32(values.STRING))
+}
+
+func (cp *Compiler) btConcatToList(tok *token.Token, dest uint32, args []uint32) {
+	cp.Emit(vm.ConL, dest, args[0], args[2])
+}
+
+func (cp *Compiler) btConcatToSet(tok *token.Token, dest uint32, args []uint32) {
+	cp.Emit(vm.ConS, dest, args[0], args[2])
 }
 
 func (cp *Compiler) btCodepoint(tok *token.Token, dest uint32, args []uint32) {
