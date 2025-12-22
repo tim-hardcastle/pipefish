@@ -1,6 +1,8 @@
 package compiler
 
 import (
+	"strconv"
+
 	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
@@ -57,7 +59,7 @@ func (tree FnTreeNode) IndentString(indent string) string {
 	for _, v := range tree.Branch {
 		result = result + "\n" + indent + v.Type.String()
 		if v.Node.CallInfo != nil {
-			result = result + "function call"
+			result = result + "function call " + strconv.Itoa(int(v.Node.CallInfo.Number))
 		} else {
 			result = result + v.Node.IndentString(indent+"    ")
 		}

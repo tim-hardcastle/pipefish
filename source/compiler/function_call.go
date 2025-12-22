@@ -532,6 +532,22 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) {  // The 
 				}
 				// Deal with the case where the function is a builtin.
 				builtinTag := F.Builtin
+				// It could be one of the extra constructors the clones of sets and maps have to
+				// construct them from varargs. This will be indicated by "$s_" or "$m_" respectively
+				// at the start of the builtin tag.
+				if text.Head(builtinTag, "$s_") || text.Head(builtinTag, "$m_") {
+					typeNumber := cp.ConcreteTypeNow(builtinTag[3:])
+					tok := cp.ReserveToken(b.tok)
+					typeLoc := cp.Reserve(values.TYPE, values.AbstractType{[]values.ValueType{values.ValueType(typeNumber)}}, b.tok)
+					cp.Put(vm.CvTT, b.valLocs...)
+					if text.Head(builtinTag, "$s_") {
+						cp.Put(vm.Mkst, cp.That(), tok)
+					} else {
+						cp.Put(vm.Mkmp, cp.That(), tok)
+					}
+					cp.Emit(vm.Casx, b.outLoc, cp.That(), typeLoc)
+					return AltType(values.ERROR, values.ValueType(typeNumber)), false
+				}
 				// It could be a builtin from the builtins file.
 				functionAndType, ok := BUILTINS[builtinTag]
 				if ok {
@@ -580,6 +596,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) {  // The 
 					default: // TODO --- at this point functionAndType.T is entirely cruft, never used for permanent storage.
 						functionAndType.T = F.RtnTypes
 					}
+					// We call the function that emits the builtin.
 					functionAndType.f(cp, b.tok, b.outLoc, b.valLocs)
 					return functionAndType.T, false
 				}

@@ -487,13 +487,17 @@ loop:
 			case Cast:
 				vm.Mem[args[0]] = values.Value{values.ValueType(args[2]), vm.Mem[args[1]].V}
 			case Casx:
+				currentType := vm.Mem[args[1]].T
+				if currentType == values.ERROR {
+					vm.Mem[args[0]] = vm.Mem[args[1]]
+					break Switch
+				}
 				castToAbstract := vm.Mem[args[2]].V.(values.AbstractType)
 				if len(castToAbstract.Types) != 1 {
 					vm.Mem[args[0]] = vm.makeError("vm/cast/concrete", args[3], args[1], args[2])
 					break Switch
 				}
 				targetType := castToAbstract.Types[0]
-				currentType := vm.Mem[args[1]].T
 				if targetType == currentType {
 					vm.Mem[args[0]] = vm.Mem[args[1]]
 					break Switch

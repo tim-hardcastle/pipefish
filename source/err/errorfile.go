@@ -1828,7 +1828,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "A clone of " + emph("list") + " can only request the native operations suitable to that type, i.e. " +
-				emph("+") + ", " + emph("with") + ", " + emph("?>") + emph(">>") + ", " + ", and " + emph("slice") + "."
+				emph("+") + ", " + emph("&") + ", " + emph("with") + ", " + emph("?>") + emph(">>") + ", " + ", and " + emph("slice") + "."
 		},
 	},
 
@@ -1857,8 +1857,8 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "clone of " + emph("set") + " cannot request operation " + emph(args[0])
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "A clone of " + emph("int") + " can only request the native operations suitable to that type, i.e. " +
-				emph("+") + " and " + emph("-") + "."
+			return "A clone of " + emph("set") + " can tonly request the native operations suitable to that type, i.e. " +
+				emph("+") + ", " + emph("&") + ", " + emph("/\\") + ", and " + emph("-") + "."
 		},
 	},
 

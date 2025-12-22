@@ -1453,7 +1453,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		if ok {
 			cpFn.RtnTypes = types.T // TODO --- this may well be wrong, should it be extracted from izFn.callinfo.ReturnTypes?
 		} else {
-			typeNumber, ok := iz.cp.GetConcreteType(name) // We treat the clone constructors and short struct constructors as builtins. TODO --- todon't.
+			typeNumber, ok := iz.cp.GetConcreteType(name) // We treat the clone constructors and short struct constructors as builtins.
 			if ok {
 				cpFn.RtnTypes = altType(typeNumber)
 			}

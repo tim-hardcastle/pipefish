@@ -680,6 +680,39 @@ func (iz *Initializer) createClones() {
 		sig := ast.AstSig{ast.NameTypeAstPair{VarName: "x", VarType: ast.MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
 		fn.callInfo.Number = iz.addToBuiltins(sig, name, altType(typeNo), dec.private, ixPtr(dec))
 		iz.createOperations(&ast.TypeWithName{token.Token{}, name}, typeNo, dec.requests, parentTypeNo, dec.private)
+		// If we're cloning a set or a map, they need extra constructors to construct the type from varargs.
+		if typeToClone == "map" {
+			sig := ast.AstSig{ast.NameTypeAstPair{"x", &ast.TypeDotDotDot{token.Token{}, &ast.TypeWithName{token.Token{}, "pair"}}}}
+			rtnSig := ast.AstSig{ast.NameTypeAstPair{"*dummy*", &ast.TypeWithName{token.Token{}, name}}}
+			fn := &parsedFunction{
+				decType:   functionDeclaration,
+				decNumber: DUMMY,
+				private:   dec.private, 
+				op:        *ixPtr(dec),
+				pos:       prefix,
+				sig:       sig,
+				body:      &ast.BuiltInExpression{Name: "$m_"+name},
+				callInfo:  &compiler.CallInfo{iz.cp, DUMMY, rtnSig},
+			}
+			iz.Add(name, fn)
+			fn.callInfo.Number = iz.addToBuiltins(sig, "$m_"+name, altType(typeNo), dec.private, ixPtr(dec))
+		}
+		if typeToClone == "set" {
+			sig := ast.AstSig{ast.NameTypeAstPair{"x", &ast.TypeDotDotDot{token.Token{}, ast.ANY_NULLABLE_TYPE_AST}}}
+			rtnSig := ast.AstSig{ast.NameTypeAstPair{"*dummy*", &ast.TypeWithName{token.Token{}, name}}}
+			fn := &parsedFunction{
+				decType:   functionDeclaration,
+				decNumber: DUMMY,
+				private:   dec.private, 
+				op:        *ixPtr(dec),
+				pos:       prefix,
+				sig:       sig,
+				body:      &ast.BuiltInExpression{Name: "$s_"+name},
+				callInfo:  &compiler.CallInfo{iz.cp, DUMMY, rtnSig},
+			}
+			iz.Add(name, fn)
+			fn.callInfo.Number = iz.addToBuiltins(sig, "$s_"+name, altType(typeNo), dec.private, ixPtr(dec))
+		}
 	}
 }
 
@@ -790,6 +823,9 @@ func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.Valu
 			case "+":
 				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"+", ast.AsBling("+")}, ast.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("+", sig, "add_lists", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
+			case "&":
+				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"&", ast.AsBling("&")}, ast.NameTypeAstPair{"y", ast.ANY_NULLABLE_TYPE_AST}}
+				iz.makeCloneFunction("&", sig, "concat_to_list", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "with":
 				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"with", ast.AsBling("with")}, ast.NameTypeAstPair{"y", ast.DOTDOTDOT_PAIR}}
 				iz.makeCloneFunction("with", sig, "listWithMaker(x, y)", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
@@ -826,6 +862,9 @@ func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.Valu
 			case "+":
 				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"+", ast.AsBling("+")}, ast.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("+", sig, "add_sets", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
+			case "&":
+				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"&", ast.AsBling("&")}, ast.NameTypeAstPair{"y", ast.ANY_NULLABLE_TYPE_AST}}
+				iz.makeCloneFunction("&", sig, "concat_to_set", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "-":
 				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"-", ast.AsBling("-")}, ast.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("-", sig, "subtract_sets", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
