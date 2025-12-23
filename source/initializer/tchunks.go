@@ -268,7 +268,7 @@ type tokenizedGoTypeDeclaration struct {
 }
 
 func (tc *tokenizedGoTypeDeclaration) getDeclarationType() declarationType {
-	return aliasDeclaration
+	return goTypeDeclaration
 }
 
 func (tc *tokenizedGoTypeDeclaration) indexToken() token.Token { return tc.op }
