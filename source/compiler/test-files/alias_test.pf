@@ -1,0 +1,7 @@
+newtype 
+
+Strings = alias list{string}
+OtherList = alias list
+Foo = struct(foo, bar string)
+OtherFoo = alias Foo
+
