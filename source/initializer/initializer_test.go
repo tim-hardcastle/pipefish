@@ -20,6 +20,15 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
+func TestAlias(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Strings == list{string}`, `true`},
+		{`Strings["foo", "bar"] == list{string}["foo", "bar"]`, `true`},
+		{`OtherList["foo", "bar"] == ["foo", "bar"]`, `true`},
+		{`OtherFoo("foo", "bar") == Foo("foo", "bar")`, `true`},
+	}
+	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
+}
 func TestIndexing(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`DARK_BLUE[shade]`, `DARK`},

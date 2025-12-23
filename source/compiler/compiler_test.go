@@ -10,7 +10,15 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 	"github.com/tim-hardcastle/pipefish/source/text"
 )
-
+func TestAlias(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Strings == list{string}`, `true`},
+		{`Strings["foo", "bar"] == list{string}["foo", "bar"]`, `true`},
+		{`OtherList["foo", "bar"] == ["foo", "bar"]`, `true`},
+		{`OtherFoo("foo", "bar") == Foo("foo", "bar")`, `true`},
+	}
+	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
+}
 func TestBooleans(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`true : 5; else : 6`, `5`},
