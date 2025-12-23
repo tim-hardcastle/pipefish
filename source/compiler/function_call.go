@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
@@ -547,6 +548,14 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) {  // The 
 					}
 					cp.Emit(vm.Casx, b.outLoc, cp.That(), typeLoc)
 					return AltType(values.ERROR, values.ValueType(typeNumber)), false
+				}
+				// It could be the alias of a parameterized type constructor.
+				if text.Head(builtinTag, "$a_") {
+					alias := builtinTag[3:]
+					aliasedTypeNumber := cp.TypeMap[alias].Types[0]
+					cp.Reserve(values.TYPE, values.AbstractType{Types: []values.ValueType{aliasedTypeNumber}}, b.tok)
+					b.valLocs = append([]uint32{cp.That()}, b.valLocs...)
+					builtinTag = strings.Split(cp.Vm.ConcreteTypeInfo[aliasedTypeNumber].GetName(vm.DEFAULT), "{")[0] + "{}" // TODO --- yuck.
 				}
 				// It could be a builtin from the builtins file.
 				functionAndType, ok := BUILTINS[builtinTag]

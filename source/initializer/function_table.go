@@ -12,6 +12,7 @@ type functionTable map[string][]*parsedFunction
 // Methods for manipulating the function table.
 
 func (iz *Initializer) Add(functionName string, f *parsedFunction) *parsedFunction {
+	// The function name may be the name of an aliased type.
 	aliases := iz.reverseAliasMap[functionName] 
 	aliases = append(aliases, functionName)
 	for _, name := range aliases {

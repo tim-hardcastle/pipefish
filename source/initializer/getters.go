@@ -191,7 +191,7 @@ func (iz *Initializer) extractNamesFromCodeChunk(dec labeledParsedCodeChunk) dty
 
 // TODO --- there should be more performant ways of doing this but for now I'll just
 // settle for it working.
-func (iz *Initializer) findParameterizedType(name string, argsToCheck []values.Value) values.ValueType {
+func (iz *Initializer) findParameterizedType(name string, argsToCheck []values.Value) int {
 	argIndex := DUMMY
 	for i, parType := range iz.parameterizedTypes[name] {
 		if valueTypesMatch(argsToCheck, parType.Types) {
@@ -199,7 +199,7 @@ func (iz *Initializer) findParameterizedType(name string, argsToCheck []values.V
 			break
 		}
 	}
-	return values.ValueType(argIndex)
+	return argIndex
 }
 
 func valueTypesMatch(argsToCheck []values.Value, paramTypes []values.ValueType) bool {

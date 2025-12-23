@@ -206,9 +206,6 @@ func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*co
 		return result
 	}
 
-	iz.cmI("Making description of API for compiler.")
-	iz.describeApi()
-
 	iz.cmI("Compiling Go.")
 	iz.compileGoModules()
 	if iz.errorsExist() {
@@ -226,6 +223,9 @@ func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*co
 
 	iz.cmI("Serializing API")
 	iz.cp.API = iz.SerializeApi()
+
+	iz.cmI("Making description of API for compiler.")
+	iz.describeApi()
 
 	return result
 
@@ -356,16 +356,41 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		iz.cp.TypeMap[parTypeInfo.Supertype] = iz.cp.TypeMap[parTypeInfo.Supertype].Insert(typeNo)
 		iz.cp.TypeMap[ultratype] = iz.cp.TypeMap[ultratype].Insert(typeNo)
 		iz.cp.P.Typenames = iz.cp.P.Typenames.Add(ty.Token.Literal)
-		if opInfo, ok := typeOperators[ty.Name]; ok {
+		var opInfo typeOperatorInfo
+		if opInfo, ok = typeOperators[ty.Name]; ok {
 			opInfo.returnTypes = opInfo.returnTypes.Union(altType(typeNo))
 			opInfo.definedAt = append(opInfo.definedAt, &ty.Token)
 			typeOperators[ty.Name] = opInfo
 			// TODO --- Check for matching sigs, being a clone.
 		} else {
-			typeOperators[ty.Name] = typeOperatorInfo{sig, isClone, altType(values.ERROR, typeNo), []*token.Token{&ty.Token}}
+			opInfo = typeOperatorInfo{sig, isClone, altType(values.ERROR, typeNo), []*token.Token{&ty.Token}}
+			typeOperators[ty.Name] = opInfo
 		}
 		iz.parameterizedInstanceMap[newTypeName] = parameterizedTypeInstance{ty, newEnv, parTypeInfo.Typecheck, sig, vals}
 		iz.cp.TypeMap[parTypeInfo.Supertype] = iz.cp.TypeMap[parTypeInfo.Supertype].Insert(typeNo)
+		// If the type has aliases, each of them will need its own constructor.
+		if aliases, ok := iz.reverseAliasMap[ty.String()]; ok {
+			for _, alias := range aliases {
+				name := alias
+				builtinTag := "$a_" + alias
+				sig := opInfo.constructorSig
+				fnNo := iz.addToBuiltins(sig, builtinTag, opInfo.returnTypes, false, opInfo.definedAt[0])
+				newOp := *opInfo.definedAt[0]
+				newOp.Literal = name
+				fn := &parsedFunction{
+					decType:   functionDeclaration,
+					decNumber: DUMMY,
+					private:   false, // TODO --- why don't you know this?
+					op:        newOp,
+					pos:       prefix,
+					sig:       sig,
+					body:      &ast.BuiltInExpression{Name: builtinTag},
+					callInfo:  &compiler.CallInfo{iz.cp, fnNo, nil},
+				}
+				iz.cp.P.Functions.Add(name)
+				iz.Add(name, fn)
+			}	
+		}
 	}
 	// Now we can make a constructor function for each of the type operators.
 	for typeOperator, operatorInfo := range typeOperators {
