@@ -62,7 +62,7 @@ func NewInitializer(common *commonInitializerBindle) *Initializer {
 		initializers:             make(map[string]*Initializer),
 		localConcreteTypes:       make(dtypes.Set[values.ValueType]),
 		unserializableTypes:      make(dtypes.Set[string]),
-		tokenizedCode:            make([][]tokenizedCode, 15),
+		tokenizedCode:            make([][]tokenizedCode, 16),
 		functionTable:            make(functionTable),
 		parameterizedTypes:       make(map[string][]parameterInfo),
 		parameterizedInstanceMap: make(map[string]parameterizedTypeInstance),
@@ -1665,6 +1665,7 @@ const ( // Most of these names are self-explanatory.
 	interfaceDeclaration                 //
 	cloneDeclaration                     //
 	aliasDeclaration                     //
+	goTypeDeclaration                    //
 	constantDeclaration                  //
 	variableDeclaration                  //
 	functionDeclaration                  //

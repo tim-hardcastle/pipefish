@@ -80,7 +80,6 @@ func (tc *tokenizedAliasDeclaration) getDeclarationType() declarationType {
 	return aliasDeclaration
 }
 
-
 func (tc *tokenizedAliasDeclaration) indexToken() token.Token { return tc.op }
 
 func (tc *tokenizedAliasDeclaration) api() (string, string, bool) {
@@ -259,6 +258,30 @@ func (tc *tokenizedInterfaceDeclaration) api() (string, string, bool) {
 		return "", "", false
 	}
 	return tc.op.Literal, tc.docString, true
+}
+
+type tokenizedGoTypeDeclaration struct {
+	private     bool            // Whether it's declared private.
+	op          token.Token     // The type operator.
+	goType      []token.Token   // The type being aliased.
+	docString   string          // Documents what it does.
+}
+
+func (tc *tokenizedGoTypeDeclaration) getDeclarationType() declarationType {
+	return aliasDeclaration
+}
+
+func (tc *tokenizedGoTypeDeclaration) indexToken() token.Token { return tc.op }
+
+func (tc *tokenizedGoTypeDeclaration) api() (string, string, bool) {
+	if tc.private || settings.MandatoryImportSet().Contains(tc.op.Source) {
+		return "", "", false
+	}
+	result := tc.op.Literal + " = gotype "
+	for _, tok := range tc.goType {
+		result = result + tok.Literal
+	}
+	return result, tc.docString, true
 }
 
 type tokenizedGolangDeclaration struct {
@@ -450,6 +473,8 @@ func (iz *Initializer) ChunkTypeDeclaration(private bool, docString string) (tok
 		return iz.chunkClone(opTok, private, docString)
 	case "enum":
 		return iz.chunkEnum(opTok, private, docString)
+	case "gotype":
+		return iz.chunkGoType(opTok, private, docString)
 	case "interface":
 		return iz.chunkInterface(opTok, private, docString)
 	case "struct":
@@ -627,6 +652,24 @@ func (iz *Initializer) chunkEnum(opTok token.Token, private bool, docString stri
 		iz.finishChunk()
 		return &tokenizedEnumDeclaration{}, false
 	}
+}
+
+// Starts after the word 'gotype', ends on NEWLINE or EOF.
+func (iz *Initializer) chunkGoType(opTok token.Token, private bool, docString string) (tokenizedCode, bool) {
+	toks := []token.Token{}
+	for {
+		if iz.P.CurTokenIs(token.NEWLINE) || iz.P.CurTokenIs(token.EOF) {
+			break
+		}
+		toks = append(toks, iz.P.CurToken)
+		iz.P.NextToken()
+	}
+	if len(toks) == 0 {
+		iz.throw("init/gotype", &iz.P.CurToken)
+		iz.finishChunk()
+			return &tokenizedGoTypeDeclaration{}, false
+	}
+	return &tokenizedGoTypeDeclaration{private, opTok, toks, docString}, false
 }
 
 // Starts after the word 'interface', ends on NEWLINE or EOF.
