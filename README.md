@@ -18,7 +18,9 @@
 
 ## Welcome to Pipefish!
 
-Welcome to Pipefish, a new programming language. It is still buggy and unsuitable for use in production, but if you want to download and play about with it, there are instructions for doing so [here](https://github.com/tim-hardcastle/pipefish/wiki/Installing-and-using-Pipefish).
+Pipefish is a new programming language. Roughly speaking, Pipefish is to functional programming and Go as Python is to OOP and C. It was designed with the primary goal of writing CRUD apps, middleware, microservices, and DSLs to wrap them in.
+
+It is still buggy and unsuitable for use in production, but if you want to download and play about with it, there are instructions for doing so [here](https://github.com/tim-hardcastle/pipefish/wiki/Installing-and-using-Pipefish).
 
 There are [batteries included](https://github.com/tim-hardcastle/pipefish/wiki/Imports-and-libraries#libraries); there is [tooling](https://github.com/tim-hardcastle/pipefish/wiki/Developing-in-Pipefish); there is [a wiki](https://github.com/tim-hardcastle/pipefish/wiki); there are plenty of features including some you've never heard or thought of.
 

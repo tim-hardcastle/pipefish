@@ -323,6 +323,9 @@ func (vm *Vm) StringifyValue(v values.Value, flavor descriptionFlavor) string {
 	}
 	vm.Mem[vm.StringifyLoReg] = v
 	vm.run(vm.StringifyCallTo, context.Background()) // TODO --- does this matter?
+	if vm.Mem[vm.StringifyOutReg].T == values.ERROR {
+		return "error stringifying value: `" + vm.Mem[vm.StringifyOutReg].V.(*err.Error).ErrorId + "`: " + vm.Mem[vm.StringifyOutReg].V.(*err.Error).Message
+	}
 	return vm.Mem[vm.StringifyOutReg].V.(string)
 }
 

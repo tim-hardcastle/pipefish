@@ -43,8 +43,6 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 				fmt.Fprint(sb, "    ", element, "\n")
 			}
 			fmt.Fprint(sb, ")\n\n")
-		case vm.GoType:
-			fmt.Fprint(sb, "type ", name, " = ", typeInfo.Gotype, "\n\n")
 		case vm.StructType:
 			fmt.Fprint(sb, "type ", name, " struct {\n")
 			for i, lN := range typeInfo.LabelNumbers {
@@ -90,8 +88,14 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 	// The reason we use the `(*name)(nil)` formula instead of just passing the Type
 	// is that then we'd have to import the `reflect` package into everything.
 	fmt.Fprint(sb, "var PIPEFISH_VALUE_CONVERTER = map[string]any{\n")
+	
 	for name := range userDefinedTypes {
-		fmt.Fprint(sb, "    \"", name, "\": (*", name, ")(nil),\n")
+		typeInfo := iz.cp.TypeInfoNow(name)
+		if typeInfo, ok := typeInfo.(vm.GoType); ok {
+			fmt.Fprint(sb, "    \"", name, "\": (*", typeInfo.Gotype, ")(nil),\n")
+		} else {
+			fmt.Fprint(sb, "    \"", name, "\": (*", name, ")(nil),\n")
+		}
 	}
 	fmt.Fprint(sb, "}\n\n")
 }
@@ -134,7 +138,7 @@ func (iz *Initializer) generateGoFunctionCode(sb *strings.Builder, function *par
 	case 0:
 		fmt.Fprint(sb, "any ")
 	case 1:
-		goType, ok := getGoTypeFromTypeAst(function.callInfo.ReturnTypes[0].VarType)
+		goType, ok := iz.getGoTypeFromTypeAst(function.callInfo.ReturnTypes[0].VarType)
 		if !ok {
 			iz.throw("golang/type/a", &function.op, function.callInfo.ReturnTypes[0].VarType)
 		}
@@ -149,7 +153,7 @@ func (iz *Initializer) printSig(sb *strings.Builder, sig ast.AstSig, tok token.T
 	fmt.Fprint(sb, "(")
 	sep := ""
 	for _, param := range sig {
-		goType, ok := getGoTypeFromTypeAst(param.VarType)
+		goType, ok := iz.getGoTypeFromTypeAst(param.VarType)
 		if !ok {
 			iz.throw("golang/type/b", &tok, param.VarType)
 		}
@@ -163,7 +167,7 @@ func (iz *Initializer) printSig(sb *strings.Builder, sig ast.AstSig, tok token.T
 	fmt.Fprint(sb, ") ")
 }
 
-func getGoTypeFromTypeAst(pfTypeAst ast.TypeNode) (string, bool) {
+func (iz *Initializer) getGoTypeFromTypeAst(pfTypeAst ast.TypeNode) (string, bool) {
 	pfType := ""
 	dots := ""
 	switch pf := pfTypeAst.(type) {
@@ -179,6 +183,10 @@ func getGoTypeFromTypeAst(pfTypeAst ast.TypeNode) (string, bool) {
 			return "", false
 		}
 		return dots + goType, true
+	}
+	typeInfo := iz.cp.Vm.ConcreteTypeInfo[iz.cp.ConcreteTypeNow(pfType)]
+	if typeInfo.IsGoType() {
+		return dots + "any", true
 	}
 	return dots + pfType, true
 }
