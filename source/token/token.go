@@ -147,3 +147,11 @@ func LookupIdent(ident string) TokenType {
 func TokenTypeIsHeadword(t TokenType) bool {
 	return t == IMPORT || t == VAR || t == CMD || t == DEF || t == EXTERNAL || t == NEWTYPE || t == CONST
 }
+// Just shoves all the identifiers into a string, expanding the namespaces if any.
+func Stringify(toks []Token) string {
+	result := ""
+	for _, tok := range toks {
+		result = result + tok.Namespace + tok.Literal
+	}
+	return result
+}

@@ -1575,9 +1575,12 @@ func (iz *Initializer) addType(name, supertype string, typeNo values.ValueType) 
 	iz.localConcreteTypes = iz.localConcreteTypes.Add(typeNo)
 	iz.cp.TypeMap[name] = values.MakeAbstractType(typeNo)
 	iz.cp.P.Typenames = iz.cp.P.Typenames.Add(name)
-	types := []string{supertype}
-	iz.cp.TypeMap[supertype] = iz.cp.TypeMap[supertype].Insert(typeNo)
-	iz.cp.Common.AddTypeNumberToSharedAlternateTypes(typeNo, types...)
+	types := []string{}
+	if supertype != "gotype" {
+		types = []string{supertype}
+		iz.cp.TypeMap[supertype] = iz.cp.TypeMap[supertype].Insert(typeNo)
+		iz.cp.Common.AddTypeNumberToSharedAlternateTypes(typeNo, types...)
+	}
 	types = append(types, "any")
 	for _, sT := range types {
 		iz.cp.Common.Types[sT] = iz.cp.Common.Types[sT].Insert(typeNo)
@@ -1697,7 +1700,8 @@ const (
 	decINTERFACE
 	decALIAS
 	decFUNCTION
-	decPARAMETERIZED // A placeholder/
+	decPARAMETERIZED 
+	decGOTYPE
 )
 
 type labelInfo struct {

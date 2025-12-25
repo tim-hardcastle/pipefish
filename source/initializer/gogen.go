@@ -61,12 +61,18 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 	// }
 	fmt.Fprint(sb, "var PIPEFISH_FUNCTION_CONVERTER = map[string](func(t uint32, v any) any){\n")
 	for name := range userDefinedTypes {
-		fmt.Fprint(sb, "    \"", name, "\": func(t uint32, v any) any {return ", name)
-		switch typeInfo := iz.cp.TypeInfoNow(name).(type) {
+		fmt.Fprint(sb, "    \"", name, "\": func(t uint32, v any) any {return ")
+		typeInfo := iz.cp.TypeInfoNow(name)
+		if !typeInfo.IsGoType() {
+			fmt.Fprint(sb, name)
+		}
+		switch typeInfo := typeInfo.(type) {
 		case vm.CloneType:
 			fmt.Fprint(sb, "(v.(", cloneConv[typeInfo.Parent], "))},\n")
 		case vm.EnumType:
 			fmt.Fprint(sb, "(v.(int))},\n")
+		case vm.GoType:
+			fmt.Fprint(sb, "v},\n")
 		case vm.StructType:
 			fmt.Fprint(sb, "{")
 			sep := ""
@@ -83,7 +89,12 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 	// is that then we'd have to import the `reflect` package into everything.
 	fmt.Fprint(sb, "var PIPEFISH_VALUE_CONVERTER = map[string]any{\n")
 	for name := range userDefinedTypes {
-		fmt.Fprint(sb, "    \"", name, "\": (*", name, ")(nil),\n")
+		typeInfo := iz.cp.TypeInfoNow(name)
+		if typeInfo, ok := typeInfo.(vm.GoType); ok {
+			fmt.Fprint(sb, "    \"", name, "\": (*", typeInfo.Gotype, ")(nil),\n")
+		} else {
+			fmt.Fprint(sb, "    \"", name, "\": (*", name, ")(nil),\n")
+		}
 	}
 	fmt.Fprint(sb, "}\n\n")
 }

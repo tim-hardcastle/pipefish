@@ -43,12 +43,18 @@ var counter int // This variable is used to make a unique filename for each goco
 // This struct type is used to accumulate the various data encountered during parsing that we need to
 // build a `.go` file or files. There is one per compiler. The "sources" are as given in the `Source`
 // field of any GOCODE token encountered. The sources may be plural because of NULL-imports.
-// The `imports`, `functions`, and `pureGo` maps are indexed by these sources.
+// The `imports`, `functions`, `pureGo`, and `types` maps are indexed by these sources.
 type goBucket struct {
 	sources   dtypes.Set[string]
 	imports   map[string][]string
 	functions map[string][]*parsedFunction
 	pureGo    map[string][]string
+	types     map[string][]string
+}
+
+type wrappedType struct{
+	pfType string 
+	goType string
 }
 
 func (iz *Initializer) newGoBucket() {
@@ -57,6 +63,7 @@ func (iz *Initializer) newGoBucket() {
 		imports:   make(map[string][]string),
 		functions: make(map[string][]*parsedFunction),
 		pureGo:    make(map[string][]string),
+		types:     make(map[string][]string),
 	}
 	iz.goBucket = &gb
 }
@@ -75,6 +82,14 @@ func (iz *Initializer) compileGo() {
 		iz.goBucket.sources.Add(golang.goCode.Source)
 		iz.goBucket.pureGo[golang.goCode.Source] = append(iz.goBucket.pureGo[golang.goCode.Source],
 			golang.goCode.Literal)
+	}
+
+	// And the Go types declared by `gotype` in the `newtype` section.
+	for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
+		gotype := tc.(*tokenizedGoTypeDeclaration)
+		iz.goBucket.sources.Add(gotype.op.Source)
+		iz.goBucket.types[gotype.op.Source] = append(iz.goBucket.types[gotype.op.Source],
+			gotype.op.Literal)
 	}
 
 	for j := functionDeclaration; j <= commandDeclaration; j++ {
@@ -137,7 +152,7 @@ func (iz *Initializer) compileGo() {
 			iz.cp.Vm.GoToPipefishTypes[reflect.TypeOf(goValue).Elem()] = iz.cp.ConcreteTypeNow(typeName)
 		}
 		//We attach the compiled functions to the (pointers to) the functions, which are
-		// also pointed to by the compiler's function table and by the list of common functions
+		// also pointed to by the function table and by the list of common functions
 		// in the common parser bindle. I.e. we are returning our result by mutating the
 		// functions.
 		for _, function := range iz.goBucket.functions[source] {
@@ -202,6 +217,9 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 				userDefinedTypes.Add(v.VarType.String())
 			}
 		}
+	}
+	for _, v := range iz.goBucket.types[source] {
+		userDefinedTypes.Add(v)
 	}
 	iz.transitivelyCloseTypes(userDefinedTypes)
 	if iz.errorsExist() {

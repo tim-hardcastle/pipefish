@@ -2085,21 +2085,68 @@ type TypeInformation interface {
 	IsStruct() bool
 	isSnippet() bool
 	IsClone() bool
+	IsGoType() bool
 	IsPrivate() bool
 	IsMandatoryImport() bool
 	IsClonedBy() values.AbstractType
 }
 
+type GoType struct {
+	Name string 
+	Path string 
+	Private bool
+	Gotype string
+}
+
+func (t GoType) GetName(flavor descriptionFlavor) string {
+	if flavor == LITERAL {
+		return t.Path + t.Name
+	}
+	return string(t.Name)
+}
+
+func (t GoType) IsEnum() bool {
+	return false
+}
+
+func (t GoType) IsStruct() bool {
+	return false
+}
+
+func (t GoType) isSnippet() bool {
+	return false
+}
+
+func (t GoType) IsPrivate() bool {
+	return t.Private
+}
+
+func (t GoType) IsClone() bool {
+	return false
+}
+
+func (t GoType) IsGoType() bool {
+	return true
+}
+
+func (t GoType) getPath() string {
+	return t.Path
+}
+
+func (t GoType) IsMandatoryImport() bool {
+	return false
+}
+
+func (GoType) IsClonedBy() values.AbstractType {
+	return values.MakeAbstractType()
+}
+
 type BuiltinType struct {
 	name   string
-	path   string
 	clones values.AbstractType
 }
 
 func (t BuiltinType) GetName(flavor descriptionFlavor) string {
-	if flavor == LITERAL {
-		return t.path + t.name
-	}
 	return string(t.name)
 }
 
@@ -2119,12 +2166,16 @@ func (t BuiltinType) IsClone() bool {
 	return false
 }
 
+func (t BuiltinType) IsGoType() bool {
+	return false
+}
+
 func (t BuiltinType) IsPrivate() bool {
 	return false
 }
 
 func (t BuiltinType) getPath() string {
-	return t.path
+	return ""
 }
 
 func (t BuiltinType) IsMandatoryImport() bool {
@@ -2173,6 +2224,10 @@ func (t EnumType) IsPrivate() bool {
 }
 
 func (t EnumType) IsClone() bool {
+	return false
+}
+
+func (t EnumType) IsGoType() bool {
 	return false
 }
 
@@ -2240,6 +2295,10 @@ func (t CloneType) IsClone() bool {
 	return true
 }
 
+func (t CloneType) IsGoType() bool {
+	return false
+}
+
 func (t CloneType) getPath() string {
 	return t.Path
 }
@@ -2295,6 +2354,10 @@ func (t StructType) IsPrivate() bool {
 }
 
 func (t StructType) IsClone() bool {
+	return false
+}
+
+func (t StructType) IsGoType() bool {
 	return false
 }
 
