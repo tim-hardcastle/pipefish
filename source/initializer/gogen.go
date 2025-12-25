@@ -43,6 +43,8 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 				fmt.Fprint(sb, "    ", element, "\n")
 			}
 			fmt.Fprint(sb, ")\n\n")
+		case vm.GoType:
+			fmt.Fprint(sb, "type ", name, " = ", typeInfo.Gotype, "\n\n")
 		case vm.StructType:
 			fmt.Fprint(sb, "type ", name, " struct {\n")
 			for i, lN := range typeInfo.LabelNumbers {
@@ -89,12 +91,7 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 	// is that then we'd have to import the `reflect` package into everything.
 	fmt.Fprint(sb, "var PIPEFISH_VALUE_CONVERTER = map[string]any{\n")
 	for name := range userDefinedTypes {
-		typeInfo := iz.cp.TypeInfoNow(name)
-		if typeInfo, ok := typeInfo.(vm.GoType); ok {
-			fmt.Fprint(sb, "    \"", name, "\": (*", typeInfo.Gotype, ")(nil),\n")
-		} else {
-			fmt.Fprint(sb, "    \"", name, "\": (*", name, ")(nil),\n")
-		}
+		fmt.Fprint(sb, "    \"", name, "\": (*", name, ")(nil),\n")
 	}
 	fmt.Fprint(sb, "}\n\n")
 }
