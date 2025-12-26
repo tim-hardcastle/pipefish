@@ -110,6 +110,12 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		}
 		return buf.String()
 	}
+	if typeInfo.IsGoType() {
+		if vm.GoLiteral == nil {
+			return "can't serialize value"
+		}
+		return vm.GoLiteral(v.V)
+	}
 	switch v.T {
 	case values.BLING:
 		return v.V.(string)

@@ -135,6 +135,12 @@ func (iz *Initializer) compileGo() {
 		copy(newGoConverter, iz.cp.Vm.GoConverter)
 		functionConverterSymbol, _ := plugins.Lookup("PIPEFISH_FUNCTION_CONVERTER")
 		functionConverter := *functionConverterSymbol.(*map[string](func(t uint32, v any) any))
+		if equalsFunctionSymbol, err := plugins.Lookup("Equals"); err == nil {
+			iz.cp.Vm.GoEquals = equalsFunctionSymbol.(func(x any, y any) bool)
+		}
+		if literalFunctionSymbol, err := plugins.Lookup("Literal"); err == nil {
+			iz.cp.Vm.GoLiteral = literalFunctionSymbol.(func(x any) string)
+		}
 		for k, v := range BUILTIN_FUNCTION_CONVERTER {
 			functionConverter[k] = v
 		}
@@ -207,12 +213,18 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 	userDefinedTypes := make(dtypes.Set[string])
 	for _, function := range iz.goBucket.functions[source] {
 		for _, v := range function.sig {
+			if _, ok := v.VarType.(*ast.TypeInfix); ok {
+				continue
+			}
 			name := text.WithoutDots(v.VarType.String())
 			if !iz.cp.IsBuiltin(name) && name != "any" && name != "any?" {
 				userDefinedTypes.Add(text.WithoutDots(name))
 			}
 		}
 		for _, v := range function.callInfo.ReturnTypes {
+			if _, ok := v.VarType.(*ast.TypeInfix); ok {
+				continue
+			}
 			if !iz.cp.IsBuiltin(v.VarType.String()) {
 				userDefinedTypes.Add(v.VarType.String())
 			}

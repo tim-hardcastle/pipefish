@@ -629,7 +629,8 @@ func IsHexDigit(ch rune) bool {
 
 func IsProtectedPunctuationBracketOrWhitespace(ch rune) bool {
 	return ch == '(' || ch == ')' || ch == '[' || ch == ']' || ch == '{' || ch == '}' || ch == ' ' || ch == ',' ||
-		ch == ':' || ch == ';' || ch == '.' || ch == '\t' || ch == '\n' || ch == '\r' || ch == 0
+		ch == ':' || ch == ';' || ch == '.' || ch == '\t' || ch == '\n' || ch == '\r' || ch == '\'' || ch == '"' ||
+		ch == '`' ||ch == 0
 }
 
 func IsSymbol(ch rune) bool {

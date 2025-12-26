@@ -2,7 +2,7 @@ package initializer
 
 // Code for generating golang to be turned into plugins.
 
-// The type declarations are ordinary Go type declartions. The PIPEFISH_CONVERTOR when properly formed
+// The type declarations are ordinary Go type declartions. The PIPEFISH_FUNCTION_CONVERTOR when properly formed
 // looks like e.g. this:
 //
 // var PIPEFISH_CONVERTER = map[string](func(t uint32, v any) any){
@@ -54,7 +54,7 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 
 	//  Example output:
 	//
-	//   var PIPEFISH_CONVERTER = map[string](func(t uint32, v any) any){
+	//   var PIPEFISH_FUNCTION_CONVERTER = map[string](func(t uint32, v any) any){
 	// 	    "Temperature": func(t uint32, v any) any {return Temperature(v.(int))},
 	// 	    "Color": func(t uint32, v any) any {return Color(v.(int))},
 	// 	    "Dragon": func(t uint32, v any) any {return Dragon{v.([]any)[0], V.([]any)[1], V.([]any)[2]}},
@@ -117,8 +117,7 @@ var cloneConv = map[values.ValueType]string{
 // This produces the names of the field types in the struct declarations generated for the Go code.
 func (iz *Initializer) convertFieldTypeFromPfToGo(aT values.AbstractType) string {
 	if aT.Len() > 1 {
-		iz.throw("golang/concrete/a", INTEROP_TOKEN)
-		return ""
+		return "any"
 	}
 	typeNumber := aT.Types[0]
 	typeName := iz.cp.Vm.ConcreteTypeInfo[typeNumber].GetName(vm.DEFAULT)
@@ -176,6 +175,8 @@ func (iz *Initializer) getGoTypeFromTypeAst(pfTypeAst ast.TypeNode) (string, boo
 		pfType = pf.Right.String()
 	case *ast.TypeWithName:
 		pfType = pf.OperatorName
+	case *ast.TypeInfix:
+		pfType = "any"
 	}
 	goType, ok := goTypes[pfType]
 	if ok {

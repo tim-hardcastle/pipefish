@@ -49,7 +49,7 @@ indexAny(s, chars string) -> int : golang {
     return strings.IndexAny(s, chars)
 }
 
-join(elems list, sep string) -> any : golang {
+join(elems list, sep string) -> string/error : golang {
     strL := make([]string, len(elems))
     for i, elem := range elems {
         strElem, ok := elem.(string)

@@ -374,6 +374,15 @@ func TestGocode(t *testing.T) {
 	os.Remove(goTestFile)
 	os.WriteFile(locationOfGoTimes, temp, 0644)
 }
+func TestGoTypes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Uint_32(5) == Uint_32(6)`, `false`},
+		{`Uint_32(5) == Uint_32(5)`, `true`},
+		{`Uint_32(5)`, `Uint_32(5)`},
+		{`literal Uint_32(5)`, `"Uint_32(5)"`},
+	}
+	test_helper.RunTest(t, "gotype_test.pf", tests, test_helper.TestValues)
+}
 func TestHighlighter(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Type`, `[38;2;78;201;176mType[0m`},

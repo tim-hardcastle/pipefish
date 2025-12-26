@@ -53,10 +53,13 @@ type Vm struct {
 	StringifyLoReg             uint32           // |
 	StringifyCallTo            uint32           // | These are so the vm knows how to call the stringify function.
 	StringifyOutReg            uint32           // |
-	GoToPipefishTypes          map[reflect.Type]values.ValueType
 	FieldLabelsInMem           map[string]uint32 // Used to turn a string into a label.
-	GoConverter                [](func(t uint32, v any) any)
 	ParameterizedTypeInfo      []*values.Map // A list of maps from type parameters (as TUPLE values) to types (as TYPE values). The list is itself keyed by a map from type operators to the position in the list, which is stored in the compiler.
+	
+	GoToPipefishTypes          map[reflect.Type]values.ValueType
+	GoConverter                [](func(t uint32, v any) any)
+	GoEquals                   func(x any, y any) bool 
+	GoLiteral                  func(x any) string
 }
 
 // In general, the VM can't convert from type names to type numbers, because it doesn't
@@ -1886,7 +1889,7 @@ loop:
 }
 
 // Implements equality-by-value. Assumes that the two values have already been verified to have the same type.
-func (mc Vm) equals(v, w values.Value) bool {
+func (vm Vm) equals(v, w values.Value) bool {
 	switch v.T {
 	case values.BOOL:
 		return v.V.(bool) == w.V.(bool)
@@ -1899,18 +1902,18 @@ func (mc Vm) equals(v, w values.Value) bool {
 	case values.LABEL:
 		return v.V.(int) == w.V.(int)
 	case values.LIST:
-		return mc.listsAreEqual(v, w)
+		return vm.listsAreEqual(v, w)
 	case values.MAP:
-		return mc.mapsAreEqual(v, w)
+		return vm.mapsAreEqual(v, w)
 	case values.NULL:
 		return true
 	case values.PAIR:
-		return mc.equals(v.V.([]values.Value)[0], w.V.([]values.Value)[0]) &&
-			mc.equals(v.V.([]values.Value)[1], w.V.([]values.Value)[1])
+		return vm.equals(v.V.([]values.Value)[0], w.V.([]values.Value)[0]) &&
+			vm.equals(v.V.([]values.Value)[1], w.V.([]values.Value)[1])
 	case values.RUNE:
 		return v.V.(rune) == w.V.(rune)
 	case values.SET:
-		return mc.setsAreEqual(v, w)
+		return vm.setsAreEqual(v, w)
 	case values.STRING:
 		return v.V.(string) == w.V.(string)
 	case values.TUPLE:
@@ -1920,7 +1923,7 @@ func (mc Vm) equals(v, w values.Value) bool {
 			return false
 		}
 		for i, val := range vVals {
-			if !mc.equals(val, wVals[i]) {
+			if !vm.equals(val, wVals[i]) {
 				return false
 			}
 		}
@@ -1928,7 +1931,7 @@ func (mc Vm) equals(v, w values.Value) bool {
 	case values.TYPE:
 		return v.V.(values.AbstractType).Equals(w.V.(values.AbstractType))
 	}
-	switch typeInfo := mc.ConcreteTypeInfo[v.T].(type) {
+	switch typeInfo := vm.ConcreteTypeInfo[v.T].(type) {
 	case CloneType:
 		switch typeInfo.Parent {
 		case values.FLOAT:
@@ -1936,24 +1939,29 @@ func (mc Vm) equals(v, w values.Value) bool {
 		case values.INT:
 			return v.V.(int) == w.V.(int)
 		case values.LIST:
-			return mc.listsAreEqual(v, w)
+			return vm.listsAreEqual(v, w)
 		case values.MAP:
-			return mc.mapsAreEqual(v, w)
+			return vm.mapsAreEqual(v, w)
 		case values.PAIR:
-			return mc.equals(v.V.([]values.Value)[0], w.V.([]values.Value)[0]) &&
-				mc.equals(v.V.([]values.Value)[1], w.V.([]values.Value)[1])
+			return vm.equals(v.V.([]values.Value)[0], w.V.([]values.Value)[0]) &&
+				vm.equals(v.V.([]values.Value)[1], w.V.([]values.Value)[1])
 		case values.RUNE:
 			return v.V.(rune) == w.V.(rune)
 		case values.SET:
-			return mc.setsAreEqual(v, w)
+			return vm.setsAreEqual(v, w)
 		case values.STRING:
 			return v.V.(string) == w.V.(string)
 		}
 	case EnumType:
 		return v.V.(int) == w.V.(int)
+	case GoType:
+		if vm.GoEquals == nil {
+			return false
+		}
+		return vm.GoEquals(v.V, w.V)
 	case StructType:
 		for i, v := range v.V.([]values.Value) {
-			if !mc.equals(v, w.V.([]values.Value)[i]) {
+			if !vm.equals(v, w.V.([]values.Value)[i]) {
 				return false
 			}
 		}
