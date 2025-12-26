@@ -70,7 +70,7 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 
 	// An unnamespaced import may itself contain imports, namespaced or unnamespaced.
 	// So we need to keep going round until we've pulled everything into the namespace.
-	
+
 	// The second and subsequent times we go around, we need to start further down the lists
 	// of imports and externals so we don't do anything twice.
 	importsStartAt := 0
@@ -97,7 +97,7 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 			return
 		}
 		if importsStartAt == len(iz.tokenizedCode[importDeclaration]) &&
-		   externalsStartAt == len(iz.tokenizedCode[externalDeclaration]) {
+			externalsStartAt == len(iz.tokenizedCode[externalDeclaration]) {
 			break
 		}
 	}
@@ -574,7 +574,7 @@ func (iz *Initializer) addWordsToParser(tc *tokenizedFunctionDeclaration) {
 func (iz *Initializer) makeReverseAliasList() {
 	for _, dec := range iz.tokenizedCode[aliasDeclaration] {
 		aD := dec.(*tokenizedAliasDeclaration)
-		aliasedType :=  iz.makeTypeAstFromTokens(aD.typeAliased).String()
+		aliasedType := iz.makeTypeAstFromTokens(aD.typeAliased).String()
 		types, _ := iz.reverseAliasMap[aliasedType]
 		if types == nil {
 			types = []string{}
@@ -667,7 +667,7 @@ func (iz *Initializer) createEnums() {
 
 // We create the types that wrap around Go types.
 func (iz *Initializer) createGotypes() {
-		for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
+	for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
 		dec := tc.(*tokenizedGoTypeDeclaration)
 		var typeNo values.ValueType
 		info, typeExists := iz.getDeclaration(decGOTYPE, &dec.op, DUMMY)
@@ -680,7 +680,7 @@ func (iz *Initializer) createGotypes() {
 			typeNo = values.ValueType(len(iz.cp.Vm.ConcreteTypeInfo))
 			iz.setDeclaration(decGOTYPE, &dec.op, DUMMY, typeNo)
 		}
-		iz.addType(dec.op.Literal, "gotype", typeNo)
+		iz.addType(dec.op.Literal, "wrapper", typeNo)
 		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.GoType{Name: dec.op.Literal, Path: iz.P.NamespacePath, Private: dec.private, Gotype: token.Stringify(dec.goType)})
 	}
 }
@@ -713,11 +713,11 @@ func (iz *Initializer) createClones() {
 			fn := &parsedFunction{
 				decType:   functionDeclaration,
 				decNumber: DUMMY,
-				private:   dec.private, 
+				private:   dec.private,
 				op:        *ixPtr(dec),
 				pos:       prefix,
 				sig:       sig,
-				body:      &ast.BuiltInExpression{Name: "$m_"+name},
+				body:      &ast.BuiltInExpression{Name: "$m_" + name},
 				callInfo:  &compiler.CallInfo{iz.cp, DUMMY, rtnSig},
 			}
 			iz.Add(name, fn)
@@ -729,11 +729,11 @@ func (iz *Initializer) createClones() {
 			fn := &parsedFunction{
 				decType:   functionDeclaration,
 				decNumber: DUMMY,
-				private:   dec.private, 
+				private:   dec.private,
 				op:        *ixPtr(dec),
 				pos:       prefix,
 				sig:       sig,
-				body:      &ast.BuiltInExpression{Name: "$s_"+name},
+				body:      &ast.BuiltInExpression{Name: "$s_" + name},
 				callInfo:  &compiler.CallInfo{iz.cp, DUMMY, rtnSig},
 			}
 			iz.Add(name, fn)
@@ -961,7 +961,7 @@ func (iz *Initializer) createStructNames() {
 		switch dec.op.Literal {
 		case "Error":
 			iz.cp.Vm.UsefulTypes.UnwrappedError = typeNo
-		case "File": 
+		case "File":
 			iz.cp.Vm.UsefulTypes.File = typeNo
 		case "Terminal":
 			iz.cp.Vm.UsefulTypes.Terminal = typeNo

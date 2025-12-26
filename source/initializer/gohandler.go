@@ -52,8 +52,8 @@ type goBucket struct {
 	types     map[string][]string
 }
 
-type wrappedType struct{
-	pfType string 
+type wrappedType struct {
+	pfType string
 	goType string
 }
 
@@ -84,12 +84,12 @@ func (iz *Initializer) compileGo() {
 			golang.goCode.Literal)
 	}
 
-	// And the Go types declared by `gotype` in the `newtype` section.
+	// And the Go types declared by `wrapper` in the `newtype` section.
 	for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
-		gotype := tc.(*tokenizedGoTypeDeclaration)
-		iz.goBucket.sources.Add(gotype.op.Source)
-		iz.goBucket.types[gotype.op.Source] = append(iz.goBucket.types[gotype.op.Source],
-			gotype.op.Literal)
+		wrapper := tc.(*tokenizedGoTypeDeclaration)
+		iz.goBucket.sources.Add(wrapper.op.Source)
+		iz.goBucket.types[wrapper.op.Source] = append(iz.goBucket.types[wrapper.op.Source],
+			wrapper.op.Literal)
 	}
 
 	for j := functionDeclaration; j <= commandDeclaration; j++ {

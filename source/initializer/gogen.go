@@ -185,7 +185,11 @@ func (iz *Initializer) getGoTypeFromTypeAst(pfTypeAst ast.TypeNode) (string, boo
 		}
 		return dots + goType, true
 	}
-	typeInfo := iz.cp.Vm.ConcreteTypeInfo[iz.cp.ConcreteTypeNow(pfType)]
+	typeNo, ok := iz.cp.GetConcreteType(pfType)
+	if !ok {
+		return "", false
+	}
+	typeInfo := iz.cp.Vm.ConcreteTypeInfo[typeNo]
 	if typeInfo.IsGoType() {
 		return dots + "any", true
 	}

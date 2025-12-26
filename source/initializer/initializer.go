@@ -46,7 +46,7 @@ type Initializer struct {
 	Common                              *commonInitializerBindle     // The information all the initializers have in Common.
 	structDeclarationNumberToTypeNumber map[int]values.ValueType     // Maps the order of the declaration of the struct in the script to its type number in the VM. TODO --- there must be something better than this.
 	unserializableTypes                 dtypes.Set[string]           // Keeps track of which abstract types are mandatory imports/singletons of a concrete type so we don't try to serialize them.
-	reverseAliasMap map[string][]string                              // Maps a type to the types that alias it.
+	reverseAliasMap                     map[string][]string          // Maps a type to the types that alias it.
 
 	functionTable functionTable // Intermediate step towards constructing the FunctinTree used by the compiler.
 
@@ -260,7 +260,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 	}
 	twas := map[string]*ast.TypeWithArguments{}
 	// We get these from four different places. Either they're in `make` statements in
-	// a `newtype` section, or they're aliased types, or the initializer stashed them away 
+	// a `newtype` section, or they're aliased types, or the initializer stashed them away
 	// while making type signatures, or the parser stashed them away while parsing.
 	for _, tc := range iz.tokenizedCode[makeDeclaration] {
 		dec := tc.(*tokenizedMakeDeclaration)
@@ -389,7 +389,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 				}
 				iz.cp.P.Functions.Add(name)
 				iz.Add(name, fn)
-			}	
+			}
 		}
 	}
 	// Now we can make a constructor function for each of the type operators.
@@ -1185,9 +1185,9 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			iz.cp.Vm.Code[addr+2].Args[1] = iz.cp.Fns[funcNumber].OutReg
 		}
 	}
-    if iz.errorsExist() {
+	if iz.errorsExist() {
 		return result
-	} 
+	}
 	// We make a note of where "stringify" is.
 	callInfoForStringify := iz.cp.FunctionForest["stringify"].Tree.Branch[0].Node.Branch[0].Node.CallInfo
 	stringifyFn := callInfoForStringify.Compiler.Fns[callInfoForStringify.Number]
@@ -1525,7 +1525,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 			cpFn.RtnTypes = cpFn.RtnTypes.Union(altType(values.ERROR))
 		}
 		cpFn.OutReg = iz.cp.That()
-		iz.cp.ResolveMemPush(iz.cp.That()-1)
+		iz.cp.ResolveMemPush(iz.cp.That() - 1)
 		// We check the return types.
 		if izFn.callInfo.ReturnTypes != nil && !(izFn.body.GetToken().Type == token.GOLANG) {
 			iz.cp.EmitTypeChecks(cpFn.OutReg, cpFn.RtnTypes, fnenv, iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes), ac, &izFn.op, compiler.CHECK_RETURN_TYPES, bodyContext)
@@ -1576,7 +1576,7 @@ func (iz *Initializer) addType(name, supertype string, typeNo values.ValueType) 
 	iz.cp.TypeMap[name] = values.MakeAbstractType(typeNo)
 	iz.cp.P.Typenames = iz.cp.P.Typenames.Add(name)
 	types := []string{}
-	if supertype != "gotype" {
+	if supertype != "wrapper" {
 		types = []string{supertype}
 		iz.cp.TypeMap[supertype] = iz.cp.TypeMap[supertype].Insert(typeNo)
 		iz.cp.Common.AddTypeNumberToSharedAlternateTypes(typeNo, types...)
@@ -1700,7 +1700,7 @@ const (
 	decINTERFACE
 	decALIAS
 	decFUNCTION
-	decPARAMETERIZED 
+	decPARAMETERIZED
 	decGOTYPE
 )
 

@@ -4,7 +4,7 @@ golang "strconv"
 
 newtype
 
-Uint_32 = gotype uint32
+Uint_32 = wrapper uint32
 
 def
 
