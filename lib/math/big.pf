@@ -1,0 +1,705 @@
+import
+
+golang "math/big"
+golang "errors"
+golang "strconv"
+
+///////////////// Floats
+
+newtype 
+
+~~ The big float type.
+Float = wrapper *big.Float
+
+def
+
+~~ Constructs a `Float` from a `float`.
+Float(x float) -> Float : golang {
+    return big.NewFloat(x)
+}
+
+~~ Constructs a `Float` from a `string`.
+Float(s string) -> Float/error :
+    atof s
+
+~~ Constructs a `Float` from a `Rat`.
+Float(r Rat) -> Float :
+    rtof r
+
+~~ Overloads `string`.
+string(z Float) :
+    ftoa z
+
+(x Float) + (y Float) -> Float :
+    goAddF x, y
+
+(x Float) - (y Float) -> Float :
+    goSubF x, y
+
+(x Float) * (y Float) -> Float :
+    goMulF x, y
+
+(x Float) / (y Float) -> Float :
+    goQuoF x, y
+
+- (x Float) -> Float :
+    goNegF x
+
+(x Float) < (y Float) -> bool :
+    goCmpF(x, y) < 0
+
+(x Float) <= (y Float) -> bool :
+    goCmpF(x, y) <= 0
+
+(x Float) > (y Float) -> bool :
+    goCmpF(x, y) > 0
+
+(x Float) >= (y Float) -> bool :
+    goCmpF(x, y) >= 0
+
+abs(x Float) -> Float :
+    goAbsF x
+
+float(z Float) -> float :
+    bigFTof z
+
+int(z Float) -> int : 
+    itof z
+
+Int(z Float) -> Int : 
+    bigFtobigI z
+
+isInf(z Float) -> bool : golang {
+    return z.(*big.Float).IsInf()
+}
+
+isInt(z Float) -> bool : golang {
+    return z.(*big.Float).IsInt()
+}
+
+sign(z Float) -> int :
+    goSignF z 
+
+sqrt(z Float) -> Float :
+    goSqrtF z 
+
+text(z Float, format, prec int) -> string : 
+    goTextF z, format, prec
+
+private 
+
+goTextF(z Float, format, prec int) -> string : golang {
+    return z.(*big.Float).Text(byte(format), prec)
+}
+
+goAbsF(x Float) -> Float : golang {
+    z := big.NewFloat(0.0) 
+    z.Abs(x.(*big.Float))
+    return z
+}
+
+goAddF(x, y Float) -> Float : golang {
+    z := big.NewFloat(0.0) 
+    z.Add(x.(*big.Float), y.(*big.Float))
+    return z
+}
+
+goSubF(x, y Float) -> Float : golang {
+    z := big.NewFloat(0.0) 
+    z.Sub(x.(*big.Float), y.(*big.Float))
+    return z
+}
+
+goMulF(x, y Float) -> Float : golang {
+    z := big.NewFloat(0.0) 
+    z.Mul(x.(*big.Float), y.(*big.Float))
+    return z
+}
+
+goNegF(x Float) -> Float : golang {
+    z := big.NewFloat(0.0) 
+    z.Neg(x.(*big.Float))
+    return z
+}
+
+goQuoF(x, y Float) -> Float : golang {
+    z := big.NewFloat(0.0) 
+    z.Quo(x.(*big.Float), y.(*big.Float))
+    return z
+}
+
+goCmpF(z Float, y Float) -> int : golang {
+    return z.(*big.Float).Cmp(y.(*big.Float))
+}
+
+goSignF(z Float) -> int : golang {
+    return z.(*big.Float).Sign()
+}
+
+goSqrtF(x Float) -> Float : golang {
+    z := big.NewFloat(0.0) 
+    z.Sqrt(x.(*big.Float))
+    return z
+}
+
+bigFTof(z Float) -> float : golang {
+    r, _ := z.(*big.Float).Float64()
+    return r
+}
+
+bigItoF(x Int) -> Float : golang {
+    z := big.NewFloat(0.0) 
+    z.SetInt(x.(*big.Int))
+    return z
+}
+
+bigFtobigI(x Float) -> Int : golang {
+    z := big.NewInt(0) 
+    z, _ = x.(*big.Float).Int(z)
+    return z
+}
+
+itof(z Float) -> int : golang {
+    r, _ := z.(*big.Float).Uint64()
+    return int(r)
+}
+
+rtof(x Rat) -> Float : golang {
+    z := big.NewFloat(0.0) 
+    z.SetRat(x.(*big.Rat))
+    return z
+}
+
+ftoi(z Float) -> int : golang {
+    r, _ := z.(*big.Float).Uint64()
+    return int(r)
+}
+
+atof(s string) -> big.Float/error : golang {
+    var (
+        ok bool
+    )
+    bf := big.NewFloat(0)
+    bf, ok = bf.SetString(s)
+    if !ok {
+        return errors.New("Can't convert string \"" + s + "\" to Float type")
+    }
+    return bf
+}
+
+ftoa(z Float) -> string : golang {
+    return z.(*big.Float).String()
+}
+
+///////////////// Ints
+
+newtype 
+
+Int = wrapper *big.Int 
+
+def
+
+~~ Constructs a `Float` from a `string`.
+Int(i int) -> Int : golang {
+    return big.NewInt(int64(i))
+}
+
+~~ Constructs an `Int` from a `string`.
+Int(s string) -> big.Int/error :
+    atoi s
+
+(x Int) + (y Int) -> Int :
+    goAdd x, y
+
+(x Int) - (y Int) -> Int :
+    goSub x, y
+
+(x Int) * (y Int) -> Int :
+    goMul x, y
+
+(x Int) div (y Int) -> Int :
+    goDiv x, y
+
+(x Int) mod (y Int) -> Int :
+    goMod x, y
+
+- (x Int) -> Int :
+    goNeg x
+
+(x Int) / (y Int) -> Rat :
+    bigIItoR x, y
+
+(x Int) ^ (y Int) -> Int : 
+    goExp x, y, Int(0)
+
+(x Int) < (y Int) -> bool :
+    goCmp(x, y) < 0
+
+(x Int) <= (y Int) -> bool :
+    goCmp(x, y) <= 0
+
+(x Int) > (y Int) -> bool :
+    goCmp(x, y) > 0
+
+(x Int) >= (y Int) -> bool :
+    goCmp(x, y) >= 0
+
+abs(x Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Abs(x.(*big.Int))
+    return z
+}
+
+andInt(x, y Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.And(x.(*big.Int), y.(*big.Int))
+    return z
+}
+
+andNotInt(x, y Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.AndNot(x.(*big.Int), y.(*big.Int))
+    return z
+}
+
+binomial(n, k int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Binomial(int64(n), int64(k))
+    return z
+}
+
+bit(z Int, i int) -> int : golang {
+    return int(z.(*big.Int).Bit(i))
+}
+
+bitLen(z Int) -> int : golang {
+    return z.(*big.Int).BitLen()
+}
+
+divMod(x, y, m Int) -> Int, Int : golang {
+    z := big.NewInt(0) 
+    return z.DivMod(x.(*big.Int), y.(*big.Int), m.(*big.Int))
+}
+
+exp(x, y, m Int) -> Int : 
+    goExp x, y, m
+
+float(z Int) -> float : 
+    bigItolittlef z
+
+gcd(a, b Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.GCD(nil, nil, a.(*big.Int), b.(*big.Int))
+    return z
+}
+
+int(z Int) -> int :
+    goInt z
+
+isSmallInt(z Int) -> bool : golang {
+    return z.(*big.Int).IsInt64()
+}
+
+lsh(x Int, n int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Lsh(x.(*big.Int), uint(n))
+    return z
+}
+
+modInverse(g, n Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.ModInverse(g.(*big.Int), n.(*big.Int))
+    return z
+}
+
+modSqrt(x, p Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.ModSqrt(x.(*big.Int), p.(*big.Int))
+    return z
+}
+
+mulRange(a, b int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.MulRange(int64(a), int64(b))
+    return z
+}
+
+notInt(x Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Not(x.(*big.Int))
+    return z
+}
+
+orInt(x, y Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Or(x.(*big.Int), y.(*big.Int))
+    return z
+}
+
+probablyPrime(z Int, n int) -> bool : golang {
+    return z.(*big.Int).ProbablyPrime(n)
+}
+
+quo(x, y Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Quo(x.(*big.Int), y.(*big.Int))
+    return z
+}
+
+quoRem(x, y, r Int) -> Int, Int : golang {
+    z := big.NewInt(0) 
+    return z.QuoRem(x.(*big.Int), y.(*big.Int), r.(*big.Int))
+}
+
+rem(x, y Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Rem(x.(*big.Int), y.(*big.Int))
+    return z
+}
+
+rsh(x Int, n int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Rsh(x.(*big.Int), uint(n))
+    return z
+}
+
+setString(s string, base int) -> Int/error : golang {
+    z := big.NewInt(0) 
+    z, ok := z.SetString(s, base)
+    if ok {
+        return z
+    }
+    return errors.New("string is not well-formed to convert to base " + strconv.Itoa(base))
+}
+
+sign(z Int) -> int : golang {
+    return z.(*big.Int).Sign()
+}
+
+sqrt(x Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Sqrt(x.(*big.Int))
+    return z
+}
+
+~~ Overloads `string`.
+string(z Int) -> string : 
+    itoa z
+
+text(z Int, base int) -> string : golang {
+    return z.(*big.Int).Text(base)
+}
+
+trailingZeroBits(z Int) -> int : golang {
+    return int(z.(*big.Int).TrailingZeroBits())
+}
+
+xorInt(x, y Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Xor(x.(*big.Int), y.(*big.Int))
+    return z
+}
+
+private 
+
+goAdd(x, y Int) -> Int : golang {
+    z := big.NewInt(0)
+    return z.Add(x.(*big.Int), y.(*big.Int))
+}
+
+goSub(x, y Int) -> Int : golang {
+    z := big.NewInt(0)
+    return z.Sub(x.(*big.Int), y.(*big.Int))
+}
+
+goMul(x, y Int) -> Int : golang {
+    z := big.NewInt(0)
+    return z.Mul(x.(*big.Int), y.(*big.Int))
+}
+
+goDiv(x, y Int) -> Int : golang {
+    z := big.NewInt(0)
+    return z.Div(x.(*big.Int), y.(*big.Int))
+}
+
+goMod(x, y Int) -> Int : golang {
+    z := big.NewInt(0)
+    return z.Mod(x.(*big.Int), y.(*big.Int))
+}
+
+goNeg(x Int) -> Int : golang {
+    z := big.NewInt(0)
+    return z.Neg(x.(*big.Int))
+}
+
+goInt(z Int) -> int : golang {
+    return int(z.(*big.Int).Int64())
+}
+
+goCmp(x, y Int) -> int : golang {
+    return x.(*big.Int).Cmp(y.(*big.Int))
+}
+
+goExp(x, y, m Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Exp(x.(*big.Int), y.(*big.Int), m.(*big.Int))
+    return z
+}
+
+atoi(s string) -> big.Int/error : golang {
+    var (
+        ok bool
+    )
+    bi := big.NewInt(0)
+    bi, ok = bi.SetString(s, 10)
+    if !ok {
+        return errors.New("Can't convert string \"" + s + "\" to Int type")
+    }
+    return bi
+}
+
+bigItolittlef(z Int) -> float : golang {
+    r, _ := z.(*big.Int).Float64()
+    return r
+}
+
+itoa(z Int) -> string : golang {
+    return (z.(*big.Int)).String()
+}
+
+///////////////// Rationals
+
+newtype 
+
+~~ The big rational type.
+Rat = wrapper *big.Rat
+
+def
+
+~~ Constructs a `Rat` from two `int`s.
+Rat(i, j int) -> Rat : 
+    ijtor i, j
+
+~~ Constructs a `Rat` from a `Float`.
+Rat(z Float) -> Rat : 
+    ftor z
+
+~~ Constructs a `Rat` from a `string`.
+Rat(s string) -> big.Rat/error :
+    ator s
+
+Rat(x float) -> Rat :
+    littleftoR x 
+
+Rat(x, y Int) :
+    bigIItoR x, y
+
+Rat(x Int) :
+    bigItoR x
+
+Rat(x int) :
+    littleitoR x
+
+(x Rat) + (y Rat) -> Rat :
+    goAddR x, y
+
+(x Rat) - (y Rat) -> Rat :
+    goSubR x, y
+
+(x Rat) * (y Rat) -> Rat :
+    goMulR x, y
+
+(x Rat) / (y Rat) -> Rat :
+    goQuoR x, y
+
+- (x Rat) -> Rat :
+    goNegR x
+
+(x Rat) < (y Rat) -> bool :
+    goCmpR(x, y) < 0
+
+(x Rat) <= (y Rat) -> bool :
+    goCmpR(x, y) <= 0
+
+(x Rat) > (y Rat) -> bool :
+    goCmpR(x, y) > 0
+
+(x Rat) >= (y Rat) -> bool :
+    goCmpR(x, y) >= 0
+
+abs(z Rat) :
+    goAbsR z
+
+denom(z Rat) -> Int : golang {
+    return z.(*big.Rat).Denom()
+}
+
+float(z Rat) :
+    bigRtolittlef z
+
+floatString(z Rat, prec int) -> string : golang {
+    return z.(*big.Rat).FloatString(prec)
+}
+
+inv(x Rat) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.Inv(x.(*big.Rat))
+    return z
+}
+
+isInt(z Rat) -> bool :
+    goisIntR z
+
+num(z Rat) -> Int : golang {
+    return z.(*big.Rat).Num()
+}
+
+ratString(z Rat) -> string : golang {
+    return z.(*big.Rat).RatString()
+}
+
+sign(z Rat) -> int :
+    goSignR z
+
+~~ Overloads `string`.
+string(z Rat) :
+    rtoa z
+
+private 
+
+goAbsR(x Rat) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.Abs(x.(*big.Rat))
+    return z
+}
+
+goAddR(x, y Rat) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.Add(x.(*big.Rat), y.(*big.Rat))
+    return z
+}
+
+goCmpR(z Rat, y Rat) -> int : golang {
+    return z.(*big.Rat).Cmp(y.(*big.Rat))
+}
+
+goNegR(x Rat) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.Neg(x.(*big.Rat))
+    return z
+}
+
+goQuoR(x, y Rat) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.Quo(x.(*big.Rat), y.(*big.Rat))
+    return z
+}
+
+goMulR(x, y Rat) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.Mul(x.(*big.Rat), y.(*big.Rat))
+    return z
+}
+
+goSubR(x, y Rat) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.Sub(x.(*big.Rat), y.(*big.Rat))
+    return z
+}
+
+goSignR(z Rat) -> int : golang {
+    return z.(*big.Rat).Sign()
+}
+
+goisIntR(z Rat) -> bool : golang {
+    return z.(*big.Rat).IsInt()
+}
+
+bigRtolittlef(z Rat) -> float : golang {
+    x, _ := z.(*big.Rat).Float64()
+    return x
+}
+
+littleftoR(x float) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.SetFloat64(x)
+    return z
+}
+
+bigIItoR(a, b Int) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.SetFrac(a.(*big.Int), b.(*big.Int))
+    return z
+}
+
+bigItoR(x Int) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.SetInt(x.(*big.Int))
+    return z
+}
+
+littleitoR(x int) -> Rat : golang {
+    z := big.NewRat(0, 0) 
+    z.SetInt64(int64(x))
+    return z
+}
+
+ator(s string) -> big.Float/error : golang {
+    var (
+        ok bool
+    )
+    br := big.NewRat(0, 0)
+    br, ok = br.SetString(s)
+    if !ok {
+        return errors.New("Can't convert string \"" + s + "\" to Rat type")
+    }
+    return br
+}
+
+ftor(x Float) -> Rat : golang {
+    r := big.NewRat(0, 1)
+    r, _ = x.(*big.Float).Rat(r)
+    return r
+}
+
+ijtor(i, j int) -> Rat : golang {
+    return big.NewRat(int64(i), int64(j))
+}
+
+rtoa(z Rat) -> string : golang {
+    return z.(*big.Rat).String()
+}
+
+// Boilerplate for all types in common.
+
+// We implement functions on the Go side to determine equality and make a literal.
+golang { 
+    // Since in this example we're only implementing one wrapped type, the switch statements 
+    // aren't really necessary, but they indicate what you would do if there was more than one.
+    func Equals(x, y any) bool {
+        switch x := x.(type) {
+        case *big.Float:
+            return x.Cmp(y.(*big.Float)) == 0
+        case *big.Int:
+            return x.Cmp(y.(*big.Int)) == 0
+        case *big.Rat:
+            return x.Cmp(y.(*big.Rat)) == 0
+        default:
+            return false
+        }
+    }
+
+    func Literal(x any) string {
+        switch x := x.(type) {
+        case *big.Float:
+            return "Float(`" + x.String() + "`)"
+        case *big.Int:
+            return "Int(`" + x.String() + "`)"
+        case *big.Rat:
+            return "Rat(`" + x.String() + "`)"
+        default:
+            return "can't serialize value"
+        } 
+    }
+}
+
