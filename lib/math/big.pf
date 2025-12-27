@@ -26,10 +26,6 @@ Float(s string) -> Float/error :
 Float(r Rat) -> Float :
     rtof r
 
-~~ Overloads `string`.
-string(z Float) :
-    ftoa z
-
 (x Float) + (y Float) -> Float :
     goAddF x, y
 
@@ -82,6 +78,10 @@ sign(z Float) -> int :
 
 sqrt(z Float) -> Float :
     goSqrtF z 
+
+~~ Overloads `string`.
+string(z Float) :
+    ftoa z
 
 text(z Float, format, prec int) -> string : 
     goTextF z, format, prec

@@ -135,7 +135,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		}
 		return text.Pretty(text.RT_ERROR+ob.Message+text.DescribePos(ob.Token)+".", 0, 80)
 	case values.FLOAT:
-		return strconv.FormatFloat(v.V.(float64), 'f', 8, 64)
+		return strconv.FormatFloat(v.V.(float64), 'g', -1, 64)
 	case values.FUNC:
 		return "lambda function"
 	case values.INT:

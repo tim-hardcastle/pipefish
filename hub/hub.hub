@@ -4,8 +4,7 @@ NULL::"sql"
 
 var
 
-allServices = map(`hub`::`hub/hub.hub`,
-               .. `wrap`::`/home/tim/Pf/Pipefish/wrap.pf`)
+allServices = map(`hub`::`hub/hub.hub`)
 
 currentService string? = NULL
 
