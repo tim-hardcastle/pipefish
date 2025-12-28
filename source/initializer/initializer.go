@@ -1313,7 +1313,7 @@ func (iz *Initializer) getEnvAndAccessForConstOrVarDeclaration(dT declarationTyp
 }
 
 // Method for compiling the runtime typechecks on structs and clones
-func (iz *Initializer) compileTypecheck(name string, node ast.Node, newEnv *compiler.Environment) {
+func (iz *Initializer) compileTypecheck(name string, node ast.Node, newEnv *compiler.Environment) bool {
 	typeNumber, _ := iz.cp.GetConcreteType(name)
 	typeInfo := iz.cp.TypeInfoNow(name)
 	var inLoc uint32
@@ -1340,9 +1340,13 @@ func (iz *Initializer) compileTypecheck(name string, node ast.Node, newEnv *comp
 	chunks := iz.cp.SplitOnNewlines(node)
 	for _, chunk := range chunks {
 		context := compiler.Context{Env: newEnv}
-		rTypes, _ := iz.cp.CompileNode(chunk, context)
-		if !rTypes.Contains(values.BOOL) {
+		checkResult := iz.cp.CompileNode(chunk, context)
+		if checkResult.Failed {
+			return false
+		}
+		if !checkResult.Types.Contains(values.BOOL) {
 			iz.throw("init/typecheck/bool", chunk.GetToken(), iz.cp.P.PrettyPrint(chunk), name)
+			return false
 		}
 		errNo := iz.cp.ReserveTypeCheckError(chunk, name, inLoc)
 		iz.cp.Emit(vm.Chck, resultLoc, iz.cp.That(), tokNumberLoc, errNo) // This will do its own early return from the typecheck.
@@ -1355,6 +1359,7 @@ func (iz *Initializer) compileTypecheck(name string, node ast.Node, newEnv *comp
 		info = info.(vm.StructType).AddTypeCheck(typeCheck)
 	}
 	iz.cp.Vm.ConcreteTypeInfo[typeNumber] = info
+	return true
 }
 
 // Method for compiling a top-level function.
@@ -1497,7 +1502,10 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		if izFn.given != nil {
 			iz.cp.ThunkList = []compiler.ThunkData{}
 			givenContext := compiler.Context{fnenv, functionName, compiler.DEF, false, nil, cpFn.LoReg, areWeTracking, compiler.LF_NONE, altType()}
-			iz.cp.CompileGivenBlock(izFn.given, givenContext)
+			ok := iz.cp.CompileGivenBlock(izFn.given, givenContext)
+			if !ok {
+				return nil
+			}
 			cpFn.CallTo = iz.cp.CodeTop()
 			if len(iz.cp.ThunkList) > 0 {
 				iz.cp.Cm("Initializing thunks for outer function.", &izFn.op)
@@ -1520,7 +1528,11 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		}
 		// We compile a check on the return types.
 		bodyContext := compiler.Context{fnenv, functionName, ac, true, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), cpFn.LoReg, areWeTracking, compiler.LF_NONE, altType()}
-		cpFn.RtnTypes, _ = iz.cp.CompileNode(izFn.body, bodyContext) // TODO --- could we in fact do anything useful if we knew it was a constant?
+		bodyResult := iz.cp.CompileNode(izFn.body, bodyContext) // TODO --- could we in fact do anything useful if we knew it was a constant?
+		if bodyResult.Failed {
+			return nil
+		}
+		cpFn.RtnTypes = bodyResult.Types
 		if len(paramChecks) > 0 {                                    // If we had to check the types of the parameters, then the function may return an error no matter what its body might do.
 			cpFn.RtnTypes = cpFn.RtnTypes.Union(altType(values.ERROR))
 		}

@@ -861,7 +861,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"comp/splat/type": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "argument of `...` must be list or listlike, not " + emph(args[0])
+			return "argument of `...` must be a list or clone of list, not " + emph(args[0])
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "The purpose of the splat operator `...` is to expand a list or " +

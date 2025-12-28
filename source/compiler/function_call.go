@@ -52,7 +52,7 @@ type bindle struct {
 // The compiler in the method receiver is where we look up the function name (the "resolving compiler").
 // The arguments need to be compiled in their own namespace by the argCompiler, unless they're bling in which case we
 // use them to look up the function.
-func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable, ctxt Context, libcall bool) (AlternateType, bool) {
+func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable, ctxt Context, libcall bool) cpResult {
 	args := node.GetArgs()
 	env := ctxt.Env
 	ac := ctxt.Access
@@ -67,7 +67,6 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable,
 		lowMem:       ctxt.LowMem, // Where the memory of the function we're compiling (if indeed we are) starts, and so the lowest point from which we may need to copy memory in case of recursion.
 	}
 	backtrackList := make([]uint32, len(args))
-	var cstI bool
 	cst := true
 	mayBeErrorInArgs := false
 	for i, arg := range args {
@@ -75,14 +74,14 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable,
 		if i < cp.FunctionForest[node.GetOperator()].RefCount { // It might be a reference variable
 			if arg.GetToken().Type != token.IDENT {
 				cp.Throw("comp/ref/ident", arg.GetToken())
-				return AltType(values.COMPILE_TIME_ERROR), false
+				return FAIL
 			}
 			var v *Variable
 			v, ok := env.GetVar(arg.GetToken().Literal)
 			if !ok {
 				if ac == REPL {
 					cp.Throw("comp/ref/var", arg.GetToken())
-					return AltType(values.COMPILE_TIME_ERROR), false
+					return FAIL
 				} else { // We must be in a command. We can create a local variable.
 					cp.Reserve(values.UNDEFINED_TYPE, nil, node.GetToken())
 					newVar := Variable{cp.That(), LOCAL_VARIABLE, cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)}
@@ -107,21 +106,22 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable,
 			cp.Reserve(values.BLING, arg.Value, node.GetToken())
 			b.valLocs[i] = cp.That()
 		default: // Otherwise we emit code to evaluate it.
-			b.types[i], cstI = argCompiler.CompileNode(arg, ctxt.x())
-			if b.types[i].(AlternateType).Contains(values.COMPILE_TIME_ERROR) {
-				return AltType(values.COMPILE_TIME_ERROR), false
+			argResult := argCompiler.CompileNode(arg, ctxt.x())
+			if argResult.Failed {
+				return FAIL
 			}
+			b.types[i] = argResult.Types
 			mayBeErrorInArgs = mayBeErrorInArgs || b.types[i].(AlternateType).Contains(values.ERROR)
 			if len(b.types[i].(AlternateType)) == 1 && (b.types[i].(AlternateType))[0] == SimpleType(values.TUPLE) {
 				b.types[i] = AlternateType{cp.Common.AnyTuple}
 			}
-			cst = cst && cstI
+			cst = cst && argResult.Foldable
 			b.valLocs[i] = cp.That()
 			if b.types[i].(AlternateType).isOnly(values.ERROR) {
 				cp.Throw("comp/error/arg", arg.GetToken(), cp.P.PrettyPrint(arg))
-				return AltType(values.COMPILE_TIME_ERROR), false
+				return FAIL
 			}
-			if b.types[i].(AlternateType).Contains(values.ERROR) { 
+			if b.types[i].(AlternateType).Contains(values.ERROR) {
 				cp.Emit(vm.Qtyp, cp.That(), uint32(tp(values.ERROR)), cp.CodeTop()+3)
 				backtrackList[i] = cp.CodeTop()
 				cp.Emit(vm.Adtk, DUMMY, cp.That(), cp.ReserveToken(arg.GetToken()))
@@ -140,8 +140,10 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable,
 	if returnTypes.isOnly(values.ERROR) && node.GetToken().Literal != "error" {
 		if text.Tail(b.tok.Literal, "{}") {
 			cp.Throw("comp/types/a", b.tok, b.tok.Literal, (b.types[1:]).describeWithPotentialInfix(cp.Vm, b.tok.Literal))
+			return FAIL
 		} else {
 			cp.Throw("comp/types/b", b.tok, b.tok.Literal, b.types.describeWithPotentialInfix(cp.Vm, b.tok.Literal))
+			return FAIL
 		}
 	}
 	for _, v := range backtrackList {
@@ -155,7 +157,8 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable,
 		cp.Emit(vm.Adtk, cp.That(), cp.That(), cp.ReserveToken(b.tok))
 	}
 	cp.cmP("Returning from createFunctionCall.", b.tok)
-	return returnTypes, cst && !override
+
+	return cpResult{Types: returnTypes, Foldable: cst && !override}
 }
 
 func (cp *Compiler) generateNewArgument(b *bindle) (AlternateType, bool) { // The bool is got from `seekFunctionCall` and says whether we need to override folding.`
@@ -300,7 +303,7 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 	}
 	if needsLowerBranch && acceptingTuple {
 		tupleTypeCheck = cp.emitTypeComparisonFromAbstractType(acceptedTypes, b.valLocs[b.argNo], b.tok)
-			
+
 	}
 	// Now we're in the 'if' part of the condition we just generated, if we did. So either we definitely had
 	// a type match, or we're inside a conditional that has checked for one.
@@ -495,7 +498,7 @@ func (cp *Compiler) generateNextBranchDown(b *bindle) (AlternateType, bool) {
 // At this point we've used up all the arguments of the function and so either there's
 // some specific concrete function we can call at this point in the tree, or this was
 // a blind alley.
-func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) {  // The bool says whether we need to override folding.`
+func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The bool says whether we need to override folding.`
 	cp.cmP("Called seekFunctionCall.", b.tok)
 	// This outer loop is to deal with the possibility that we're not at the leaf of
 	// a tree, but there's a varargs as the next parameter, in which case we can move

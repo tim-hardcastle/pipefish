@@ -10,6 +10,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 	"github.com/tim-hardcastle/pipefish/source/text"
 )
+
 func TestAlias(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Strings == list{string}`, `true`},
@@ -381,7 +382,7 @@ func TestGoTypes(t *testing.T) {
 		{`Uint_32(5)`, `Uint_32(5)`},
 		{`literal Uint_32(5)`, `"Uint_32(5)"`},
 	}
-	test_helper.RunTest(t, "gotype_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "wrapper_test.pf", tests, test_helper.TestValues)
 }
 func TestHighlighter(t *testing.T) {
 	tests := []test_helper.TestItem{

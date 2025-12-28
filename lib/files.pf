@@ -21,17 +21,17 @@ get (L ref) from (filenames Filenames) :
 get (L ref) from (directoryNames DirectoryNames) : 
     L = goGetDirectoryNames(directoryNames)
 
-get (contents ref) from (fileAccess File) : 
-    contents = goGetFile(fileAccess[filepath])
+get (contents ref) from (file File) : 
+    contents = goGetFile(file[filepath])
 
-get (x ref) from (fileAccess FileExists) :
-    x = goFileExists(fileAccess[filepath])
+get (x ref) from (file FileExists) :
+    x = goFileExists(file[filepath])
 
-put (s string) into (fileAccess File) : 
-    goPutStringInFile(s, fileAccess[filepath])
+put (s string) into (file File) : 
+    goPutStringInFile(s, file[filepath])
 
-delete (fileAccess File) :
-    goDeleteFile(fileAccess[filepath])
+delete (file File) :
+    goDeleteFile(file[filepath])
 
 def
 
