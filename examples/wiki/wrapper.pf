@@ -1,0 +1,39 @@
+import
+
+golang "strconv"
+
+newtype
+
+Uint_32 = wrapper uint32
+
+def
+
+Uint_32(i int) -> Uint_32 : golang {
+    return uint32(i)
+}
+
+string(z Uint_32) -> string : golang {
+    return "Uint_32(" + strconv.Itoa(int(z.(uint32))) + ")"
+}
+
+golang { 
+   func Equals(x, y any) bool {
+        switch x := x.(type) {
+        case uint32:
+            return x == y.(uint32)
+        default:
+            return false
+        }
+    }
+
+    func Literal(x any) string {
+        switch x := x.(type) {
+        case uint32:
+            return "Uint_32(" + strconv.Itoa(int(x)) + ")"
+        default:
+            return "can't serialize value"
+        } 
+    }
+}
+
+
