@@ -8,14 +8,7 @@ newtype
 Complex = wrapper complex128 
 C = alias Complex
 
-const
-
-I = Complex(0.0, 1.0)
-
 def
-
-(x float) i :
-    Complex(0.0, x)
 
 Complex(a, b float) -> Complex : golang {
     return complex(a, b)
@@ -41,7 +34,7 @@ string(z Complex) -> string : golang {
     goPow x, y 
 
 (x Complex) ^ (y float) -> Complex :
-    goPow x, C(y, 0.0) 
+    goPow x, Complex(y, 0.0) 
 
 // (x float) + (y Complex) -> Complex :
 //     goAdd C(x, 0.0), y 

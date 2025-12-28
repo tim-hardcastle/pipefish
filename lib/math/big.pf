@@ -62,9 +62,6 @@ float(z Float) -> float :
 int(z Float) -> int : 
     itof z
 
-Int(z Float) -> Int : 
-    bigFtobigI z
-
 isInf(z Float) -> bool : golang {
     return z.(*big.Float).IsInf()
 }
@@ -199,7 +196,7 @@ Int = wrapper *big.Int
 
 def
 
-~~ Constructs a `Float` from a `string`.
+~~ Constructs an `Int` from an `int`.
 Int(i int) -> Int : golang {
     return big.NewInt(int64(i))
 }
@@ -207,6 +204,10 @@ Int(i int) -> Int : golang {
 ~~ Constructs an `Int` from a `string`.
 Int(s string) -> big.Int/error :
     atoi s
+
+~~ Constructs an `Int` from a `Float`.
+Int(z Float) -> Int : 
+    bigFtobigI z
 
 (x Int) + (y Int) -> Int :
     goAdd x, y
