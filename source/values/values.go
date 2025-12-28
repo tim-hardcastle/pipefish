@@ -16,7 +16,6 @@ const ( // Cross-reference with typeNames in BlankVm()
 	INT_ARRAY                                // V is an array of Golang uint32. TODO --- its only current use is a three-value enum.
 	THUNK                                    // V is a ThunkValue which contains the address to call to evaluate the thunk and the memory location where the result ends up.
 	CREATED_THUNK_OR_CONST                   // Returned by the compiler in the TypeScheme when we compile a thunk.
-	DEPRECATED                               // Formerly `COMPILE_TIME_ERROR`.
 	BLING                                    // Values representing e.g. the `troz` in `foo (x) troz (y)`.
 	UNSATISFIED_CONDITIONAL                  // An unsatisfied conditional, i.e. what <condition> : <expression> returns if <condition> isn't true.
 	REF                                      // A reference variable. This is always dereferenced when used, so the type is invisible.
