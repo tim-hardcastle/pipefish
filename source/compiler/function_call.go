@@ -532,7 +532,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 				if (b.access == REPL || b.libcall) && F.Private {
 					cp.cmP("REPL trying to access private function. Returning error.", b.tok)
 					cp.Throw("comp/private", b.tok)
-					return AltType(values.COMPILE_TIME_ERROR), false
+					return nil, false
 				}
 				// Deal with the case where the function is a builtin.
 				builtinTag := F.Builtin
@@ -585,13 +585,13 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 						// TODO --- if the rhs is const, as it often will be, we can infer further.
 					case "first_in_tuple":
 						if len(b.types) == 0 {
-							functionAndType.T = altType(values.COMPILE_TIME_ERROR)
+							return nil, false
 						} else {
 							functionAndType.T = typesAtIndex(b.types[0], 0)
 						}
 					case "last_in_tuple":
 						if len(b.types) == 0 {
-							functionAndType.T = altType(values.COMPILE_TIME_ERROR)
+							return nil, false
 						} else {
 							functionAndType.T = typesAtIndex(b.types[0], len(b.types)-1)
 						}

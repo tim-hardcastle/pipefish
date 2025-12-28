@@ -517,7 +517,7 @@ func (aT AlternateType) IsLegalCmdReturn() bool {
 		switch u := u.(type) {
 		case SimpleType:
 			if u != SimpleType(values.SUCCESSFUL_VALUE) && u != SimpleType(values.ERROR) &&
-				u != SimpleType(values.COMPILE_TIME_ERROR) && u != SimpleType(values.UNSATISFIED_CONDITIONAL) {
+				u != SimpleType(values.UNSATISFIED_CONDITIONAL) {
 				return false
 			}
 		default:
