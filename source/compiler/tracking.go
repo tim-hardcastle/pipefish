@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strconv"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/token"
@@ -38,7 +38,7 @@ func (cp *Compiler) TrackOrLog(tf vm.TrackingFlavor, trackingOn, autoOn bool, to
 	switch tf {
 	case vm.TR_FNCALL:
 		newData = vm.TrackingData{vm.TR_FNCALL, tok, logToLoc, logTimeLoc, []any{args[0]}}
-		sig := args[1].(ast.AstSig)
+		sig := args[1].(parser.AstSig)
 		loReg := args[2].(uint32)
 		for i, pair := range sig {
 			newData.Args = append(newData.Args, pair.VarName)

@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/values"
 	"github.com/tim-hardcastle/pipefish/source/vm"
 )
@@ -262,22 +262,22 @@ func AbstractTypeToAlternateType(abType values.AbstractType) AlternateType {
 
 // We may need to combine types gotten in the form of TypeNodes and types gotten in the
 // form of AlternateTypes. Hence this function.
-func (cp Compiler) typeNodeToAlternateType(tn ast.TypeNode) AlternateType {
+func (cp Compiler) typeNodeToAlternateType(tn parser.TypeNode) AlternateType {
 	switch tn := tn.(type) {
-	case *ast.TypeWithName:
+	case *parser.TypeWithName:
 		return cp.TypeNameToTypeScheme[tn.String()]
-	case *ast.TypeWithArguments:
+	case *parser.TypeWithArguments:
 		return cp.TypeNameToTypeScheme[tn.String()]
-	case *ast.TypeWithParameters:
+	case *parser.TypeWithParameters:
 		return cp.TypeNameToTypeScheme[tn.String()]
-	case *ast.TypeInfix:
+	case *parser.TypeInfix:
 		switch tn.Operator {
 		case "/":
 			return cp.typeNodeToAlternateType(tn.Left).Union(cp.typeNodeToAlternateType(tn.Right))
 		default:
 			panic("This shouldn't happen.")
 		}
-	case *ast.TypeSuffix:
+	case *parser.TypeSuffix:
 		switch tn.Operator {
 		case "?":
 			return cp.typeNodeToAlternateType(tn.Left).Union(AltType(values.NULL))
@@ -286,22 +286,20 @@ func (cp Compiler) typeNodeToAlternateType(tn ast.TypeNode) AlternateType {
 		default:
 			panic("This shouldn't happen.")
 		}
-	case *ast.TypeDotDotDot:
+	case *parser.TypeDotDotDot:
 		return AlternateType{TypedTupleType{cp.typeNodeToAlternateType(tn.Right)}}
 	}
 	panic("Failed to convert node of type " + reflect.TypeOf(tn).String())
 }
 
 // This wraps around the previous function to convert sigs.
-func (cp Compiler) AstSigToAltSig(sig ast.AstSig) alternateSig {
+func (cp Compiler) AstSigToAltSig(sig parser.AstSig) alternateSig {
 	result := alternateSig{}
 	for _, pair := range sig {
 		result = append(result, NameAlternateTypePair{pair.VarName, cp.typeNodeToAlternateType(pair.VarType)})
 	}
 	return result
 }
-
-
 
 // This assumes that the alternateType came from the typeNameToTypeList array and therefore contains only elements of
 // type SimpleType. TODO: this probably shouldn't exist. Truth is meant to flow from abstract types to alternate types.
@@ -337,7 +335,7 @@ func (aS alternateSig) Describe(mc *vm.Vm) string {
 	result := ""
 	sep := ""
 	for _, pair := range aS {
-		result = result + sep + pair.VarName + " " + pair.VarType.describe(mc) 
+		result = result + sep + pair.VarName + " " + pair.VarType.describe(mc)
 		sep = ", "
 	}
 	return result

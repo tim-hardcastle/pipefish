@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/parser"
@@ -203,7 +202,7 @@ func (cp *Compiler) Do(line string) values.Value {
 // evaluates it and uses the snapshot to roll back the vm.
 //
 // The node types in the switch are in alphabetical order.
-func (cp *Compiler) CompileNode(node ast.Node, ctxt Context) cpResult {
+func (cp *Compiler) CompileNode(node parser.Node, ctxt Context) cpResult {
 	cp.Cm("Compiling node of type "+(reflect.TypeOf(node).String())[5:]+" with literal "+text.Emph(node.GetToken().Literal)+".", node.GetToken())
 	cp.showCompile = settings.SHOW_COMPILER && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(node.GetToken().Source))
 	result := cpResult{}
@@ -215,9 +214,9 @@ NodeTypeSwitch:
 	switch node := node.(type) {
 	// Note that assignments in `given` blocks and var and const initialization are taken care of by the initializer, so we only have to deal with the cases where
 	// the assignment is in the body of a function or in the REPL.
-	case *ast.AssignmentExpression:
+	case *parser.AssignmentExpression:
 		cp.Cm("Assignment from REPL or in 'cmd' section", node.GetToken())
-		sig, err := cp.P.RecursivelySlurpSignature(node.Left, ast.INFERRED_TYPE_AST)
+		sig, err := cp.P.RecursivelySlurpSignature(node.Left, parser.INFERRED_TYPE_AST)
 		if err != nil {
 			cp.Throw("comp/assign/lhs/a", node.Left.GetToken())
 			return FAIL
@@ -243,7 +242,7 @@ NodeTypeSwitch:
 			v, ok := env.GetVar(pair.VarName)
 			if ok {
 				cp.Cm("Inferring the type of a variable "+text.Emph(pair.VarName)+" already defined ", &node.Token)
-				if sig.GetVarType(i) != ast.INFERRED_TYPE_AST { // Then as we can't change the type of an existing variable, we must check that we're defining it the same way.
+				if sig.GetVarType(i) != parser.INFERRED_TYPE_AST { // Then as we can't change the type of an existing variable, we must check that we're defining it the same way.
 					if !Equals(v.Types, cp.GetAlternateTypeFromTypeAst(sig[i].VarType)) {
 						cp.Throw("comp/assign/type/b", node.GetToken(), pair.VarName)
 						return FAIL
@@ -252,7 +251,7 @@ NodeTypeSwitch:
 				if v.Access != REFERENCE_VARIABLE { // TODO --- There's probably a more elgant way of dealing with the reference variable thing if I think about it, but as I intend to type them anyway and this will get refactored away it's not a big deal.
 					newSig = append(newSig, NameAlternateTypePair{pair.VarName, v.Types})
 				} else {
-					newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)})
+					newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)})
 				}
 				if v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == LOCAL_VARIABLE_THUNK || v.Access == LOCAL_CONSTANT || v.Access == LOCAL_FUNCTION_CONSTANT ||
 					v.Access == VERY_LOCAL_CONSTANT || v.Access == VERY_LOCAL_VARIABLE || v.Access == FUNCTION_ARGUMENT || v.Access == LOCAL_FUNCTION_THUNK ||
@@ -278,7 +277,7 @@ NodeTypeSwitch:
 					return FAIL
 				}
 				cp.Reserve(values.UNDEFINED_TYPE, DUMMY, node.GetToken())
-				if vType, ok := pair.VarType.(*ast.TypeWithName); ok && vType.OperatorName == "tuple" {
+				if vType, ok := pair.VarType.(*parser.TypeWithName); ok && vType.OperatorName == "tuple" {
 					cp.Cm("Adding variable in ASSIGN, 1", node.GetToken())
 					cp.AddThatAsVariable(env, pair.VarName, LOCAL_VARIABLE, cp.Common.AnyTuple, node.GetToken())
 					newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.Common.AnyTuple})
@@ -286,7 +285,7 @@ NodeTypeSwitch:
 					typesAtIndex := typesAtIndex(types, i)
 					cp.Cm("Adding variable in ASSIGN, 2", node.GetToken())
 					cp.AddThatAsVariable(env, pair.VarName, LOCAL_VARIABLE, typesAtIndex, node.GetToken())
-					if sig[i].VarType == ast.INFERRED_TYPE_AST {
+					if sig[i].VarType == parser.INFERRED_TYPE_AST {
 						newSig = append(newSig, NameAlternateTypePair{pair.VarName, typesAtIndex})
 					} else {
 						newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.GetAlternateTypeFromTypeAst(sig[i].VarType)})
@@ -299,11 +298,11 @@ NodeTypeSwitch:
 		cp.Put(vm.Asgm, values.C_OK)
 		cp.VmComeFrom(rhsIsError, typeCheckFailed)
 		break NodeTypeSwitch
-	case *ast.BooleanLiteral:
+	case *parser.BooleanLiteral:
 		cp.Reserve(values.BOOL, node.Value, node.GetToken())
 		result = concResult(values.BOOL, true)
 		break
-	case *ast.ComparisonExpression:
+	case *parser.ComparisonExpression:
 		if node.Operator == "==" {
 			result = cp.compileEquals(node, ctxt.x())
 			if result.Failed {
@@ -319,18 +318,18 @@ NodeTypeSwitch:
 			cp.Put(vm.Notb, cp.That())
 			break
 		}
-	case *ast.FloatLiteral:
+	case *parser.FloatLiteral:
 		cp.Reserve(values.FLOAT, node.Value, node.GetToken())
 		result = concResult(values.FLOAT, true)
-	case *ast.ForExpression:
+	case *parser.ForExpression:
 		result = cp.compileForExpression(node, ctxt)
-	case *ast.FuncExpression:
+	case *parser.FuncExpression:
 		ok := cp.compileLambda(env, ctxt, node, node.GetToken())
 		if !ok {
 			return FAIL
 		}
 		result = concResult(values.FUNC, false) // Things that return functions and snippets are not folded, even if they are constant.
-	case *ast.Identifier:
+	case *parser.Identifier:
 		switch node.Value {
 		case "continue":
 			result = cp.emitContinue(&node.Token, ctxt)
@@ -386,14 +385,14 @@ NodeTypeSwitch:
 		}
 		if v.Access == REFERENCE_VARIABLE {
 			cp.Put(vm.Dref, v.MLoc)
-			result.Types = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)
+			result.Types = cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)
 		} else {
 			cp.Put(vm.Asgm, v.MLoc)
 			result.Types = v.Types
 		}
 		result.Foldable = ALL_CONSTANT_ACCESS.Contains(v.Access)
 		cp.GlobalConsts.Ext = nil
-	case *ast.IndexExpression:
+	case *parser.IndexExpression:
 		containerCpResult := cp.CompileNode(node.Left, ctxt.x())
 		if containerCpResult.Failed {
 			return FAIL
@@ -421,7 +420,7 @@ NodeTypeSwitch:
 		if len(containerType.intersect(cp.Common.SharedTypenameToTypeList["clones{list}"])) == len(containerType) {
 			if indexType.isOnlyCloneOf(cp.Vm, values.INT) {
 				cp.Put(vm.IdxL, container, index, errTok)
-				result.Types = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR)
+				result.Types = cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST_OR_ERROR)
 				break
 			}
 			if indexType.isOnlyCloneOf(cp.Vm, values.PAIR) {
@@ -433,7 +432,7 @@ NodeTypeSwitch:
 				cp.Throw("comp/index/list", node.GetToken())
 				return FAIL
 			}
-			result.Types = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR)
+			result.Types = cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST_OR_ERROR)
 		}
 		if len(containerType.intersect(cp.Common.SharedTypenameToTypeList["clones{string}"])) == len(containerType) {
 			if indexType.isOnlyCloneOf(cp.Vm, values.INT) {
@@ -456,7 +455,7 @@ NodeTypeSwitch:
 		if containerType.containsOnlyTuples() {
 			if indexType.isOnlyCloneOf(cp.Vm, values.INT) {
 				cp.Put(vm.IdxT, container, index, errTok)
-				result.Types = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR)
+				result.Types = cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST_OR_ERROR)
 				break
 			}
 			if indexType.isOnlyCloneOf(cp.Vm, values.PAIR) {
@@ -472,7 +471,7 @@ NodeTypeSwitch:
 		if containerType.isOnlyCloneOf(cp.Vm, values.PAIR) {
 			if indexType.isOnlyCloneOf(cp.Vm, values.INT) {
 				cp.Put(vm.Idxp, container, index, errTok)
-				result.Types = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST_OR_ERROR)
+				result.Types = cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST_OR_ERROR)
 				break
 			}
 			if indexType.cannotBeACloneOf(cp.Vm, values.INT) {
@@ -483,7 +482,7 @@ NodeTypeSwitch:
 		if containerType.isOnlyCloneOf(cp.Vm, values.SNIPPET) {
 			if indexType.isOnlyCloneOf(cp.Vm, values.INT) {
 				cp.Put(vm.IxSn, container, index, errTok)
-				result.Types = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)
+				result.Types = cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)
 				break
 			}
 			if indexType.cannotBeACloneOf(cp.Vm, values.INT) {
@@ -557,9 +556,9 @@ NodeTypeSwitch:
 		if containerType.Contains(values.TUPLE) {
 			result.Types = cp.Common.AnyTypeScheme
 		} else {
-			result.Types = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)
+			result.Types = cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)
 		}
-	case *ast.InfixExpression:
+	case *parser.InfixExpression:
 		if node.Operator == "given" {
 			cp.Throw("comp/expect/given", &node.Token)
 			break
@@ -578,10 +577,10 @@ NodeTypeSwitch:
 		if result.Failed {
 			return FAIL
 		}
-	case *ast.IntegerLiteral:
+	case *parser.IntegerLiteral:
 		cp.Reserve(values.INT, node.Value, node.GetToken())
 		result = concResult(values.INT, true)
-	case *ast.LazyInfixExpression:
+	case *parser.LazyInfixExpression:
 		// Instead of treating `and` and `or` and `;` as ordinary infixes, we want them to
 		// be lazy, to short-circuit. So we do the typechecking by hand at the same time.
 		leftTypecheck := BkEarlyReturn(DUMMY)
@@ -775,7 +774,7 @@ NodeTypeSwitch:
 				cp.VmComeFrom(ifError, ifCouldBeUnsatButIsnt)
 				result.Foldable = lResult.Foldable && rResult.Foldable
 				result.Types = lResult.Types.Union(rResult.Types)
-				if colon, ok := node.Left.(*ast.LazyInfixExpression); ok {
+				if colon, ok := node.Left.(*parser.LazyInfixExpression); ok {
 					if colon.Left.GetToken().Type == token.ELSE {
 						result.Types = rResult.Types.without(SimpleType(values.UNSATISFIED_CONDITIONAL))
 					}
@@ -798,7 +797,7 @@ NodeTypeSwitch:
 				}
 			}
 		}
-	case *ast.ListExpression:
+	case *parser.ListExpression:
 		errCheck := BkEarlyReturn(DUMMY)
 		containedResult := cp.CompileNode(node.List, ctxt.x())
 		if containedResult.Failed {
@@ -815,7 +814,7 @@ NodeTypeSwitch:
 		cp.VmComeFrom(errCheck)
 		result = concResult(values.LIST, containedResult.Foldable)
 		break
-	case *ast.LogExpression:
+	case *parser.LogExpression:
 		newCtxt := ctxt
 		newCtxt.LogFlavor = LF_NONE
 		ifRuntimeError := BkEarlyReturn(DUMMY)
@@ -846,7 +845,7 @@ NodeTypeSwitch:
 			newToken := node.Token
 			newToken.Literal = ":"
 			newToken.Type = token.COLON
-			newNode := &ast.LazyInfixExpression{newToken, node.Left, ":", node.Right}
+			newNode := &parser.LazyInfixExpression{newToken, node.Left, ":", node.Right}
 			result = cp.CompileNode(newNode, newCtxt)
 		case token.PRELOG:
 			result = cp.CompileNode(node.Right, ctxt)
@@ -859,10 +858,10 @@ NodeTypeSwitch:
 		result.Foldable = false
 		cp.VmComeFrom(ifRuntimeError)
 		break
-	case *ast.Nothing:
+	case *parser.Nothing:
 		cp.Put(vm.Asgm, values.C_EMPTY_TUPLE)
 		result = cpResult{Types: AlternateType{FiniteTupleType{}}, Foldable: true}
-	case *ast.PipingExpression: // I.e. -> >> and -> and ?> .
+	case *parser.PipingExpression: // I.e. -> >> and -> and ?> .
 		lResult := cp.CompileNode(node.Left, ctxt.x())
 		if lResult.Failed {
 			return FAIL
@@ -882,7 +881,7 @@ NodeTypeSwitch:
 		}
 		result = cpResult{Types: rResult.Types, Foldable: lResult.Foldable && rResult.Foldable}
 		break
-	case *ast.PrefixExpression:
+	case *parser.PrefixExpression:
 		if node.Token.Type == token.NOT {
 			rResult := cp.CompileNode(node.Args[0], ctxt.x())
 			if rResult.Failed {
@@ -930,7 +929,7 @@ NodeTypeSwitch:
 		if node.Token.Type == token.GLOBAL { // This is in effect a compiler directive, it doesn't need to emit any code besides `ok`, it just mutates the environment.
 			for _, v := range node.Args {
 				switch arg := v.(type) {
-				case *ast.Identifier:
+				case *parser.Identifier:
 					variable, ok := cp.GlobalVars.GetVar(arg.Value)
 					if !ok {
 						cp.Throw("comp/global/global", arg.GetToken())
@@ -1030,20 +1029,20 @@ NodeTypeSwitch:
 			break
 		}
 		cp.Throw("comp/known/prefix", node.GetToken())
-	case *ast.RuneLiteral:
+	case *parser.RuneLiteral:
 		cp.Reserve(values.RUNE, node.Value, node.GetToken())
 		result = concResult(values.RUNE, true)
-	case *ast.SnippetLiteral:
+	case *parser.SnippetLiteral:
 		snF := cp.reserveSnippetFactory(env, node, ctxt)
 		if snF == DUMMY {
 			return FAIL
 		}
 		cp.Put(vm.MkSn, snF)
 		result = concResult(values.SNIPPET, false)
-	case *ast.StringLiteral:
+	case *parser.StringLiteral:
 		cp.Reserve(values.STRING, node.Value, node.GetToken())
 		result = concResult(values.STRING, true)
-	case *ast.SuffixExpression:
+	case *parser.SuffixExpression:
 		resolvingCompiler := cp.getResolvingCompiler(node, ac)
 		if node.GetToken().Type == token.DOTDOTDOT {
 			if len(node.Args) != 1 {
@@ -1071,7 +1070,7 @@ NodeTypeSwitch:
 		if result.Failed {
 			return FAIL
 		}
-	case *ast.TryExpression:
+	case *parser.TryExpression:
 		// We may have a variable to store an identifier in, which may or may not already have
 		// been declared.
 		ident := node.VarName
@@ -1106,7 +1105,7 @@ NodeTypeSwitch:
 		// So now the result is either a `SUCCESSFUL_VALUE` if the operation succeeded, or an
 		// `UNSATISFIED_CONDITIONAL` if it didn't.
 		result = cpResult{Types: AltType(values.UNSATISFIED_CONDITIONAL, values.SUCCESSFUL_VALUE)}
-	case *ast.TypeExpression:
+	case *parser.TypeExpression:
 		resolvingCompiler := cp.getResolvingCompiler(node, ac)
 		if len(node.TypeArgs) == 0 {
 			abType := resolvingCompiler.GetAbstractTypeFromTypeName(node.Operator)
@@ -1147,9 +1146,9 @@ NodeTypeSwitch:
 			}
 			cp.Put(vm.Mpar, argsForVm...)
 		}
-	case *ast.TypePrefixExpression: // TODO --- since this ends up as a PrefixExpression eventually, could it not start off as one?
+	case *parser.TypePrefixExpression: // TODO --- since this ends up as a PrefixExpression eventually, could it not start off as one?
 		if len(node.TypeArgs) == 0 {
-			constructor := &ast.PrefixExpression{node.Token, node.Operator, node.Args}
+			constructor := &parser.PrefixExpression{node.Token, node.Operator, node.Args}
 			resolvingCompiler := cp.getResolvingCompiler(node, ac)
 			if abType := resolvingCompiler.GetAbstractTypeFromTypeName(node.Operator); abType.Len() != 1 {
 				cp.Throw("comp/type/concrete", node.GetToken())
@@ -1160,22 +1159,22 @@ NodeTypeSwitch:
 				return FAIL
 			}
 		} else {
-			typeNode := &ast.TypeExpression{Token: node.Token, Operator: node.Operator, TypeArgs: node.TypeArgs}
-			argsWithType := append([]ast.Node{typeNode}, node.Args...)
+			typeNode := &parser.TypeExpression{Token: node.Token, Operator: node.Operator, TypeArgs: node.TypeArgs}
+			argsWithType := append([]parser.Node{typeNode}, node.Args...)
 
 			node.Token.Literal = node.Token.Literal + "{}" // TODO --- this is heinous. Anything looking at a PrefixExpression should be looking at the operator, not the token literal.
-			constructor := &ast.PrefixExpression{node.Token, node.Operator + "{}", argsWithType}
+			constructor := &parser.PrefixExpression{node.Token, node.Operator + "{}", argsWithType}
 			result = cp.CompileNode(constructor, ctxt)
 			if result.Failed {
 				return FAIL
 			}
 		}
-	case *ast.TypeSuffixExpression: // Clone types can have type suffixes as constructors so you can use them as units.
-		if ty, ok := node.Operator.(*ast.TypeWithName); ok {
+	case *parser.TypeSuffixExpression: // Clone types can have type suffixes as constructors so you can use them as units.
+		if ty, ok := node.Operator.(*parser.TypeWithName); ok {
 			// The fact that we're compiling this node means that we're not in a signature. Hence
 			// the compiler can do what the parser can't, and turn it into a normal suffix expression,
 			// which can then be compiled.
-			suffix := &ast.SuffixExpression{node.Token, ty.OperatorName, node.Args}
+			suffix := &parser.SuffixExpression{node.Token, ty.OperatorName, node.Args}
 			resolvingCompiler := cp.getResolvingCompiler(node, ac)
 			result = resolvingCompiler.CompileNode(suffix, ctxt)
 			if result.Failed {
@@ -1185,7 +1184,7 @@ NodeTypeSwitch:
 			cp.Throw("comp/suffix/b", node.GetToken())
 			return FAIL
 		}
-	case *ast.UnfixExpression:
+	case *parser.UnfixExpression:
 		resolvingCompiler := cp.getResolvingCompiler(node, ac)
 		result = resolvingCompiler.createFunctionCall(resolvingCompiler, node, ctxt.x(), len(node.Namespace) > 0)
 		if result.Failed {
@@ -1219,8 +1218,8 @@ NodeTypeSwitch:
 		return FAIL
 	}
 	// We do a little logging.
-	_, isLazyInfix := node.(*ast.LazyInfixExpression)
-	_, isLoggingOperation := node.(*ast.LogExpression)
+	_, isLazyInfix := node.(*parser.LazyInfixExpression)
+	_, isLoggingOperation := node.(*parser.LogExpression)
 	if !(isLazyInfix || isLoggingOperation) && (cp.trackingOn(ctxt) || cp.autoOn(ctxt)) && ac == DEF {
 		cp.TrackOrLog(vm.TR_RETURN, cp.trackingOn(ctxt), cp.autoOn(ctxt), node.GetToken(), ctxt.FName, cp.That())
 		result.Foldable = false // 'false' because we don't want to fold away the tracking information. TODO --- is this redundant?
@@ -1271,7 +1270,7 @@ func (cp *Compiler) checkInferredTypesAgainstContext(rtnTypes AlternateType, typ
 }
 
 // Function auxiliary to CompileNode that finds the appropriate compiler for a given namespace.
-func (cp *Compiler) getResolvingCompiler(node ast.Node, ac CpAccess) *Compiler {
+func (cp *Compiler) getResolvingCompiler(node parser.Node, ac CpAccess) *Compiler {
 	namespace := []string{}
 	if node.GetToken().Namespace == "" {
 		return cp
@@ -1293,7 +1292,7 @@ func (cp *Compiler) getResolvingCompiler(node ast.Node, ac CpAccess) *Compiler {
 // This function compiles a comma, i.e. the thing that concatenates values into tuples.
 // This needs its own very special logic because the typescheme it returns has to be composed in a different
 // way from all the other operators.
-func (cp *Compiler) compileComma(node *ast.InfixExpression, ctxt Context) cpResult {
+func (cp *Compiler) compileComma(node *parser.InfixExpression, ctxt Context) cpResult {
 	lResult := cp.CompileNode(node.Args[0], ctxt.x())
 	if lResult.Failed {
 		return FAIL
@@ -1413,7 +1412,7 @@ const (
 // (ii) The 'for' loop is acting as a 'while' loop and so just has a conditional.
 // (iii) It doesn't even have a conditional, and can be exited only with break.
 // (iv) The 'for' loop is of the form x::y = range z
-func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) cpResult {
+func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Context) cpResult {
 	tok := &node.Token
 	cp.Cm("Called compileForExpression", tok)
 	// The 'flavor' flag allows us to keep track of what kind of `for` loop we're compiling.
@@ -1453,9 +1452,9 @@ func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) 
 			cp.Throw("comp/for/assign/a", &node.Token)
 			return FAIL
 		}
-		lhsOfBoundVariables := node.BoundVariables.(*ast.AssignmentExpression).Left
-		rhsOfBoundVariables := node.BoundVariables.(*ast.AssignmentExpression).Right
-		boundSig, err := cp.P.RecursivelySlurpSignature(lhsOfBoundVariables, ast.DEFAULT_TYPE_AST)
+		lhsOfBoundVariables := node.BoundVariables.(*parser.AssignmentExpression).Left
+		rhsOfBoundVariables := node.BoundVariables.(*parser.AssignmentExpression).Right
+		boundSig, err := cp.P.RecursivelySlurpSignature(lhsOfBoundVariables, parser.DEFAULT_TYPE_AST)
 		if err != nil {
 			cp.Throw("comp/for/bound/a", node.BoundVariables.GetToken())
 			return FAIL
@@ -1479,7 +1478,7 @@ func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) 
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
 			var types AlternateType
-			if pair.VarType == ast.DEFAULT_TYPE_AST {
+			if pair.VarType == parser.DEFAULT_TYPE_AST {
 				types = typesAtIndex(boundVariableTypes, i)
 			} else {
 				types = cp.GetAlternateTypeFromTypeAst(pair.VarType)
@@ -1499,9 +1498,9 @@ func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) 
 			cp.Throw("comp/for/assign/b", &node.Token)
 			return FAIL
 		}
-		lhsOfInitVariables := node.Initializer.(*ast.AssignmentExpression).Left
-		rhsOfInitVariables := node.Initializer.(*ast.AssignmentExpression).Right
-		indexSig, err := cp.P.RecursivelySlurpSignature(lhsOfInitVariables, ast.DEFAULT_TYPE_AST)
+		lhsOfInitVariables := node.Initializer.(*parser.AssignmentExpression).Left
+		rhsOfInitVariables := node.Initializer.(*parser.AssignmentExpression).Right
+		indexSig, err := cp.P.RecursivelySlurpSignature(lhsOfInitVariables, parser.DEFAULT_TYPE_AST)
 		if err != nil {
 			cp.Throw("comp/for/bound/b", node.Initializer.GetToken())
 			return FAIL
@@ -1524,7 +1523,7 @@ func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) 
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
 			var types AlternateType
-			if pair.VarType == ast.DEFAULT_TYPE_AST {
+			if pair.VarType == parser.DEFAULT_TYPE_AST {
 				types = typesAtIndex(indexVariableTypes, i)
 			} else {
 				types = cp.GetAlternateTypeFromTypeAst(pair.VarType)
@@ -1536,17 +1535,17 @@ func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) 
 		flavor = INFINITE_LOOP
 	case node.ConditionOrRange.GetToken().Type == token.ASSIGN: // Then we should have a 'range' expression, which we can deconstruct.
 		flavor = RANGE
-		pairOfIdentifiers := node.ConditionOrRange.(*ast.AssignmentExpression).Left
-		rangeExpression := node.ConditionOrRange.(*ast.AssignmentExpression).Right
-		if pairOfIdentifiers, ok := pairOfIdentifiers.(*ast.InfixExpression); ok && pairOfIdentifiers.Operator == "::" {
+		pairOfIdentifiers := node.ConditionOrRange.(*parser.AssignmentExpression).Left
+		rangeExpression := node.ConditionOrRange.(*parser.AssignmentExpression).Right
+		if pairOfIdentifiers, ok := pairOfIdentifiers.(*parser.InfixExpression); ok && pairOfIdentifiers.Operator == "::" {
 			var leftName, rightName string
-			if leftId, ok := pairOfIdentifiers.Args[0].(*ast.Identifier); ok {
+			if leftId, ok := pairOfIdentifiers.Args[0].(*parser.Identifier); ok {
 				leftName = leftId.Value
 			} else {
 				cp.Throw("comp/for/range/a", node.GetToken())
 				return FAIL
 			}
-			if rightId, ok := pairOfIdentifiers.Args[2].(*ast.Identifier); ok {
+			if rightId, ok := pairOfIdentifiers.Args[2].(*parser.Identifier); ok {
 				rightName = rightId.Value
 			} else {
 				cp.Throw("comp/for/range/b", node.GetToken())
@@ -1558,8 +1557,8 @@ func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) 
 				cp.Throw("comp/for/range/discard", node.GetToken())
 				return FAIL
 			}
-			var rangeOver ast.Node
-			if rangeExpression, ok := rangeExpression.(*ast.PrefixExpression); ok && rangeExpression.Operator == "range" {
+			var rangeOver parser.Node
+			if rangeExpression, ok := rangeExpression.(*parser.PrefixExpression); ok && rangeExpression.Operator == "range" {
 				rangeOver = rangeExpression.Args[0]
 				rangeCpResult := cp.CompileNode(rangeOver, ctxt.x())
 				if len(rangeCpResult.Types.intersect(cp.Common.IsRangeable)) == 0 && !rangeCpResult.Types.Contains(values.TUPLE) { // Note that 'Contains' special-cases tuples.
@@ -1580,7 +1579,7 @@ func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) 
 						cp.Throw("comp/for/exists/key", rangeOver.GetToken(), leftName)
 						return FAIL
 					}
-					cp.AddThatAsVariable(newEnv, leftName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken()) // TODO --- narrow down.
+					cp.AddThatAsVariable(newEnv, leftName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken()) // TODO --- narrow down.
 				}
 				if !keysOnly {
 					cp.Reserve(values.UNDEFINED_TYPE, nil, rangeOver.GetToken())
@@ -1590,7 +1589,7 @@ func (cp *Compiler) compileForExpression(node *ast.ForExpression, ctxt Context) 
 						cp.Throw("comp/for/exists/value", rangeOver.GetToken(), rightName)
 						return FAIL
 					}
-					cp.AddThatAsVariable(newEnv, rightName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken())
+					cp.AddThatAsVariable(newEnv, rightName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken())
 				}
 			}
 		} else {
@@ -1767,7 +1766,7 @@ func (cp *Compiler) forDataExists() bool {
 // to produce a lambda from the lambda factory at runtime.
 // TODO --- this is inside out, we should construct the factory if we need it rather than throwing it
 // away if we don't.
-func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.FuncExpression, tok *token.Token) bool {
+func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *parser.FuncExpression, tok *token.Token) bool {
 	cp.Cm("Compiling lambda", tok)
 	LF := &vm.LambdaFactory{Model: &vm.Lambda{}}
 	newEnv := NewEnvironment()
@@ -1780,14 +1779,14 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 	params := dtypes.Set[string]{}
 	for _, pair := range nameSig {
 		params = params.Add(pair.VarName)
-		if ast.IsAnyNullableType(pair.VarType) {
+		if parser.IsAnyNullableType(pair.VarType) {
 			LF.Model.Sig = append(LF.Model.Sig, values.AbstractType{nil}) // 'nil' in a sig in this context means we don't need to typecheck.
 		} else {
 			LF.Model.Sig = append(LF.Model.Sig, cp.GetAbstractTypeFromAstType(pair.VarType))
 		}
 	}
 	LF.Model.Tok = &fnNode.Token
-	captures := ast.GetVariableNames(fnNode)
+	captures := parser.GetVariableNames(fnNode)
 	for k := range captures {
 		if params.Contains(k) {
 			continue
@@ -1811,7 +1810,7 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 	}
 	LF.Model.CapturesEnd = cp.MemTop()
 
-	potentialFuncs := ast.GetPrefixes(fnNode)
+	potentialFuncs := parser.GetPrefixes(fnNode)
 	for k := range potentialFuncs {
 		v, ok := env.GetVar(k)
 		if ok {
@@ -1891,9 +1890,9 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *ast.Fu
 
 // Compiles a `given` block by calling the auxiliary function `getPartsOfGiven`, and then calling
 // `compileOneGivenChunk“ one by one on the parts it returns.
-func (cp *Compiler) CompileGivenBlock(given ast.Node, ctxt Context) bool {
+func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 	cp.Cm("Compiling 'given' block.", given.GetToken())
-	nameToNode := map[string]*ast.AssignmentExpression{}
+	nameToNode := map[string]*parser.AssignmentExpression{}
 	nameGraph := dtypes.NewDigraph()
 	chunks := cp.SplitOnNewlines(given)
 	for _, chunk := range chunks {
@@ -1901,9 +1900,9 @@ func (cp *Compiler) CompileGivenBlock(given ast.Node, ctxt Context) bool {
 			cp.Throw("comp/given/assign", chunk.GetToken())
 			return false
 		}
-		assEx := chunk.(*ast.AssignmentExpression)
-		lhsSig, _ := cp.P.RecursivelySlurpSignature(assEx.Left, ast.DEFAULT_TYPE_AST)
-		rhs := ast.GetVariableNames(assEx.Right)
+		assEx := chunk.(*parser.AssignmentExpression)
+		lhsSig, _ := cp.P.RecursivelySlurpSignature(assEx.Left, parser.DEFAULT_TYPE_AST)
+		rhs := parser.GetVariableNames(assEx.Right)
 		for _, pair := range lhsSig {
 			_, exists := ctxt.Env.GetVar(pair.VarName)
 			if exists {
@@ -1911,7 +1910,7 @@ func (cp *Compiler) CompileGivenBlock(given ast.Node, ctxt Context) bool {
 				return false
 			}
 			nameToNode[pair.VarName] = assEx
-			if reflect.TypeOf(assEx.Right) == reflect.TypeFor[*ast.FuncExpression]() {
+			if reflect.TypeOf(assEx.Right) == reflect.TypeFor[*parser.FuncExpression]() {
 				if len(rhs) == 0 { // Then the lambda has no captures and so is a constant.
 					cp.Cm("Reserving dummy local function "+text.Emph(pair.VarName)+".", assEx.GetToken())
 					cp.Reserve(values.FUNC, nil, chunk.GetToken())
@@ -1951,26 +1950,26 @@ func (cp *Compiler) CompileGivenBlock(given ast.Node, ctxt Context) bool {
 
 // Function auxiliary to the previous one, `CompileGivenBlock`, to break down a `given` block into its
 // component declarations so they can be passed one by one to the next function, `compileOneGivenBlock`.
-func (cp *Compiler) SplitOnNewlines(block ast.Node) []ast.Node {
-	result := []ast.Node{}
+func (cp *Compiler) SplitOnNewlines(block parser.Node) []parser.Node {
+	result := []parser.Node{}
 	switch branch := block.(type) {
-	case *ast.LazyInfixExpression:
+	case *parser.LazyInfixExpression:
 		if branch.Token.Literal == ";" {
 			result = cp.SplitOnNewlines(branch.Left)
 			rhs := cp.SplitOnNewlines(branch.Right)
 			result = append(result, rhs...)
 		}
 	default:
-		result = []ast.Node{block}
+		result = []parser.Node{block}
 	}
 	return result
 }
 
 // As it says, compiles one expression from the `given` block. Called by `CompileGivenBlock`.
-func (cp *Compiler) compileOneGivenChunk(node *ast.AssignmentExpression, ctxt Context) bool {
+func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt Context) bool {
 	cp.Cm("Compiling one 'given' block assignment.", node.GetToken())
 	oldThis, thisExists := ctxt.Env.GetVar("this")
-	sig, err := cp.P.RecursivelySlurpSignature(node.Left, ast.ANY_NULLABLE_TYPE_AST)
+	sig, err := cp.P.RecursivelySlurpSignature(node.Left, parser.ANY_NULLABLE_TYPE_AST)
 	if err != nil {
 		cp.Throw("comp/assign/lhs/b", node.Left.GetToken())
 		return false
@@ -2000,7 +1999,7 @@ func (cp *Compiler) compileOneGivenChunk(node *ast.AssignmentExpression, ctxt Co
 			}
 		}
 		var typeToUse AlternateType // TODO: we can extract more meaningful information about the tuple from the types.
-		if t, ok := pair.VarType.(*ast.TypeWithName); ok && t.OperatorName == "tuple" {
+		if t, ok := pair.VarType.(*parser.TypeWithName); ok && t.OperatorName == "tuple" {
 			typeToUse = cp.Common.AnyTuple
 		} else {
 			typeToUse = typesAtIndex(result.Types, i)
@@ -2059,7 +2058,7 @@ func (cp *Compiler) getLambdaStart() uint32 {
 }
 
 // A function for making snippet factories.
-func (cp *Compiler) reserveSnippetFactory(env *Environment, node *ast.SnippetLiteral, ctxt Context) uint32 {
+func (cp *Compiler) reserveSnippetFactory(env *Environment, node *parser.SnippetLiteral, ctxt Context) uint32 {
 	cp.Cm("Reserving snippet factory.", &node.Token)
 	snF := &vm.SnippetFactory{}
 	snF.Bindle = cp.compileSnippet(node.GetToken(), env, node.Values, ctxt)
@@ -2072,7 +2071,7 @@ func (cp *Compiler) reserveSnippetFactory(env *Environment, node *ast.SnippetLit
 
 // Reserves information to be emitted when a typecheck fails at runtime.
 // TODO --- move to intializer.
-func (cp *Compiler) ReserveTypeCheckError(node ast.Node, typename string, valLoc uint32) uint32 {
+func (cp *Compiler) ReserveTypeCheckError(node parser.Node, typename string, valLoc uint32) uint32 {
 	cp.Cm("Reserving typeCheckError factory.", node.GetToken())
 	err := &vm.TypeCheckError{Tok: node.GetToken(), Condition: cp.P.PrettyPrint(node),
 		Type: typename, Value: valLoc}
@@ -2081,7 +2080,7 @@ func (cp *Compiler) ReserveTypeCheckError(node ast.Node, typename string, valLoc
 }
 
 // Compiles a test for equality.
-func (cp *Compiler) compileEquals(node *ast.ComparisonExpression, ctxt Context) cpResult {
+func (cp *Compiler) compileEquals(node *parser.ComparisonExpression, ctxt Context) cpResult {
 	lResult := cp.CompileNode(node.Left, ctxt.x())
 	if lResult.Types.isOnly(values.ERROR) {
 		cp.Throw("comp/error/eq/a", node.GetToken())
@@ -2136,7 +2135,7 @@ func (cp *Compiler) compileEquals(node *ast.ComparisonExpression, ctxt Context) 
 }
 
 // Compiles a logging expression.
-func (cp *Compiler) compileLog(node *ast.LogExpression, ctxt Context) (uint32, bool, bool) {
+func (cp *Compiler) compileLog(node *parser.LogExpression, ctxt Context) (uint32, bool, bool) {
 	output := cp.Reserve(values.STRING, "", &node.Token)
 	first := true
 	logStr := node.Value
@@ -2182,7 +2181,7 @@ func (cp *Compiler) compileLog(node *ast.LogExpression, ctxt Context) (uint32, b
 }
 
 // The various 'piping operators'.
-func (cp *Compiler) compilePipe(lhsTypes AlternateType, lhsConst bool, rhs ast.Node, env *Environment, ctxt Context) cpResult {
+func (cp *Compiler) compilePipe(lhsTypes AlternateType, lhsConst bool, rhs parser.Node, env *Environment, ctxt Context) cpResult {
 	var envWithThat *Environment
 	// If we have an identifier `foo`, we desugar it into `foo(that)`.
 	rhs = desugar(rhs)
@@ -2198,7 +2197,7 @@ func (cp *Compiler) compilePipe(lhsTypes AlternateType, lhsConst bool, rhs ast.N
 	return cp.CompileNode(rhs, newContext)
 }
 
-func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool, rhs ast.Node, env *Environment, ctxt Context, isFilter bool) cpResult {
+func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool, rhs parser.Node, env *Environment, ctxt Context, isFilter bool) cpResult {
 	tok := rhs.GetToken()
 	if isFilter {
 		cp.Cm("Compiling filter.", tok)
@@ -2236,7 +2235,7 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 	}
 	rhs = desugar(rhs)
 	thatLoc = cp.Reserve(values.UNDEFINED_TYPE, DUMMY, rhs.GetToken())
-	envWithThat = &Environment{Data: map[string]Variable{"that": {MLoc: cp.That(), Access: VERY_LOCAL_VARIABLE, Types: cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)}}, Ext: env}
+	envWithThat = &Environment{Data: map[string]Variable{"that": {MLoc: cp.That(), Access: VERY_LOCAL_VARIABLE, Types: cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)}}, Ext: env}
 	cp.Put(vm.Asgm, values.C_ZERO)
 	counter := cp.That()
 	cp.Put(vm.Asgm, values.C_EMPTY_TUPLE)
@@ -2297,16 +2296,16 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 
 // This supports the piping functions by desugaring things of the form `foo`
 // into `foo(that)`
-func desugar(node ast.Node) ast.Node {
-	if ident, ok := node.(*ast.Identifier); ok && !(ident.Value == "that") {
-		thatIdent := &ast.Identifier{token.Token{}, "that"}
-		prefix := &ast.PrefixExpression{ident.Token, ident.Value, []ast.Node{thatIdent}}
+func desugar(node parser.Node) parser.Node {
+	if ident, ok := node.(*parser.Identifier); ok && !(ident.Value == "that") {
+		thatIdent := &parser.Identifier{token.Token{}, "that"}
+		prefix := &parser.PrefixExpression{ident.Token, ident.Value, []parser.Node{thatIdent}}
 		return prefix
 	}
 	return node
 }
 
-func (cp *Compiler) compileSnippet(tok *token.Token, newEnv *Environment, nodes []ast.Node, ctxt Context) *values.SnippetBindle {
+func (cp *Compiler) compileSnippet(tok *token.Token, newEnv *Environment, nodes []parser.Node, ctxt Context) *values.SnippetBindle {
 	cp.Cm("Compile snippet", tok)
 	bindle := values.SnippetBindle{}
 	bindle.CodeLoc = cp.CodeTop()
@@ -2325,7 +2324,7 @@ func (cp *Compiler) compileSnippet(tok *token.Token, newEnv *Environment, nodes 
 			}
 			bindle.ValueLocs = append(bindle.ValueLocs, val)
 		} else {
-			cp.Reserve(values.STRING, node.(*ast.StringLiteral).Value, tok)
+			cp.Reserve(values.STRING, node.(*parser.StringLiteral).Value, tok)
 			bindle.ValueLocs = append(bindle.ValueLocs, cp.That())
 		}
 	}
@@ -2409,13 +2408,13 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 		cp.Throw("comp/typecheck/values/a", tok)
 		return errorCheck
 	}
-	if tye, ok := sig.GetVarType(0).(*ast.TypeExpression); ok && tye.TypeArgs != nil {
+	if tye, ok := sig.GetVarType(0).(*parser.TypeExpression); ok && tye.TypeArgs != nil {
 		cp.CompileNode(tye, ctxt)
 		typeLoc := cp.That()
 		cp.Emit(vm.Qtyl, loc, typeLoc, DUMMY)
 		checkParameterizedType = bkGoto(cp.CodeTop() - 1)
 	}
-	if _, ok := sig.GetVarType(0).(*ast.TypeExpression); ok && len(acceptedSingles) != len(singles) {
+	if _, ok := sig.GetVarType(0).(*parser.TypeExpression); ok && len(acceptedSingles) != len(singles) {
 		checkSingleType = cp.emitTypeComparison(sig.GetVarType(0), loc, tok)
 	}
 	if insert {

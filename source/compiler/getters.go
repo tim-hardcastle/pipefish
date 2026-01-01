@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/lexer"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/values"
 	"github.com/tim-hardcastle/pipefish/source/vm"
@@ -118,7 +118,7 @@ func (cp *Compiler) alternateTypeIsOnlyAssortedStructs(aT AlternateType) bool {
 	return true
 }
 
-func (cp *Compiler) ReturnSigToAlternateType(sig ast.AstSig) FiniteTupleType {
+func (cp *Compiler) ReturnSigToAlternateType(sig parser.AstSig) FiniteTupleType {
 	if sig == nil {
 		return nil
 	}
@@ -129,7 +129,7 @@ func (cp *Compiler) ReturnSigToAlternateType(sig ast.AstSig) FiniteTupleType {
 	return ftt
 }
 
-func (cp *Compiler) rtnTypesToTypeScheme(rtnSig ast.AbstractSig) AlternateType {
+func (cp *Compiler) rtnTypesToTypeScheme(rtnSig parser.AbstractSig) AlternateType {
 	if len(rtnSig) == 0 {
 		return cp.Common.AnyTypeScheme
 	}
@@ -151,7 +151,7 @@ func (cp *Compiler) getTypes(s signature, i int) AlternateType {
 		return AltType()
 	}
 	switch typeRep := typeRep.(type) {
-	case ast.TypeNode:
+	case parser.TypeNode:
 		return cp.GetAlternateTypeFromTypeAst(typeRep)
 	case AlternateType:
 		return typeRep
@@ -181,8 +181,8 @@ func getVarNames(sig signature) string {
 	return strings.Join(names, ", ")
 }
 
-func (cp *Compiler) GetAlternateTypeFromTypeAst(typeNode ast.TypeNode) AlternateType {
-	if typeNode, ok := typeNode.(*ast.TypeDotDotDot); ok {
+func (cp *Compiler) GetAlternateTypeFromTypeAst(typeNode parser.TypeNode) AlternateType {
+	if typeNode, ok := typeNode.(*parser.TypeDotDotDot); ok {
 		return AlternateType{TypedTupleType{cp.GetAlternateTypeFromTypeAst(typeNode.Right)}}
 	}
 	abType := cp.GetAbstractTypeFromAstType(typeNode)
@@ -222,12 +222,12 @@ var (
 	illegalInRepl        = dtypes.MakeFromSlice([]string{"cmd", "const", "def", "external", "global", "golang", "import", "newtype", "private", "var", "\\\\", "~~"})
 	// Used by the syntax highlighter; should not be used by anything else without much forethought.
 	// TODO --- there must be some principled way to generate this from something else.
-	nativeTypes          = dtypes.MakeFromSlice([]string{"ok", "int", "string", "rune", "bool", "float", "error", "type", "pair", "list", "map", "set", "label", "func", "null", "snippet", "secret", "clone", "clones", "enum", "struct", "any", "ref", "tuple"})
-	enumlike, _          = regexp.Compile(`^[A-Z][A-Z_]+$`)
-	typelike, _          = regexp.Compile(`^[A-Z][A-Z]*[a-z]+[A-Za-z]*$`)
-	bracketMatch         = map[rune]rune{'(': ')', '[': ']', '{': '}'}
-	leftBrackets         = dtypes.MakeFromSlice([]rune{'(', '[', '{'})
-	rightBrackets        = dtypes.MakeFromSlice([]rune{')', ']', '}'})
+	nativeTypes   = dtypes.MakeFromSlice([]string{"ok", "int", "string", "rune", "bool", "float", "error", "type", "pair", "list", "map", "set", "label", "func", "null", "snippet", "secret", "clone", "clones", "enum", "struct", "any", "ref", "tuple"})
+	enumlike, _   = regexp.Compile(`^[A-Z][A-Z_]+$`)
+	typelike, _   = regexp.Compile(`^[A-Z][A-Z]*[a-z]+[A-Za-z]*$`)
+	bracketMatch  = map[rune]rune{'(': ')', '[': ']', '{': '}'}
+	leftBrackets  = dtypes.MakeFromSlice([]rune{'(', '[', '{'})
+	rightBrackets = dtypes.MakeFromSlice([]rune{')', ']', '}'})
 )
 
 // We can't just lex it beause we need the whitespace intact. But we can

@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/token"
@@ -34,31 +33,31 @@ func (p *Parser) didBling(identifier string, pos IdentifierPosition) bool {
 }
 
 // TODO --- at this point this is used only once to do something which isn't actually this hard.
-func (p *Parser) extractSig(args []ast.Node) ast.AstSig {
-	sig := ast.AstSig{}
-	if len(args) == 0 || (len(args) == 1 && reflect.TypeOf(args[0]) == reflect.TypeOf(&ast.Nothing{})) {
+func (p *Parser) extractSig(args []Node) AstSig {
+	sig := AstSig{}
+	if len(args) == 0 || (len(args) == 1 && reflect.TypeOf(args[0]) == reflect.TypeOf(&Nothing{})) {
 		return sig
 	}
 	backTrackTo := 0
 	for j, arg := range args {
 		varName := ""
-		var varType ast.TypeNode
+		var varType TypeNode
 		switch arg := arg.(type) {
-		case *ast.TypeSuffixExpression:
+		case *TypeSuffixExpression:
 			switch inner := arg.Args[0].(type) {
-			case *ast.Identifier:
+			case *Identifier:
 				varName = inner.Value
 				varType = arg.Operator
 			default:
 				p.Throw("parse/sig/ident/a", inner.GetToken())
 				return nil
 			}
-		case *ast.Identifier:
+		case *Identifier:
 			varName = arg.Value
 			varType = nil
-		case *ast.PrefixExpression:
+		case *PrefixExpression:
 			switch inner := arg.Args[0].(type) {
-			case *ast.TypeExpression:
+			case *TypeExpression:
 				varName = arg.Operator
 				astType := p.ToAstType(inner)
 				if astType == nil {
@@ -69,7 +68,7 @@ func (p *Parser) extractSig(args []ast.Node) ast.AstSig {
 				p.Throw("parse/sig/ident/d", inner.GetToken())
 				return nil
 			}
-			sig = append(sig, ast.NameTypeAstPair{VarName: varName, VarType: varType})
+			sig = append(sig, NameTypeAstPair{VarName: varName, VarType: varType})
 			if len(arg.Args) > 1 {
 				kludge := p.extractSig(arg.Args[1:])
 				sig = append(sig, kludge...)
@@ -81,11 +80,11 @@ func (p *Parser) extractSig(args []ast.Node) ast.AstSig {
 		}
 		if j == len(args)-1 && varType == nil {
 			for i := backTrackTo; i < len(sig); i++ {
-				sig[i].VarType = ast.ANY_NULLABLE_TYPE_AST
+				sig[i].VarType = ANY_NULLABLE_TYPE_AST
 			}
-			varType = ast.ANY_NULLABLE_TYPE_AST
+			varType = ANY_NULLABLE_TYPE_AST
 		}
-		sig = append(sig, ast.NameTypeAstPair{VarName: varName, VarType: varType})
+		sig = append(sig, NameTypeAstPair{VarName: varName, VarType: varType})
 		if sig[len(sig)-1].VarType != nil {
 			backTrackTo = len(sig)
 		}
@@ -94,8 +93,8 @@ func (p *Parser) extractSig(args []ast.Node) ast.AstSig {
 }
 
 // TODO --- this function is a refactoring patch over RecursivelySlurpSignature and they could probably be more sensibly combined in a any function.
-func (p *Parser) getSigFromArgs(args []ast.Node, dflt ast.TypeNode) (ast.AstSig, *err.Error) {
-	sig := ast.AstSig{}
+func (p *Parser) getSigFromArgs(args []Node, dflt TypeNode) (AstSig, *err.Error) {
+	sig := AstSig{}
 	for _, arg := range args {
 		partialSig, err := p.RecursivelySlurpSignature(arg, dflt)
 		if err != nil {
@@ -106,9 +105,9 @@ func (p *Parser) getSigFromArgs(args []ast.Node, dflt ast.TypeNode) (ast.AstSig,
 	return sig, nil
 }
 
-func (p *Parser) GetVariablesFromSig(node ast.Node) []string {
+func (p *Parser) GetVariablesFromSig(node Node) []string {
 	result := []string{}
-	sig, e := p.RecursivelySlurpSignature(node, ast.DUMMY_TYPE_AST)
+	sig, e := p.RecursivelySlurpSignature(node, DUMMY_TYPE_AST)
 	if e != nil {
 		return result
 	}
@@ -118,7 +117,7 @@ func (p *Parser) GetVariablesFromSig(node ast.Node) []string {
 	return result
 }
 
-func (p *Parser) GetVariablesFromAstSig(sig ast.AstSig) []string {
+func (p *Parser) GetVariablesFromAstSig(sig AstSig) []string {
 	result := []string{}
 	for _, pair := range sig {
 		result = append(result, pair.VarName)
@@ -127,16 +126,16 @@ func (p *Parser) GetVariablesFromAstSig(sig ast.AstSig) []string {
 }
 
 // TODO --- is there any sensible alternative to this?
-func (p *Parser) RecursivelySlurpSignature(node ast.Node, dflt ast.TypeNode) (ast.AstSig, *err.Error) {
+func (p *Parser) RecursivelySlurpSignature(node Node, dflt TypeNode) (AstSig, *err.Error) {
 	switch typednode := node.(type) {
-	case *ast.InfixExpression:
+	case *InfixExpression:
 		switch {
 		case typednode.Token.Type == token.COMMA:
 			RHS, err := p.RecursivelySlurpSignature(typednode.Args[2], dflt)
 			if err != nil {
 				return nil, err
 			}
-			LHS, err := p.RecursivelySlurpSignature(typednode.Args[0], RHS.GetVarType(0).(ast.TypeNode))
+			LHS, err := p.RecursivelySlurpSignature(typednode.Args[0], RHS.GetVarType(0).(TypeNode))
 			if err != nil {
 				return nil, err
 			}
@@ -146,11 +145,11 @@ func (p *Parser) RecursivelySlurpSignature(node ast.Node, dflt ast.TypeNode) (as
 			if err != nil {
 				return nil, err
 			}
-			return ast.AstSig{ast.NameTypeAstPair{VarName: namespacedIdent, VarType: dflt}}, nil
+			return AstSig{NameTypeAstPair{VarName: namespacedIdent, VarType: dflt}}, nil
 		default:
 			return nil, newError("parse/sig/b", typednode.GetToken())
 		}
-	case *ast.TypeSuffixExpression:
+	case *TypeSuffixExpression:
 		LHS, err := p.getSigFromArgs(typednode.Args, typednode.Operator)
 		if err != nil {
 			return nil, err
@@ -159,21 +158,21 @@ func (p *Parser) RecursivelySlurpSignature(node ast.Node, dflt ast.TypeNode) (as
 			LHS[k].VarType = typednode.Operator
 		}
 		return LHS, nil
-	case *ast.SuffixExpression:
+	case *SuffixExpression:
 		return nil, newError("parse/sig/c", typednode.GetToken())
-	case *ast.Identifier:
-		return ast.AstSig{ast.NameTypeAstPair{VarName: typednode.Value, VarType: dflt}}, nil
-	case *ast.PrefixExpression:
+	case *Identifier:
+		return AstSig{NameTypeAstPair{VarName: typednode.Value, VarType: dflt}}, nil
+	case *PrefixExpression:
 		// We may be declaring a parameter which has the same name as a function --- e.g. 'f'.
 		// The parser will have parsed this as a prefix expression if it was followed by a type, e.g.
 		// 'foo (f func) : <function body>'.
-		return ast.AstSig{ast.NameTypeAstPair{VarName: typednode.Operator, VarType: dflt}}, nil
+		return AstSig{NameTypeAstPair{VarName: typednode.Operator, VarType: dflt}}, nil
 
 	}
 	return nil, newError("parse/sig/a", node.GetToken())
 }
 
-func recursivelySlurpNamespace(root *ast.InfixExpression) (string, *err.Error) {
+func recursivelySlurpNamespace(root *InfixExpression) (string, *err.Error) {
 	if len(root.Args) != 3 {
 		return "", newError("parse/sig.namespace/a", root.Args[1].GetToken())
 	}
@@ -184,9 +183,9 @@ func recursivelySlurpNamespace(root *ast.InfixExpression) (string, *err.Error) {
 	RHS := ""
 	var err *err.Error
 	switch leftNode := root.Args[0].(type) {
-	case *ast.Identifier:
+	case *Identifier:
 		LHS = leftNode.Value
-	case *ast.InfixExpression:
+	case *InfixExpression:
 		LHS, err = recursivelySlurpNamespace(leftNode)
 		if err != nil {
 			return "", err
@@ -195,9 +194,9 @@ func recursivelySlurpNamespace(root *ast.InfixExpression) (string, *err.Error) {
 		return "", newError("parse/sig.namespace/c", root.Args[1].GetToken())
 	}
 	switch rightNode := root.Args[2].(type) {
-	case *ast.Identifier:
+	case *Identifier:
 		RHS = rightNode.Value
-	case *ast.InfixExpression:
+	case *InfixExpression:
 		RHS, err = recursivelySlurpNamespace(rightNode)
 		if err != nil {
 			return "", err
@@ -208,9 +207,9 @@ func recursivelySlurpNamespace(root *ast.InfixExpression) (string, *err.Error) {
 	return LHS + "." + RHS, nil
 }
 
-func (p *Parser) RecursivelySlurpReturnTypes(node ast.Node) ast.AstSig {
+func (p *Parser) RecursivelySlurpReturnTypes(node Node) AstSig {
 	switch typednode := node.(type) {
-	case *ast.InfixExpression:
+	case *InfixExpression:
 		switch {
 		case typednode.Token.Type == token.COMMA:
 			LHS := p.RecursivelySlurpReturnTypes(typednode.Args[0])
@@ -219,14 +218,14 @@ func (p *Parser) RecursivelySlurpReturnTypes(node ast.Node) ast.AstSig {
 		default:
 			p.Throw("parse/ret/a", typednode.GetToken())
 		}
-	case *ast.TypeExpression:
+	case *TypeExpression:
 		if typednode.TypeArgs == nil {
-			return ast.AstSig{ast.NameTypeAstPair{VarName: "", VarType: &ast.TypeWithName{typednode.Token, typednode.Operator}}}
+			return AstSig{NameTypeAstPair{VarName: "", VarType: &TypeWithName{typednode.Token, typednode.Operator}}}
 		}
-		return ast.AstSig{ast.NameTypeAstPair{VarName: "", VarType: typednode}}
-	case *ast.SuffixExpression:
+		return AstSig{NameTypeAstPair{VarName: "", VarType: typednode}}
+	case *SuffixExpression:
 		if typednode.Operator == "?" || typednode.Operator == "!" {
-			return ast.AstSig{ast.NameTypeAstPair{VarName: "", VarType: &ast.TypeSuffix{typednode.Token, typednode.Operator, p.RecursivelySlurpReturnTypes(typednode.Args[0])[0].VarType}}}
+			return AstSig{NameTypeAstPair{VarName: "", VarType: &TypeSuffix{typednode.Token, typednode.Operator, p.RecursivelySlurpReturnTypes(typednode.Args[0])[0].VarType}}}
 		}
 	default:
 		println("node is", typednode.String(), reflect.TypeOf(typednode).String())
@@ -235,11 +234,11 @@ func (p *Parser) RecursivelySlurpReturnTypes(node ast.Node) ast.AstSig {
 	return nil
 }
 
-// Converts type expressions to ast.TypeNodes, i.e. the sort of description of a type
+// Converts type expressions to TypeNodes, i.e. the sort of description of a type
 // that we should be able to find in a function signature.
-func (p *Parser) ToAstType(te *ast.TypeExpression) ast.TypeNode {
+func (p *Parser) ToAstType(te *TypeExpression) TypeNode {
 	if len(te.TypeArgs) == 0 {
-		return &ast.TypeWithName{Token: te.Token, OperatorName: te.Operator}
+		return &TypeWithName{Token: te.Token, OperatorName: te.Operator}
 	}
 	// This is either a bool, float, int, rune, string, type or enum literal, in which
 	// case the whole thing should be, OR it's a type with parameters, or it's not well-
@@ -251,45 +250,45 @@ func (p *Parser) ToAstType(te *ast.TypeExpression) ast.TypeNode {
 	return p.toTypeWithParameters(te)
 }
 
-func (p *Parser) toTypeWithArguments(te *ast.TypeExpression) *ast.TypeWithArguments {
-	result := ast.TypeWithArguments{te.Token, te.Operator, []*ast.Argument{}}
+func (p *Parser) toTypeWithArguments(te *TypeExpression) *TypeWithArguments {
+	result := TypeWithArguments{te.Token, te.Operator, []*Argument{}}
 	for _, arg := range te.TypeArgs {
 		v := p.findTypeArgument(arg)
 		if v.T == values.ERROR {
 			return &result
 		}
-		result.Arguments = append(result.Arguments, &ast.Argument{*arg.GetToken(), v.T, v.V})
+		result.Arguments = append(result.Arguments, &Argument{*arg.GetToken(), v.T, v.V})
 	}
 	return &result
 }
 
-func (p *Parser) toTypeWithParameters(te *ast.TypeExpression) *ast.TypeWithParameters {
+func (p *Parser) toTypeWithParameters(te *TypeExpression) *TypeWithParameters {
 	sig := p.extractSig(te.TypeArgs)
-	params := []*ast.Parameter{}
+	params := []*Parameter{}
 	for _, pair := range sig {
-		newParameter := &ast.Parameter{pair.VarName, pair.VarType.String()}
+		newParameter := &Parameter{pair.VarName, pair.VarType.String()}
 		params = append(params, newParameter)
 	}
-	return &ast.TypeWithParameters{te.Token, te.Operator, params}
+	return &TypeWithParameters{te.Token, te.Operator, params}
 }
 
-func (p *Parser) findTypeArgument(arg ast.Node) values.Value {
+func (p *Parser) findTypeArgument(arg Node) values.Value {
 	switch arg := arg.(type) {
-	case *ast.Identifier:
+	case *Identifier:
 		if p.IsEnumElement(arg.Value) {
 			return values.Value{0, arg.Value} // We don't know the enum types yet so we kludge them in later.
 		}
-	case *ast.BooleanLiteral:
+	case *BooleanLiteral:
 		return values.Value{values.BOOL, arg.Value}
-	case *ast.FloatLiteral:
+	case *FloatLiteral:
 		return values.Value{values.FLOAT, arg.Value}
-	case *ast.IntegerLiteral:
+	case *IntegerLiteral:
 		return values.Value{values.INT, arg.Value}
-	case *ast.RuneLiteral:
+	case *RuneLiteral:
 		return values.Value{values.RUNE, arg.Value}
-	case *ast.StringLiteral:
+	case *StringLiteral:
 		return values.Value{values.STRING, arg.Value}
-	case *ast.TypeExpression:
+	case *TypeExpression:
 		return values.Value{values.TYPE, p.ToAstType(arg)}
 	}
 	return values.Value{values.ERROR, nil}

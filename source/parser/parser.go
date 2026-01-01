@@ -6,7 +6,6 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/lexer"
@@ -48,7 +47,7 @@ type Parser struct {
 	// Since we only want the parser to do this during initialization, we have a guard saying that
 	// we don't do this if the list is `nil`, and then the intializer sets the list to `nil` as soon
 	// as it's used it, thus discarding the data.
-	ParTypeInstances map[string]*ast.TypeWithArguments
+	ParTypeInstances map[string]*TypeWithArguments
 
 	ExternalParsers map[string]*Parser     // A map from the name of the external service to the parser of the service. This should be the same as the one in the vm.
 	NamespaceBranch map[string]*ParserData // Map from the namespaces immediately available to this parser to the parsers they access.
@@ -71,7 +70,7 @@ func New(common *CommonParserBindle, source, sourceCode, namespacePath string) *
 		EnumTypeNames:      make(dtypes.Set[string]),
 		EnumElementNames:   make(dtypes.Set[string]),
 		ParameterizedTypes: make(dtypes.Set[string]),
-		ParTypeInstances:   map[string]*ast.TypeWithArguments{},
+		ParTypeInstances:   map[string]*TypeWithArguments{},
 		ParTypes:           make(map[string]TypeExpressionInfo),
 		NamespaceBranch:    make(map[string]*ParserData),
 		ExternalParsers:    make(map[string]*Parser),
@@ -97,7 +96,7 @@ type TypeExpressionInfo struct {
 }
 
 // Parses one line of code supplied as a string.
-func (p *Parser) ParseLine(source, input string) ast.Node {
+func (p *Parser) ParseLine(source, input string) Node {
 	p.ResetAfterError()
 	rl := lexer.NewRelexer(source, input)
 	p.TokenizedCode = rl
@@ -126,7 +125,7 @@ func (p *Parser) PrimeWithTokenSupplier(source lexer.TokenSupplier) {
 }
 
 // Parses a type supplied as a string, for use in 'parser_test.go'.
-func (p *Parser) ParseTypeFromString(input string) ast.TypeNode {
+func (p *Parser) ParseTypeFromString(input string) TypeNode {
 	p.PrimeWithString("test", input)
 	result := p.ParseTypeFromCurTok(T_LOWEST)
 	p.Common.Errors = append(p.TokenizedCode.(*lexer.Relexer).GetErrors(), p.Common.Errors...)
@@ -175,7 +174,7 @@ type BkInterface struct {
 }
 
 // Stores parse code chunks for subsequent tokenization.
-type ParsedCodeChunks []ast.Node
+type ParsedCodeChunks []Node
 
 // Stores information about other parsers. TODO, deprecate.
 type ParserData struct {
@@ -183,12 +182,12 @@ type ParserData struct {
 	ScriptFilepath string
 }
 
-func (p *Parser) ParseExpression(precedence int) ast.Node {
+func (p *Parser) ParseExpression(precedence int) Node {
 
 	if literals.Contains(p.CurToken.Type) && literalsAndLParen.Contains(p.PeekToken.Type) {
 		p.Throw("parse/before/a", &p.CurToken, &p.PeekToken)
 	}
-	var leftExp ast.Node
+	var leftExp Node
 	noNativePrefix := false
 	switch p.CurToken.Type {
 
@@ -265,7 +264,7 @@ func (p *Parser) ParseExpression(precedence int) ast.Node {
 			if resolvingParser.IsTypePrefix(p.CurToken.Literal) && !(p.CurToken.Literal == "func") { // TODO --- really it should nly happen for clones and structs.
 				tok := p.CurToken
 				operator := tok.Literal
-				var typeArgs []ast.Node
+				var typeArgs []Node
 				if p.PeekToken.Type == token.LBRACE {
 					p.NextToken()
 					p.NextToken()
@@ -279,25 +278,25 @@ func (p *Parser) ParseExpression(precedence int) ast.Node {
 				}
 				if p.typeIsFunctional() {
 					p.NextToken()
-					var right ast.Node
+					var right Node
 					if p.CurToken.Type == token.LPAREN || p.CurToken.Type == token.LBRACK {
 						right = p.ParseExpression(MINUS)
 					} else {
 						right = p.ParseExpression(FPREFIX)
 					}
 					args := p.RecursivelyListify(right)
-					leftExp = &ast.TypePrefixExpression{Token: tok, Operator: operator, Args: args, TypeArgs: typeArgs}
+					leftExp = &TypePrefixExpression{Token: tok, Operator: operator, Args: args, TypeArgs: typeArgs}
 					if p.ParTypeInstances != nil { // We set this to nil after initialization so that we don't go on scraping things into it.
-						astType := p.ToAstType(&ast.TypeExpression{Token: tok, Operator: operator, TypeArgs: typeArgs})
-						if astType, ok := astType.(*ast.TypeWithArguments); ok {
+						astType := p.ToAstType(&TypeExpression{Token: tok, Operator: operator, TypeArgs: typeArgs})
+						if astType, ok := astType.(*TypeWithArguments); ok {
 							p.ParTypeInstances[astType.String()] = astType
 						}
 					}
 				} else {
-					leftExp = &ast.TypeExpression{Token: tok, Operator: operator, TypeArgs: typeArgs}
+					leftExp = &TypeExpression{Token: tok, Operator: operator, TypeArgs: typeArgs}
 					if p.ParTypeInstances != nil { // We set this to nil after initialization so that we don't go on scraping things into it.
-						astType := p.ToAstType(leftExp.(*ast.TypeExpression))
-						if astType, ok := astType.(*ast.TypeWithArguments); ok {
+						astType := p.ToAstType(leftExp.(*TypeExpression))
+						if astType, ok := astType.(*TypeWithArguments); ok {
 							p.ParTypeInstances[astType.String()] = astType
 						}
 					}
@@ -312,7 +311,7 @@ func (p *Parser) ParseExpression(precedence int) ast.Node {
 						leftExp = p.parseUnfixExpression()
 					case p.Common.BlingManager.canBling(p.CurToken.Literal, ENDFIX):
 						p.Common.BlingManager.doBling(p.CurToken.Literal, ENDFIX)
-						leftExp = &ast.Bling{Token: p.CurToken, Value: p.CurToken.Literal}
+						leftExp = &Bling{Token: p.CurToken, Value: p.CurToken.Literal}
 					default:
 						leftExp = p.parseIdentifier()
 					}
@@ -328,12 +327,12 @@ func (p *Parser) ParseExpression(precedence int) ast.Node {
 						switch {
 						case p.Common.BlingManager.canBling(p.CurToken.Literal, FOREFIX):
 							p.Common.BlingManager.doBling(p.CurToken.Literal, FOREFIX)
-							blingIs := &ast.Bling{Token: p.CurToken, Value: p.CurToken.Literal}
+							blingIs := &Bling{Token: p.CurToken, Value: p.CurToken.Literal}
 							dummyCommaTok := p.CurToken
 							dummyCommaTok.Literal = ","
 							p.NextToken()
 							restOfExpIs := p.ParseExpression(FPREFIX)
-							leftExp = &ast.InfixExpression{dummyCommaTok, ",", []ast.Node{blingIs, &ast.Bling{Value: ",", Token: dummyCommaTok}, restOfExpIs}}
+							leftExp = &InfixExpression{dummyCommaTok, ",", []Node{blingIs, &Bling{Value: ",", Token: dummyCommaTok}, restOfExpIs}}
 						default:
 							p.Common.BlingManager.startFunction(p.CurToken.Literal, PREFIX, resolvingParser.BlingTree)
 							leftExp = p.parsePrefixExpression()
@@ -352,18 +351,18 @@ func (p *Parser) ParseExpression(precedence int) ast.Node {
 		right := p.parseSnippetExpression(p.PeekToken)
 		tok := token.Token{token.COMMA, ",", p.PeekToken.Line, p.PeekToken.ChStart,
 			p.PeekToken.ChEnd, p.PeekToken.Source, ""}
-		children := []ast.Node{leftExp, &ast.Bling{tok, ","}, right}
-		result := &ast.InfixExpression{tok, ",", children}
+		children := []Node{leftExp, &Bling{tok, ","}, right}
+		result := &InfixExpression{tok, ",", children}
 		p.NextToken()
 		return result
 	}
 	if p.Common.BlingManager.canEndfix(p.PeekToken.Literal) {
 		p.NextToken()
 		p.Common.BlingManager.doBling(p.CurToken.Literal, ANY_BLING...)
-		blingIs := &ast.Bling{Token: p.CurToken, Value: p.CurToken.Literal}
+		blingIs := &Bling{Token: p.CurToken, Value: p.CurToken.Literal}
 		dummyCommaTok := p.CurToken
 		dummyCommaTok.Literal = ","
-		leftExp = &ast.InfixExpression{dummyCommaTok, ",", []ast.Node{leftExp, &ast.Bling{Value: ",", Token: dummyCommaTok}, blingIs}}
+		leftExp = &InfixExpression{dummyCommaTok, ",", []Node{leftExp, &Bling{Value: ",", Token: dummyCommaTok}, blingIs}}
 	}
 	for p.Common.BlingManager.canBling(p.PeekToken.Literal, MIDFIX) {
 		p.Common.BlingManager.doBling(p.PeekToken.Literal, MIDFIX)
@@ -388,16 +387,16 @@ func (p *Parser) ParseExpression(precedence int) ast.Node {
 			if rp.IsTypePrefix(maybeType) {
 				tok := p.PeekToken
 				typeAst := p.ParseType(T_LOWEST)
-				// TODO --- the namespace needs to be represented in the type ast.
+				// TODO --- the namespace needs to be represented in the type
 				ty := typeAst
-				if ty, ok := ty.(*ast.TypeDotDotDot); ok && ty.Right == nil {
-					leftExp = &ast.SuffixExpression{
+				if ty, ok := ty.(*TypeDotDotDot); ok && ty.Right == nil {
+					leftExp = &SuffixExpression{
 						Token:    p.CurToken,
 						Operator: p.CurToken.Literal,
 						Args:     p.RecursivelyListify(leftExp),
 					}
 				} else {
-					leftExp = &ast.TypeSuffixExpression{tok, typeAst, p.RecursivelyListify(leftExp)}
+					leftExp = &TypeSuffixExpression{tok, typeAst, p.RecursivelyListify(leftExp)}
 				}
 			} else {
 				p.NextToken()
@@ -469,8 +468,8 @@ func (p *Parser) ParseExpression(precedence int) ast.Node {
 
 // Now we have all the functions with names of the form `parseXxxxx`, arranged in alphabetical order.
 
-func (p *Parser) parseAssignmentExpression(left ast.Node) ast.Node {
-	expression := &ast.AssignmentExpression{
+func (p *Parser) parseAssignmentExpression(left Node) Node {
+	expression := &AssignmentExpression{
 		Token: p.CurToken,
 		Left:  left,
 	}
@@ -480,23 +479,23 @@ func (p *Parser) parseAssignmentExpression(left ast.Node) ast.Node {
 	return expression
 }
 
-func (p *Parser) parseBooleanLiteral() ast.Node {
-	return &ast.BooleanLiteral{Token: p.CurToken, Value: p.CurTokenIs(token.TRUE)}
+func (p *Parser) parseBooleanLiteral() Node {
+	return &BooleanLiteral{Token: p.CurToken, Value: p.CurTokenIs(token.TRUE)}
 }
 
-func (p *Parser) parseBreak() ast.Node {
+func (p *Parser) parseBreak() Node {
 	if p.isPositionallyFunctional() {
 		t := p.CurToken
 		p.NextToken()                  // Skips the 'break' token
 		exp := p.ParseExpression(FUNC) // If this is a multiple return, we don't want its elements to be treated as parameters of a function. TODO --- gve 'break' its own node type?
-		return &ast.PrefixExpression{t, "break", []ast.Node{exp}}
+		return &PrefixExpression{t, "break", []Node{exp}}
 	}
-	return &ast.Identifier{Token: p.CurToken, Value: "break"}
+	return &Identifier{Token: p.CurToken, Value: "break"}
 }
 
 // This is to allow me to use the initializer to pour builtins into the parser's function table.
-func (p *Parser) parseBuiltInExpression() ast.Node {
-	expression := &ast.BuiltInExpression{}
+func (p *Parser) parseBuiltInExpression() Node {
+	expression := &BuiltInExpression{}
 	expression.Token = p.CurToken
 	p.NextToken()
 	if p.CurToken.Type == token.STRING {
@@ -508,8 +507,8 @@ func (p *Parser) parseBuiltInExpression() ast.Node {
 	return expression
 }
 
-func (p *Parser) parseComparisonExpression(left ast.Node) ast.Node {
-	expression := &ast.ComparisonExpression{
+func (p *Parser) parseComparisonExpression(left Node) Node {
+	expression := &ComparisonExpression{
 		Token:    p.CurToken,
 		Operator: p.CurToken.Literal,
 		Left:     left,
@@ -520,28 +519,28 @@ func (p *Parser) parseComparisonExpression(left ast.Node) ast.Node {
 	return expression
 }
 
-func (p *Parser) parseContinue() ast.Node {
-	return &ast.Identifier{Token: p.CurToken, Value: "continue"}
+func (p *Parser) parseContinue() Node {
+	return &Identifier{Token: p.CurToken, Value: "continue"}
 }
 
-func (p *Parser) parseElse() ast.Node {
-	return &ast.BooleanLiteral{Token: p.CurToken, Value: true}
+func (p *Parser) parseElse() Node {
+	return &BooleanLiteral{Token: p.CurToken, Value: true}
 }
 
 // The fact that it is a valid float has been checked by the lexer.
-func (p *Parser) parseFloatLiteral() ast.Node {
+func (p *Parser) parseFloatLiteral() Node {
 	fVal, _ := strconv.ParseFloat(p.CurToken.Literal, 64)
-	return &ast.FloatLiteral{Token: p.CurToken, Value: fVal}
+	return &FloatLiteral{Token: p.CurToken, Value: fVal}
 }
 
-func (p *Parser) parseForAsInfix(left ast.Node) *ast.ForExpression {
+func (p *Parser) parseForAsInfix(left Node) *ForExpression {
 	expression := p.parseForExpression()
 	expression.BoundVariables = left
 	return expression
 }
 
-func (p *Parser) parseForExpression() *ast.ForExpression {
-	expression := &ast.ForExpression{
+func (p *Parser) parseForExpression() *ForExpression {
+	expression := &ForExpression{
 		Token: p.CurToken,
 	}
 	p.NextToken()
@@ -554,14 +553,14 @@ func (p *Parser) parseForExpression() *ast.ForExpression {
 
 	pieces := p.ParseExpression(GIVEN)
 	if pieces.GetToken().Type == token.COLON {
-		expression.Body = pieces.(*ast.LazyInfixExpression).Right
-		header := pieces.(*ast.LazyInfixExpression).Left
+		expression.Body = pieces.(*LazyInfixExpression).Right
+		header := pieces.(*LazyInfixExpression).Left
 		if header.GetToken().Type == token.MAGIC_SEMICOLON { // If it has one, it should have two.
-			leftBitOfHeader := header.(*ast.InfixExpression).Args[0]
-			rightBitOfHeader := header.(*ast.InfixExpression).Args[2]
+			leftBitOfHeader := header.(*InfixExpression).Args[0]
+			rightBitOfHeader := header.(*InfixExpression).Args[2]
 			if leftBitOfHeader.GetToken().Type == token.MAGIC_SEMICOLON {
-				expression.Initializer = leftBitOfHeader.(*ast.InfixExpression).Args[0]
-				expression.ConditionOrRange = leftBitOfHeader.(*ast.InfixExpression).Args[2]
+				expression.Initializer = leftBitOfHeader.(*InfixExpression).Args[0]
+				expression.ConditionOrRange = leftBitOfHeader.(*InfixExpression).Args[2]
 				expression.Update = rightBitOfHeader
 			} else {
 				p.Throw("parse/for/semicolon", &expression.Token)
@@ -577,16 +576,16 @@ func (p *Parser) parseForExpression() *ast.ForExpression {
 	return expression
 }
 
-func (p *Parser) parseFromExpression() ast.Node {
+func (p *Parser) parseFromExpression() Node {
 	fromToken := p.CurToken
 	p.NextToken()
 	expression := p.ParseExpression(FUNC)
-	var givenBlock ast.Node
+	var givenBlock Node
 	if expression.GetToken().Type == token.GIVEN {
-		givenBlock = expression.(*ast.InfixExpression).Args[2]
-		expression = expression.(*ast.InfixExpression).Args[0]
+		givenBlock = expression.(*InfixExpression).Args[2]
+		expression = expression.(*InfixExpression).Args[0]
 	}
-	exp, ok := expression.(*ast.ForExpression)
+	exp, ok := expression.(*ForExpression)
 	if ok {
 		exp.Given = givenBlock
 		return exp
@@ -595,18 +594,18 @@ func (p *Parser) parseFromExpression() ast.Node {
 	return nil
 }
 
-func (p *Parser) parseGolangExpression() ast.Node {
-	expression := &ast.GolangExpression{
+func (p *Parser) parseGolangExpression() Node {
+	expression := &GolangExpression{
 		Token: p.CurToken,
 	}
 	p.NextToken()
 	return expression
 }
 
-func (p *Parser) parseGroupedExpression() ast.Node {
+func (p *Parser) parseGroupedExpression() Node {
 	p.NextToken()
 	if p.CurToken.Type == token.RPAREN { // Then what we must have is an empty tuple.
-		return &ast.Nothing{Token: p.CurToken}
+		return &Nothing{Token: p.CurToken}
 	}
 	exp := p.ParseExpression(LOWEST)
 	if !p.expectPeek(token.RPAREN) {
@@ -616,12 +615,12 @@ func (p *Parser) parseGroupedExpression() ast.Node {
 	return exp
 }
 
-func (p *Parser) parseIdentifier() ast.Node {
-	return &ast.Identifier{Token: p.CurToken, Value: p.CurToken.Literal}
+func (p *Parser) parseIdentifier() Node {
+	return &Identifier{Token: p.CurToken, Value: p.CurToken.Literal}
 }
 
-func (p *Parser) parseIfLogExpression(left ast.Node) ast.Node {
-	expression := &ast.LogExpression{
+func (p *Parser) parseIfLogExpression(left Node) Node {
+	expression := &LogExpression{
 		Token: p.CurToken,
 		Left:  left,
 		Value: p.CurToken.Literal,
@@ -632,8 +631,8 @@ func (p *Parser) parseIfLogExpression(left ast.Node) ast.Node {
 	return expression
 }
 
-func (p *Parser) parseIndexExpression(left ast.Node) ast.Node {
-	exp := &ast.IndexExpression{Token: p.CurToken, Left: left}
+func (p *Parser) parseIndexExpression(left Node) Node {
+	exp := &IndexExpression{Token: p.CurToken, Left: left}
 	p.NextToken()
 	exp.Index = p.ParseExpression(LOWEST)
 	if !p.expectPeek(token.RBRACK) {
@@ -643,7 +642,7 @@ func (p *Parser) parseIndexExpression(left ast.Node) ast.Node {
 	return exp
 }
 
-func (p *Parser) parseInfixExpression(left ast.Node) ast.Node {
+func (p *Parser) parseInfixExpression(left Node) Node {
 	if assignmentTokens.Contains(p.CurToken.Type) {
 		return p.parseAssignmentExpression(left)
 	}
@@ -656,41 +655,41 @@ func (p *Parser) parseInfixExpression(left ast.Node) ast.Node {
 		newTok.Literal = "="
 		p.NextToken()
 		right := p.ParseExpression(FUNC)
-		fn := &ast.FuncExpression{Token: newTok}
-		expression := &ast.AssignmentExpression{Token: newTok}
+		fn := &FuncExpression{Token: newTok}
+		expression := &AssignmentExpression{Token: newTok}
 		switch left := left.(type) {
-		case *ast.PipingExpression:
+		case *PipingExpression:
 			if left.GetToken().Literal != "->" {
 				p.Throw("parse/inner/a", left.GetToken())
 			}
 			fn.NameRets = p.RecursivelySlurpReturnTypes(left.Right)
 			switch newLeft := left.Left.(type) {
-			case *ast.PrefixExpression:
-				expression.Left = &ast.Identifier{Token: *newLeft.GetToken(), Value: newLeft.GetToken().Literal}
-				fn.NameSig, _ = p.getSigFromArgs(newLeft.Args, ast.ANY_NULLABLE_TYPE_AST)
+			case *PrefixExpression:
+				expression.Left = &Identifier{Token: *newLeft.GetToken(), Value: newLeft.GetToken().Literal}
+				fn.NameSig, _ = p.getSigFromArgs(newLeft.Args, ANY_NULLABLE_TYPE_AST)
 			default:
 				p.Throw("parse/inner/b", newLeft.GetToken())
 			}
-		case *ast.PrefixExpression:
-			expression.Left = &ast.Identifier{Token: *left.GetToken(), Value: left.GetToken().Literal}
-			fn.NameSig, _ = p.getSigFromArgs(left.Args, ast.ANY_NULLABLE_TYPE_AST)
+		case *PrefixExpression:
+			expression.Left = &Identifier{Token: *left.GetToken(), Value: left.GetToken().Literal}
+			fn.NameSig, _ = p.getSigFromArgs(left.Args, ANY_NULLABLE_TYPE_AST)
 		default:
 			p.Throw("parse/inner/c", left.GetToken())
 			return nil
 		}
 		if right.GetToken().Type == token.GIVEN {
-			fn.Body = right.(*ast.InfixExpression).Args[0]
-			fn.Given = right.(*ast.InfixExpression).Args[2]
+			fn.Body = right.(*InfixExpression).Args[0]
+			fn.Given = right.(*InfixExpression).Args[2]
 		} else {
 			fn.Body = right
 		}
 		expression.Right = fn
 		if fn.Body.GetToken().Type == token.PRELOG && fn.Body.GetToken().Literal == "" {
-			fn.Body.(*ast.LogExpression).Value = DescribeFunctionCall(left.GetToken().Literal, &fn.NameSig)
+			fn.Body.(*LogExpression).Value = DescribeFunctionCall(left.GetToken().Literal, &fn.NameSig)
 		}
 		return expression
 	}
-	expression := &ast.InfixExpression{
+	expression := &InfixExpression{
 		Token:    p.CurToken,
 		Operator: p.CurToken.Literal,
 	}
@@ -698,22 +697,22 @@ func (p *Parser) parseInfixExpression(left ast.Node) ast.Node {
 	p.NextToken()
 	right := p.ParseExpression(precedence)
 	if expression.Operator == "," {
-		expression.Args = []ast.Node{left, &ast.Bling{Value: expression.Operator, Token: expression.Token}, right}
+		expression.Args = []Node{left, &Bling{Value: expression.Operator, Token: expression.Token}, right}
 		return expression
 	}
 	expression.Args = p.RecursivelyListify(left)
-	expression.Args = append(expression.Args, &ast.Bling{Value: expression.Operator, Token: expression.Token})
+	expression.Args = append(expression.Args, &Bling{Value: expression.Operator, Token: expression.Token})
 	rightArgs := p.RecursivelyListify(right)
 	expression.Args = append(expression.Args, rightArgs...)
 	return expression
 }
 
 // Auxiliary fnction to the previous one for describing function calls for logging purposes.
-func DescribeFunctionCall(name string, sig *ast.AstSig) string {
+func DescribeFunctionCall(name string, sig *AstSig) string {
 	result := "Called '" + name + "'"
 	vars := []string{}
 	for _, pair := range *sig {
-		if _, ok := pair.VarType.(*ast.TypeBling); !ok {
+		if _, ok := pair.VarType.(*TypeBling); !ok {
 			vars = append(vars, "||"+pair.VarName+"||")
 		}
 	}
@@ -723,13 +722,13 @@ func DescribeFunctionCall(name string, sig *ast.AstSig) string {
 	return result + "."
 }
 
-func (p *Parser) parseIntegerLiteral() ast.Node {
+func (p *Parser) parseIntegerLiteral() Node {
 	iVal, _ := strconv.Atoi(p.CurToken.Literal)
-	return &ast.IntegerLiteral{Token: p.CurToken, Value: iVal}
+	return &IntegerLiteral{Token: p.CurToken, Value: iVal}
 }
 
-func (p *Parser) parseLambdaExpression() ast.Node {
-	expression := &ast.FuncExpression{
+func (p *Parser) parseLambdaExpression() Node {
+	expression := &FuncExpression{
 		Token: p.CurToken,
 	}
 	p.NextToken()
@@ -740,11 +739,11 @@ func (p *Parser) parseLambdaExpression() ast.Node {
 		p.Throw("parse/colon", &p.CurToken)
 		return nil
 	}
-	expression.NameSig, _ = p.RecursivelySlurpSignature(root.(*ast.LazyInfixExpression).Left, ast.ANY_NULLABLE_TYPE_AST)
-	bodyRoot := root.(*ast.LazyInfixExpression).Right
+	expression.NameSig, _ = p.RecursivelySlurpSignature(root.(*LazyInfixExpression).Left, ANY_NULLABLE_TYPE_AST)
+	bodyRoot := root.(*LazyInfixExpression).Right
 	if bodyRoot.GetToken().Type == token.GIVEN {
-		expression.Body = bodyRoot.(*ast.InfixExpression).Args[0]
-		expression.Given = bodyRoot.(*ast.InfixExpression).Args[2]
+		expression.Body = bodyRoot.(*InfixExpression).Args[0]
+		expression.Given = bodyRoot.(*InfixExpression).Args[2]
 	} else {
 		expression.Body = bodyRoot
 	}
@@ -752,8 +751,8 @@ func (p *Parser) parseLambdaExpression() ast.Node {
 }
 
 // I.e `and`, `or`, `:`, and `;`.
-func (p *Parser) parseLazyInfixExpression(left ast.Node) ast.Node {
-	expression := &ast.LazyInfixExpression{
+func (p *Parser) parseLazyInfixExpression(left Node) Node {
+	expression := &LazyInfixExpression{
 		Token:    p.CurToken,
 		Operator: p.CurToken.Literal,
 		Left:     left,
@@ -764,22 +763,22 @@ func (p *Parser) parseLazyInfixExpression(left ast.Node) ast.Node {
 	return expression
 }
 
-func (p *Parser) parseListExpression() ast.Node {
+func (p *Parser) parseListExpression() Node {
 	p.NextToken()
 	if p.CurToken.Type == token.RBRACK { // Deals with the case where the list is []
-		return &ast.ListExpression{List: &ast.Nothing{Token: p.CurToken}, Token: p.CurToken}
+		return &ListExpression{List: &Nothing{Token: p.CurToken}, Token: p.CurToken}
 	}
 	exp := p.ParseExpression(LOWEST)
 	if !p.expectPeek(token.RBRACK) {
 		p.NextToken() // Forces emission of error.
 		return nil
 	}
-	expression := &ast.ListExpression{List: exp, Token: p.CurToken}
+	expression := &ListExpression{List: exp, Token: p.CurToken}
 	return expression
 }
 
-func (p *Parser) parseLogExpression(left ast.Node) ast.Node {
-	expression := &ast.LogExpression{
+func (p *Parser) parseLogExpression(left Node) Node {
+	expression := &LogExpression{
 		Token: p.CurToken,
 		Left:  left,
 		Value: p.CurToken.Literal,
@@ -788,8 +787,8 @@ func (p *Parser) parseLogExpression(left ast.Node) ast.Node {
 }
 
 // For things like NOT, UNWRAP, VALID where we don't want to treat it as a function but to evaluate the RHS and then handle it.
-func (p *Parser) parseNativePrefixExpression() ast.Node {
-	expression := &ast.PrefixExpression{
+func (p *Parser) parseNativePrefixExpression() Node {
+	expression := &PrefixExpression{
 		Token:    p.CurToken,
 		Operator: p.CurToken.Literal,
 	}
@@ -799,17 +798,17 @@ func (p *Parser) parseNativePrefixExpression() ast.Node {
 	if right == nil {
 		p.Throw("parse/follow", &prefix)
 	}
-	expression.Args = []ast.Node{right}
+	expression.Args = []Node{right}
 	return expression
 }
 
-func (p *Parser) parsePrefixExpression() ast.Node {
-	expression := &ast.PrefixExpression{
+func (p *Parser) parsePrefixExpression() Node {
+	expression := &PrefixExpression{
 		Token:    p.CurToken,
 		Operator: p.CurToken.Literal,
 	}
 	p.NextToken()
-	var right ast.Node
+	var right Node
 	if p.CurToken.Type == token.LPAREN || expression.Operator == "-" {
 		right = p.ParseExpression(MINUS)
 	} else {
@@ -819,9 +818,9 @@ func (p *Parser) parsePrefixExpression() ast.Node {
 	return expression
 }
 
-func (p *Parser) parsePrelogExpression() ast.Node {
+func (p *Parser) parsePrelogExpression() Node {
 
-	expression := &ast.LogExpression{
+	expression := &LogExpression{
 		Token: p.CurToken,
 		Value: p.CurToken.Literal,
 	}
@@ -831,14 +830,14 @@ func (p *Parser) parsePrelogExpression() ast.Node {
 	return expression
 }
 
-func (p *Parser) parseRuneLiteral() ast.Node {
+func (p *Parser) parseRuneLiteral() Node {
 	r, _ := utf8.DecodeRune([]byte(p.CurToken.Literal)) // We have already checked that the literal is a any rune at the lexing stage.
-	return &ast.RuneLiteral{Token: p.CurToken, Value: r}
+	return &RuneLiteral{Token: p.CurToken, Value: r}
 }
 
 // In a streaming expression we need to desugar e.g. 'x -> foo' to 'x -> foo that', etc.
-func (p *Parser) parseStreamingExpression(left ast.Node) ast.Node {
-	expression := &ast.PipingExpression{
+func (p *Parser) parseStreamingExpression(left Node) Node {
+	expression := &PipingExpression{
 		Token:    p.CurToken,
 		Operator: p.CurToken.Literal,
 		Left:     left,
@@ -852,33 +851,33 @@ func (p *Parser) parseStreamingExpression(left ast.Node) ast.Node {
 
 // Function auxiliary to the previous one to get rid of syntactic sugar in streaming expressions.
 // Adds "that" after piping, works through namespaces.
-func (p *Parser) recursivelyDesugarAst(exp ast.Node) ast.Node {
+func (p *Parser) recursivelyDesugarAst(exp Node) Node {
 	switch typedExp := exp.(type) {
-	case *ast.Identifier:
+	case *Identifier:
 		if p.Functions.Contains(exp.GetToken().Literal) {
-			exp = &ast.PrefixExpression{Token: *typedExp.GetToken(),
+			exp = &PrefixExpression{Token: *typedExp.GetToken(),
 				Operator: exp.GetToken().Literal,
-				Args:     []ast.Node{&ast.Identifier{Value: "that"}}}
+				Args:     []Node{&Identifier{Value: "that"}}}
 		}
 		ok, rp := p.CanParse(*exp.GetToken(), SUFFIX)
 		if rp == nil {
 			return nil
 		}
 		if ok {
-			exp = &ast.SuffixExpression{Token: *typedExp.GetToken(),
+			exp = &SuffixExpression{Token: *typedExp.GetToken(),
 				Operator: exp.GetToken().Literal,
-				Args:     []ast.Node{&ast.Identifier{Value: "that"}}}
+				Args:     []Node{&Identifier{Value: "that"}}}
 		}
 	}
 	return exp
 }
 
-func (p *Parser) parseSnippetExpression(tok token.Token) ast.Node {
+func (p *Parser) parseSnippetExpression(tok token.Token) Node {
 	codeTokens := p.TokenizedCode
 	nesting := p.nesting.Copy()
 	cT := p.CurToken
 	pT := p.PeekToken
-	nodes := []ast.Node{}
+	nodes := []Node{}
 	bits, ok := text.GetTextWithBarsAsList(tok.Literal)
 	if !ok {
 		p.Throw("parse/snippet/form", &tok)
@@ -889,7 +888,7 @@ func (p *Parser) parseSnippetExpression(tok token.Token) ast.Node {
 	}
 	for i, bit := range bits {
 		if i%2 == 0 {
-			nodes = append(nodes, &ast.StringLiteral{tok, bit})
+			nodes = append(nodes, &StringLiteral{tok, bit})
 		} else {
 			p.nesting = dtypes.Stack[token.Token]{}
 			node := p.ParseLine("embedded Pipefish in snippet", bit[1:len(bit)-1])
@@ -900,15 +899,15 @@ func (p *Parser) parseSnippetExpression(tok token.Token) ast.Node {
 	p.TokenizedCode = codeTokens
 	p.CurToken = cT
 	p.PeekToken = pT
-	return &ast.SnippetLiteral{Token: tok, Value: tok.Literal, Values: nodes}
+	return &SnippetLiteral{Token: tok, Value: tok.Literal, Values: nodes}
 }
 
-func (p *Parser) parseStringLiteral() ast.Node {
-	return &ast.StringLiteral{Token: p.CurToken, Value: p.CurToken.Literal}
+func (p *Parser) parseStringLiteral() Node {
+	return &StringLiteral{Token: p.CurToken, Value: p.CurToken.Literal}
 }
 
-func (p *Parser) parseSuffixExpression(left ast.Node) ast.Node {
-	expression := &ast.SuffixExpression{
+func (p *Parser) parseSuffixExpression(left Node) Node {
+	expression := &SuffixExpression{
 		Token:    p.CurToken,
 		Operator: p.CurToken.Literal,
 		Args:     p.RecursivelyListify(left),
@@ -916,12 +915,12 @@ func (p *Parser) parseSuffixExpression(left ast.Node) ast.Node {
 	return expression
 }
 
-func (p *Parser) parseTryExpression() ast.Node {
+func (p *Parser) parseTryExpression() Node {
 	p.NextToken()
 	if p.CurToken.Type == token.COLON {
 		p.NextToken()
 		exp := p.ParseExpression(COLON)
-		return &ast.TryExpression{Token: p.CurToken, Right: exp, VarName: ""}
+		return &TryExpression{Token: p.CurToken, Right: exp, VarName: ""}
 	}
 	if p.CurToken.Type == token.IDENT {
 		varName := p.CurToken.Literal
@@ -931,22 +930,22 @@ func (p *Parser) parseTryExpression() ast.Node {
 		}
 		p.NextToken()
 		exp := p.ParseExpression(COLON)
-		return &ast.TryExpression{Token: p.CurToken, Right: exp, VarName: varName}
+		return &TryExpression{Token: p.CurToken, Right: exp, VarName: varName}
 	} else {
 		p.Throw("parse/try/ident", &p.CurToken)
 		return nil
 	}
 }
 
-func (p *Parser) parseUnfixExpression() ast.Node {
-	return &ast.UnfixExpression{Token: p.CurToken, Operator: p.CurToken.Literal}
+func (p *Parser) parseUnfixExpression() Node {
+	return &UnfixExpression{Token: p.CurToken, Operator: p.CurToken.Literal}
 }
 
 // This takes the arguments at the call site of a function and puts them
 // into a list for us.
-func (p *Parser) RecursivelyListify(start ast.Node) []ast.Node {
+func (p *Parser) RecursivelyListify(start Node) []Node {
 	switch start := start.(type) {
-	case *ast.InfixExpression:
+	case *InfixExpression:
 		if start.Operator == "," {
 			left := p.RecursivelyListify(start.Args[0])
 			left = append(left, p.RecursivelyListify(start.Args[2])...)
@@ -955,22 +954,22 @@ func (p *Parser) RecursivelyListify(start ast.Node) []ast.Node {
 		if p.Midfixes.Contains(start.Operator) {
 			return start.Args
 		}
-	case *ast.PrefixExpression:
+	case *PrefixExpression:
 		if p.Forefixes.Contains(start.Operator) {
-			left := []ast.Node{&ast.Bling{Value: start.Operator, Token: start.Token}}
+			left := []Node{&Bling{Value: start.Operator, Token: start.Token}}
 			left = append(left, start.Args...)
 			return left
 		}
-	case *ast.SuffixExpression:
+	case *SuffixExpression:
 		if p.Endfixes.Contains(start.Operator) {
 			left := start.Args
-			left = append(left, &ast.Bling{Value: start.Operator, Token: start.Token})
+			left = append(left, &Bling{Value: start.Operator, Token: start.Token})
 			return left
 		}
-	case *ast.Nothing:
-		return []ast.Node{}
+	case *Nothing:
+		return []Node{}
 	}
-	return []ast.Node{start}
+	return []Node{start}
 }
 
 func (p *Parser) getParserFromNamespace(namespace []string) *Parser {
@@ -1074,7 +1073,7 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 	return false
 }
 
-func (p *Parser) ParseTokenizedChunk() ast.Node {
+func (p *Parser) ParseTokenizedChunk() Node {
 	p.SafeNextToken()
 	p.SafeNextToken()
 	expn := p.ParseExpression(LOWEST)
@@ -1117,4 +1116,3 @@ func newError(ident string, tok *token.Token, args ...any) *err.Error {
 	errorToReturn.Trace = []*token.Token{tok}
 	return errorToReturn
 }
-

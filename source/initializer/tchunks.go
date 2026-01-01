@@ -3,7 +3,6 @@ package initializer
 import (
 	"strconv"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/compiler"
 	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/settings"
@@ -1009,8 +1008,8 @@ type parameterInfo struct {
 	Types      []values.ValueType
 	Operations []token.Token
 	Typecheck  *parser.TokenizedCodeChunk
-	ParentType string     // 'struct' if not a clone
-	Sig        ast.AstSig // nil if not a struct (because the sig of a clone is implicit in the parent type).
+	ParentType string        // 'struct' if not a clone
+	Sig        parser.AstSig // nil if not a struct (because the sig of a clone is implicit in the parent type).
 	IsPrivate  bool
 	Supertype  string
 	Token      *token.Token

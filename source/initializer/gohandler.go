@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/token"
@@ -163,9 +163,9 @@ func (iz *Initializer) compileGo() {
 		// functions.
 		for _, function := range iz.goBucket.functions[source] {
 			goFunction, _ := plugins.Lookup(text.Capitalize(function.op.Literal))
-			function.body.(*ast.GolangExpression).GoFunction = reflect.ValueOf(goFunction)
+			function.body.(*parser.GolangExpression).GoFunction = reflect.ValueOf(goFunction)
 			for i, pair := range function.sig {
-				if _, ok := pair.VarType.(*ast.TypeDotDotDot); ok {
+				if _, ok := pair.VarType.(*parser.TypeDotDotDot); ok {
 					if i < function.sig.Len()-1 {
 						iz.throw("golang/variadic", &function.op)
 					}
@@ -213,7 +213,7 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 	userDefinedTypes := make(dtypes.Set[string])
 	for _, function := range iz.goBucket.functions[source] {
 		for _, v := range function.sig {
-			if _, ok := v.VarType.(*ast.TypeInfix); ok {
+			if _, ok := v.VarType.(*parser.TypeInfix); ok {
 				continue
 			}
 			name := text.WithoutDots(v.VarType.String())
@@ -222,7 +222,7 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 			}
 		}
 		for _, v := range function.callInfo.ReturnTypes {
-			if _, ok := v.VarType.(*ast.TypeInfix); ok {
+			if _, ok := v.VarType.(*parser.TypeInfix); ok {
 				continue
 			}
 			if !iz.cp.IsBuiltin(v.VarType.String()) {

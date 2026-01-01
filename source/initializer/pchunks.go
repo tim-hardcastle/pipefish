@@ -1,8 +1,8 @@
 package initializer
 
 import (
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/compiler"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/token"
 )
 
@@ -19,11 +19,11 @@ type parsedFunction struct {
 	decType   declarationType // Function or command.
 	decNumber int             // The order of declaration (with functions and commands counted separately.)
 	private   bool
-	op        token.Token // The token where the function/operation name is declared.
-	pos       opPosition  // PREFIX / INFIX / SUFFIX / UNFIX.
-	sig       ast.AstSig  // The call signature.
-	body      ast.Node    // The parsed body of the function, non-empty by construction.
-	given     ast.Node    // The `given` block (nil if empty).
+	op        token.Token   // The token where the function/operation name is declared.
+	pos       opPosition    // PREFIX / INFIX / SUFFIX / UNFIX.
+	sig       parser.AstSig // The call signature.
+	body      parser.Node   // The parsed body of the function, non-empty by construction.
+	given     parser.Node   // The `given` block (nil if empty).
 	// Information shared with the function tree, needed to make a function call.
 	// This includes the return signatures because if recursion is involved we don't infer them
 	// and this is the next best thing.
@@ -37,8 +37,8 @@ type parsedAssignment struct {
 	decType   declarationType // Constant or variable
 	decNumber int
 	indexTok  *token.Token
-	sig       ast.AstSig
-	body      ast.Node
+	sig       parser.AstSig
+	body      parser.Node
 }
 
 func (pc *parsedAssignment) getToken() *token.Token { return pc.indexTok }
@@ -47,8 +47,8 @@ type parsedTypecheck struct {
 	decType    declarationType // Clone or struct
 	decNumber  int
 	indexTok   *token.Token
-	parameters ast.AstSig
-	body       ast.Node
+	parameters parser.AstSig
+	body       parser.Node
 }
 
 func (pc *parsedTypecheck) getToken() *token.Token { return pc.indexTok }
@@ -57,10 +57,9 @@ func (pc *parsedTypecheck) getToken() *token.Token { return pc.indexTok }
 // would be a waste of time to e.g. keep fetching the '3' to check that things are in a
 // type Vec{3}, etc.
 type parsedTypeInstance struct {
-	typeCheck      ast.Node              //
+	typeCheck      parser.Node           //
 	instantiatedAt *token.Token          // The place in the code (or one of the places) where the type instance is named.
 	env            *compiler.Environment // The values for the parameters, already put into an environment as named constants, ready for compilation.
 }
 
 func (pc *parsedTypeInstance) getToken() *token.Token { return pc.instantiatedAt }
-

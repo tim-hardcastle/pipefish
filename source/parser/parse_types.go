@@ -3,7 +3,6 @@ package parser
 import (
 	"strconv"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
@@ -31,7 +30,7 @@ func (p *Parser) IsTypePrefix(s string) bool {
 		PSEUDOTYPES.Contains(s) || p.ParameterizedTypes.Contains(s))
 }
 
-func (p *Parser) ParseType(prec typePrecedence) ast.TypeNode {
+func (p *Parser) ParseType(prec typePrecedence) TypeNode {
 	if !((p.PeekToken.Type == token.DOTDOTDOT) ||
 		(p.PeekToken.Type == token.IDENT && p.IsTypePrefix(p.PeekToken.Literal))) {
 		return nil
@@ -40,8 +39,8 @@ func (p *Parser) ParseType(prec typePrecedence) ast.TypeNode {
 	return p.ParseTypeFromCurTok(prec)
 }
 
-func (p *Parser) ParseTypeFromCurTok(prec typePrecedence) ast.TypeNode {
-	var leftExp ast.TypeNode
+func (p *Parser) ParseTypeFromCurTok(prec typePrecedence) TypeNode {
+	var leftExp TypeNode
 	tok := p.CurToken
 	// Prefixes
 	if p.PeekToken.Type == token.LBRACE {
@@ -50,9 +49,9 @@ func (p *Parser) ParseTypeFromCurTok(prec typePrecedence) ast.TypeNode {
 	} else {
 		if p.CurToken.Type == token.DOTDOTDOT {
 			right := p.ParseType(T_LOWEST)
-			leftExp = &ast.TypeDotDotDot{tok, right}
+			leftExp = &TypeDotDotDot{tok, right}
 		} else {
-			leftExp = &ast.TypeWithName{tok, p.CurToken.Literal}
+			leftExp = &TypeWithName{tok, p.CurToken.Literal}
 		}
 	}
 	// Infixes
@@ -61,13 +60,13 @@ func (p *Parser) ParseTypeFromCurTok(prec typePrecedence) ast.TypeNode {
 		infix := p.PeekToken.Literal
 		newPrec := p.peekTypePrecedence()
 		p.NextToken()
-		leftExp = &ast.TypeInfix{tok, infix, leftExp, p.ParseType(newPrec)}
+		leftExp = &TypeInfix{tok, infix, leftExp, p.ParseType(newPrec)}
 	}
 	// Suffixes
 	for p.PeekToken.Type == token.IDENT &&
 		(p.PeekToken.Literal == "?" || p.PeekToken.Literal == "!") {
 		p.NextToken()
-		leftExp = &ast.TypeSuffix{p.CurToken, p.CurToken.Literal, leftExp}
+		leftExp = &TypeSuffix{p.CurToken, p.CurToken.Literal, leftExp}
 	}
 	return leftExp
 }
@@ -85,7 +84,7 @@ func (p *Parser) peekTypePrecedence() typePrecedence {
 	}
 }
 
-func (p *Parser) parseParamsOrArgs() ast.TypeNode {
+func (p *Parser) parseParamsOrArgs() TypeNode {
 	nameTok := p.CurToken
 	p.NextToken() // The one with the name in.
 	// So we're now at the token with the `{}`, which we won't skip over because sluriping
@@ -102,17 +101,17 @@ func (p *Parser) parseParamsOrArgs() ast.TypeNode {
 
 var acceptableTypes = dtypes.MakeFromSlice([]string{"float", "int", "string", "rune", "bool", "type"})
 
-func (p *Parser) parseParams(nameTok token.Token) ast.TypeNode {
+func (p *Parser) parseParams(nameTok token.Token) TypeNode {
 	indexTok := p.CurToken
 	blank := true
-	result := ast.TypeWithParameters{nameTok, nameTok.Literal, []*ast.Parameter{}}
+	result := TypeWithParameters{nameTok, nameTok.Literal, []*Parameter{}}
 	for {
 		tok := &p.CurToken
 		if p.CurToken.Type != token.IDENT {
 			p.Throw("parse/param/name", tok)
 			break
 		}
-		result.Parameters = append(result.Parameters, &ast.Parameter{p.CurToken.Literal, ""})
+		result.Parameters = append(result.Parameters, &Parameter{p.CurToken.Literal, ""})
 		blank = blank && p.CurToken.Literal == "_"
 		p.NextToken()
 		if p.CurToken.Type == token.IDENT {
@@ -138,38 +137,38 @@ func (p *Parser) parseParams(nameTok token.Token) ast.TypeNode {
 		break
 	}
 	if blank {
-		return &ast.TypeWithName{indexTok, result.String()}
+		return &TypeWithName{indexTok, result.String()}
 	}
 	return &result
 }
 
-func (p *Parser) parseArgs(nameTok token.Token) ast.TypeNode {
-	result := ast.TypeWithArguments{nameTok, nameTok.Literal, []*ast.Argument{}}
+func (p *Parser) parseArgs(nameTok token.Token) TypeNode {
+	result := TypeWithArguments{nameTok, nameTok.Literal, []*Argument{}}
 	for {
 		tok := p.PeekToken
-		var newArg *ast.Argument
+		var newArg *Argument
 		switch tok.Type {
 		case token.FLOAT:
 			number, _ := strconv.ParseFloat(tok.Literal, 64)
-			newArg = &ast.Argument{tok, values.FLOAT, number}
+			newArg = &Argument{tok, values.FLOAT, number}
 		case token.INT:
 			number, _ := strconv.Atoi(tok.Literal)
-			newArg = &ast.Argument{tok, values.INT, number}
+			newArg = &Argument{tok, values.INT, number}
 		case token.STRING:
-			newArg = &ast.Argument{tok, values.STRING, tok.Literal}
+			newArg = &Argument{tok, values.STRING, tok.Literal}
 		case token.RUNE:
-			newArg = &ast.Argument{tok, values.RUNE, tok.Literal}
+			newArg = &Argument{tok, values.RUNE, tok.Literal}
 		case token.IDENT:
 			if p.IsTypePrefix(tok.Literal) {
 				newType := p.ParseType(T_LOWEST)
-				newArg = &ast.Argument{tok, values.TYPE, newType}
+				newArg = &Argument{tok, values.TYPE, newType}
 			} else {
-				newArg = &ast.Argument{tok, values.UNDEFINED_TYPE, tok.Literal} // This may or may not be an element of an enum and we're not going to sort that out in the parser.
+				newArg = &Argument{tok, values.UNDEFINED_TYPE, tok.Literal} // This may or may not be an element of an enum and we're not going to sort that out in the parser.
 			}
 		case token.FALSE:
-			newArg = &ast.Argument{tok, values.BOOL, false}
+			newArg = &Argument{tok, values.BOOL, false}
 		case token.TRUE:
-			newArg = &ast.Argument{tok, values.BOOL, true}
+			newArg = &Argument{tok, values.BOOL, true}
 		default:
 			p.Throw("parse/instance/value", &tok)
 		}

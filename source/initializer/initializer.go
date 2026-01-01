@@ -10,7 +10,6 @@ import (
 
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/compiler"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/parser"
@@ -96,15 +95,15 @@ func NewCommonInitializerBindle(store *values.Map, services map[string]*compiler
 
 // A reference to a specific instance of a parameterized type.
 type parameterizedTypeInstance struct {
-	astType   ast.TypeNode
+	astType   parser.TypeNode
 	env       *compiler.Environment
 	typeCheck *parser.TokenizedCodeChunk
-	fields    ast.AstSig
+	fields    parser.AstSig
 	vals      []values.Value
 }
 
 type typeOperatorInfo struct {
-	constructorSig ast.AstSig // The signature of the constructor, before we prepend the secret-sauce `+t type` parameter.
+	constructorSig parser.AstSig // The signature of the constructor, before we prepend the secret-sauce `+t type` parameter.
 	isClone        bool
 	returnTypes    compiler.AlternateType
 	definedAt      []*token.Token
@@ -258,7 +257,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 	for _, dependencyIz := range iz.initializers {
 		dependencyIz.instantiateParameterizedTypes()
 	}
-	twas := map[string]*ast.TypeWithArguments{}
+	twas := map[string]*parser.TypeWithArguments{}
 	// We get these from four different places. Either they're in `make` statements in
 	// a `newtype` section, or they're aliased types, or the initializer stashed them away
 	// while making type signatures, or the parser stashed them away while parsing.
@@ -269,7 +268,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 			iz.throw("init/make/type", &dec.typeToks[0])
 			continue
 		}
-		ty, ok := typeAst.(*ast.TypeWithArguments)
+		ty, ok := typeAst.(*parser.TypeWithArguments)
 		if !ok {
 			iz.throw("init/make/instance", &dec.typeToks[0])
 			continue
@@ -283,7 +282,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 			iz.throw("init/alias/type", &dec.typeAliased[0])
 			continue
 		}
-		ty, ok := typeAst.(*ast.TypeWithArguments)
+		ty, ok := typeAst.(*parser.TypeWithArguments)
 		if !ok {
 			continue
 		}
@@ -335,12 +334,12 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		}
 		var (
 			typeNo values.ValueType
-			sig    ast.AstSig
+			sig    parser.AstSig
 		)
 		if isClone {
 			typeNo, _ = iz.addCloneType(ty.String(), parTypeInfo.ParentType, false, &ty.Token)
 			iz.createOperations(ty, typeNo, parTypeInfo.Operations, parentTypeNo, parTypeInfo.IsPrivate)
-			sig = ast.AstSig{ast.NameTypeAstPair{VarName: "x", VarType: ast.MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
+			sig = parser.AstSig{parser.NameTypeAstPair{VarName: "x", VarType: parser.MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
 		} else {
 			typeNo = iz.addStructType(ty.String(), parTypeInfo.IsPrivate, &ty.Token)
 			sig = parTypeInfo.Sig
@@ -384,7 +383,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 					op:        newOp,
 					pos:       prefix,
 					sig:       sig,
-					body:      &ast.BuiltInExpression{Name: builtinTag},
+					body:      &parser.BuiltInExpression{Name: builtinTag},
 					callInfo:  &compiler.CallInfo{iz.cp, fnNo, nil},
 				}
 				iz.cp.P.Functions.Add(name)
@@ -395,7 +394,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 	// Now we can make a constructor function for each of the type operators.
 	for typeOperator, operatorInfo := range typeOperators {
 		name := typeOperator + "{}"
-		sig := append(ast.AstSig{ast.NameTypeAstPair{"+t", &ast.TypeWithName{*operatorInfo.definedAt[0], "type"}}}, operatorInfo.constructorSig...)
+		sig := append(parser.AstSig{parser.NameTypeAstPair{"+t", &parser.TypeWithName{*operatorInfo.definedAt[0], "type"}}}, operatorInfo.constructorSig...)
 		fnNo := iz.addToBuiltins(sig, name, operatorInfo.returnTypes, false, operatorInfo.definedAt[0])
 		newOp := *operatorInfo.definedAt[0]
 		newOp.Literal = name
@@ -406,7 +405,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 			op:        newOp,
 			pos:       prefix,
 			sig:       sig,
-			body:      &ast.BuiltInExpression{Name: name},
+			body:      &parser.BuiltInExpression{Name: name},
 			callInfo:  &compiler.CallInfo{iz.cp, fnNo, nil},
 		}
 		iz.cp.P.Functions.Add(name)
@@ -461,13 +460,13 @@ func (iz *Initializer) findShareableFunctions() {
 func (iz *Initializer) shareable(f *parsedFunction) bool {
 	for _, pair := range f.sig {
 		ty := pair.VarType
-		if _, ok := ty.(*ast.TypeBling); ok {
+		if _, ok := ty.(*parser.TypeBling); ok {
 			continue
 		}
-		if t, ok := ty.(*ast.TypeDotDotDot); ok {
+		if t, ok := ty.(*parser.TypeDotDotDot); ok {
 			ty = t.Right
 		}
-		if t, ok := ty.(*ast.TypeWithName); ok &&
+		if t, ok := ty.(*parser.TypeWithName); ok &&
 			(t.OperatorName == "struct" || t.OperatorName == "enum") {
 			continue
 		}
@@ -672,7 +671,7 @@ func (iz *Initializer) makeFunctionTrees() {
 			tree = iz.addSigToTree(tree, v[i], 0)
 
 			refs := 0 // Overloaded functions must have the same number of reference variables, which go at the start.
-			for ; refs < len(v[i].sig) && ast.IsRef(v[i].sig[refs].VarType); refs++ {
+			for ; refs < len(v[i].sig) && parser.IsRef(v[i].sig[refs].VarType); refs++ {
 			}
 			if i == 0 {
 				rc = refs
@@ -696,7 +695,7 @@ func (iz *Initializer) addSigToTree(tree *compiler.FnTreeNode, fn *parsedFunctio
 		var currentTypeName string
 		currentAbstractType := sig[pos].VarType
 		currentTypeName = nameSig[pos].VarName
-		if blingIs, ok := nameSig[pos].VarType.(*ast.TypeBling); ok { // There's no reason why these should both exist.
+		if blingIs, ok := nameSig[pos].VarType.(*parser.TypeBling); ok { // There's no reason why these should both exist.
 			bling = blingIs.Bling //
 		} else { //
 			currentTypeName = nameSig[pos].VarType.String() //
@@ -786,7 +785,7 @@ func (iz *Initializer) addFieldsToParameterizedStructs() {
 	}
 }
 
-func (iz *Initializer) addFields(typeNumber values.ValueType, sig ast.AstSig) {
+func (iz *Initializer) addFields(typeNumber values.ValueType, sig parser.AstSig) {
 	structInfo := iz.cp.Vm.ConcreteTypeInfo[typeNumber].(vm.StructType)
 	structTypes := make([]values.AbstractType, 0, len(sig))
 	for _, labelNameAndType := range sig {
@@ -803,7 +802,7 @@ func (iz *Initializer) tweakParameterizedTypes() {
 	for _, pti := range iz.parameterizedInstanceMap {
 		for _, v := range pti.env.Data {
 			if iz.cp.Vm.Mem[v.MLoc].T == values.TYPE {
-				iz.cp.Vm.Mem[v.MLoc].V = iz.cp.GetAbstractTypeFromAstType(iz.cp.Vm.Mem[v.MLoc].V.(ast.TypeNode))
+				iz.cp.Vm.Mem[v.MLoc].V = iz.cp.GetAbstractTypeFromAstType(iz.cp.Vm.Mem[v.MLoc].V.(parser.TypeNode))
 			}
 		}
 	}
@@ -830,12 +829,12 @@ func (iz *Initializer) tweakParameterizedTypes() {
 // This adds information about the parameterized types to the VM.
 // It also tweaks the arguments to convert the payload of TYPE from the improper AstType to the correct AbstractType.
 func (iz *Initializer) addParameterizedTypesToVm() {
-	for _, ty := range iz.parameterizedInstanceMap { // TODO --- is there a reason why there aren't all *ast.TypeWithArguments?
-		name := ty.astType.(*ast.TypeWithArguments).Name
+	for _, ty := range iz.parameterizedInstanceMap { // TODO --- is there a reason why there aren't all *parser.TypeWithArguments?
+		name := ty.astType.(*parser.TypeWithArguments).Name
 		typeArgs := []values.Value{}
-		for _, v := range ty.astType.(*ast.TypeWithArguments).Arguments {
+		for _, v := range ty.astType.(*parser.TypeWithArguments).Arguments {
 			if v.Type == values.TYPE {
-				typeArgs = append(typeArgs, values.Value{values.TYPE, iz.cp.GetAbstractTypeFromAstType(v.Value.(ast.TypeNode))})
+				typeArgs = append(typeArgs, values.Value{values.TYPE, iz.cp.GetAbstractTypeFromAstType(v.Value.(parser.TypeNode))})
 			} else {
 				typeArgs = append(typeArgs, values.Value{v.Type, v.Value})
 			}
@@ -854,7 +853,7 @@ func (iz *Initializer) addParameterizedTypesToVm() {
 
 func (iz *Initializer) tweakValue(v values.Value) values.Value {
 	if v.T == values.TYPE {
-		v.V = iz.cp.GetAbstractTypeFromAstType(v.V.(ast.TypeNode))
+		v.V = iz.cp.GetAbstractTypeFromAstType(v.V.(parser.TypeNode))
 	}
 	return v
 }
@@ -1212,7 +1211,7 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 	// dec := iz.ParsedDeclarations[declarations][v]
 	asgn := iz.parsedCode[declarations][v].(*parsedAssignment)
 	iz.cp.Cm("Compiling assignment", asgn.indexTok)
-	// lhs := dec.(*ast.AssignmentExpression).Left
+	// lhs := dec.(*parser.AssignmentExpression).Left
 	rhs := asgn.body
 	sig := asgn.sig
 	if iz.errorsExist() {
@@ -1235,7 +1234,7 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 	envToAddTo, vAcc := iz.getEnvAndAccessForConstOrVarDeclaration(declarations, v)
 
 	last := len(sig) - 1
-	t, ok := sig[last].VarType.(*ast.TypeWithName)
+	t, ok := sig[last].VarType.(*parser.TypeWithName)
 	lastIsTuple := ok && t.OperatorName == "tuple"
 	rhsIsTuple := result.T == values.TUPLE
 	tupleLen := 1
@@ -1276,7 +1275,7 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 	}
 	for i := 0; i < loopTop; i++ {
 		iz.cp.Reserve(head[i].T, head[i].V, rhs.GetToken())
-		if varType, ok := sig[i].VarType.(*ast.TypeWithName); ok && varType.OperatorName == "*inferred*" {
+		if varType, ok := sig[i].VarType.(*parser.TypeWithName); ok && varType.OperatorName == "*inferred*" {
 			iz.cp.AddThatAsVariable(envToAddTo, sig[i].VarName, vAcc, altType(head[i].T), rhs.GetToken())
 		} else {
 			allowedTypes := iz.cp.GetAlternateTypeFromTypeAst(sig[i].VarType)
@@ -1313,7 +1312,7 @@ func (iz *Initializer) getEnvAndAccessForConstOrVarDeclaration(dT declarationTyp
 }
 
 // Method for compiling the runtime typechecks on structs and clones
-func (iz *Initializer) compileTypecheck(name string, node ast.Node, newEnv *compiler.Environment) bool {
+func (iz *Initializer) compileTypecheck(name string, node parser.Node, newEnv *compiler.Environment) bool {
 	typeNumber, _ := iz.cp.GetConcreteType(name)
 	typeInfo := iz.cp.TypeInfoNow(name)
 	var inLoc uint32
@@ -1386,10 +1385,10 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	}
 	iz.cp.StartPushMem() // !!! Anything that early-returned from this function would have to clean up the PushMem artefacts.
 	if izFn.body.GetToken().Type == token.XCALL {
-		Xargs := izFn.body.(*ast.PrefixExpression).Args
-		cpFn.Xcall = &compiler.XBindle{ExternalServiceOrdinal: uint32(Xargs[0].(*ast.IntegerLiteral).Value),
-			FunctionName: Xargs[1].(*ast.StringLiteral).Value, Position: uint32(Xargs[2].(*ast.IntegerLiteral).Value)}
-		serializedTypescheme := Xargs[3].(*ast.StringLiteral).Value
+		Xargs := izFn.body.(*parser.PrefixExpression).Args
+		cpFn.Xcall = &compiler.XBindle{ExternalServiceOrdinal: uint32(Xargs[0].(*parser.IntegerLiteral).Value),
+			FunctionName: Xargs[1].(*parser.StringLiteral).Value, Position: uint32(Xargs[2].(*parser.IntegerLiteral).Value)}
+		serializedTypescheme := Xargs[3].(*parser.StringLiteral).Value
 		cpFn.RtnTypes = iz.deserializeTypescheme(serializedTypescheme)
 	}
 	fnenv := compiler.NewEnvironment()
@@ -1399,12 +1398,12 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	// First we do the local variables that are in the signature of the function.
 	for _, pair := range izFn.sig {
 		iz.cp.Reserve(values.UNDEFINED_TYPE, DUMMY, &izFn.op)
-		if ast.IsRef(pair.VarType) {
+		if parser.IsRef(pair.VarType) {
 			referenceVariables = append(referenceVariables, iz.cp.That())
 			iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.REFERENCE_VARIABLE, iz.cp.Common.AnyTypeScheme, &izFn.op)
 			continue
 		}
-		if !ast.IsAstBling(pair.VarType) {
+		if !parser.IsAstBling(pair.VarType) {
 			iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.FUNCTION_ARGUMENT, iz.cp.GetAlternateTypeFromTypeAst(pair.VarType), &izFn.op)
 		}
 	}
@@ -1414,7 +1413,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	// And then we take care of the arguments of a parameterized type.
 	vmap := map[string][]uint32{}
 	for _, pair := range izFn.sig {
-		if twp, ok := pair.VarType.(*ast.TypeWithParameters); ok {
+		if twp, ok := pair.VarType.(*parser.TypeWithParameters); ok {
 			yeetTo := iz.cp.That() + 1
 			// We range over the parameters of the type.
 			for _, param := range twp.Parameters {
@@ -1461,10 +1460,10 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	var foundTupleOrVarArgs bool
 	for _, param := range izFn.sig {
 		switch {
-		case ast.IsVarargs(param.VarType):
+		case parser.IsVarargs(param.VarType):
 			tupleData = append(tupleData, 1)
 			foundTupleOrVarArgs = true
-		case ast.Is(param.VarType, "tuple"):
+		case parser.Is(param.VarType, "tuple"):
 			tupleData = append(tupleData, 2)
 			foundTupleOrVarArgs = true
 		default:
@@ -1478,7 +1477,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	}
 	switch izFn.body.GetToken().Type {
 	case token.BUILTIN:
-		name := izFn.body.(*ast.BuiltInExpression).Name
+		name := izFn.body.(*parser.BuiltInExpression).Name
 		types, ok := compiler.BUILTINS[name]
 		if ok {
 			cpFn.RtnTypes = types.T // TODO --- this may well be wrong, should it be extracted from izFn.callinfo.ReturnTypes?
@@ -1492,7 +1491,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	case token.GOLANG:
 		cpFn.GoNumber = uint32(len(iz.cp.Vm.GoFns))
 		cpFn.HasGo = true
-		iz.cp.Vm.GoFns = append(iz.cp.Vm.GoFns, vm.GoFn{Code: izFn.body.(*ast.GolangExpression).GoFunction})
+		iz.cp.Vm.GoFns = append(iz.cp.Vm.GoFns, vm.GoFn{Code: izFn.body.(*parser.GolangExpression).GoFunction})
 	case token.XCALL:
 	default:
 		areWeTracking := compiler.LF_NONE
@@ -1518,7 +1517,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		// 'stringify' is secret sauce, users aren't meant to know it exists. TODO --- conceal it better.
 
 		trackingOn := areWeTracking == compiler.LF_TRACK && (functionName != "stringify")
-		log, nodeHasLog := izFn.body.(*ast.LogExpression)
+		log, nodeHasLog := izFn.body.(*parser.LogExpression)
 		autoOn := nodeHasLog && log.Token.Type == token.PRELOG && log.Value == ""
 		if trackingOn || autoOn {
 			iz.cp.TrackOrLog(vm.TR_FNCALL, trackingOn, autoOn, &izFn.op, functionName, izFn.sig, cpFn.LoReg)
@@ -1533,7 +1532,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 			return nil
 		}
 		cpFn.RtnTypes = bodyResult.Types
-		if len(paramChecks) > 0 {                                    // If we had to check the types of the parameters, then the function may return an error no matter what its body might do.
+		if len(paramChecks) > 0 { // If we had to check the types of the parameters, then the function may return an error no matter what its body might do.
 			cpFn.RtnTypes = cpFn.RtnTypes.Union(altType(values.ERROR))
 		}
 		cpFn.OutReg = iz.cp.That()
@@ -1724,13 +1723,13 @@ type labelInfo struct {
 type structInfo struct {
 	structNumber values.ValueType
 	private      bool
-	sig          ast.AstSig
+	sig          parser.AstSig
 }
 
 type fnSigInfo struct {
 	name   string
-	sig    ast.AstSig
-	rtnSig ast.AstSig
+	sig    parser.AstSig
+	rtnSig parser.AstSig
 }
 
 type interfaceInfo struct {

@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/parser"
@@ -52,7 +51,7 @@ type bindle struct {
 // The compiler in the method receiver is where we look up the function name (the "resolving compiler").
 // The arguments need to be compiled in their own namespace by the argCompiler, unless they're bling in which case we
 // use them to look up the function.
-func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable, ctxt Context, libcall bool) cpResult {
+func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node parser.Callable, ctxt Context, libcall bool) cpResult {
 	args := node.GetArgs()
 	env := ctxt.Env
 	ac := ctxt.Access
@@ -84,12 +83,12 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable,
 					return FAIL
 				} else { // We must be in a command. We can create a local variable.
 					cp.Reserve(values.UNDEFINED_TYPE, nil, node.GetToken())
-					newVar := Variable{cp.That(), LOCAL_VARIABLE, cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)}
+					newVar := Variable{cp.That(), LOCAL_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)}
 					env.Data[arg.GetToken().Literal] = newVar
 					v = &newVar
 				}
 			}
-			b.types[i] = cp.GetAlternateTypeFromTypeAst(ast.ANY_NULLABLE_TYPE_AST)
+			b.types[i] = cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)
 			cst = false
 			if v.Access == REFERENCE_VARIABLE { // If the variable we're passing is already a reference variable, then we don't re-wrap it.
 				cp.Put(vm.Asgm, v.MLoc)
@@ -101,7 +100,7 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node ast.Callable,
 			continue
 		}
 		switch arg := arg.(type) { // It might be bling.
-		case *ast.Bling:
+		case *parser.Bling:
 			b.types[i] = AlternateType{blingType{arg.Value}}
 			cp.Reserve(values.BLING, arg.Value, node.GetToken())
 			b.valLocs[i] = cp.That()

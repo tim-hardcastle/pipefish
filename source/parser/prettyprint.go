@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/token"
 )
 
@@ -30,31 +29,31 @@ func (ctxt printContext) in() printContext {
 	return ctxt
 }
 
-func (p *Parser) PrettyPrint(node ast.Node) string {
+func (p *Parser) PrettyPrint(node Node) string {
 	return p.prettyPrint(node, printContext{"", ppOUTER, false})
 }
 
-func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
+func (p *Parser) prettyPrint(node Node, ctxt printContext) string {
 	var out bytes.Buffer
 	out.WriteString(ctxt.indent)
 	switch node := node.(type) {
-	case *ast.AssignmentExpression:
+	case *AssignmentExpression:
 		out.WriteString(p.prettyPrint(node.Left, inlineCtxt))
 		out.WriteString(" = ")
 		out.WriteString(p.prettyPrint(node.Right, inlineCtxt))
-	case *ast.Bling:
+	case *Bling:
 		out.WriteString(node.Value)
-	case *ast.BooleanLiteral:
+	case *BooleanLiteral:
 		out.WriteString(node.Token.Literal)
-	case *ast.ComparisonExpression:
+	case *ComparisonExpression:
 		out.WriteString(p.prettyPrint(node.Left, inlineCtxt))
 		out.WriteString(" ")
 		out.WriteString(node.Operator)
 		out.WriteString(" ")
 		out.WriteString(p.prettyPrint(node.Right, inlineCtxt))
-	case *ast.FloatLiteral:
+	case *FloatLiteral:
 		out.WriteString(node.Token.Literal)
-	case *ast.ForExpression:
+	case *ForExpression:
 		if node.BoundVariables != nil {
 			out.WriteString("from ")
 			out.WriteString(p.prettyPrint(node.BoundVariables, inlineCtxt))
@@ -83,7 +82,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			out.WriteString(" ")
 			out.WriteString(p.prettyPrint(node.Body, inlineCtxt))
 		}
-	case *ast.FuncExpression:
+	case *FuncExpression:
 		out.WriteString("func")
 		out.WriteString(node.NameSig.String() + " :")
 		switch ctxt.flavor {
@@ -105,9 +104,9 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 				out.WriteString(p.prettyPrint(node.Body, inlineCtxt))
 			}
 		}
-	case *ast.Identifier:
+	case *Identifier:
 		out.WriteString(node.Value)
-	case *ast.IndexExpression:
+	case *IndexExpression:
 		if !isLeaf(node.Left) {
 			out.WriteString("(")
 		}
@@ -118,22 +117,22 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		out.WriteString("[")
 		out.WriteString(p.prettyPrint(node.Index, inlineCtxt))
 		out.WriteString("]")
-	case *ast.InfixExpression:
+	case *InfixExpression:
 		pos := 1
 		if len(node.Args) != 3 {
 			for ; pos <= len(node.Args); pos++ {
-				if blingNode, ok := node.Args[pos].(*ast.Bling); ok && blingNode.Value == node.Operator { // TODO --- record this in ast?
+				if blingNode, ok := node.Args[pos].(*Bling); ok && blingNode.Value == node.Operator { // TODO --- record this in ast?
 					break
 				}
 			}
 		}
-		_, isPrefix := node.Args[0].(*ast.PrefixExpression)
-		_, isList := node.Args[0].(*ast.ListExpression)
+		_, isPrefix := node.Args[0].(*PrefixExpression)
+		_, isList := node.Args[0].(*ListExpression)
 		leftNeedsPrefix := isPrefix && pos == 1
 		leftNeedsBrackets := !leftNeedsPrefix && !isList && (pos > 1 || p.hasLowerPrecedence(node.Args[0], node.Args[1]) && !isLeaf(node.Args[0]))
 		rhsHasBling := false
 		for i := pos + 1; i < len(node.Args); i++ {
-			if _, ok := node.Args[i].(*ast.Bling); ok {
+			if _, ok := node.Args[i].(*Bling); ok {
 				rhsHasBling = true
 				break
 			}
@@ -166,7 +165,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			out.WriteString("(")
 		}
 		for i := pos + 1; i < len(node.Args); i++ {
-			if ast.IsBling(node.Args[i-1]) || ast.IsBling(node.Args[i]) {
+			if IsBling(node.Args[i-1]) || IsBling(node.Args[i]) {
 				if i != pos+1 {
 					out.WriteString(" ")
 				}
@@ -178,9 +177,9 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		if rightNeedsBrackets {
 			out.WriteString(")")
 		}
-	case *ast.IntegerLiteral:
+	case *IntegerLiteral:
 		out.WriteString(node.Token.Literal)
-	case *ast.LazyInfixExpression:
+	case *LazyInfixExpression:
 		if node.Operator == "and" || node.Operator == "or" || ctxt.flavor == ppINLINE {
 			if p.hasLowerPrecedence(node.Left, node) && !isLeaf(node.Left) {
 				out.WriteString("(")
@@ -211,14 +210,14 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 				out.WriteString(p.prettyPrint(node.Right, ctxt.in()))
 			}
 		}
-	case *ast.ListExpression:
+	case *ListExpression:
 		out.WriteString("[")
 		out.WriteString(p.prettyPrint(node.List, inlineCtxt))
 		out.WriteString("]")
-	case *ast.Nothing:
+	case *Nothing:
 		out.WriteString("()")
-	case *ast.PipingExpression:
-		_, isList := node.Left.(*ast.ListExpression)
+	case *PipingExpression:
+		_, isList := node.Left.(*ListExpression)
 		leftNeedsBrackets := p.hasLowerPrecedence(node.Left, node) && !isList && !isLeaf(node.Left)
 		if leftNeedsBrackets {
 			out.WriteString("(")
@@ -237,7 +236,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		if p.hasHigherOrEqualPrecedence(node, node.Right) && !isLeaf(node.Right) {
 			out.WriteString(")")
 		}
-	case *ast.PrefixExpression:
+	case *PrefixExpression:
 		out.WriteString(node.Operator)
 		if len(node.Args) == 0 {
 			out.WriteString("()")
@@ -252,7 +251,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			if i == 0 {
 				if len(node.Args) > 1 {
 					out.WriteString(p.prettyPrint(arg, prefixCtxt))
-					if ast.IsBling(arg) {
+					if IsBling(arg) {
 						out.WriteString(" ")
 					}
 				} else {
@@ -260,22 +259,22 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 				}
 				continue
 			}
-			if ast.IsBling(arg) {
-				if ctxt.mustBracket && !ast.IsBling(node.Args[i-1]) {
+			if IsBling(arg) {
+				if ctxt.mustBracket && !IsBling(node.Args[i-1]) {
 					out.WriteString(") ")
 				}
-				if !ast.IsBling(node.Args[i-1]) {
+				if !IsBling(node.Args[i-1]) {
 					out.WriteString(" ")
 				}
 				out.WriteString(p.prettyPrint(arg, inlineCtxt))
 				if i < len(node.Args)-1 {
 					out.WriteString(" ")
 				}
-				if ctxt.mustBracket && i+1 < len(node.Args) && !ast.IsBling(node.Args[i+1]) {
+				if ctxt.mustBracket && i+1 < len(node.Args) && !IsBling(node.Args[i+1]) {
 					out.WriteString("(")
 				}
 			} else {
-				if !ast.IsBling(node.Args[i-1]) {
+				if !IsBling(node.Args[i-1]) {
 					out.WriteString(", ")
 				}
 				if i+1 < len(node.Args) {
@@ -288,11 +287,11 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 		if ctxt.mustBracket {
 			out.WriteString(")")
 		}
-	case *ast.RuneLiteral:
+	case *RuneLiteral:
 		out.WriteString(strconv.QuoteRune(node.Value))
-	case *ast.StringLiteral:
+	case *StringLiteral:
 		out.WriteString(strconv.Quote(node.Value))
-	case *ast.SuffixExpression:
+	case *SuffixExpression:
 		if len(node.Args) > 1 || !isLeaf(node.Args[0]) {
 			out.WriteString("(")
 		}
@@ -308,7 +307,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			out.WriteString(" ")
 		}
 		out.WriteString(node.Operator)
-	case *ast.TypeExpression:
+	case *TypeExpression:
 		out.WriteString(node.Operator)
 		if len(node.TypeArgs) == 0 {
 			break
@@ -321,7 +320,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			sep = []byte(", ")
 		}
 		out.WriteString("}")
-	case *ast.TypePrefixExpression:
+	case *TypePrefixExpression:
 		out.WriteString(node.Operator)
 		if len(node.TypeArgs) > 0 {
 			out.WriteString("{")
@@ -352,7 +351,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			}
 		}
 		out.WriteString(")")
-	case *ast.TryExpression:
+	case *TryExpression:
 		out.WriteString("try ")
 		if node.VarName != "" {
 			out.WriteString(node.VarName)
@@ -367,7 +366,7 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 			out.WriteString(" ")
 			out.WriteString(p.prettyPrint(node.Right, inlineCtxt))
 		}
-	case *ast.UnfixExpression:
+	case *UnfixExpression:
 		out.WriteString(node.Operator)
 	default:
 		panic("Unhandled case in prettyprint: " + reflect.TypeOf(node).String())
@@ -375,14 +374,14 @@ func (p *Parser) prettyPrint(node ast.Node, ctxt printContext) string {
 	return out.String()
 }
 
-func (p *Parser) hasLowerPrecedence(nodeA, nodeB ast.Node) bool {
+func (p *Parser) hasLowerPrecedence(nodeA, nodeB Node) bool {
 	return p.leftPrecedence(*nodeA.GetToken()) < p.rightPrecedence(*nodeB.GetToken())
 }
 
-func (p *Parser) hasHigherOrEqualPrecedence(nodeA, nodeB ast.Node) bool {
+func (p *Parser) hasHigherOrEqualPrecedence(nodeA, nodeB Node) bool {
 	return p.leftPrecedence(*nodeA.GetToken()) >= p.rightPrecedence(*nodeB.GetToken())
 }
 
-func isLeaf(node ast.Node) bool {
+func isLeaf(node Node) bool {
 	return len(node.Children()) == 0
 }

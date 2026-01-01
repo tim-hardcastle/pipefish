@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/compiler"
 	"github.com/tim-hardcastle/pipefish/source/err"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
@@ -195,7 +195,7 @@ func (iz *Initializer) SerializeApi() string {
 	for name, fns := range iz.functionTable {
 		for defOrCmd := 0; defOrCmd < 2; defOrCmd++ { // In the function table the commands and functions are all jumbled up. But we want the commands first, for neatness, so we'll do two passes.
 			for _, fn := range fns {
-				_, ok := fn.body.(*ast.BuiltInExpression) // Which includes the constructors, which don't need exporting.
+				_, ok := fn.body.(*parser.BuiltInExpression) // Which includes the constructors, which don't need exporting.
 				if fn.isBoilerplate || fn.private || settings.MandatoryImportSet().Contains(fn.op.Source) || ok {
 					continue
 				}
@@ -217,7 +217,7 @@ func (iz *Initializer) SerializeApi() string {
 					buf.WriteString(" | ")
 					buf.WriteString(ntp.VarName)
 					buf.WriteString(" ")
-					if _, ok := ntp.VarType.(*ast.TypeBling); ok {
+					if _, ok := ntp.VarType.(*parser.TypeBling); ok {
 						buf.WriteString("bling")
 					} else {
 						buf.WriteString(ntp.VarType.String())

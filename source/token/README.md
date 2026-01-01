@@ -1,0 +1,1 @@
+This contains the tokens that are emitted by the lexer. The reason they don't just live in the lexer is that they're used by `err`, which is used by everything.

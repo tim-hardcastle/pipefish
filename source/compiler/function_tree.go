@@ -3,7 +3,7 @@ package compiler
 import (
 	"strconv"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
 
@@ -23,7 +23,7 @@ type CallInfo struct {
 	Compiler *Compiler
 	Number   uint32
 	// Having ReturnTypes here is a bit of kludge. It's required during intitialization to supply return types for interface backtracks.
-	ReturnTypes ast.AstSig
+	ReturnTypes parser.AstSig
 }
 
 type FnTreeNode struct {

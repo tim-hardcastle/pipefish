@@ -1,7 +1,6 @@
 package initializer
 
 import (
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/token"
@@ -28,15 +27,15 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 	// If it's a parameterized type, e.g. list{T type} then we need to match it against
 	// the same parameterized type in the call types and a corresponding type calculation
 	// (e.g. list{T}) in the return types.
-	var paramType *ast.TypeWithParameters
+	var paramType *parser.TypeWithParameters
 	for i := 0; i < len(sigToMatch.sig); i++ {
-		if maybeSelf, ok := sigToMatch.sig.GetVarType(i).(*ast.TypeWithName); ok && maybeSelf.OperatorName == "self" {
+		if maybeSelf, ok := sigToMatch.sig.GetVarType(i).(*parser.TypeWithName); ok && maybeSelf.OperatorName == "self" {
 			if foundSelf {
 				result = result.Intersect(abSig[i].VarType)
 				if len(result.Types) == 0 {
 					break
 				}
-				if twp, ok := fnToTry.sig.GetVarType(i).(*ast.TypeWithParameters); ok {
+				if twp, ok := fnToTry.sig.GetVarType(i).(*parser.TypeWithParameters); ok {
 					if paramType == nil || !paramType.Equals(twp) {
 						return values.MakeAbstractType()
 					}
@@ -44,13 +43,13 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 			} else {
 				foundSelf = true
 				result = abSig[i].VarType
-				if twp, ok := fnToTry.sig.GetVarType(i).(*ast.TypeWithParameters); ok {
+				if twp, ok := fnToTry.sig.GetVarType(i).(*parser.TypeWithParameters); ok {
 					paramType = twp
 				}
 			}
 		} else {
-			if !iz.cp.GetAbstractTypeFromAstType(sigToMatch.sig.GetVarType(i).(ast.TypeNode)).IsSubtypeOf(abSig[i].VarType) ||
-				ast.IsAstBling(sigToMatch.sig.GetVarType(i).(ast.TypeNode)) && sigToMatch.sig.GetVarName(i) != abSig[i].VarName {
+			if !iz.cp.GetAbstractTypeFromAstType(sigToMatch.sig.GetVarType(i).(parser.TypeNode)).IsSubtypeOf(abSig[i].VarType) ||
+				parser.IsAstBling(sigToMatch.sig.GetVarType(i).(parser.TypeNode)) && sigToMatch.sig.GetVarName(i) != abSig[i].VarName {
 				return values.MakeAbstractType()
 			}
 		}
@@ -60,10 +59,10 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 		return values.MakeAbstractType()
 	}
 	for i := 0; i < sigToMatch.rtnSig.Len(); i++ {
-		if t, ok := sigToMatch.rtnSig[i].VarType.(*ast.TypeWithName); ok && t.OperatorName == "self" {
+		if t, ok := sigToMatch.rtnSig[i].VarType.(*parser.TypeWithName); ok && t.OperatorName == "self" {
 			// First we deal with the possibility of a type expression matching a parameterized
 			// type.
-			te, ok := fnToTry.callInfo.ReturnTypes.GetVarType(i).(*ast.TypeExpression)
+			te, ok := fnToTry.callInfo.ReturnTypes.GetVarType(i).(*parser.TypeExpression)
 			if ok && paramType != nil {
 				if paramType.Matches(te) {
 					continue
@@ -87,46 +86,46 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 	return result
 }
 
-func (iz *Initializer) makeTypeWithParameters(op token.Token, tokSig parser.TokSig) *ast.TypeWithParameters {
-	params := []*ast.Parameter{}
+func (iz *Initializer) makeTypeWithParameters(op token.Token, tokSig parser.TokSig) *parser.TypeWithParameters {
+	params := []*parser.Parameter{}
 	for _, pair := range tokSig {
 		// TODO --- Checking on the well-formedness of types may have slipped through the
 		// cracks. The typename should only be one token, but this hasn't been verified.
-		newParam := &ast.Parameter{pair.Name.Literal, pair.Typename[0].Literal}
+		newParam := &parser.Parameter{pair.Name.Literal, pair.Typename[0].Literal}
 		params = append(params, newParam)
 	}
-	return &ast.TypeWithParameters{op, op.Literal, params}
+	return &parser.TypeWithParameters{op, op.Literal, params}
 }
 
-func (iz *Initializer) makeAstSigFromTokenizedSig(ts parser.TokSig) ast.AstSig {
-	as := ast.AstSig{}
+func (iz *Initializer) makeAstSigFromTokenizedSig(ts parser.TokSig) parser.AstSig {
+	as := parser.AstSig{}
 	for _, pair := range ts {
 		if len(pair.Typename) == 1 && (pair.Typename[0].Literal == "bling") {
-			bling := ast.TypeBling{pair.Typename[0], pair.Name.Literal}
-			as = append(as, ast.NameTypeAstPair{pair.Name.Literal, &bling})
+			bling := parser.TypeBling{pair.Typename[0], pair.Name.Literal}
+			as = append(as, parser.NameTypeAstPair{pair.Name.Literal, &bling})
 		} else {
 			typeAst := iz.makeTypeAstFromTokens(pair.Typename)
-			as = append(as, ast.NameTypeAstPair{pair.Name.Literal, typeAst})
+			as = append(as, parser.NameTypeAstPair{pair.Name.Literal, typeAst})
 		}
 	}
 	return as
 }
 
-func (iz *Initializer) makeRetsFromTokenizedReturns(ts parser.TokReturns) ast.AstSig {
-	var as ast.AstSig
+func (iz *Initializer) makeRetsFromTokenizedReturns(ts parser.TokReturns) parser.AstSig {
+	var as parser.AstSig
 	for _, ty := range ts {
-		as = append(as, ast.NameTypeAstPair{"", iz.makeReturnTypeFromTokens(ty)})
+		as = append(as, parser.NameTypeAstPair{"", iz.makeReturnTypeFromTokens(ty)})
 	}
 	return as
 }
 
-func (iz *Initializer) makeReturnTypeFromTokens(toks []token.Token) ast.TypeNode {
-	var nilRtn ast.TypeNode
+func (iz *Initializer) makeReturnTypeFromTokens(toks []token.Token) parser.TypeNode {
+	var nilRtn parser.TypeNode
 	if len(toks) == 0 {
 		return nilRtn
 	}
 	if len(toks) == 1 {
-		return &ast.TypeWithName{toks[0], toks[0].Literal}
+		return &parser.TypeWithName{toks[0], toks[0].Literal}
 	}
 	if toks[1].Type == token.LBRACE {
 		ts := parser.MakeCodeChunk(toks[2:len(toks)-1], false)
@@ -137,22 +136,22 @@ func (iz *Initializer) makeReturnTypeFromTokens(toks []token.Token) ast.TypeNode
 		iz.P.PrimeWithTokenSupplier(ts)
 		typeArgsNode := iz.P.ParseExpression(parser.LOWEST)
 		typeArgs := iz.P.RecursivelyListify(typeArgsNode)
-		typeNode := iz.cp.P.ToAstType(&ast.TypeExpression{Token: toks[0], Operator: toks[0].Literal, TypeArgs: typeArgs})
-		if typeNode, ok := typeNode.(*ast.TypeWithArguments); ok {
+		typeNode := iz.cp.P.ToAstType(&parser.TypeExpression{Token: toks[0], Operator: toks[0].Literal, TypeArgs: typeArgs})
+		if typeNode, ok := typeNode.(*parser.TypeWithArguments); ok {
 			return typeNode
 		} else { // Otherwise it's a computed type so we just throw together all the
 			// things it could be and call it a day.
-			return &ast.TypeWithName{toks[0], toks[0].Literal + "{_}"}
+			return &parser.TypeWithName{toks[0], toks[0].Literal + "{_}"}
 		}
 	}
 	return iz.makeTypeAstFromTokens(toks)
 }
 
-func (iz *Initializer) makeTypeAstFromTokens(toks []token.Token) ast.TypeNode {
+func (iz *Initializer) makeTypeAstFromTokens(toks []token.Token) parser.TypeNode {
 	ts := parser.MakeCodeChunk(toks, false)
 	iz.P.PrimeWithTokenSupplier(ts)
 	node := iz.P.ParseTypeFromCurTok(parser.LOWEST)
-	if node, ok := node.(*ast.TypeWithArguments); ok {
+	if node, ok := node.(*parser.TypeWithArguments); ok {
 		if !parser.PSEUDOTYPES.Contains(node.Name) {
 			iz.P.ParTypeInstances[node.String()] = node
 		}
@@ -166,20 +165,20 @@ func (iz *Initializer) makeTypeAstFromTokens(toks []token.Token) ast.TypeNode {
 func (iz *Initializer) extractNamesFromCodeChunk(dec labeledParsedCodeChunk) dtypes.Set[string] {
 	switch pc := dec.chunk.(type) {
 	case *parsedAssignment:
-		return ast.ExtractAllNames(pc.body)
+		return parser.ExtractAllNames(pc.body)
 	case *parsedTypecheck:
-		return ast.ExtractAllNames(pc.body)
+		return parser.ExtractAllNames(pc.body)
 	case *parsedTypeInstance:
-		return ast.ExtractAllNames(pc.typeCheck)
+		return parser.ExtractAllNames(pc.typeCheck)
 	case *parsedFunction:
 		sigNames := dtypes.Set[string]{}
 		for _, pair := range pc.sig {
-			if _, ok := pair.VarType.(*ast.TypeBling); !ok {
+			if _, ok := pair.VarType.(*parser.TypeBling); !ok {
 				sigNames = sigNames.Add(pair.VarName)
 			}
 		}
-		bodyNames := ast.ExtractAllNames(pc.body)
-		lhsG, rhsG := ast.ExtractNamesFromLhsAndRhsOfGivenBlock(pc.given)
+		bodyNames := parser.ExtractAllNames(pc.body)
+		lhsG, rhsG := parser.ExtractNamesFromLhsAndRhsOfGivenBlock(pc.given)
 		bodyNames.AddSet(rhsG)
 		bodyNames = bodyNames.SubtractSet(lhsG)
 		result := bodyNames.SubtractSet(sigNames)

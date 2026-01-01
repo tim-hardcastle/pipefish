@@ -3,7 +3,7 @@ package compiler
 import (
 	"reflect"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
 
@@ -54,7 +54,7 @@ var ClonableTypes = map[string]values.ValueType{"float": values.FLOAT, "int": va
 
 var AbstractTypesOtherThanAny = []string{"struct", "enum"}
 
-func IsMoreSpecific(sigA, sigB ast.AbstractSig) (result bool, ok bool) {
+func IsMoreSpecific(sigA, sigB parser.AbstractSig) (result bool, ok bool) {
 	if len(sigB) == 0 {
 		result = true
 		ok = true
@@ -120,16 +120,16 @@ func (ts TypeSys) String() string {
 	return result + "\n"
 }
 
-func (cp *Compiler) MakeAbstractSigFromStringSig(sig ast.AstSig) ast.AbstractSig {
-	result := make(ast.AbstractSig, sig.Len())
+func (cp *Compiler) MakeAbstractSigFromStringSig(sig parser.AstSig) parser.AbstractSig {
+	result := make(parser.AbstractSig, sig.Len())
 	for i, pair := range sig {
 		typename := pair.VarType
 		typeToUse := typename
-		if typename, ok := typename.(*ast.TypeDotDotDot); ok {
+		if typename, ok := typename.(*parser.TypeDotDotDot); ok {
 			typeToUse = typename.Right
 		}
 		abType := cp.GetAbstractTypeFromAstType(typeToUse)
-		result[i] = ast.NameAbstractTypePair{pair.VarName, abType}
+		result[i] = parser.NameAbstractTypePair{pair.VarName, abType}
 	}
 	return result
 }
@@ -144,16 +144,16 @@ func (cp *Compiler) TypeExists(name string) bool {
 	return ok
 }
 
-func (cp *Compiler) GetAbstractTypeFromAstType(typeNode ast.TypeNode) values.AbstractType {
+func (cp *Compiler) GetAbstractTypeFromAstType(typeNode parser.TypeNode) values.AbstractType {
 	if typeNode == nil { // This can mark an absence of return types.
 		return values.AbstractType{}
 	}
 	switch typeNode := typeNode.(type) {
-	case *ast.TypeWithName:
+	case *parser.TypeWithName:
 		return cp.GetAbstractTypeFromTypeName(typeNode.OperatorName)
-	case *ast.TypeWithArguments:
+	case *parser.TypeWithArguments:
 		return cp.GetAbstractTypeFromTypeName(typeNode.String())
-	case *ast.TypeInfix:
+	case *parser.TypeInfix:
 		LHS := cp.GetAbstractTypeFromAstType(typeNode.Left)
 		RHS := cp.GetAbstractTypeFromAstType(typeNode.Right)
 		if typeNode.Operator == "/" {
@@ -162,7 +162,7 @@ func (cp *Compiler) GetAbstractTypeFromAstType(typeNode ast.TypeNode) values.Abs
 		if typeNode.Operator == "&" {
 			return LHS.Intersect(RHS)
 		}
-	case *ast.TypeSuffix:
+	case *parser.TypeSuffix:
 		LHS := cp.GetAbstractTypeFromAstType(typeNode.Left)
 		if typeNode.Operator == "?" {
 			return LHS.Insert(values.NULL)
@@ -170,17 +170,17 @@ func (cp *Compiler) GetAbstractTypeFromAstType(typeNode ast.TypeNode) values.Abs
 		if typeNode.Operator == "!" {
 			return LHS.Insert(values.ERROR)
 		}
-	case *ast.TypeBling:
+	case *parser.TypeBling:
 		return values.AbstractType{[]values.ValueType{values.BLING}}
-	case *ast.TypeDotDotDot:
+	case *parser.TypeDotDotDot:
 		return cp.GetAbstractTypeFromAstType(typeNode.Right)
-	case *ast.TypeWithParameters:
+	case *parser.TypeWithParameters:
 		return cp.GetAbstractTypeFromTypeName(typeNode.Blank().String())
-	case *ast.TypeExpression:
+	case *parser.TypeExpression:
 		if typeNode.TypeArgs == nil {
-				return cp.GetAbstractTypeFromTypeName(typeNode.Operator)
+			return cp.GetAbstractTypeFromTypeName(typeNode.Operator)
 		} else {
-				return cp.P.ParTypes[typeNode.Operator].PossibleReturnTypes
+			return cp.P.ParTypes[typeNode.Operator].PossibleReturnTypes
 		}
 	}
 	panic("Can't compile type node " + typeNode.String() + " with type " + reflect.TypeOf(typeNode).String())

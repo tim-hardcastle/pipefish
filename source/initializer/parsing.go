@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/lmorg/readline/v4"
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/compiler"
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/lexer"
@@ -621,8 +620,8 @@ func (iz *Initializer) createEnums() {
 
 		// We make the constructor function.
 		iz.P.Functions.Add(name)
-		sig := ast.AstSig{ast.NameTypeAstPair{"x", &ast.TypeWithName{token.Token{}, "int"}}}
-		rtnSig := ast.AstSig{ast.NameTypeAstPair{"*dummy*", &ast.TypeWithName{token.Token{}, name}}}
+		sig := parser.AstSig{parser.NameTypeAstPair{"x", &parser.TypeWithName{token.Token{}, "int"}}}
+		rtnSig := parser.AstSig{parser.NameTypeAstPair{"*dummy*", &parser.TypeWithName{token.Token{}, name}}}
 		fnNo := iz.addToBuiltins(sig, name, altType(typeNo), dec.private, &dec.op)
 		fn := &parsedFunction{
 			decType:   functionDeclaration,
@@ -631,7 +630,7 @@ func (iz *Initializer) createEnums() {
 			op:        dec.op,
 			pos:       prefix,
 			sig:       sig,
-			body:      &ast.BuiltInExpression{Name: name},
+			body:      &parser.BuiltInExpression{Name: name},
 			callInfo:  &compiler.CallInfo{iz.cp, fnNo, rtnSig},
 		}
 		iz.Add(name, fn)
@@ -703,13 +702,13 @@ func (iz *Initializer) createClones() {
 			continue
 		}
 		typeNo, fn := iz.addCloneTypeAndConstructor(name, typeToClone, dec.private, ixPtr(dec))
-		sig := ast.AstSig{ast.NameTypeAstPair{VarName: "x", VarType: ast.MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
+		sig := parser.AstSig{parser.NameTypeAstPair{VarName: "x", VarType: parser.MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
 		fn.callInfo.Number = iz.addToBuiltins(sig, name, altType(typeNo), dec.private, ixPtr(dec))
-		iz.createOperations(&ast.TypeWithName{token.Token{}, name}, typeNo, dec.requests, parentTypeNo, dec.private)
+		iz.createOperations(&parser.TypeWithName{token.Token{}, name}, typeNo, dec.requests, parentTypeNo, dec.private)
 		// If we're cloning a set or a map, they need extra constructors to construct the type from varargs.
 		if typeToClone == "map" {
-			sig := ast.AstSig{ast.NameTypeAstPair{"x", &ast.TypeDotDotDot{token.Token{}, &ast.TypeWithName{token.Token{}, "pair"}}}}
-			rtnSig := ast.AstSig{ast.NameTypeAstPair{"*dummy*", &ast.TypeWithName{token.Token{}, name}}}
+			sig := parser.AstSig{parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, &parser.TypeWithName{token.Token{}, "pair"}}}}
+			rtnSig := parser.AstSig{parser.NameTypeAstPair{"*dummy*", &parser.TypeWithName{token.Token{}, name}}}
 			fn := &parsedFunction{
 				decType:   functionDeclaration,
 				decNumber: DUMMY,
@@ -717,15 +716,15 @@ func (iz *Initializer) createClones() {
 				op:        *ixPtr(dec),
 				pos:       prefix,
 				sig:       sig,
-				body:      &ast.BuiltInExpression{Name: "$m_" + name},
+				body:      &parser.BuiltInExpression{Name: "$m_" + name},
 				callInfo:  &compiler.CallInfo{iz.cp, DUMMY, rtnSig},
 			}
 			iz.Add(name, fn)
 			fn.callInfo.Number = iz.addToBuiltins(sig, "$m_"+name, altType(typeNo), dec.private, ixPtr(dec))
 		}
 		if typeToClone == "set" {
-			sig := ast.AstSig{ast.NameTypeAstPair{"x", &ast.TypeDotDotDot{token.Token{}, ast.ANY_NULLABLE_TYPE_AST}}}
-			rtnSig := ast.AstSig{ast.NameTypeAstPair{"*dummy*", &ast.TypeWithName{token.Token{}, name}}}
+			sig := parser.AstSig{parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, parser.ANY_NULLABLE_TYPE_AST}}}
+			rtnSig := parser.AstSig{parser.NameTypeAstPair{"*dummy*", &parser.TypeWithName{token.Token{}, name}}}
 			fn := &parsedFunction{
 				decType:   functionDeclaration,
 				decNumber: DUMMY,
@@ -733,7 +732,7 @@ func (iz *Initializer) createClones() {
 				op:        *ixPtr(dec),
 				pos:       prefix,
 				sig:       sig,
-				body:      &ast.BuiltInExpression{Name: "$s_" + name},
+				body:      &parser.BuiltInExpression{Name: "$s_" + name},
 				callInfo:  &compiler.CallInfo{iz.cp, DUMMY, rtnSig},
 			}
 			iz.Add(name, fn)
@@ -749,8 +748,8 @@ func (iz *Initializer) addCloneTypeAndConstructor(name, typeToClone string, priv
 	}
 	// We make the conversion function.
 	iz.P.Functions.Add(name)
-	sig := ast.AstSig{ast.NameTypeAstPair{"x", &ast.TypeWithName{token.Token{}, typeToClone}}}
-	rtnSig := ast.AstSig{ast.NameTypeAstPair{"*dummy*", &ast.TypeWithName{token.Token{}, name}}}
+	sig := parser.AstSig{parser.NameTypeAstPair{"x", &parser.TypeWithName{token.Token{}, typeToClone}}}
+	rtnSig := parser.AstSig{parser.NameTypeAstPair{"*dummy*", &parser.TypeWithName{token.Token{}, name}}}
 	fn := &parsedFunction{
 		decType:   functionDeclaration,
 		decNumber: DUMMY,
@@ -758,7 +757,7 @@ func (iz *Initializer) addCloneTypeAndConstructor(name, typeToClone string, priv
 		op:        *decTok,
 		pos:       prefix,
 		sig:       sig,
-		body:      &ast.BuiltInExpression{Name: name},
+		body:      &parser.BuiltInExpression{Name: name},
 		callInfo:  &compiler.CallInfo{iz.cp, DUMMY, rtnSig},
 	}
 	iz.Add(name, fn)
@@ -797,27 +796,27 @@ func (iz *Initializer) addCloneType(name, typeToClone string, private bool, decT
 	return typeNo, true
 }
 
-func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.ValueType, opList []token.Token, parentTypeNo values.ValueType, private bool) {
+func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.ValueType, opList []token.Token, parentTypeNo values.ValueType, private bool) {
 	for i, opTok := range opList {
 		op := opTok.Literal
 		tok1 := &(opList[i])
-		rtnSig := ast.AstSig{{"", nameAst}}
+		rtnSig := parser.AstSig{{"", nameAst}}
 		switch parentTypeNo {
 		case values.FLOAT:
 			switch op {
 			case "+":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"+", ast.AsBling("+")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", parser.AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("+", sig, "add_floats", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "-":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"-", ast.AsBling("-")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"-", parser.AsBling("-")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("-", sig, "subtract_floats", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
-				sig = ast.AstSig{ast.NameTypeAstPair{"x", nameAst}}
+				sig = parser.AstSig{parser.NameTypeAstPair{"x", nameAst}}
 				iz.makeCloneFunction("-", sig, "negate_float", altType(typeNo), rtnSig, private, vm.PREFIX, tok1)
 			case "*":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"*", ast.AsBling("*")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"*", parser.AsBling("*")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("*", sig, "multiply_floats", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "/":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"/", ast.AsBling("/")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"/", parser.AsBling("/")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("/", sig, "divide_floats", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
 				iz.throw("init/request/float", tok1, op)
@@ -825,21 +824,21 @@ func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.Valu
 		case values.INT:
 			switch op {
 			case "+":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"+", ast.AsBling("+")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", parser.AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("+", sig, "add_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "-":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"-", ast.AsBling("-")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"-", parser.AsBling("-")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("-", sig, "subtract_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
-				sig = ast.AstSig{ast.NameTypeAstPair{"x", nameAst}}
+				sig = parser.AstSig{parser.NameTypeAstPair{"x", nameAst}}
 				iz.makeCloneFunction("-", sig, "negate_integer", altType(typeNo), rtnSig, private, vm.PREFIX, tok1)
 			case "*":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"*", ast.AsBling("*")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"*", parser.AsBling("*")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("*", sig, "multiply_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "div":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"/", ast.AsBling("/")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"/", parser.AsBling("/")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("div", sig, "divide_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "mod":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"%", ast.AsBling("&")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"%", parser.AsBling("&")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("mod", sig, "modulo_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
 				iz.throw("init/request/int", tok1, op)
@@ -847,13 +846,13 @@ func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.Valu
 		case values.LIST:
 			switch op {
 			case "+":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"+", ast.AsBling("+")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", parser.AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("+", sig, "add_lists", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "&":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"&", ast.AsBling("&")}, ast.NameTypeAstPair{"y", ast.ANY_NULLABLE_TYPE_AST}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"&", parser.AsBling("&")}, parser.NameTypeAstPair{"y", parser.ANY_NULLABLE_TYPE_AST}}
 				iz.makeCloneFunction("&", sig, "concat_to_list", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "with":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"with", ast.AsBling("with")}, ast.NameTypeAstPair{"y", ast.DOTDOTDOT_PAIR}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"with", parser.AsBling("with")}, parser.NameTypeAstPair{"y", parser.DOTDOTDOT_PAIR}}
 				iz.makeCloneFunction("with", sig, "listWithMaker(x, y)", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "?>":
 				cloneData := iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType)
@@ -873,10 +872,10 @@ func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.Valu
 		case values.MAP:
 			switch op {
 			case "with":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"with", ast.AsBling("with")}, ast.NameTypeAstPair{"y", ast.DOTDOTDOT_PAIR}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"with", parser.AsBling("with")}, parser.NameTypeAstPair{"y", parser.DOTDOTDOT_PAIR}}
 				iz.makeCloneFunction("with", sig, "mapWithMaker(x, y)", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "without":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"without", ast.AsBling("without")}, ast.NameTypeAstPair{"y", ast.DOTDOTDOT_ANY_NULLABLE}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"without", parser.AsBling("without")}, parser.NameTypeAstPair{"y", parser.DOTDOTDOT_ANY_NULLABLE}}
 				iz.makeCloneFunction("without", sig, "mapWithoutMaker(x, y)", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
 				iz.throw("init/request/map", tok1, op)
@@ -886,16 +885,16 @@ func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.Valu
 		case values.SET:
 			switch op {
 			case "+":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"+", ast.AsBling("+")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", parser.AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("+", sig, "add_sets", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "&":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"&", ast.AsBling("&")}, ast.NameTypeAstPair{"y", ast.ANY_NULLABLE_TYPE_AST}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"&", parser.AsBling("&")}, parser.NameTypeAstPair{"y", parser.ANY_NULLABLE_TYPE_AST}}
 				iz.makeCloneFunction("&", sig, "concat_to_set", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "-":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"-", ast.AsBling("-")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"-", parser.AsBling("-")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("-", sig, "subtract_sets", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "/\\":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"/\\", ast.AsBling("/\\")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"/\\", parser.AsBling("/\\")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("/\\", sig, "intersect_sets", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
 				iz.throw("init/request/set", tok1, op)
@@ -903,7 +902,7 @@ func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.Valu
 		case values.STRING:
 			switch op {
 			case "+":
-				sig := ast.AstSig{ast.NameTypeAstPair{"x", nameAst}, ast.NameTypeAstPair{"+", ast.AsBling("+")}, ast.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", parser.AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
 				iz.makeCloneFunction("+", sig, "add_strings", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "slice":
 				cloneData := iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType)
@@ -920,7 +919,7 @@ func (iz *Initializer) createOperations(nameAst ast.TypeNode, typeNo values.Valu
 }
 
 // Function auxiliary to the previous one, to make constructors for the clone types.
-func (iz *Initializer) makeCloneFunction(fnName string, sig ast.AstSig, builtinTag string, rtnTypes compiler.AlternateType, rtnSig ast.AstSig, IsPrivate bool, pos uint32, tok *token.Token) {
+func (iz *Initializer) makeCloneFunction(fnName string, sig parser.AstSig, builtinTag string, rtnTypes compiler.AlternateType, rtnSig parser.AstSig, IsPrivate bool, pos uint32, tok *token.Token) {
 	fnNo := iz.addToBuiltins(sig, builtinTag, rtnTypes, IsPrivate, tok)
 	fn := &parsedFunction{
 		decType:   functionDeclaration,
@@ -929,7 +928,7 @@ func (iz *Initializer) makeCloneFunction(fnName string, sig ast.AstSig, builtinT
 		op:        *tok,
 		pos:       prefix,
 		sig:       sig,
-		body:      &ast.BuiltInExpression{Name: fnName},
+		body:      &parser.BuiltInExpression{Name: fnName},
 		callInfo:  &compiler.CallInfo{iz.cp, fnNo, rtnSig},
 	}
 	iz.Common.functions[funcSource{tok.Source, tok.Line, fnName, pos}] = fn
@@ -1019,7 +1018,7 @@ func (iz *Initializer) createStructLabels() {
 			op:        dec.op,
 			pos:       prefix,
 			sig:       sig,
-			body:      &ast.BuiltInExpression{Name: name},
+			body:      &parser.BuiltInExpression{Name: name},
 			callInfo:  &compiler.CallInfo{iz.cp, fnNo, nil},
 		}
 		iz.Add(name, fn)
@@ -1034,7 +1033,7 @@ func labelValuesFromLabelNumbers(numbers []int) values.Value {
 	return values.Value{values.LIST, vec}
 }
 
-func (iz *Initializer) makeLabelsFromSig(sig ast.AstSig, private bool, indexTok *token.Token) []int {
+func (iz *Initializer) makeLabelsFromSig(sig parser.AstSig, private bool, indexTok *token.Token) []int {
 	labelsForStruct := make([]int, 0, len(sig))
 	acc := compiler.GLOBAL_CONSTANT_PUBLIC
 	if private {
@@ -1079,7 +1078,7 @@ func (iz *Initializer) makeLabelsFromSig(sig ast.AstSig, private bool, indexTok 
 	return labelsForStruct
 }
 
-func (iz *Initializer) registerParameterizedType(name string, ty *ast.TypeWithParameters, opList []token.Token, typeCheck *parser.TokenizedCodeChunk, parentType string, private bool, tok *token.Token) bool {
+func (iz *Initializer) registerParameterizedType(name string, ty *parser.TypeWithParameters, opList []token.Token, typeCheck *parser.TokenizedCodeChunk, parentType string, private bool, tok *token.Token) bool {
 	info, ok := iz.parameterizedTypes[name]
 	if ok {
 		if iz.paramTypeExists(ty) == DUMMY {
@@ -1106,7 +1105,7 @@ func (iz *Initializer) registerParameterizedType(name string, ty *ast.TypeWithPa
 	return true
 }
 
-func (iz *Initializer) paramTypeExists(ty *ast.TypeWithParameters) int {
+func (iz *Initializer) paramTypeExists(ty *parser.TypeWithParameters) int {
 	typesToMatch := iz.astParamsToValueTypes(ty.Parameters)
 	for i, pty := range iz.parameterizedTypes[ty.Name] {
 		if iz.parameterTypesMatch(typesToMatch, pty.Types) {
@@ -1116,7 +1115,7 @@ func (iz *Initializer) paramTypeExists(ty *ast.TypeWithParameters) int {
 	return DUMMY
 }
 
-func (iz *Initializer) astParamsToValueTypes(params []*ast.Parameter) []values.ValueType {
+func (iz *Initializer) astParamsToValueTypes(params []*parser.Parameter) []values.ValueType {
 	result := []values.ValueType{}
 	for _, v := range params {
 		result = append(result, iz.cp.ConcreteTypeNow(v.Type))
@@ -1124,7 +1123,7 @@ func (iz *Initializer) astParamsToValueTypes(params []*ast.Parameter) []values.V
 	return result
 }
 
-func (iz *Initializer) astParamsToNames(params []*ast.Parameter) []string {
+func (iz *Initializer) astParamsToNames(params []*parser.Parameter) []string {
 	result := []string{}
 	for _, v := range params {
 		result = append(result, v.Name)
@@ -1220,7 +1219,7 @@ func (iz *Initializer) createAliasTypes() {
 }
 
 // Auxilliary function to the type-defining function which adds the constructors to the builtins.
-func (iz *Initializer) addToBuiltins(sig ast.AstSig, builtinTag string, returnTypes compiler.AlternateType, private bool, tok *token.Token) uint32 {
+func (iz *Initializer) addToBuiltins(sig parser.AstSig, builtinTag string, returnTypes compiler.AlternateType, private bool, tok *token.Token) uint32 {
 	cpF := &compiler.CpFunc{RtnTypes: returnTypes, Builtin: builtinTag}
 	fnenv := compiler.NewEnvironment() // Note that we don't use this for anything, we just need some environment to pass to addVariables.
 	cpF.LoReg = iz.cp.MemTop()
@@ -1253,7 +1252,7 @@ func (iz *Initializer) parse(decType declarationType, decNumber int) parsedCode 
 	tc := iz.tokenizedCode[decType][decNumber]
 	switch tc := tc.(type) {
 	case *tokenizedCloneDeclaration:
-		var body ast.Node
+		var body parser.Node
 		if tc.body.Length() != 0 {
 			iz.P.TokenizedCode = tc.body
 			body = iz.P.ParseTokenizedChunk()
@@ -1278,7 +1277,7 @@ func (iz *Initializer) parse(decType declarationType, decNumber int) parsedCode 
 	case *tokenizedFunctionDeclaration:
 		iz.P.TokenizedCode = tc.body
 		parsedBody := iz.P.ParseTokenizedChunk()
-		var parsedGiven ast.Node
+		var parsedGiven parser.Node
 		if tc.given != nil {
 			iz.P.TokenizedCode = tc.given
 			parsedGiven = iz.P.ParseTokenizedChunk()
@@ -1302,7 +1301,7 @@ func (iz *Initializer) parse(decType declarationType, decNumber int) parsedCode 
 		}
 		return result
 	case *tokenizedStructDeclaration:
-		var body ast.Node
+		var body parser.Node
 		if tc.body.Length() != 0 {
 			iz.P.TokenizedCode = tc.body
 			body = iz.P.ParseTokenizedChunk()

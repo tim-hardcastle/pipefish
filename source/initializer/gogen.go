@@ -22,8 +22,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/ast"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
@@ -88,7 +88,7 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 	// The reason we use the `(*name)(nil)` formula instead of just passing the Type
 	// is that then we'd have to import the `reflect` package into everything.
 	fmt.Fprint(sb, "var PIPEFISH_VALUE_CONVERTER = map[string]any{\n")
-	
+
 	for name := range userDefinedTypes {
 		typeInfo := iz.cp.TypeInfoNow(name)
 		if typeInfo, ok := typeInfo.(vm.GoType); ok {
@@ -148,7 +148,7 @@ func (iz *Initializer) generateGoFunctionCode(sb *strings.Builder, function *par
 	fmt.Fprint(sb, "{", function.body.GetToken().Literal, "}\n\n")
 }
 
-func (iz *Initializer) printSig(sb *strings.Builder, sig ast.AstSig, tok token.Token) {
+func (iz *Initializer) printSig(sb *strings.Builder, sig parser.AstSig, tok token.Token) {
 	fmt.Fprint(sb, "(")
 	sep := ""
 	for _, param := range sig {
@@ -166,16 +166,16 @@ func (iz *Initializer) printSig(sb *strings.Builder, sig ast.AstSig, tok token.T
 	fmt.Fprint(sb, ") ")
 }
 
-func (iz *Initializer) getGoTypeFromTypeAst(pfTypeAst ast.TypeNode) (string, bool) {
+func (iz *Initializer) getGoTypeFromTypeAst(pfTypeAst parser.TypeNode) (string, bool) {
 	pfType := ""
 	dots := ""
 	switch pf := pfTypeAst.(type) {
-	case *ast.TypeDotDotDot:
+	case *parser.TypeDotDotDot:
 		dots = "..."
 		pfType = pf.Right.String()
-	case *ast.TypeWithName:
+	case *parser.TypeWithName:
 		pfType = pf.OperatorName
-	case *ast.TypeInfix:
+	case *parser.TypeInfix:
 		pfType = "any"
 	}
 	goType, ok := goTypes[pfType]
