@@ -16,7 +16,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -931,38 +930,7 @@ var helpStrings = map[string]string{}
 var helpTopics = []string{}
 
 func init() {
-	cwd, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	file, err := os.Open(cwd + "/rsc/text/helpfile.txt")
-	if err != nil {
-		panic("Can't find helpfile 'rsc/text/helpfile.txt'.")
-	}
-	defer file.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	var helpMessage []string
-	for _, v := range lines {
-		v = strings.TrimRight(v, " \n")
-		if v == "***" {
-			helpTopics = append(helpTopics, strings.TrimSpace(helpMessage[0]))
-			helpStrings[strings.TrimSpace(helpMessage[0])] = strings.Join(helpMessage[1:], "\n")
-			helpMessage = []string{}
-		} else {
-			helpMessage = append(helpMessage, v)
-		}
-	}
-	helpTopics = append(helpTopics, "topics")
-	sort.Strings(helpTopics)
-	helpStringForHelp := "\nYou can get help on a subject by typing `hub help \"<topic name>\"` into the REPL.\n\n" +
-		"Help topics are: \n\n"
-	for _, v := range helpTopics {
-		helpStringForHelp = helpStringForHelp + BULLET + "\"" + v + "\"\n"
-	}
-	helpStrings["topics"] = helpStringForHelp
+	helpStrings = map[string]string{}
 }
 
 func (hub *Hub) StartAndMakeCurrent(username, serviceName, scriptFilepath string) bool {
