@@ -4,7 +4,7 @@ NULL::"sql"
 
 var
 
-allServices = map(`hub`::`hub/hub.hub`)
+allServices = map(`hub`::`user/hub/hub.hub`)
 
 currentService string? = NULL
 
