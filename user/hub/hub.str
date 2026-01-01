@@ -1,3 +1,0 @@
-PLAINTEXT
-"SQL password"::secret("spong")
-"SQL username"::secret("postgres")

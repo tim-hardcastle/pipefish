@@ -1,1 +1,1 @@
-Files for interacting with codecov.
+Files for interacting with  GitHub's automated tests.

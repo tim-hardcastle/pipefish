@@ -1,6 +1,6 @@
 # pipefish-highlighter
 
-Very simple highlighter and autoindenter for Pipefish
+A very simple highlighter and autoindenter for Pipefish
 
 It will indent after a line ending with `:` and unindent after a line begining with `else` and not ending with `:`
 
