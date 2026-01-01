@@ -1,0 +1,38 @@
+import
+
+golang "regexp"
+
+def
+
+match(pattern, text string) : golang {
+	regObj, err := regexp.Compile(pattern)
+	if err != nil {
+		return err
+	}
+	return regObj.MatchString(text)
+}
+
+find(pattern, text string) : golang {
+	regObj, err := regexp.Compile(pattern)
+	if err != nil {
+		return err
+	}
+	return regObj.FindString(text)
+}
+
+findAllString(pattern, text string, start int) : golang {
+	regObj, err := regexp.Compile(pattern)
+	if err != nil {
+		return err
+	}
+	return regObj.FindAllString(text, start)
+}
+
+findAllIndex(pattern, text string, start int) : golang {
+	regObj, err := regexp.Compile(pattern)
+	if err != nil {
+		return err
+	}
+	indices := regObj.FindAllStringIndex(text, start)
+    return indices
+}

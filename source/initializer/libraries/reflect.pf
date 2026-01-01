@@ -1,0 +1,125 @@
+def
+
+contains(t, subtype type) -> bool :       //TODO --- it kinda seems like we should have a subset operator.
+    from a = true for _::el = range typesInSubtype :
+        el in typesInType :
+            continue 
+        else :
+            break false 
+given :
+    typesInType = (getTypeInfo(t))[1]
+    typesInSubtype = (getTypeInfo(subtype))[1]
+
+elements(t type) -> list :
+    concrete and info[4] :
+        info[7]
+    else :
+        error "type is not enum"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+isAbstract(t type) -> bool :
+    len (getTypeInfo(t))[1] != 1
+
+isBuiltin(t type) -> bool :
+    concrete :
+        info[2]
+    else :
+        error "type is not concrete"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+isClone(t type) -> bool :
+    concrete :
+        info[3]
+    else :
+        error "type is not concrete"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+isConcrete(t type) -> bool :
+    len (getTypeInfo(t))[1] == 1
+
+isEmpty(t type) -> bool :
+    len (getTypeInfo(t))[1] == 0
+
+isEnum(t type) -> bool :
+    concrete :
+        info[4]
+    else :
+        error "type is not concrete"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+isStruct(t type) -> bool :
+    concrete :
+        info[5]
+    else :
+        error "type is not concrete"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+fieldLabels(t type) -> list :
+    concrete and info[5] :
+        info[8]
+    else :
+        error "type is not struct"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+fieldTypes(t type) -> list :
+    concrete and info[5] :
+        info[9]
+    else :
+        error "type is not struct"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+name(t type) -> string :
+    (getTypeInfo(t))[0]
+
+operator(t type) -> string :
+    concrete :
+        info[10]
+    else :
+        error "type is not concrete"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+parameterTypes(t type) -> list :
+    concrete and (info[3] or info[5]) :
+        info[12]
+    else :
+        error "type is not clone or struct"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+parameterValues(t type) -> list :
+    concrete and (info[3] or info[5]) :
+        info[11]
+    else :
+        error "type is not clone or struct"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+parent(t type) -> type :
+    concrete and info[3] :
+        info[6]
+    else :
+        error "type is not clone"
+given :
+    info = getTypeInfo(t)
+    concrete = len(info[1]) == 1
+
+subtypes(t type) -> set :
+    (getTypeInfo(t))[1]

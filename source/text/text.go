@@ -381,7 +381,7 @@ func MakeFilepath(scriptFilepath string) string {
 		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source", "initializer", filepath.FromSlash(scriptFilepath))
 	}
 	if settings.StandardLibraries.Contains(scriptFilepath) {
-		doctoredFilepath = settings.PipefishHomeDirectory + "lib/" + scriptFilepath
+		doctoredFilepath = settings.PipefishHomeDirectory + "source/initializer/libraries/" + scriptFilepath
 	}
 	if len(scriptFilepath) >= 3 && scriptFilepath[len(scriptFilepath)-3:] != ".pf" && len(scriptFilepath) >= 4 && scriptFilepath[len(scriptFilepath)-4:] != ".hub" {
 		doctoredFilepath = doctoredFilepath + ".pf"
@@ -394,7 +394,7 @@ func TweakNameAndPath(name, path, source string) (string, string) {
 		name = ExtractFileName(path)
 	}
 	if settings.StandardLibraries.Contains(path) {
-		path = settings.PipefishHomeDirectory + "lib/" + path + ".pf"
+		path = settings.PipefishHomeDirectory + "source/initializer/libraries/" + path + ".pf"
 	}
 	if !Head(path, "http:") && filepath.IsLocal(path) {
 		path = filepath.Join(filepath.Dir(source), path)

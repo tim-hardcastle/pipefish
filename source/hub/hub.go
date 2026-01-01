@@ -260,7 +260,7 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 }
 
 func (hub *Hub) update() {
-needsUpdate := hub.serviceNeedsUpdate(hub.currentServiceName())
+	needsUpdate := hub.serviceNeedsUpdate(hub.currentServiceName())
 	if hub.isLive() && needsUpdate {
 		path, _ := hub.services[hub.currentServiceName()].GetFilepath()
 		hub.StartAndMakeCurrent(hub.Username, hub.currentServiceName(), path)
@@ -1674,7 +1674,7 @@ func (h *Hub) MakeFilepath(scriptFilepath string) string {
 		doctoredFilepath = filepath.Join(h.pipefishHomeDirectory, "source", "initializer", filepath.FromSlash(scriptFilepath))
 	}
 	if settings.StandardLibraries.Contains(scriptFilepath) {
-		doctoredFilepath = h.pipefishHomeDirectory + "lib/" + scriptFilepath
+		doctoredFilepath = h.pipefishHomeDirectory + "source/initializer/libraries/" + scriptFilepath
 	}
 	if len(scriptFilepath) >= 3 && scriptFilepath[len(scriptFilepath)-3:] != ".pf" && len(scriptFilepath) >= 4 && scriptFilepath[len(scriptFilepath)-4:] != ".hub" {
 		doctoredFilepath = doctoredFilepath + ".pf"
