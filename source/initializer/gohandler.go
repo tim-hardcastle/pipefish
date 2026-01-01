@@ -117,7 +117,7 @@ func (iz *Initializer) compileGo() {
 		if !ok || sourceCodeModified != int64(objectCodeModified) {
 			plugins = iz.makeNewSoFile(source, sourceCodeModified)
 		} else {
-			soFile := settings.PipefishHomeDirectory + "pipefish-rsc/" + text.Flatten(source) + "_" + strconv.Itoa(int(sourceCodeModified)) + ".so"
+			soFile := settings.PipefishHomeDirectory + "source/initializer/gobucket/" + text.Flatten(source) + "_" + strconv.Itoa(int(sourceCodeModified)) + ".so"
 			plugins, err = plugin.Open(soFile)
 			if err != nil {
 				iz.throw("golang/open/b", sourceToken, err.Error())
@@ -248,10 +248,10 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 		fmt.Fprint(sb, pureGo)
 	}
 	counter++ // The number of the gocode_<counter>.go source file we're going to write.
-	soFile := filepath.Join(settings.PipefishHomeDirectory, filepath.FromSlash("pipefish-rsc/"+text.Flatten(source)+"_"+strconv.Itoa(int(newTime))+".so"))
+	soFile := filepath.Join(settings.PipefishHomeDirectory, filepath.FromSlash("source/initializer/gobucket/"+text.Flatten(source)+"_"+strconv.Itoa(int(newTime))+".so"))
 	timeMap := iz.getGoTimes()
 	if oldTime, ok := timeMap[source]; ok {
-		os.Remove(filepath.Join(settings.PipefishHomeDirectory, filepath.FromSlash("pipefish-rsc/"+text.Flatten(source)+"_"+strconv.Itoa(int(oldTime))+".so")))
+		os.Remove(filepath.Join(settings.PipefishHomeDirectory, filepath.FromSlash("source/initializer/gobucket/"+text.Flatten(source)+"_"+strconv.Itoa(int(oldTime))+".so")))
 	}
 	goFile := filepath.Join(settings.PipefishHomeDirectory, "gocode_"+strconv.Itoa(counter)+".go")
 	iz.cmG("Creating goFile with filepath '"+goFile+"'\n\n", source)
@@ -318,7 +318,7 @@ func (iz *Initializer) transitivelyCloseTypes(userDefinedTypes dtypes.Set[string
 }
 
 func (iz *Initializer) recordGoTimes(timeMap map[string]int64) {
-	f, err := os.Create(settings.PipefishHomeDirectory + "pipefish-rsc/gotimes.dat")
+	f, err := os.Create(settings.PipefishHomeDirectory + "source/initializer/gobucket/gotimes.dat")
 	if err != nil {
 		panic("Can't create file gotimes.dat")
 	}
@@ -331,7 +331,7 @@ func (iz *Initializer) recordGoTimes(timeMap map[string]int64) {
 
 func (iz *Initializer) getGoTimes() map[string]int64 {
 	timeMap := make(map[string]int64)
-	pathToGoResourceDirectory := settings.PipefishHomeDirectory + "pipefish-rsc/"
+	pathToGoResourceDirectory := settings.PipefishHomeDirectory + "source/initializer/gobucket/"
 	os.Mkdir(pathToGoResourceDirectory, os.ModePerm) // We may be using Pipefish as a library and this needs creating. Will do nothing if the directory exists.
 	pathToGoTimes := pathToGoResourceDirectory + "gotimes.dat"
 	file, err := os.Open(pathToGoTimes)
