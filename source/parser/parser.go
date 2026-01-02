@@ -364,6 +364,7 @@ func (p *Parser) ParseExpression(precedence int) Node {
 		for {
 			ok, rp := p.CanParse(p.PeekToken, SUFFIX)
 			if rp == nil {
+				p.Throw("parse/namespace", &p.CurToken, &p.PeekToken)
 				return nil
 			}
 			if !(rp.IsTypePrefix(p.PeekToken.Literal) || ok || p.PeekToken.Type == token.DOTDOTDOT) {
@@ -404,16 +405,18 @@ func (p *Parser) ParseExpression(precedence int) Node {
 		// We move on to infixes.
 		ok, rp := p.CanParse(p.PeekToken, INFIX)
 		if rp == nil {
+			p.Throw("parse/namespace/b", &p.PeekToken)
 			return nil
 		}
 		foundInfix := nativeInfixes.Contains(p.PeekToken.Type) ||
 			lazyInfixes.Contains(p.PeekToken.Type) ||
 			ok
+		// TODO --- find some way of eliciting this error or prove that this can't happen.
 		if !foundInfix {
-			return leftExp
+			p.Throw("parse/wut", &p.PeekToken)
+			return nil
 		}
 		p.NextToken()
-
 		if foundInfix {
 			switch {
 			case lazyInfixes.Contains(p.CurToken.Type):
@@ -674,9 +677,6 @@ func (p *Parser) parseInfixExpression(left Node) Node {
 			fn.Body = right
 		}
 		expression.Right = fn
-		if fn.Body.GetToken().Type == token.PRELOG && fn.Body.GetToken().Literal == "" {
-			fn.Body.(*LogExpression).Value = DescribeFunctionCall(left.GetToken().Literal, &fn.NameSig)
-		}
 		return expression
 	}
 	expression := &InfixExpression{
@@ -695,21 +695,6 @@ func (p *Parser) parseInfixExpression(left Node) Node {
 	rightArgs := p.RecursivelyListify(right)
 	expression.Args = append(expression.Args, rightArgs...)
 	return expression
-}
-
-// Auxiliary fnction to the previous one for describing function calls for logging purposes.
-func DescribeFunctionCall(name string, sig *AstSig) string {
-	result := "Called '" + name + "'"
-	vars := []string{}
-	for _, pair := range *sig {
-		if _, ok := pair.VarType.(*TypeBling); !ok {
-			vars = append(vars, "||"+pair.VarName+"||")
-		}
-	}
-	if len(vars) > 0 {
-		result = result + " with " + strings.Join(vars, ", ")
-	}
-	return result + "."
 }
 
 func (p *Parser) parseIntegerLiteral() Node {

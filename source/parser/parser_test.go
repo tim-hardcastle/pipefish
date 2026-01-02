@@ -93,6 +93,22 @@ func TestFancyFunctionSyntax(t *testing.T) {
 		{`spong()`, `(spong ())`},
 	}
 	test_helper.RunTest(t, "fancy_function_test.pf", tests, testParserOutput)
+} 
+
+// TODO --- this and `TestLogging` are a bit of a nothingburger, it only checks that the thing does in fact 
+// parse rather than going spoing.
+func TestGocode(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`multiply(8, 9)`, `(multiply 8, 9)`},
+	}
+	test_helper.RunTest(t, "gocode_test.pf", tests, testParserOutput)
+}
+
+func TestLogging(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`qux(8)`, `(qux 8)`},
+	}
+	test_helper.RunTest(t, "logging_test.pf", tests, testParserOutput)
 }
 func TestParserErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -111,15 +127,6 @@ func TestParserErrors(t *testing.T) {
 	test_helper.RunTest(t, "", tests, testParserErrors)
 }
 
-// The helper functions for testing the parser.
-
-func testParserOutput(cp *compiler.Compiler, s string) (string, error) {
-	astOfLine := cp.P.ParseLine("test", s)
-	if cp.P.ErrorsExist() {
-		return "", errors.New("compilation error")
-	}
-	return astOfLine.String(), nil
-}
 func TestPrettyPrint(t *testing.T) {
 	tests := []test_helper.TestItem{
 		//{`func(x int) : x`, "func(x int) :\n    x"},
@@ -218,6 +225,14 @@ func TestTypeParser(t *testing.T) {
 }
 
 // Helper functions.
+
+func testParserOutput(cp *compiler.Compiler, s string) (string, error) {
+	astOfLine := cp.P.ParseLine("test", s)
+	if cp.P.ErrorsExist() {
+		return "", errors.New("compilation error")
+	}
+	return astOfLine.String(), nil
+}
 
 func testPrettyPrinter(cp *compiler.Compiler, s string) (string, error) {
 	astOfLine := cp.P.ParseLine("test", s)
