@@ -80,12 +80,6 @@ func (p *Parser) RecursivelySlurpSignature(node Node, dflt TypeNode) (AstSig, *e
 				return nil, err
 			}
 			return append(LHS, RHS...), nil
-		case typednode.Operator == ".":
-			namespacedIdent, err := recursivelySlurpNamespace(typednode)
-			if err != nil {
-				return nil, err
-			}
-			return AstSig{NameTypeAstPair{VarName: namespacedIdent, VarType: dflt}}, nil
 		default:
 			return nil, newError("parse/sig/b", typednode.GetToken())
 		}
@@ -110,41 +104,6 @@ func (p *Parser) RecursivelySlurpSignature(node Node, dflt TypeNode) (AstSig, *e
 
 	}
 	return nil, newError("parse/sig/a", node.GetToken())
-}
-
-func recursivelySlurpNamespace(root *InfixExpression) (string, *err.Error) {
-	if len(root.Args) != 3 {
-		return "", newError("parse/sig.namespace/a", root.Args[1].GetToken())
-	}
-	if root.Operator != "." {
-		return "", newError("parse/sig.namespace/b", root.Args[1].GetToken())
-	}
-	LHS := ""
-	RHS := ""
-	var err *err.Error
-	switch leftNode := root.Args[0].(type) {
-	case *Identifier:
-		LHS = leftNode.Value
-	case *InfixExpression:
-		LHS, err = recursivelySlurpNamespace(leftNode)
-		if err != nil {
-			return "", err
-		}
-	default:
-		return "", newError("parse/sig.namespace/c", root.Args[1].GetToken())
-	}
-	switch rightNode := root.Args[2].(type) {
-	case *Identifier:
-		RHS = rightNode.Value
-	case *InfixExpression:
-		RHS, err = recursivelySlurpNamespace(rightNode)
-		if err != nil {
-			return "", err
-		}
-	default:
-		return "", newError("parse/sig.namespace/d", root.Args[1].GetToken())
-	}
-	return LHS + "." + RHS, nil
 }
 
 func (p *Parser) RecursivelySlurpReturnTypes(node Node) AstSig {
