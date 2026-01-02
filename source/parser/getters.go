@@ -32,66 +32,6 @@ func (p *Parser) didBling(identifier string, pos IdentifierPosition) bool {
 	return p.Common.BlingManager.didBling(identifier, pos)
 }
 
-// TODO --- at this point this is used only once to do something which isn't actually this hard.
-func (p *Parser) extractSig(args []Node) AstSig {
-	sig := AstSig{}
-	if len(args) == 0 || (len(args) == 1 && reflect.TypeOf(args[0]) == reflect.TypeOf(&Nothing{})) {
-		return sig
-	}
-	backTrackTo := 0
-	for j, arg := range args {
-		varName := ""
-		var varType TypeNode
-		switch arg := arg.(type) {
-		case *TypeSuffixExpression:
-			switch inner := arg.Args[0].(type) {
-			case *Identifier:
-				varName = inner.Value
-				varType = arg.Operator
-			default:
-				p.Throw("parse/sig/ident/a", inner.GetToken())
-				return nil
-			}
-		case *Identifier:
-			varName = arg.Value
-			varType = nil
-		case *PrefixExpression:
-			switch inner := arg.Args[0].(type) {
-			case *TypeExpression:
-				varName = arg.Operator
-				astType := p.ToAstType(inner)
-				if astType == nil {
-					p.Throw("parse/sig/ident/c", inner.GetToken())
-				}
-				varType = astType
-			default:
-				p.Throw("parse/sig/ident/d", inner.GetToken())
-				return nil
-			}
-			sig = append(sig, NameTypeAstPair{VarName: varName, VarType: varType})
-			if len(arg.Args) > 1 {
-				kludge := p.extractSig(arg.Args[1:])
-				sig = append(sig, kludge...)
-			}
-			if sig[len(sig)-1].VarType != nil {
-				backTrackTo = len(sig)
-			}
-			continue
-		}
-		if j == len(args)-1 && varType == nil {
-			for i := backTrackTo; i < len(sig); i++ {
-				sig[i].VarType = ANY_NULLABLE_TYPE_AST
-			}
-			varType = ANY_NULLABLE_TYPE_AST
-		}
-		sig = append(sig, NameTypeAstPair{VarName: varName, VarType: varType})
-		if sig[len(sig)-1].VarType != nil {
-			backTrackTo = len(sig)
-		}
-	}
-	return sig
-}
-
 // TODO --- this function is a refactoring patch over RecursivelySlurpSignature and they could probably be more sensibly combined in a any function.
 func (p *Parser) getSigFromArgs(args []Node, dflt TypeNode) (AstSig, *err.Error) {
 	sig := AstSig{}
@@ -263,7 +203,10 @@ func (p *Parser) toTypeWithArguments(te *TypeExpression) *TypeWithArguments {
 }
 
 func (p *Parser) toTypeWithParameters(te *TypeExpression) *TypeWithParameters {
-	sig := p.extractSig(te.TypeArgs)
+	sig, err := p.getSigFromArgs(te.TypeArgs, &TypeWithName{OperatorName: "error"})
+	if err != nil {
+		return nil
+	}
 	params := []*Parameter{}
 	for _, pair := range sig {
 		newParameter := &Parameter{pair.VarName, pair.VarType.String()}

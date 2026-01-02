@@ -43,6 +43,7 @@ func TestBuiltins(t *testing.T) {
 		{`x in Y, Z`, `(x in Y, Z)`},
 		{`v + w :: x + y`, `((v + w) :: (x + y))`},
 		{`x in int`, `(x in int)`},
+		{`x in int?`, `(x in (int ?))`},
 		{`x -> y`, `(x -> y)`},
 		{`[1, 2, 3]`, `[((1 , 2) , 3) ]`},
 		{`'q'`, `'q'`},
@@ -53,6 +54,7 @@ func TestBuiltins(t *testing.T) {
 		{`break 42`, `(break 42)`},
 		{`continue`, `continue`},
 		{`true : 42 ; else : "moo!"`, `((true : 42) ; (else : "moo!"))`},
+		{`first (tuple 1, 2, 3)`, `(first (tuple 1, 2, 3))`},
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
 }

@@ -929,18 +929,6 @@ func (p *Parser) RecursivelyListify(start Node) []Node {
 		if p.Midfixes.Contains(start.Operator) {
 			return start.Args
 		}
-	case *PrefixExpression:
-		if p.Forefixes.Contains(start.Operator) {
-			left := []Node{&Bling{Value: start.Operator, Token: start.Token}}
-			left = append(left, start.Args...)
-			return left
-		}
-	case *SuffixExpression:
-		if p.Endfixes.Contains(start.Operator) {
-			left := start.Args
-			left = append(left, &Bling{Value: start.Operator, Token: start.Token})
-			return left
-		}
 	case *Nothing:
 		return []Node{}
 	}
