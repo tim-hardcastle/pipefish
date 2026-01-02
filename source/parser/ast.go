@@ -132,7 +132,9 @@ func (fe *ForExpression) String() string {
 	out.WriteString("for ")
 	if fe.Initializer != nil {
 		out.WriteString(fe.Initializer.String())
-		out.WriteString("; ")
+		if fe.ConditionOrRange != nil || fe.Update != nil {
+			out.WriteString("; ")
+		}
 	}
 	if fe.ConditionOrRange != nil {
 		out.WriteString(fe.ConditionOrRange.String())
@@ -142,8 +144,11 @@ func (fe *ForExpression) String() string {
 	}
 	if fe.Update != nil {
 		out.WriteString(fe.Update.String())
+	} 
+	if fe.BoundVariables != nil || fe.ConditionOrRange != nil || fe.Update != nil {
+		out.WriteString(" ")
 	}
-	out.WriteString(" : ")
+	out.WriteString(": ")
 	out.WriteString(fe.Body.String())
 	return out.String()
 }
@@ -446,12 +451,11 @@ type TryExpression struct {
 func (t *TryExpression) Children() []Node       { return []Node{t.Right} }
 func (t *TryExpression) GetToken() *token.Token { return &t.Token }
 func (t *TryExpression) String() string {
-	if t.VarName != "" {
-		return "try"
+	if t.VarName == "" {
+		return "try : (" + t.Right.String() + ")"
 	} else {
-		return "try " + t.VarName
+		return "try " + t.VarName + " : (" + t.Right.String() + ")" 
 	}
-
 }
 
 type TypeExpression struct {

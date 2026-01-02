@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -130,15 +129,6 @@ func (p *Parser) ParseTypeFromString(input string) TypeNode {
 	result := p.ParseTypeFromCurTok(T_LOWEST)
 	p.Common.Errors = append(p.TokenizedCode.(*lexer.Relexer).GetErrors(), p.Common.Errors...)
 	return result
-}
-
-// Shows output of parser for debugging purposes.
-func (p *Parser) ParseDump(source, input string) {
-	parsedLine := p.ParseLine(source, input)
-	if parsedLine == nil {
-		fmt.Printf("Parser returns: nil")
-	}
-	fmt.Printf("Parser returns: %v\n\n", (parsedLine).String())
 }
 
 // Some supporting types for the parser and their methods.

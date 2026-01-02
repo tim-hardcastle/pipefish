@@ -293,7 +293,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 	for _, ty := range twas {
 		// The parser doesn't know the types and values of enums, 'cos of being a
 		// parser. So we kludge them in here.
-		for i, v := range ty.Values() {
+		for i, v := range Values(ty) {
 			if maybeEnum, ok := v.V.(string); ok && v.T == 0 {
 				if w, ok := iz.cp.GlobalConsts.GetVar(maybeEnum); ok {
 					global := iz.cp.Vm.Mem[w.MLoc]
@@ -305,7 +305,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 			}
 		}
 		// We find the corresponding parameterized type.
-		argIndex := iz.findParameterizedType(ty.Name, ty.Values())
+		argIndex := iz.findParameterizedType(ty.Name, Values(ty))
 		parTypeInfo := iz.parameterizedTypes[ty.Name][argIndex]
 
 		ultratype := ty.Name + "{_}"
@@ -339,7 +339,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		if isClone {
 			typeNo, _ = iz.addCloneType(ty.String(), parTypeInfo.ParentType, false, &ty.Token)
 			iz.createOperations(ty, typeNo, parTypeInfo.Operations, parentTypeNo, parTypeInfo.IsPrivate)
-			sig = parser.AstSig{parser.NameTypeAstPair{VarName: "x", VarType: parser.MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
+			sig = parser.AstSig{parser.NameTypeAstPair{VarName: "x", VarType: MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
 		} else {
 			typeNo = iz.addStructType(ty.String(), parTypeInfo.IsPrivate, &ty.Token)
 			sig = parTypeInfo.Sig

@@ -36,7 +36,7 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 					break
 				}
 				if twp, ok := fnToTry.sig.GetVarType(i).(*parser.TypeWithParameters); ok {
-					if paramType == nil || !paramType.Equals(twp) {
+					if paramType == nil || !Equals(paramType, twp) {
 						return values.MakeAbstractType()
 					}
 				}
@@ -64,7 +64,7 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 			// type.
 			te, ok := fnToTry.callInfo.ReturnTypes.GetVarType(i).(*parser.TypeExpression)
 			if ok && paramType != nil {
-				if paramType.Matches(te) {
+				if Matches(paramType, te) {
 					continue
 				} else {
 					return values.MakeAbstractType()
@@ -211,4 +211,51 @@ func valueTypesMatch(argsToCheck []values.Value, paramTypes []values.ValueType) 
 		}
 	}
 	return true
+}
+
+// Some functions on `TypeAst`s which beong here because they are used only at intialization time.
+
+func Equals(twp *parser.TypeWithParameters, twq *parser.TypeWithParameters) bool {
+	if twp.Name != twq.Name || len(twp.Parameters) != len(twq.Parameters) {
+		return false
+	}
+	for i, v := range twp.Parameters {
+		if v.Name != twq.Parameters[i].Name || v.Type != twq.Parameters[i].Type {
+			return false
+		}
+	}
+	return true
+}
+
+func Matches(twp *parser.TypeWithParameters, te *parser.TypeExpression) bool {
+	if twp.Name != te.Operator || len(twp.Parameters) != len(te.TypeArgs) {
+		return false
+	}
+	for i, v := range twp.Parameters {
+		if identifier, ok := te.TypeArgs[i].(*parser.Identifier); ok {
+			if v.Name != identifier.Value {
+				return false
+			}
+		} else {
+			return false
+		}
+	}
+	return true
+}
+
+// TODO, we can probably replace the Arguments field with just this.
+func Values(twa *parser.TypeWithArguments) []values.Value {
+	result := []values.Value{}
+	for _, arg := range twa.Arguments {
+		result = append(result, values.Value{arg.Type, arg.Value})
+	}
+	return result
+}
+
+func MakeAstTypeFrom(s string) parser.TypeNode {
+	return &parser.TypeWithName{token.Token{}, s}
+}
+
+func AsBling(s string) parser.TypeNode {
+	return &parser.TypeBling{token.Token{}, s}
 }
