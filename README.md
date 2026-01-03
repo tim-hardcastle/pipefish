@@ -18,7 +18,7 @@
 
 ## Welcome to Pipefish!
 
-Pipefish aims to be a delightful general-purpose language particularly suitable for rapid development of CRUD apps, middleware, microservices, and DSLs to wrap them in. With the semantics of a functional language, with syntax borrowed from mainstream productivity languages (specifically Python and Go), and with [inspiration mainly from SQL and Excel](https://github.com/tim-hardcastle/pipefish/blob/main/docs/pipefish-a-high-level-view.md) — Pipefish is not *quite* like anything you've ever seen. But it is also a very practical language that exists to solve some very ordinary "white-collar" problems.
+Pipefish aims to be a delightful general-purpose language particularly suitable for rapid development of CRUD apps, middleware, and DSLs to wrap them in. With the semantics of a functional language, with syntax borrowed from mainstream productivity languages (specifically Python and Go), and with [inspiration mainly from SQL and Excel](https://github.com/tim-hardcastle/pipefish/blob/main/docs/pipefish-a-high-level-view.md) — Pipefish is not *quite* like anything you've ever seen. But it is also a very practical language that exists to solve some very ordinary "white-collar" problems.
 
 It is still buggy and unsuitable for use in production, but if you want to download and play about with it, there are instructions for doing so [here](https://github.com/tim-hardcastle/pipefish/wiki/Installing-and-using-Pipefish).
 

@@ -501,7 +501,7 @@ func (tpe *TypePrefixExpression) String() string {
 	if len(tpe.TypeArgs) != 0 {
 		out.WriteString("{")
 		sep := ""
-		for _, v := range tpe.Args {
+		for _, v := range tpe.TypeArgs {
 			out.WriteString(sep)
 			out.WriteString(v.String())
 			sep = ", "

@@ -218,6 +218,8 @@ func TestTry(t *testing.T) {
 func TestTypeExpressions(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`list{string}`, `list{string}`},
+		{`list{string}(x)`, `(list{string} x)`},
+
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
 }
