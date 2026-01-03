@@ -35,10 +35,6 @@ func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compile
 		} else {
 			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/", filename), map[string]*compiler.Compiler{}, &values.Map{})
 		}
-		if cp.P.Common.IsBroken {
-			r := cp.P.ReturnErrors()
-			t.Fatal("There were errors initializing the service : \n" + r)
-		}
 		got, e := F(cp, test.Input)
 		if e != nil {
 			println(text.Red(test.Input))
@@ -77,6 +73,9 @@ func RunInitializerTest(t *testing.T, tests []TestItem, F func(iz *initializer.I
 // to output; or the errors in the compiler.
 
 func TestValues(cp *compiler.Compiler, s string) (string, error) {
+	if cp.P.Common.IsBroken {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)		
+	}
 	v := cp.Do(s)
 	if cp.ErrorsExist() {
 		return "", errors.New("failed to compile with code " + cp.P.Common.Errors[0].ErrorId)
@@ -93,6 +92,9 @@ func TestHighlighter(cp *compiler.Compiler, s string) (string, error) {
 }
 
 func TestOutput(cp *compiler.Compiler, s string) (string, error) {
+	if cp.P.Common.IsBroken {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)		
+	}
 	cp.Vm.OutHandle = vm.MakeCapturingOutHandler(cp.Vm)
 	ok := cp.Do(s)
 	if ok.T == values.ERROR {
@@ -104,7 +106,11 @@ func TestOutput(cp *compiler.Compiler, s string) (string, error) {
 	return text.StripColors(cp.Vm.OutHandle.(*vm.CapturingOutHandler).Dump()), nil
 }
 
+// Tests for the error in a line of code, given successful compilation of the `_test.pf` file.`
 func TestCompilerErrors(cp *compiler.Compiler, s string) (string, error) {
+	if cp.P.Common.IsBroken {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)		
+	}
 	if s == "" {
 		return "comp/", nil
 	}
@@ -114,6 +120,10 @@ func TestCompilerErrors(cp *compiler.Compiler, s string) (string, error) {
 	} else {
 		return cp.P.Common.Errors[0].ErrorId, nil
 	}
+}
+
+func TestInitializationErrors(cp *compiler.Compiler, s string) (string, error) {
+	return cp.P.Common.Errors[0].ErrorId, nil
 }
 
 // These functions test the internal workings of the initializer.

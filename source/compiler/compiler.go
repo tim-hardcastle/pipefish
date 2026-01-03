@@ -215,12 +215,12 @@ NodeTypeSwitch:
 	// Note that assignments in `given` blocks and var and const initialization are taken care of by the initializer, so we only have to deal with the cases where
 	// the assignment is in the body of a function or in the REPL.
 	case *parser.AssignmentExpression:
-		cp.Cm("Assignment from REPL or in 'cmd' section", node.GetToken())
 		sig, err := cp.P.RecursivelySlurpSignature(node.Left, parser.INFERRED_TYPE_AST)
 		if err != nil {
 			cp.Throw("comp/assign/lhs/a", node.Left.GetToken())
 			return FAIL
 		}
+		println("Node is", node.Left.String())
 		cp.Cm("Assignment signature is "+text.Emph(sig.String()), &node.Token)
 		rhsIsError := BkEarlyReturn(DUMMY) // TODO --- since assigning an error would violate a type check, which we also perform, is this necessary?
 		cpR := cp.CompileNode(node.Right, ctxt.x())

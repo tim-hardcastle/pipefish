@@ -15,6 +15,32 @@ func TestAlias(t *testing.T) {
 	}
 	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
 }
+
+func TestAssignment(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`x`, `'q'`},
+		{`y`, `2`},
+		{`x = 'z'`, `OK`},
+		{`y = 42`, `OK`},
+	}
+	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
+}
+
+// func TestAssignmentErrors(t *testing.T) {
+// 	tests := []test_helper.TestItem{
+// 		{`x = true`, `OK`},
+// 		{`y = "foo"`, `OK`},
+// 	}
+// 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
+// }
+
+func TestAssignmentErrorsInSource(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{``, `comp/assign/type/a`},
+	}
+	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrors)
+}
+
 func TestBooleans(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`true : 5; else : 6`, `5`},
