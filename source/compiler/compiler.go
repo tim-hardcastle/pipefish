@@ -220,7 +220,6 @@ NodeTypeSwitch:
 			cp.Throw("comp/assign/lhs/a", node.Left.GetToken())
 			return FAIL
 		}
-		println("Node is", node.Left.String())
 		cp.Cm("Assignment signature is "+text.Emph(sig.String()), &node.Token)
 		rhsIsError := BkEarlyReturn(DUMMY) // TODO --- since assigning an error would violate a type check, which we also perform, is this necessary?
 		cpR := cp.CompileNode(node.Right, ctxt.x())

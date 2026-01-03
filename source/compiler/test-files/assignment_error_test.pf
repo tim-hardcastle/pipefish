@@ -1,0 +1,3 @@
+var
+
+x rune, y int = 'q', "foo"

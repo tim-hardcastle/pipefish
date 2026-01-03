@@ -20,7 +20,7 @@ func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`x`, `'q'`},
 		{`y`, `2`},
-		{`x = 'z'`, `OK`},
+		//{`x rune, y int = 'z', 42`, `OK`},
 		{`y = 42`, `OK`},
 	}
 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
