@@ -215,9 +215,8 @@ NodeTypeSwitch:
 	// Note that assignments in `given` blocks and var and const initialization are taken care of by the initializer, so we only have to deal with the cases where
 	// the assignment is in the body of a function or in the REPL.
 	case *parser.AssignmentExpression:
-		sig, err := cp.P.RecursivelySlurpSignature(node.Left, parser.INFERRED_TYPE_AST)
-		if err != nil {
-			cp.Throw("comp/assign/lhs/a", node.Left.GetToken())
+		sig, ok := cp.P.ReparseSig(node.Left, parser.INFERRED_TYPE_AST)
+		if !ok {
 			return FAIL
 		}
 		cp.Cm("Assignment signature is "+text.Emph(sig.String()), &node.Token)
@@ -1453,9 +1452,8 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		}
 		lhsOfBoundVariables := node.BoundVariables.(*parser.AssignmentExpression).Left
 		rhsOfBoundVariables := node.BoundVariables.(*parser.AssignmentExpression).Right
-		boundSig, err := cp.P.RecursivelySlurpSignature(lhsOfBoundVariables, parser.DEFAULT_TYPE_AST)
-		if err != nil {
-			cp.Throw("comp/for/bound/a", node.BoundVariables.GetToken())
+		boundSig, ok := cp.P.ReparseSig(lhsOfBoundVariables, parser.DEFAULT_TYPE_AST)
+		if !ok {
 			return FAIL
 		}
 		cp.Cm("Finding initial values of bound variables", tok)
@@ -1499,9 +1497,8 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		}
 		lhsOfInitVariables := node.Initializer.(*parser.AssignmentExpression).Left
 		rhsOfInitVariables := node.Initializer.(*parser.AssignmentExpression).Right
-		indexSig, err := cp.P.RecursivelySlurpSignature(lhsOfInitVariables, parser.DEFAULT_TYPE_AST)
-		if err != nil {
-			cp.Throw("comp/for/bound/b", node.Initializer.GetToken())
+		indexSig, ok := cp.P.ReparseSig(lhsOfInitVariables, parser.DEFAULT_TYPE_AST)
+		if !ok {
 			return FAIL
 		}
 		cp.Cm("Finding initial values of index variables", tok)
@@ -1900,7 +1897,10 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 			return false
 		}
 		assEx := chunk.(*parser.AssignmentExpression)
-		lhsSig, _ := cp.P.RecursivelySlurpSignature(assEx.Left, parser.DEFAULT_TYPE_AST)
+		lhsSig, ok := cp.P.ReparseSig(assEx.Left, parser.DEFAULT_TYPE_AST)
+		if !ok {
+			return false
+		}
 		rhs := parser.GetVariableNames(assEx.Right)
 		for _, pair := range lhsSig {
 			_, exists := ctxt.Env.GetVar(pair.VarName)
@@ -1968,9 +1968,8 @@ func (cp *Compiler) SplitOnNewlines(block parser.Node) []parser.Node {
 func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt Context) bool {
 	cp.Cm("Compiling one 'given' block assignment.", node.GetToken())
 	oldThis, thisExists := ctxt.Env.GetVar("this")
-	sig, err := cp.P.RecursivelySlurpSignature(node.Left, parser.ANY_NULLABLE_TYPE_AST)
-	if err != nil {
-		cp.Throw("comp/assign/lhs/b", node.Left.GetToken())
+	sig, ok := cp.P.ReparseSig(node.Left, parser.ANY_NULLABLE_TYPE_AST)
+	if !ok {
 		return false
 	}
 	thunkStart := cp.Next()

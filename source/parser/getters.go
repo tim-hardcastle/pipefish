@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
-	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
@@ -32,24 +31,23 @@ func (p *Parser) didBling(identifier string, pos IdentifierPosition) bool {
 	return p.Common.BlingManager.didBling(identifier, pos)
 }
 
-// TODO --- this function is a refactoring patch over RecursivelySlurpSignature and they could probably be more sensibly combined in a any function.
-func (p *Parser) getSigFromArgs(args []Node, dflt TypeNode) (AstSig, *err.Error) {
+func (p *Parser) getSigFromArgs(args []Node, dflt TypeNode) (AstSig, bool) {
 	sig := AstSig{}
 	for _, arg := range args {
-		partialSig, err := p.RecursivelySlurpSignature(arg, dflt)
-		if err != nil {
-			return nil, err
+		partialSig, ok := p.ReparseSig(arg, dflt)
+		if !ok {
+			return nil, false
 		}
 		sig = append(sig, partialSig...)
 	}
-	return sig, nil
+	return sig, true
 }
 
 func (p *Parser) GetVariablesFromSig(node Node) []string {
 	result := []string{}
-	sig, e := p.RecursivelySlurpSignature(node, DUMMY_TYPE_AST)
-	if e != nil {
-		return result
+	sig, ok := p.ReparseSig(node, DUMMY_TYPE_AST)
+	if !ok {
+		return nil
 	}
 	for _, pair := range sig {
 		result = append(result, pair.VarName)
@@ -65,44 +63,6 @@ func (p *Parser) GetVariablesFromAstSig(sig AstSig) []string {
 	return result
 }
 
-// TODO --- is there any sensible alternative to this?
-func (p *Parser) RecursivelySlurpSignature(node Node, dflt TypeNode) (AstSig, *err.Error) {
-	switch typednode := node.(type) {
-	case *InfixExpression:
-		switch {
-		case typednode.Token.Type == token.COMMA:
-			RHS, err := p.RecursivelySlurpSignature(typednode.Args[2], dflt)
-			if err != nil {
-				return nil, err
-			}
-			LHS, err := p.RecursivelySlurpSignature(typednode.Args[0], RHS.GetVarType(0).(TypeNode))
-			if err != nil {
-				return nil, err
-			}
-			return append(LHS, RHS...), nil
-		default:
-			return nil, newError("parse/sig/b", typednode.GetToken())
-		}
-	case *TypeSuffixExpression:
-		LHS, err := p.getSigFromArgs(typednode.Args, typednode.Operator)
-		if err != nil {
-			return nil, err
-		}
-		for k := range LHS {
-			LHS[k].VarType = typednode.Operator
-		}
-		return LHS, nil
-	case *Identifier:
-		return AstSig{NameTypeAstPair{VarName: typednode.Value, VarType: dflt}}, nil
-	case *PrefixExpression:
-		// We may be declaring a parameter which has the same name as a function --- e.g. 'f'.
-		// The parser will have parsed this as a prefix expression if it was followed by a type, e.g.
-		// 'foo (f func) : <function body>'.
-		return AstSig{NameTypeAstPair{VarName: typednode.Operator, VarType: dflt}}, nil
-
-	}
-	return nil, newError("parse/sig/a", node.GetToken())
-}
 
 func (p *Parser) RecursivelySlurpReturnTypes(node Node) AstSig {
 	switch typednode := node.(type) {
@@ -160,8 +120,8 @@ func (p *Parser) toTypeWithArguments(te *TypeExpression) *TypeWithArguments {
 }
 
 func (p *Parser) toTypeWithParameters(te *TypeExpression) *TypeWithParameters {
-	sig, err := p.getSigFromArgs(te.TypeArgs, &TypeWithName{OperatorName: "error"})
-	if err != nil {
+	sig, ok := p.getSigFromArgs(te.TypeArgs, &TypeWithName{OperatorName: "error"})
+	if !ok {
 		return nil
 	}
 	params := []*Parameter{}
@@ -287,4 +247,53 @@ func (p *Parser) typeIsFunctional() bool {
 		return p.PeekToken.Type != token.EOF
 	}
 	return p.PeekToken.Type != token.EOF
+}
+
+// Sometimes, as on the lhs of an assignment, something may be a signature but we don't
+// know it until we hit the equals sign, at which point we have a node and we don't even know
+// if it's a well-formed signature. We certainly haven't parsed it as one.
+//
+// So now we do that.
+func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
+	switch node := node.(type) {
+	case *Identifier:
+		return AstSig{NameTypeAstPair{node.Token.Literal, dflt}}, true
+	case *InfixExpression:
+		if node.Token.Type == token.COMMA {
+			if len(node.GetArgs()) != 3 {
+				p.Throw("comp/assign/lhs/a", node.GetToken())
+			}
+			left, ok := p.ReparseSig(node.GetArgs()[0], dflt)
+			if !ok {
+				return nil, false
+			}
+			right, ok := p.ReparseSig(node.GetArgs()[2], dflt)
+			if !ok {
+				return nil, false
+			}
+			for i := left.Len() - 1; i >= 0 && left[i].VarType == dflt; i-- {
+				left[i].VarType = right[0].VarType
+			} 
+			return append(left, right...), true
+		}
+	case *PrefixExpression:
+		result := AstSig{NameTypeAstPair{node.Token.Literal, dflt}}
+		for _, arg := range node.Args {
+			reparsedArg, ok := p.ReparseSig(arg, dflt)
+			if !ok {
+				return nil, false 
+			}
+			if reparsedArg[0].VarName == "" {
+				result[result.Len()-1].VarType = reparsedArg[0].VarType
+				reparsedArg = reparsedArg[1:]
+			}
+			result = append(result, reparsedArg...)
+		}	
+		return result, true
+		case *TypeExpression:
+			return AstSig{NameTypeAstPair{"", node}}, true
+	}
+	p.Throw("parse/sig/c", node.GetToken())
+	println(reflect.TypeOf(node).String())
+	return nil, false
 }

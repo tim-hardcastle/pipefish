@@ -20,7 +20,7 @@ func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`x`, `'q'`},
 		{`y`, `2`},
-		//{`x rune, y int = 'z', 42`, `OK`},
+		{`x rune, y int = 'z', 42`, `OK`},
 		{`y = 42`, `OK`},
 	}
 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
@@ -691,7 +691,7 @@ func TestVariableAccessErrors(t *testing.T) {
 }
 func TestVariableCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`i * i = 4`, `comp/assign/lhs/a`},
+		{`i * i = 4`, `parse/sig/c`},
 		{`w = 42`, `comp/assign/private`},
 		{`X = 42`, `comp/assign/const`},
 		{`noVar = 0`, `comp/assign/repl`},

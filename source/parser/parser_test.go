@@ -5,7 +5,9 @@ import (
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/compiler"
+	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
+	"github.com/tim-hardcastle/pipefish/source/token"
 )
 func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -116,11 +118,11 @@ func TestGocode(t *testing.T) {
 }
 func TestLambdas(t *testing.T) {
 	tests := []test_helper.TestItem{
-		// {`func(x rune, y int) : x, y`, `func(x rune, y int) : x , y`},
 		{`func(x) : x`, `func(x any?) : x`},
 		{`func(x, y) : x, y`, `func(x any?, y any?) : (x , y)`},
-		// {`func(x int) : x`, `func(x int) : x`},
-		// {`func(x, y int) : x, y`, `func(x int, y int) : x , y`},
+		{`func(x int) : x`, `func(x int) : x`},
+		{`func(x, y int) : x, y`, `func(x int, y int) : (x , y)`},
+		{`func(x rune, y int) : x, y`, `func(x rune, y int) : (x , y)`},
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
 }
@@ -194,6 +196,17 @@ func TestPrettyPrint(t *testing.T) {
 	}
 	test_helper.RunTest(t, "prettyprint_test.pf", tests, testPrettyPrinter)
 }
+func TestReparser(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`x`, `(x foo)`},
+		{`x, y`, `(x foo, y foo)`},
+		{`x int`, `(x int)`},
+		{`x int, y rune`, `(x int, y rune)`},
+		{`x int, y`, `(x int, y foo)`},
+		{`x, y rune`, `(x rune, y rune)`},
+	}
+	test_helper.RunTest(t, "", tests, testReparser)
+}
 func TestSnippets(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`-- foo |bar| qux`, `(-- foo |bar| qux)`},
@@ -251,15 +264,27 @@ func TestTypeParser(t *testing.T) {
 func testParserOutput(cp *compiler.Compiler, s string) (string, error) {
 	astOfLine := cp.P.ParseLine("test", s)
 	if cp.P.ErrorsExist() {
-		return "", errors.New("compilation error")
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
 	}
 	return astOfLine.String(), nil
+}
+
+func testReparser(cp *compiler.Compiler, s string) (string, error) {
+	ast := cp.P.ParseLine("test", s)
+	if cp.P.ErrorsExist() {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
+	}
+	sig, _ := cp.P.ReparseSig(ast, &parser.TypeWithName{token.Token{}, "foo"})
+	if cp.P.ErrorsExist() {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
+	}
+	return sig.String(), nil
 }
 
 func testPrettyPrinter(cp *compiler.Compiler, s string) (string, error) {
 	astOfLine := cp.P.ParseLine("test", s)
 	if cp.P.ErrorsExist() {
-		return "", errors.New("compilation error")
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
 	}
 	return cp.P.PrettyPrint(astOfLine), nil
 }
@@ -267,7 +292,7 @@ func testPrettyPrinter(cp *compiler.Compiler, s string) (string, error) {
 func testTypeParserOutput(cp *compiler.Compiler, s string) (string, error) {
 	astOfLine := cp.P.ParseTypeFromString(s)
 	if cp.P.ErrorsExist() {
-		return "", errors.New("compilation error")
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
 	}
 	if astOfLine == nil {
 		return "nil", nil

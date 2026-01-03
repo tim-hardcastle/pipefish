@@ -714,9 +714,7 @@ func (p *Parser) parseLambdaExpression() Node {
 		p.Throw("parse/colon", &p.CurToken)
 		return nil
 	}
-	expression.NameSig, _ = p.RecursivelySlurpSignature(root.(*LazyInfixExpression).Left, ANY_NULLABLE_TYPE_AST)
-	// println("sig", root.(*LazyInfixExpression).Left.String())
-	// println("sig", expression.NameSig.String())
+	expression.NameSig, _ = p.ReparseSig(root.(*LazyInfixExpression).Left, ANY_NULLABLE_TYPE_AST)
 	bodyRoot := root.(*LazyInfixExpression).Right
 	if bodyRoot.GetToken().Type == token.GIVEN {
 		expression.Body = bodyRoot.(*InfixExpression).Args[0]
