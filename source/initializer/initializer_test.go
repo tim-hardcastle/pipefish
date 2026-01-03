@@ -147,7 +147,6 @@ func TestTypeInstances(t *testing.T) {
 	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
 }
 func TestGocode(t *testing.T) {
-	defer test_helper.Teardown("gocode_test.pf")
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`multiply 2, 3`, `6`},
@@ -263,4 +262,14 @@ func TestExternalOrImportChunking(t *testing.T) {
 		{"\"bar\"\n", `"bar"`},
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestExternalOrImportChunking)
+}
+
+func TestWrappers(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Uint_32(5) == Uint_32(6)`, `false`},
+		{`Uint_32(5) == Uint_32(5)`, `true`},
+		{`Uint_32(5)`, `Uint_32(5)`},
+		{`literal Uint_32(5)`, `"Uint_32(5)"`},
+	}
+	test_helper.RunTest(t, "wrapper_test.pf", tests, test_helper.TestValues)
 }

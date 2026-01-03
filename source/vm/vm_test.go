@@ -1,13 +1,9 @@
 package vm_test
 
 import (
-	"os"
-	"path/filepath"
-	"strconv"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
-	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
 func TestEof(t *testing.T) {
@@ -518,7 +514,6 @@ func TestReflection(t *testing.T) {
 	test_helper.RunTest(t, "reflect_test.pf", tests, test_helper.TestValues)
 }
 func TestGocode(t *testing.T) {
-	defer test_helper.Teardown("gocode_test.pf")
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`variadicAnyTest 2, 42, true, "foo", 9.9`, `"foo"`},
@@ -551,26 +546,7 @@ func TestGocode(t *testing.T) {
 		{`getType(3)`, `func`},
 		{`multiply 2, 3`, `6`},
 	}
-	currentDirectory, _ := os.Getwd()
-	absolutePathToRscGo, _ := filepath.Abs(currentDirectory + "/../../source/initializer/gobucket/")
-	locationOfGoTimes := absolutePathToRscGo + "/gotimes.dat"
-	temp, err := os.ReadFile(locationOfGoTimes)
-	if err != nil {
-		println("Couldn't read gotimes")
-		println("Error was", err.Error())
-		panic("That's all folks!")
-	}
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
-	// Tear down the .go and .so files.
-	nameOfTestFile := "gocode_test.pf"
-	locationOfGocode, _ := filepath.Abs(currentDirectory + "/../../golang 1.go")
-	os.Remove(locationOfGocode)
-	absoluteLocationOfPipefishTestFile, _ := filepath.Abs(currentDirectory + "/../compiler/test-files/" + nameOfTestFile)
-	file, _ := os.Stat(absoluteLocationOfPipefishTestFile)
-	timestamp := file.ModTime().UnixMilli()
-	goTestFile := absolutePathToRscGo + "/" + text.Flatten(absoluteLocationOfPipefishTestFile) + "_" + strconv.Itoa(int(timestamp)) + ".so"
-	os.Remove(goTestFile)
-	os.WriteFile(locationOfGoTimes, temp, 0644)
 }
 
 func TestLogging(t *testing.T) {
@@ -622,4 +598,13 @@ func TestCorners(t *testing.T) {
 		{`moo 1, 2`, `3`},
 	}
 	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
+}
+func TestWrappers(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Uint_32(5) == Uint_32(6)`, `false`},
+		{`Uint_32(5) == Uint_32(5)`, `true`},
+		{`Uint_32(5)`, `Uint_32(5)`},
+		{`literal Uint_32(5)`, `"Uint_32(5)"`},
+	}
+	test_helper.RunTest(t, "wrapper_test.pf", tests, test_helper.TestValues)
 }
