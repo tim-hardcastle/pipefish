@@ -3,7 +3,6 @@ package vm_test
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"testing"
 
@@ -519,9 +518,7 @@ func TestReflection(t *testing.T) {
 	test_helper.RunTest(t, "reflect_test.pf", tests, test_helper.TestValues)
 }
 func TestGocode(t *testing.T) {
-	if runtime.GOOS == "windows" { // Windows can't use the plugin package.
-		return
-	}
+	defer test_helper.Teardown("gocode_test.pf")
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`variadicAnyTest 2, 42, true, "foo", 9.9`, `"foo"`},

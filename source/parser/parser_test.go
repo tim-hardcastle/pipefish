@@ -100,6 +100,7 @@ func TestFancyFunctionSyntax(t *testing.T) {
 // TODO --- this and `TestLogging` are a bit of a nothingburger, it only checks that the thing does in fact 
 // parse rather than going spoing.
 func TestGocode(t *testing.T) {
+	defer test_helper.Teardown("gocode_test.pf")
 	tests := []test_helper.TestItem{
 		{`multiply(8, 9)`, `(multiply 8, 9)`},
 	}

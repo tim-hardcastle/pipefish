@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/compiler"
@@ -182,3 +184,25 @@ var Qux13Result = "Log at line 7 : We're here.\n" +
 	"Log at line 10 : Guess we're taking the 'else' branch.\n" +
 	"Log at line 11 : And we return \"odd\".\n"
 
+func Teardown(nameOfTestFile string) {
+	currentDirectory, _ := os.Getwd()
+	absolutePathToGobucket, _ := filepath.Abs(currentDirectory + "/../../source/initializer/gobucket/")
+	locationOfGoTimes := absolutePathToGobucket + "/gotimes.dat"
+	absoluteLocationOfPipefishTestFile, _ := filepath.Abs(currentDirectory + "/../compiler/test-files/" + nameOfTestFile)
+	temp, err := os.ReadFile(locationOfGoTimes)
+	if err != nil {
+		panic("Couldn't read gotimes; error was " + err.Error())
+	}
+	timeList := strings.Split(strings.TrimRight(string(temp), "\n"), "\n")
+	newTimes := ""
+	for i := 0; i + 1 < len(timeList); i = i + 2 {
+		if timeList[i] != absoluteLocationOfPipefishTestFile {
+			newTimes = newTimes + timeList[i] + "\n" + timeList[i+1] + "\n"
+		}
+	}
+	file, _ := os.Stat(absoluteLocationOfPipefishTestFile)
+	timestamp := file.ModTime().UnixMilli()
+	goTestFile := absolutePathToGobucket + "/" + text.Flatten(absoluteLocationOfPipefishTestFile) + "_" + strconv.Itoa(int(timestamp)) + ".so"
+	os.Remove(goTestFile)
+	os.WriteFile(locationOfGoTimes, []byte(newTimes), 0644)
+}

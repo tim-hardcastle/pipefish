@@ -10,14 +10,9 @@ package initializer_test
 // which those bits are.
 
 import (
-	"os"
-	"path/filepath"
-	"runtime"
-	"strconv"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
-	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
 func TestAlias(t *testing.T) {
@@ -152,33 +147,12 @@ func TestTypeInstances(t *testing.T) {
 	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
 }
 func TestGocode(t *testing.T) {
-	if runtime.GOOS == "windows" { // Windows can't use the plugin package.
-		return
-	}
+	defer test_helper.Teardown("gocode_test.pf")
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`multiply 2, 3`, `6`},
 	}
-	currentDirectory, _ := os.Getwd()
-	absolutePathToRscGo, _ := filepath.Abs(currentDirectory + "/../../source/initializer/gobucket/")
-	locationOfGoTimes := absolutePathToRscGo + "/gotimes.dat"
-	temp, err := os.ReadFile(locationOfGoTimes)
-	if err != nil {
-		println("Couldn't read gotimes")
-		println("Error was", err.Error())
-		panic("That's all folks!")
-	}
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
-	// Tear down the .go and .so files.
-	nameOfTestFile := "gocode_test.pf"
-	locationOfGocode, _ := filepath.Abs(currentDirectory + "/../../golang 1.go")
-	os.Remove(locationOfGocode)
-	absoluteLocationOfPipefishTestFile, _ := filepath.Abs(currentDirectory + "/../compiler/test-files/" + nameOfTestFile)
-	file, _ := os.Stat(absoluteLocationOfPipefishTestFile)
-	timestamp := file.ModTime().UnixMilli()
-	goTestFile := absolutePathToRscGo + "/" + text.Flatten(absoluteLocationOfPipefishTestFile) + "_" + strconv.Itoa(int(timestamp)) + ".so"
-	os.Remove(goTestFile)
-	os.WriteFile(locationOfGoTimes, temp, 0644)
 }
 func TestLogging(t *testing.T) {
 	tests := []test_helper.TestItem{
