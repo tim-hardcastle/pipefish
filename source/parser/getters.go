@@ -92,8 +92,6 @@ func (p *Parser) RecursivelySlurpSignature(node Node, dflt TypeNode) (AstSig, *e
 			LHS[k].VarType = typednode.Operator
 		}
 		return LHS, nil
-	case *SuffixExpression:
-		return nil, newError("parse/sig/c", typednode.GetToken())
 	case *Identifier:
 		return AstSig{NameTypeAstPair{VarName: typednode.Value, VarType: dflt}}, nil
 	case *PrefixExpression:

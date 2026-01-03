@@ -164,7 +164,7 @@ type FuncExpression struct {
 func (fe *FuncExpression) Children() []Node       { return []Node{fe.Body, fe.Given} }
 func (fe *FuncExpression) GetToken() *token.Token { return &fe.Token }
 func (fe *FuncExpression) String() string {
-	result := "func " + fe.NameSig.String() + " : " + fe.Body.String()
+	result := "func" + fe.NameSig.String() + " : " + fe.Body.String()
 	if fe.Given != nil {
 		result = "(" + result + ")" + " given : " + "(" + fe.Given.String() + ")"
 	}

@@ -147,6 +147,7 @@ func TestTypeInstances(t *testing.T) {
 	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
 }
 func TestGocode(t *testing.T) {
+	// no t.Parallel()
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`multiply 2, 3`, `6`},
@@ -265,6 +266,7 @@ func TestExternalOrImportChunking(t *testing.T) {
 }
 
 func TestWrappers(t *testing.T) {
+	// no t.Parallel()
 	tests := []test_helper.TestItem{
 		{`Uint_32(5) == Uint_32(6)`, `false`},
 		{`Uint_32(5) == Uint_32(5)`, `true`},

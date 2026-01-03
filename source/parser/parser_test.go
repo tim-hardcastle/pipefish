@@ -7,7 +7,15 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/compiler"
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
-
+func TestAssignment(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`x = 'q'`, `(x = 'q')`},
+		{`x, y = 'q', 2`, `((x , y) = ('q' , 2))`},
+		{`x rune, y int = 'q', 2`, `((x rune, (y int)) = ('q' , 2))`},
+		{`x, y int = 1, 2`, `((x , (y int)) = (1 , 2))`},
+	}
+	test_helper.RunTest(t, "", tests, testParserOutput)
+}
 func TestBuiltins(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`2 + 2`, `(2 + 2)`},
@@ -35,7 +43,7 @@ func TestBuiltins(t *testing.T) {
 		{`2 + 2 == 4 and true`, `(((2 + 2) == 4) and true)`},
 		{`1 + 2 < 3 + 4`, `((1 + 2) < (3 + 4))`},
 		{`1 * 2 > 3 mod 4`, `((1 * 2) > (3 mod 4))`},
-		{`x = func(y) : y * y`, `(x = func (y any?) : (y * y))`},
+		{`x = func(y) : y * y`, `(x = func(y any?) : (y * y))`},
 		{`from a for i = 1; i < n; i + 1 : a + i`, `from a for (i = 1); (i < n); (i + 1) : (a + i)`},
 		{`len x`, `(len x)`},
 		{`len x, y`, `(len x, y)`},
@@ -58,25 +66,6 @@ func TestBuiltins(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
 }
-func TestForLoops(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`for : post "Hello world!"`, `for : (post "Hello world!")`},
-		{`from a = 0 for k::v = range L : a + v`, `from (a = 0) for ((k :: v) = (range L)) : (a + v)`},
-		{`from a = 0 for i = 0; i < len L; i + 1 : a + v`, `from (a = 0) for (i = 0); (i < (len L)); (i + 1) : (a + v)`},
-	}
-	test_helper.RunTest(t, "function_syntax_test.pf", tests, testParserOutput)
-}
-func TestFunctionSyntax(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo x`, `(foo x)`},
-		{`x zort`, `(x zort)`},
-		{`x troz y`, `(x troz y)`},
-		{`moo x goo`, `(moo x goo)`},
-		{`flerp x blerp y`, `(flerp x blerp y)`},
-		{`qux`, `(qux)`},
-	}
-	test_helper.RunTest(t, "function_syntax_test.pf", tests, testParserOutput)
-}
 func TestFancyFunctionSyntax(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 99`, `(foo 99)`},
@@ -96,16 +85,45 @@ func TestFancyFunctionSyntax(t *testing.T) {
 	}
 	test_helper.RunTest(t, "fancy_function_test.pf", tests, testParserOutput)
 } 
+func TestForLoops(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`for : post "Hello world!"`, `for : (post "Hello world!")`},
+		{`from a = 0 for k::v = range L : a + v`, `from (a = 0) for ((k :: v) = (range L)) : (a + v)`},
+		{`from a = 0 for i = 0; i < len L; i + 1 : a + v`, `from (a = 0) for (i = 0); (i < (len L)); (i + 1) : (a + v)`},
+	}
+	test_helper.RunTest(t, "function_syntax_test.pf", tests, testParserOutput)
+}
+func TestFunctionSyntax(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo x`, `(foo x)`},
+		{`x zort`, `(x zort)`},
+		{`x troz y`, `(x troz y)`},
+		{`moo x goo`, `(moo x goo)`},
+		{`flerp x blerp y`, `(flerp x blerp y)`},
+		{`qux`, `(qux)`},
+	}
+	test_helper.RunTest(t, "function_syntax_test.pf", tests, testParserOutput)
+}
 
 // TODO --- this and `TestLogging` are a bit of a nothingburger, it only checks that the thing does 
 // in fact parse rather than going spoing.
 func TestGocode(t *testing.T) {
+	// no t.Parallel()
 	tests := []test_helper.TestItem{
 		{`multiply(8, 9)`, `(multiply 8, 9)`},
 	}
 	test_helper.RunTest(t, "gocode_test.pf", tests, testParserOutput)
 }
-
+func TestLambdas(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`func(x) : x`, `func(x any?) : x`},
+		{`func(x, y) : x, y`, `func(x any?, y any?) : (x , y)`},
+		// {`func(x rune, y int) : x, y`, `func(x rune, y int) : x , y`},
+		// {`func(x int) : x`, `func(x int) : x`},
+		// {`func(x, y int) : x, y`, `func(x int, y int) : x , y`},
+	}
+	test_helper.RunTest(t, "", tests, testParserOutput)
+}
 func TestLogging(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`qux(8)`, `(qux 8)`},
