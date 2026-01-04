@@ -119,6 +119,7 @@ func TestGocode(t *testing.T) {
 func TestLambdas(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`func(x) : x`, `func(x any?) : x`},
+		{"func(x) : y\ngiven :\n\ty = x", `(func(x any?) : y) given : ((y = x))`},
 		{`func(x, y) : x, y`, `func(x any?, y any?) : (x , y)`},
 		{`func(x int) : x`, `func(x int) : x`},
 		{`func(x, y int) : x, y`, `func(x int, y int) : (x , y)`},

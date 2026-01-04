@@ -707,9 +707,14 @@ func (p *Parser) parseLambdaExpression() Node {
 		Token: p.CurToken,
 	}
 	p.NextToken()
-	RHS := p.ParseExpression(WEAK_COLON)
+	RHS := p.ParseExpression(FUNC)
 	// At this point the root of the RHS should be the colon dividing the function sig from its body.
 	root := RHS
+	var given Node 
+	if root.GetToken().Type == token.GIVEN {
+		root = RHS.(*InfixExpression).Args[0]
+		given = RHS.(*InfixExpression).Args[2]
+	}
 	if root.GetToken().Type != token.COLON {
 		p.Throw("parse/colon", &p.CurToken)
 		return nil
@@ -724,12 +729,9 @@ func (p *Parser) parseLambdaExpression() Node {
 	expression.NameSig, _ = p.ReparseSig(sig, ANY_NULLABLE_TYPE_AST)
 	expression.NameRets = p.RecursivelySlurpReturnTypes(returns)
 	bodyRoot := root.(*LazyInfixExpression).Right
-	if bodyRoot.GetToken().Type == token.GIVEN {
-		expression.Body = bodyRoot.(*InfixExpression).Args[0]
-		expression.Given = bodyRoot.(*InfixExpression).Args[2]
-	} else {
-		expression.Body = bodyRoot
-	}
+	println("body is", bodyRoot.String())
+	expression.Body = bodyRoot
+	expression.Given = given
 	return expression
 }
 
