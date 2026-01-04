@@ -65,6 +65,9 @@ func (p *Parser) GetVariablesFromAstSig(sig AstSig) []string {
 
 
 func (p *Parser) RecursivelySlurpReturnTypes(node Node) AstSig {
+	if node == nil {
+		return AstSig{}
+	}
 	switch typednode := node.(type) {
 	case *InfixExpression:
 		switch {
@@ -255,6 +258,9 @@ func (p *Parser) typeIsFunctional() bool {
 //
 // So now we do that.
 func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
+	if node == nil {
+		return AstSig{}, true
+	}
 	switch node := node.(type) {
 	case *Identifier:
 		return AstSig{NameTypeAstPair{node.Token.Literal, dflt}}, true

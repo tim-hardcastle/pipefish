@@ -123,6 +123,8 @@ func TestLambdas(t *testing.T) {
 		{`func(x int) : x`, `func(x int) : x`},
 		{`func(x, y int) : x, y`, `func(x int, y int) : (x , y)`},
 		{`func(x rune, y int) : x, y`, `func(x rune, y int) : (x , y)`},
+		{`func(x) -> int : x`, `func(x any?) -> ( int) : x`},
+		{`func(x rune, y int) -> rune, int : x, y`, `func(x rune, y int) -> ( rune,  int) : (x , y)`},
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
 }

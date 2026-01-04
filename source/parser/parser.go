@@ -714,7 +714,15 @@ func (p *Parser) parseLambdaExpression() Node {
 		p.Throw("parse/colon", &p.CurToken)
 		return nil
 	}
-	expression.NameSig, _ = p.ReparseSig(root.(*LazyInfixExpression).Left, ANY_NULLABLE_TYPE_AST)
+	LHS := root.(*LazyInfixExpression).Left
+	var returns Node
+	sig := LHS
+	if LHS.GetToken().Type == token.PIPE {
+		sig = LHS.(*PipingExpression).Left 
+		returns = LHS.(*PipingExpression).Right
+	}
+	expression.NameSig, _ = p.ReparseSig(sig, ANY_NULLABLE_TYPE_AST)
+	expression.NameRets = p.RecursivelySlurpReturnTypes(returns)
 	bodyRoot := root.(*LazyInfixExpression).Right
 	if bodyRoot.GetToken().Type == token.GIVEN {
 		expression.Body = bodyRoot.(*InfixExpression).Args[0]
