@@ -17,6 +17,9 @@ Zort = abstract Derp/Grunt
 Spoitable = interface :
     spoit(x self)
 
+Thingable = interface :
+    thing(x self, y list{string}) -> list{string}
+
 def
 
 foo(q Qux) -> int :

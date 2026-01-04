@@ -24,36 +24,24 @@ func TestAlias(t *testing.T) {
 	}
 	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
 }
-func TestIndexing(t *testing.T) {
+func TestClones(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`DARK_BLUE[shade]`, `DARK`},
+		{`FloatClone(4.2) == FloatClone(4.2)`, `true`},
+		{`5 apples + 3 apples`, `apples(8)`},
 	}
-	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
+}
+func TestExternals(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`zort.square 5`, `25`},
+	}
+	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
 }
 func TestFunctionSyntaxCalls(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo "bing"`, `"foo bing"`},
 	}
 	test_helper.RunTest(t, "function_call_test.pf", tests, test_helper.TestValues)
-}
-func TestVariablesAndConsts(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`A`, `42`},
-	}
-	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
-}
-func TestUserDefinedTypes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Color(4)`, `BLUE`},
-		{`DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
-	}
-	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
-}
-func TestOverloading(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo 42`, `"int"`},
-	}
-	test_helper.RunTest(t, "overloading_test.pf", tests, test_helper.TestValues)
 }
 func TestForLoops(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -62,89 +50,11 @@ func TestForLoops(t *testing.T) {
 	}
 	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
 }
-func TestInnerFunctionsAndVariables(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo 42`, `42`},
-		{`zort 3, 5`, `(25, 15)`},
-		{`troz 2`, `2200`},
-	}
-	test_helper.RunTest(t, "inner_test.pf", tests, test_helper.TestValues)
-}
-func TestRecursion(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`fac 5`, `120`},
-		{`power 3, 4`, `81`},
-		{`inFac 5`, `120`},
-	}
-	test_helper.RunTest(t, "recursion_test.pf", tests, test_helper.TestValues)
-}
-func TestImports(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`qux.square 5`, `25`},
-		{`troz.sumOfSquares 3, 4`, `25`},
-	}
-	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
-}
-func TestExternals(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`zort.square 5`, `25`},
-	}
-	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
-}
-func TestRef(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`x ++`, `OK`},
-	}
-	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestValues)
-}
-func TestClones(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`FloatClone(4.2) == FloatClone(4.2)`, `true`},
-		{`5 apples + 3 apples`, `apples(8)`},
-	}
-	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
-}
-func TestSnippet(t *testing.T) {
-	tests := []test_helper.TestItem{}
-	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
-}
-func TestInterface(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`BLERP in Addable`, `true`},
-		{`Fnug(5) in Foobarable`, `false`},
-	}
-	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
-}
 func TestFunctionSharing(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`C(1, 2) in Addable`, `true`},
 	}
 	test_helper.RunTest(t, "function_sharing_test.pf", tests, test_helper.TestValues)
-}
-func TestImperative(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`zort false`, `7`},
-	}
-	test_helper.RunTest(t, "imperative_test.pf", tests, test_helper.TestOutput)
-}
-func TestRuntimeTypecheck(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`EvenNumber 2`, `EvenNumber(2)`},
-		{`EvenNumber 3`, `vm/typecheck/fail`},
-	}
-	test_helper.RunTest(t, "runtime_typecheck_test.pf", tests, test_helper.TestValues)
-}
-func TestParameterizedTypes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
-	}
-	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
-}
-func TestTypeInstances(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Z{3}(2) in Z{3}`, `true`},
-	}
-	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
 }
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
@@ -154,11 +64,112 @@ func TestGocode(t *testing.T) {
 	}
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
 }
+func TestIndexing(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`DARK_BLUE[shade]`, `DARK`},
+	}
+	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
+}
+func TestImperative(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`zort false`, `7`},
+	}
+	test_helper.RunTest(t, "imperative_test.pf", tests, test_helper.TestOutput)
+}
+func TestImports(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`qux.square 5`, `25`},
+		{`troz.sumOfSquares 3, 4`, `25`},
+	}
+	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
+}
+func TestInnerFunctionsAndVariables(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 42`, `42`},
+		{`zort 3, 5`, `(25, 15)`},
+		{`troz 2`, `2200`},
+	}
+	test_helper.RunTest(t, "inner_test.pf", tests, test_helper.TestValues)
+}
+func TestInterfaces(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`BLERP in Addable`, `true`},
+		{`Fnug(5) in Foobarable`, `false`},
+	}
+	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
+}
 func TestLogging(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 8`, test_helper.Foo8Result},
 	}
 	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestOutput)
+}
+func TestOverloading(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 42`, `"int"`},
+	}
+	test_helper.RunTest(t, "overloading_test.pf", tests, test_helper.TestValues)
+}
+func TestParameterizedTypes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
+	}
+	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
+}
+func TestRecursion(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`fac 5`, `120`},
+		{`power 3, 4`, `81`},
+		{`inFac 5`, `120`},
+	}
+	test_helper.RunTest(t, "recursion_test.pf", tests, test_helper.TestValues)
+}
+func TestRef(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`x ++`, `OK`},
+	}
+	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestValues)
+}
+func TestRuntimeTypecheck(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`EvenNumber 2`, `EvenNumber(2)`},
+		{`EvenNumber 3`, `vm/typecheck/fail`},
+	}
+	test_helper.RunTest(t, "runtime_typecheck_test.pf", tests, test_helper.TestValues)
+}
+func TestSnippet(t *testing.T) {
+	tests := []test_helper.TestItem{}
+	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
+}
+func TestTypeInstances(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Z{3}(2) in Z{3}`, `true`},
+	}
+	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
+}
+func TestUserDefinedTypes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Color(4)`, `BLUE`},
+		{`DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+	}
+	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
+}
+func TestVariablesAndConsts(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`A`, `42`},
+		{`T`, `(3, 4)`},
+	}
+	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
+}
+func TestWrappers(t *testing.T) {
+	// no t.Parallel()
+	tests := []test_helper.TestItem{
+		{`Uint_32(5) == Uint_32(6)`, `false`},
+		{`Uint_32(5) == Uint_32(5)`, `true`},
+		{`Uint_32(5)`, `Uint_32(5)`},
+		{`literal Uint_32(5)`, `"Uint_32(5)"`},
+	}
+	test_helper.RunTest(t, "wrapper_test.pf", tests, test_helper.TestValues)
 }
 
 // While most of the tests are just to establish which lines are covered, and so get the
@@ -263,15 +274,4 @@ func TestExternalOrImportChunking(t *testing.T) {
 		{"\"bar\"\n", `"bar"`},
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestExternalOrImportChunking)
-}
-
-func TestWrappers(t *testing.T) {
-	// no t.Parallel()
-	tests := []test_helper.TestItem{
-		{`Uint_32(5) == Uint_32(6)`, `false`},
-		{`Uint_32(5) == Uint_32(5)`, `true`},
-		{`Uint_32(5)`, `Uint_32(5)`},
-		{`literal Uint_32(5)`, `"Uint_32(5)"`},
-	}
-	test_helper.RunTest(t, "wrapper_test.pf", tests, test_helper.TestValues)
 }
