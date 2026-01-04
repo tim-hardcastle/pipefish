@@ -16,8 +16,7 @@ func TestAssignment(t *testing.T) {
 		{`x rune, y int = 'q', 2`, `((x rune, (y int)) = ('q' , 2))`},
 		{`x, y int = 1, 2`, `((x , (y int)) = (1 , 2))`},
 		{`x int? = 1`, `((x (int ?)) = 1)`},
-		{`x list{string}`, `(x list{string})`},
-
+		{`x list{string} = []`, `((x list{string}) = [ ])`},
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
 }
@@ -70,6 +69,13 @@ func TestBuiltins(t *testing.T) {
 		{`first (tuple 1, 2, 3)`, `(first (tuple 1, 2, 3))`},
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
+}
+func TestCorners(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`5 apples`, `(5 apples)`}, // We mmake sure clones of int and float work as suffixes.
+		{`5.2 km`, `(5.2 km)`},
+	}
+	test_helper.RunTest(t, "corners_parsing_test", tests, testParserOutput)
 }
 func TestFancyFunctionSyntax(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -129,9 +135,18 @@ func TestLambdas(t *testing.T) {
 		{`func(x rune, y int) : x, y`, `func(x rune, y int) : (x , y)`},
 		{`func(x) -> int : x`, `func(x any?) -> ( int) : x`},
 		{`func(x) -> int? : x`, `func(x any?) -> ( int?) : x`},
+		{`func(x list{string}) -> list{string} : x`, `func(x list{string}) -> ( list{string}) : x`},
+		{`func(x list{42}) -> list{42} : x`, `func(x list{42}) -> ( list{42}) : x`},
+		{`func(x list{true}) : x`, `func(x list{true}) : x`},
+		{`func(x list{'t'}) : x`, `func(x list{'t'}) : x`},
+		{`func(x list{"foo"}) : x`, `func(x list{"foo"}) : x`},
+		{`func(x list{42}) : x`, `func(x list{42}) : x`},
+		{`func(x list{42.0}) : x`, `func(x list{42.0}) : x`},
+		{`func(x list{GREEN}) : x`, `func(x list{GREEN}) : x`},
+		{`func(x list{_ type}) : x`, `func(x list{_ type}) : x`},
 		{`func(x rune, y int) -> rune, int : x, y`, `func(x rune, y int) -> ( rune,  int) : (x , y)`},
 	}
-	test_helper.RunTest(t, "", tests, testParserOutput)
+	test_helper.RunTest(t, "lambda_parsing_test.pf", tests, testParserOutput)
 }
 func TestLogging(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -200,6 +215,7 @@ func TestPrettyPrint(t *testing.T) {
 		{`x = 99`, `x = 99`},
 		{`from a = 0 for _::v = range L : a + v`, "from a = 0 for _::v = range L :\n    a + v"},
 		{`from a = 0 for i = 0; i < n; i + 1 : a + i`, "from a = 0 for i = 0; i < n; i + 1 :\n    a + i"},
+		{`try e : post x div i ; else : post "Oopsie!"`, "try e :\n    post x div i\nelse :\n    post \"Oopsie!\""},
 	}
 	test_helper.RunTest(t, "prettyprint_test.pf", tests, testPrettyPrinter)
 }
@@ -220,7 +236,7 @@ func TestSnippets(t *testing.T) {
 		{`-- foo |bar| qux`, `(-- foo |bar| qux)`},
 		{`true -- foo |bar| qux`, `(true , (-- foo |bar| qux))`},
 	}
-	test_helper.RunTest(t, "function_syntax_test.pf", tests, testParserOutput)
+	test_helper.RunTest(t, "", tests, testParserOutput)
 }
 func TestSplat(t *testing.T) {
 	tests := []test_helper.TestItem{

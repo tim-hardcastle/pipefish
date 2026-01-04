@@ -1,0 +1,4 @@
+newtype 
+
+apples = clone int 
+km = clone float

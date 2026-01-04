@@ -1,0 +1,3 @@
+newtype 
+
+Color = enum RED, GREEN, BLUE 

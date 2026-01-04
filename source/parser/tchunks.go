@@ -361,10 +361,6 @@ func MakeCodeChunk(code []token.Token, private bool) *TokenizedCodeChunk {
 	return tcc
 }
 
-func (tcc *TokenizedCodeChunk) Change(newToken token.Token) {
-	tcc.code[tcc.position] = newToken
-}
-
 func (tcc *TokenizedCodeChunk) Append(tokenToAppend token.Token) {
 	tcc.code = append(tcc.code, tokenToAppend)
 }

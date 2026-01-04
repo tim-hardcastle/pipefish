@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
 
@@ -90,9 +89,3 @@ func (ns AstSig) String() (result string) {
 	return
 }
 
-func (ns AstSig) NameSet() (result dtypes.Set[string]) {
-	for _, v := range ns {
-		result.Add(v.VarName)
-	}
-	return
-}
