@@ -15,6 +15,9 @@ func TestAssignment(t *testing.T) {
 		{`x, y = 'q', 2`, `((x , y) = ('q' , 2))`},
 		{`x rune, y int = 'q', 2`, `((x rune, (y int)) = ('q' , 2))`},
 		{`x, y int = 1, 2`, `((x , (y int)) = (1 , 2))`},
+		{`x int? = 1`, `((x (int ?)) = 1)`},
+		{`x list{string}`, `(x list{string})`},
+
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
 }
@@ -125,6 +128,7 @@ func TestLambdas(t *testing.T) {
 		{`func(x, y int) : x, y`, `func(x int, y int) : (x , y)`},
 		{`func(x rune, y int) : x, y`, `func(x rune, y int) : (x , y)`},
 		{`func(x) -> int : x`, `func(x any?) -> ( int) : x`},
+		{`func(x) -> int? : x`, `func(x any?) -> ( int?) : x`},
 		{`func(x rune, y int) -> rune, int : x, y`, `func(x rune, y int) -> ( rune,  int) : (x , y)`},
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
@@ -236,7 +240,7 @@ func TestTypeExpressions(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`list{string}`, `list{string}`},
 		{`list{string}(x)`, `(list{string} x)`},
-
+		{`list{1, 'q'}(x)`, `(list{1, 'q'} x)`},
 	}
 	test_helper.RunTest(t, "", tests, testParserOutput)
 }

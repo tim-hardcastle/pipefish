@@ -479,6 +479,7 @@ func (t *TypeExpression) String() string {
 		for _, v := range t.TypeArgs {
 			out.WriteString(sep)
 			out.WriteString(v.String())
+			sep = ", "
 		}
 		out.WriteString("}")
 	}
