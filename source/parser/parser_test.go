@@ -207,6 +207,7 @@ func TestReparser(t *testing.T) {
 		{`x int, y rune`, `(x int, y rune)`},
 		{`x int, y`, `(x int, y foo)`},
 		{`x, y rune`, `(x rune, y rune)`},
+		{`x int?`, `(x int?)`},
 	}
 	test_helper.RunTest(t, "", tests, testReparser)
 }

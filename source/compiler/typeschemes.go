@@ -289,7 +289,7 @@ func (cp Compiler) typeNodeToAlternateType(tn parser.TypeNode) AlternateType {
 	case *parser.TypeDotDotDot:
 		return AlternateType{TypedTupleType{cp.typeNodeToAlternateType(tn.Right)}}
 	case *parser.TypeExpression:
-		return cp.TypeNameToTypeScheme[tn.String()]
+		return cp.typeNodeToAlternateType(cp.P.ToAstType(tn))
 	}
 	panic("Failed to convert node of type " + reflect.TypeOf(tn).String())
 }

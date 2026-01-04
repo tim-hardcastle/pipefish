@@ -296,10 +296,18 @@ func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
 			result = append(result, reparsedArg...)
 		}	
 		return result, true
-		case *TypeExpression:
-			return AstSig{NameTypeAstPair{"", node}}, true
+	case *TypeExpression:
+		return AstSig{NameTypeAstPair{"", p.ToAstType(node)}}, true
+	case *SuffixExpression:
+		if len(node.Args) == 1 && node.Operator == "?" || node.Operator == "!" {
+			left, ok := p.ReparseSig(node.Args[0], dflt)
+			if !ok {
+				return nil, false
+			}
+			left[0].VarType = &TypeSuffix{node.Token, node.Operator, left[0].VarType}
+			return left, true
+		}
 	}
 	p.Throw("parse/sig/c", node.GetToken())
-	println(reflect.TypeOf(node).String())
 	return nil, false
 }
