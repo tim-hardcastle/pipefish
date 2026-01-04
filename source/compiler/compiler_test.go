@@ -341,6 +341,7 @@ func TestFunctionSyntaxCalls(t *testing.T) {
 }
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
+	defer test_helper.Teardown("gocode_test.pf")
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`variadicAnyTest 2, 42, true, "foo", 9.9`, `"foo"`},
@@ -717,6 +718,7 @@ func TestWith(t *testing.T) {
 }
 func TestWrappers(t *testing.T) {
 	// no t.Parallel()
+	defer test_helper.Teardown("wrapper_test.pf")
 	tests := []test_helper.TestItem{
 		{`Uint_32(5) == Uint_32(6)`, `false`},
 		{`Uint_32(5) == Uint_32(5)`, `true`},

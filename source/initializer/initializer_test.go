@@ -58,6 +58,7 @@ func TestFunctionSharing(t *testing.T) {
 }
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
+	defer test_helper.Teardown("gocode_test.pf")
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`multiply 2, 3`, `6`},
@@ -95,6 +96,7 @@ func TestInterfaces(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`BLERP in Addable`, `true`},
 		{`Fnug(5) in Foobarable`, `false`},
+		{`Fnug(5) in Thongable`, `true`},
 	}
 	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
 }
@@ -154,6 +156,17 @@ func TestUserDefinedTypes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
 }
+func TestUsing(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`FloatClone(4.2) + FloatClone(9.0)`, `FloatClone(13.2)`},
+		{`IntClone(42) + IntClone(99)`, `IntClone(141)`},
+		{`ListClone["foo"] + ListClone[42]`, `ListClone["foo", 42]`},
+		//{`MapClone("foo"::1) with "bar"::2 = MapClone("foo"::1, "bar"::2)`, `true`},
+		{`SetClone("foo") + SetClone(42) == SetClone("foo", 42)`, `true`},
+		{`StringClone("foo") + StringClone("bar")`, `StringClone("foobar")`},
+	}
+	test_helper.RunTest(t, "using_test.pf", tests, test_helper.TestValues)
+}
 func TestVariablesAndConsts(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`A`, `42`},
@@ -163,6 +176,7 @@ func TestVariablesAndConsts(t *testing.T) {
 }
 func TestWrappers(t *testing.T) {
 	// no t.Parallel()
+	defer test_helper.Teardown("wrapper_test.pf")
 	tests := []test_helper.TestItem{
 		{`Uint_32(5) == Uint_32(6)`, `false`},
 		{`Uint_32(5) == Uint_32(5)`, `true`},

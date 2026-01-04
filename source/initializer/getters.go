@@ -60,17 +60,6 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 	}
 	for i := 0; i < sigToMatch.rtnSig.Len(); i++ {
 		if t, ok := sigToMatch.rtnSig[i].VarType.(*parser.TypeWithName); ok && t.OperatorName == "self" {
-			// First we deal with the possibility of a type expression matching a parameterized
-			// type.
-			te, ok := fnToTry.callInfo.ReturnTypes.GetVarType(i).(*parser.TypeExpression)
-			if ok && paramType != nil {
-				if Matches(paramType, te) {
-					continue
-				} else {
-					return values.MakeAbstractType()
-				}
-			}
-			// If not ...
 			result = result.Intersect(abRets[i].VarType)
 			if paramType == nil && result.Len() != 1 {
 				// To explain. If we have types A and B which are subtypes of C, then having
@@ -221,22 +210,6 @@ func Equals(twp *parser.TypeWithParameters, twq *parser.TypeWithParameters) bool
 	}
 	for i, v := range twp.Parameters {
 		if v.Name != twq.Parameters[i].Name || v.Type != twq.Parameters[i].Type {
-			return false
-		}
-	}
-	return true
-}
-
-func Matches(twp *parser.TypeWithParameters, te *parser.TypeExpression) bool {
-	if twp.Name != te.Operator || len(twp.Parameters) != len(te.TypeArgs) {
-		return false
-	}
-	for i, v := range twp.Parameters {
-		if identifier, ok := te.TypeArgs[i].(*parser.Identifier); ok {
-			if v.Name != identifier.Value {
-				return false
-			}
-		} else {
 			return false
 		}
 	}

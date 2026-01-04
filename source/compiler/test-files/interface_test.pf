@@ -20,7 +20,13 @@ Spoitable = interface :
 Thingable = interface :
     thing(x self, y list{string}) -> list{string}
 
+Thongable = interface :
+    thong(x self, y list{_ type}) -> list{_ type}
+
 def
+
+thong(z Fnug, L list{T type}) -> list{T type} :
+    L
 
 foo(q Qux) -> int :
     int q

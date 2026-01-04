@@ -7,6 +7,7 @@ MapClone = clone map
 PairClone = clone pair 
 RuneClone = clone rune 
 SetClone = clone set 
+SnippetClone = clone snippet
 StringClone = clone string 
 
 apples = clone int using +, -

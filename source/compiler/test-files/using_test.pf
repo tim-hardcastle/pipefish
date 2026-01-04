@@ -1,0 +1,9 @@
+newtype
+
+FloatClone = clone float using +, -, *, / 
+IntClone = clone int using +, -, *, div, mod 
+ListClone = clone list using +, slice, &, with // >>, ?>
+MapClone = clone map using with, without
+SetClone = clone set using +, /\, -, &
+StringClone = clone string using +, slice 
+
