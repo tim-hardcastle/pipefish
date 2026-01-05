@@ -120,7 +120,6 @@ func TestFunctionSyntax(t *testing.T) {
 // in fact parse rather than going spoing.
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
-	defer test_helper.Teardown("gocode_test.pf")
 	tests := []test_helper.TestItem{
 		{`multiply(8, 9)`, `(multiply 8, 9)`},
 	}
