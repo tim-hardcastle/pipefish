@@ -161,7 +161,7 @@ func TestUsing(t *testing.T) {
 		{`FloatClone(4.2) + FloatClone(9.0)`, `FloatClone(13.2)`},
 		{`IntClone(42) + IntClone(99)`, `IntClone(141)`},
 		{`ListClone["foo"] + ListClone[42]`, `ListClone["foo", 42]`},
-		//{`MapClone("foo"::1) with "bar"::2 = MapClone("foo"::1, "bar"::2)`, `true`},
+		//{`(MapClone("foo"::1) with ("bar"::2)) == MapClone("foo"::1, "bar"::2)`, `true`},
 		{`SetClone("foo") + SetClone(42) == SetClone("foo", 42)`, `true`},
 		{`StringClone("foo") + StringClone("bar")`, `StringClone("foobar")`},
 	}

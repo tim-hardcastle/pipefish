@@ -1151,7 +1151,7 @@ func (hub *Hub) OpenHubFile(hubFilepath string) {
 			panic("Can't open hub data store")
 		}
 		s := string(b)
-		for ; s[0:9] != "PLAINTEXT"; println("Invalid storekey. Enter a valid one or press return to continue without loading the store.") {
+		for ; s != "" && !text.Head(s, "PLAINTEXT"); println("Invalid storekey. Enter a valid one or press return to continue without loading the store.") {
 			salt := s[0:32]
 			ciphertext := s[32:]
 			rline := readline.NewInstance()
