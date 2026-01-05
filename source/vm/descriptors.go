@@ -87,6 +87,30 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 
 	}
 	if typeInfo.IsClone() {
+		if typeInfo.(CloneType).Parent == values.MAP {
+			var buf strings.Builder
+			buf.WriteString(typeInfo.GetName(flavor))
+			buf.WriteByte('(')
+			var sep string
+			(v.V.(*values.Map)).Range(func(k, v values.Value) {
+				fmt.Fprintf(&buf, "%s%v::%v", sep, vm.StringifyValue(k, flavor), vm.StringifyValue(v, flavor))
+				sep = ", "
+			})
+			buf.WriteByte(')')
+			return buf.String()
+		}
+		if typeInfo.(CloneType).Parent == values.SET {
+			var buf strings.Builder
+			buf.WriteString(typeInfo.GetName(flavor))
+			buf.WriteByte('(')
+			var sep string
+			v.V.(values.Set).Range(func(k values.Value) {
+				fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(k, flavor))
+				sep = ", "
+			})
+			buf.WriteByte(')')
+			return buf.String()
+		}
 		if typeInfo.(CloneType).Parent == values.SNIPPET {
 			var buf strings.Builder
 			buf.WriteString(typeInfo.GetName(flavor))
