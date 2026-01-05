@@ -20,7 +20,7 @@ var BUILTINS = map[string]functionAndReturnType{
 	"add_sets":                  {(*Compiler).btAddSets, AltType(values.SET)},
 	"add_string_to_rune":        {(*Compiler).btAddStringToRune, AltType(values.STRING)},
 	"add_strings":               {(*Compiler).btAddStrings, AltType(values.STRING)},
-	"cast":                      {(*Compiler).btCast, AltType()}, 
+	"cast":                      {(*Compiler).btCast, AltType()},
 	"cast_to_float":             {(*Compiler).btCastToFloat, AltType(values.FLOAT)},
 	"cast_to_int":               {(*Compiler).btCastToInt, AltType(values.INT)},
 	"cast_to_list":              {(*Compiler).btCastToList, AltType(values.LIST)},
@@ -312,7 +312,8 @@ func (cp *Compiler) btLenTuple(tok *token.Token, dest uint32, args []uint32) {
 }
 
 func (cp *Compiler) btListWith(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.WthL, dest, args[0], args[1], cp.ReserveToken(tok))
+	newArgs := append([]uint32{dest, args[0], cp.ReserveToken(tok)}, args[2:]...)
+	cp.Emit(vm.WthL, newArgs...)
 }
 
 func (cp *Compiler) btLiteral(tok *token.Token, dest uint32, args []uint32) {
@@ -356,11 +357,13 @@ func (cp *Compiler) btMakeSet(tok *token.Token, dest uint32, args []uint32) {
 }
 
 func (cp *Compiler) btMapWith(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.WthM, dest, args[0], args[1], cp.ReserveToken(tok))
+	newArgs := append([]uint32{dest, args[0], cp.ReserveToken(tok)}, args[2:]...)
+	cp.Emit(vm.WthM, newArgs...)
 }
 
 func (cp *Compiler) btMapWithout(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.WtoM, dest, args[0], args[1], cp.ReserveToken(tok))
+	newArgs := append([]uint32{dest, args[0], cp.ReserveToken(tok)}, args[2:]...)
+	cp.Emit(vm.WtoM, newArgs...)
 }
 
 func (cp *Compiler) btModuloIntegers(tok *token.Token, dest uint32, args []uint32) {
@@ -434,7 +437,8 @@ func (cp *Compiler) btString(tok *token.Token, dest uint32, args []uint32) {
 }
 
 func (cp *Compiler) btStructWith(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.WthZ, dest, args[0], args[1], cp.ReserveToken(tok))
+	newArgs := append([]uint32{dest, args[0], cp.ReserveToken(tok)}, args[2:]...)
+	cp.Emit(vm.WthZ, newArgs...)
 }
 
 func (cp *Compiler) btSubtractFloats(tok *token.Token, dest uint32, args []uint32) {
@@ -471,5 +475,6 @@ func (cp *Compiler) btTypeUnion(tok *token.Token, dest uint32, args []uint32) {
 }
 
 func (cp *Compiler) btTypeWith(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Wtht, dest, args[0], args[1], cp.ReserveToken(tok))
+	newArgs := append([]uint32{dest, args[0], cp.ReserveToken(tok)}, args[2:]...)
+	cp.Emit(vm.WthT, newArgs...)
 }

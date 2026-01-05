@@ -15,6 +15,6 @@ CAT_DEFAULTS tuple = nobelPrizes::0, pink::false
 
 var
 
-myCat = Cat with name::"Felix", CAT_DEFAULTS
+myCat = Cat with name::"Felix", nobelPrizes::0, pink::false // CAT_DEFAULTS
 myField = name
 

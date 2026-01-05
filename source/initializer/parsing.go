@@ -853,7 +853,7 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 				iz.makeCloneFunction("&", sig, "concat_to_list", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "with":
 				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"with", AsBling("with")}, parser.NameTypeAstPair{"y", parser.DOTDOTDOT_PAIR}}
-				iz.makeCloneFunction("with", sig, "listWithMaker(x, y)", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
+				iz.makeCloneFunction("with", sig, "list_with", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "?>":
 				cloneData := iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType)
 				cloneData.IsFilterable = true
@@ -873,10 +873,10 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 			switch op {
 			case "with":
 				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"with", AsBling("with")}, parser.NameTypeAstPair{"y", parser.DOTDOTDOT_PAIR}}
-				iz.makeCloneFunction("with", sig, "mapWithMaker(x, y)", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
+				iz.makeCloneFunction("with", sig, "map_with", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "without":
 				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"without", AsBling("without")}, parser.NameTypeAstPair{"y", parser.DOTDOTDOT_ANY_NULLABLE}}
-				iz.makeCloneFunction("without", sig, "mapWithoutMaker(x, y)", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
+				iz.makeCloneFunction("without", sig, "map_without", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
 				iz.throw("init/request/map", tok1, op)
 			}

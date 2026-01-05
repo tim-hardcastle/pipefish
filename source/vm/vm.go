@@ -49,17 +49,17 @@ type Vm struct {
 	ExternalCallHandlers       []ExternalCallHandler // The services declared external, whether on the same hub or a different one.
 	UsefulTypes                UsefulTypes
 	UsefulValues               UsefulValues
-	TypeNumberOfUnwrappedError values.ValueType // What it says. When we unwrap an 'error' to an 'Error' struct, the vm needs to know the number of the struct.
-	StringifyLoReg             uint32           // |
-	StringifyCallTo            uint32           // | These are so the vm knows how to call the stringify function.
-	StringifyOutReg            uint32           // |
+	TypeNumberOfUnwrappedError values.ValueType  // What it says. When we unwrap an 'error' to an 'Error' struct, the vm needs to know the number of the struct.
+	StringifyLoReg             uint32            // |
+	StringifyCallTo            uint32            // | These are so the vm knows how to call the stringify function.
+	StringifyOutReg            uint32            // |
 	FieldLabelsInMem           map[string]uint32 // Used to turn a string into a label.
-	ParameterizedTypeInfo      []*values.Map // A list of maps from type parameters (as TUPLE values) to types (as TYPE values). The list is itself keyed by a map from type operators to the position in the list, which is stored in the compiler.
-	
-	GoToPipefishTypes          map[reflect.Type]values.ValueType
-	GoConverter                [](func(t uint32, v any) any)
-	GoEquals                   func(x any, y any) bool 
-	GoLiteral                  func(x any) string
+	ParameterizedTypeInfo      []*values.Map     // A list of maps from type parameters (as TUPLE values) to types (as TYPE values). The list is itself keyed by a map from type operators to the position in the list, which is stored in the compiler.
+
+	GoToPipefishTypes map[reflect.Type]values.ValueType
+	GoConverter       [](func(t uint32, v any) any)
+	GoEquals          func(x any, y any) bool
+	GoLiteral         func(x any) string
 }
 
 // In general, the VM can't convert from type names to type numbers, because it doesn't
@@ -1712,7 +1712,8 @@ loop:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].T != values.ERROR}
 			case WthL:
 				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(vector.Vector)}
-				for _, pair := range vm.Mem[args[2]].V.([]values.Value) {
+				for _, loc := range args[3:] {
+					pair := vm.Mem[loc]
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					var keys []values.Value
@@ -1720,7 +1721,7 @@ loop:
 						vec := key.V.(vector.Vector)
 						ln := vec.Len()
 						if ln == 0 {
-							vm.Mem[args[0]] = vm.makeError("vm/with/list/b", args[3])
+							vm.Mem[args[0]] = vm.makeError("vm/with/list/b", args[2])
 							break Switch
 						}
 						keys = make([]values.Value, ln)
@@ -1731,7 +1732,7 @@ loop:
 					} else {
 						keys = []values.Value{key}
 					}
-					result = vm.with(result, keys, val, args[3])
+					result = vm.with(result, keys, val, args[2])
 					if result.T == values.ERROR {
 						break
 					}
@@ -1739,7 +1740,8 @@ loop:
 				vm.Mem[args[0]] = result
 			case WthM:
 				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(*values.Map)}
-				for _, pair := range vm.Mem[args[2]].V.([]values.Value) {
+				for _, loc := range args[3:] {
+					pair := vm.Mem[loc]
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					var keys []values.Value
@@ -1747,7 +1749,7 @@ loop:
 						vec := key.V.(vector.Vector)
 						ln := vec.Len()
 						if ln == 0 {
-							vm.Mem[args[0]] = vm.makeError("vm/with/map/b", args[3])
+							vm.Mem[args[0]] = vm.makeError("vm/with/map/b", args[2])
 							break
 						}
 						keys = make([]values.Value, ln)
@@ -1758,67 +1760,62 @@ loop:
 					} else {
 						keys = []values.Value{key}
 					}
-					result = vm.with(result, keys, val, args[3])
+					result = vm.with(result, keys, val, args[2])
 					if result.T == values.ERROR {
 						break
 					}
 				}
 				vm.Mem[args[0]] = result
-			case Wtht:
+			case WthT:
 				typL := vm.Mem[args[1]].V.(values.AbstractType)
 				if typL.Len() != 1 {
-					vm.Mem[args[0]] = vm.makeError("vm/with/type/a", args[3], vm.DescribeAbstractType(typL, LITERAL))
+					vm.Mem[args[0]] = vm.makeError("vm/with/type/a", args[2], vm.DescribeAbstractType(typL, LITERAL))
 					break Switch
 				}
 				typ := typL.Types[0]
 				if !vm.ConcreteTypeInfo[typ].IsStruct() {
-					vm.Mem[args[0]] = vm.makeError("vm/with/type/b", args[3], vm.DescribeType(typ, LITERAL))
+					vm.Mem[args[0]] = vm.makeError("vm/with/type/b", args[2], vm.DescribeType(typ, LITERAL))
 					break Switch
 				}
 				typeInfo := vm.ConcreteTypeInfo[typ].(StructType)
-				var pairs []values.Value
-				if (vm.Mem[args[2]].T) == values.PAIR {
-					pairs = []values.Value{vm.Mem[args[0]]}
-				} else {
-					pairs = vm.Mem[args[2]].V.([]values.Value)
-				}
 				outVals := make([]values.Value, len(vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers))
-				for _, pair := range pairs {
+				for _, loc := range args[3:] {
+					pair := vm.Mem[loc]
 					if pair.T != values.PAIR {
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/c", args[3], vm.DescribeType(pair.T, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/with/type/c", args[2], vm.DescribeType(pair.T, LITERAL))
 						break
 					}
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					if key.T != values.LABEL {
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/d", args[3], vm.DescribeType(pair.T, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/with/type/d", args[2], vm.DescribeType(pair.T, LITERAL))
 						break Switch
 					}
 					keyNumber := typeInfo.Resolve(key.V.(int))
 					if keyNumber == -1 {
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/e", args[3], vm.DefaultDescription(key), vm.DescribeType(typ, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/with/type/e", args[2], vm.DefaultDescription(key), vm.DescribeType(typ, LITERAL))
 						break Switch
 					}
 					if outVals[keyNumber].T != values.UNDEFINED_TYPE {
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/f", args[3], vm.DefaultDescription(key))
+						vm.Mem[args[0]] = vm.makeError("vm/with/type/f", args[2], vm.DefaultDescription(key))
 						break Switch
 					}
 					outVals[keyNumber] = val
 				}
 				for i, v := range outVals {
-					if v.T == values.UNDEFINED_TYPE {
+					if v.T == values.UNDEFINED_TYPE { // As a special case, we don't need to specify that nullable things are `NULL`.
 						if vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i].Contains(values.NULL) {
 							outVals[i] = values.Value{values.NULL, nil}
 							break Switch
-						} else {
+						} else {   // Otherwise, omitting a field is an error.
 							labName := vm.Labels[vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers[i]]
-							vm.Mem[args[0]] = vm.makeError("vm/with/type/g", args[3], labName)
+							vm.Mem[args[0]] = vm.makeError("vm/with/type/g", args[2], labName)
 							break Switch
 						}
 					}
 					if !vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i].Contains(v.T) {
 						labName := vm.Labels[vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers[i]]
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/h", args[3], vm.DescribeType(v.T, LITERAL), labName, vm.DescribeType(typ, LITERAL), vm.DescribeAbstractType(vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i], LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/with/type/h", args[2], vm.DescribeType(v.T, LITERAL), labName, vm.DescribeType(typ, LITERAL), vm.DescribeAbstractType(vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i], LITERAL))
 						break Switch
 					}
 				}
@@ -1828,7 +1825,8 @@ loop:
 				outVals := make([]values.Value, len(vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers))
 				copy(outVals, vm.Mem[args[1]].V.([]values.Value))
 				result := values.Value{typ, outVals}
-				for _, pair := range vm.Mem[args[2]].V.([]values.Value) {
+				for _, loc := range args[3:] {
+					pair := vm.Mem[loc]
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					var keys []values.Value
@@ -1836,7 +1834,7 @@ loop:
 						vec := key.V.(vector.Vector)
 						ln := vec.Len()
 						if ln == 0 {
-							vm.Mem[args[0]] = vm.makeError("vm/with/struct/b", args[3])
+							vm.Mem[args[0]] = vm.makeError("vm/with/struct/b", args[2])
 							break
 						}
 						keys = make([]values.Value, ln)
@@ -1847,7 +1845,7 @@ loop:
 					} else {
 						keys = []values.Value{key}
 					}
-					result = vm.with(result, keys, val, args[3])
+					result = vm.with(result, keys, val, args[2])
 					if result.T == values.ERROR {
 						break
 					}
@@ -1855,9 +1853,10 @@ loop:
 				vm.Mem[args[0]] = result
 			case WtoM:
 				mp := vm.Mem[args[1]].V.(*values.Map)
-				for _, key := range vm.Mem[args[2]].V.([]values.Value) {
-					if (key.T < values.NULL || key.T >= values.FUNC) { // Check that the key is orderable.
-						vm.Mem[args[0]] = vm.makeError("vm/without", args[3], vm.DescribeType(key.T, LITERAL))
+				for _, loc := range args[3:] {
+					key := vm.Mem[loc]
+					if key.T < values.NULL || key.T == values.FUNC { // Check that the key is orderable.
+						vm.Mem[args[0]] = vm.makeError("vm/without", args[2], vm.DescribeType(key.T, LITERAL))
 						break Switch
 					}
 					mp = (*mp).Delete(key)
@@ -2023,7 +2022,12 @@ func (vm *Vm) setsAreEqual(v, w values.Value) bool {
 // Implements `with`, which needs to be done separately because it may be recursive.
 func (vm *Vm) with(container values.Value, keys []values.Value, val values.Value, errTok uint32) values.Value {
 	key := keys[0]
-	switch container.T {
+	parentType := container.T
+	info := vm.ConcreteTypeInfo[container.T]
+	if cloneInfo, ok :=info.(CloneType); ok {
+		parentType = cloneInfo.Parent
+	}
+	switch parentType {
 	case values.LIST:
 		vec := container.V.(vector.Vector)
 		if key.T != values.INT {
@@ -2047,11 +2051,11 @@ func (vm *Vm) with(container values.Value, keys []values.Value, val values.Value
 		}
 		if len(keys) == 1 {
 			mp = mp.Set(key, val)
-			return values.Value{values.MAP, mp}
+			return values.Value{container.T, mp}
 		}
 		el, _ := mp.Get(key)
 		mp = mp.Set(key, vm.with(el, keys[1:], val, errTok))
-		return values.Value{values.MAP, mp}
+		return values.Value{container.T, mp}
 	default: // It's a struct.
 		fields := make([]values.Value, len(container.V.([]values.Value)))
 		clone := values.Value{container.T, fields}
@@ -2075,8 +2079,6 @@ func (vm *Vm) with(container values.Value, keys []values.Value, val values.Value
 		return clone
 	}
 }
-
-
 
 // Produces a Value of the internal type ITERATOR for use in implementing `for` loops.
 // TODO --- since the only thing we're using the VM for is to look up the `concreteTypeInfo`,

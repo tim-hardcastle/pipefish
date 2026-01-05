@@ -15,7 +15,7 @@ type operandType uint8
 
 const (
 	chk operandType = iota
-	dst 
+	dst
 	gfn
 	lfc
 	loc
@@ -145,7 +145,7 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Extn: {"extn", operands{dst, mem, mem, mem, mem, tup}}, // Operands are: the external service to call; whether the function is PREFIX, INFIX, or POSTFIX; the remainder of the namespace of the function as a string; the name of the function as a string; the locations of the arguments.
 	Flti: {"flti", operands{dst, mem}},
 	Flts: {"flts", operands{dst, mem, tok}},
-	Gofn: {"gofn", operands{dst, mem, gfn, tup}}, // Mem contains the location of a *mutable* error, i.e. we will copy its token but change its contents when returning it. 
+	Gofn: {"gofn", operands{dst, mem, gfn, tup}}, // Mem contains the location of a *mutable* error, i.e. we will copy its token but change its contents when returning it.
 	Gsql: {"gsql", operands{dst, mem, mem, mem, mem, num, tok}},
 	Gtef: {"gtef", operands{dst, mem, mem}},
 	Gtei: {"gtei", operands{dst, mem, mem}},
@@ -248,11 +248,11 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Untk: {"untk", operands{dst}},
 	Uwrp: {"uwrp", operands{dst, mem, tok}},
 	Vlid: {"vlid", operands{dst, mem}},
-	WthL: {"wthL", operands{dst, mem, mem, tok}},
-	WthM: {"wthM", operands{dst, mem, mem, tok}},
-	Wtht: {"wtht", operands{dst, mem, mem, tok}},
-	WthZ: {"wthZ", operands{dst, mem, mem, tok}},
-	WtoM: {"wthM", operands{dst, mem, mem, tok}},
+	WthL: {"wthL", operands{dst, mem, tok, tup}},
+	WthM: {"wthM", operands{dst, mem, tok, tup}},
+	WthT: {"wthT", operands{dst, mem, tok, tup}},
+	WthZ: {"wthZ", operands{dst, mem, tok, tup}},
+	WtoM: {"wtoM", operands{dst, mem, tok, tup}},
 	Yeet: {"yeet", operands{dst, typ}},
 }
 
@@ -298,7 +298,7 @@ const (
 	Chck
 	Chrf
 	Clon
-	ConL 
+	ConL
 	ConS
 	CoSn
 	Cpnt
@@ -430,7 +430,7 @@ const (
 	Vlid
 	WthL
 	WthM
-	Wtht
+	WthT
 	WthZ
 	WtoM
 	Yeet
