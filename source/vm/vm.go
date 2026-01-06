@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -1712,8 +1713,11 @@ loop:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].T != values.ERROR}
 			case WthL:
 				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(vector.Vector)}
-				for _, loc := range args[3:] {
-					pair := vm.Mem[loc]
+				for it := vm.NewValueIterator(args[3:]);; {
+					pair, ok := it.get()
+			        if !ok {
+						break
+					}
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					var keys []values.Value
@@ -1740,8 +1744,11 @@ loop:
 				vm.Mem[args[0]] = result
 			case WthM:
 				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(*values.Map)}
-				for _, loc := range args[3:] {
-					pair := vm.Mem[loc]
+				for it := vm.NewValueIterator(args[3:]);; {
+					pair, ok := it.get()
+			        if !ok {
+						break
+					}
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					var keys []values.Value
@@ -1779,10 +1786,9 @@ loop:
 				}
 				typeInfo := vm.ConcreteTypeInfo[typ].(StructType)
 				outVals := make([]values.Value, len(vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers))
-				for _, loc := range args[3:] {
-					pair := vm.Mem[loc]
-					if pair.T != values.PAIR {
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/c", args[2], vm.DescribeType(pair.T, LITERAL))
+				for it := vm.NewValueIterator(args[3:]);; {
+					pair, ok := it.get()
+			        if !ok {
 						break
 					}
 					key := pair.V.([]values.Value)[0]
@@ -1825,8 +1831,11 @@ loop:
 				outVals := make([]values.Value, len(vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers))
 				copy(outVals, vm.Mem[args[1]].V.([]values.Value))
 				result := values.Value{typ, outVals}
-				for _, loc := range args[3:] {
-					pair := vm.Mem[loc]
+				for it := vm.NewValueIterator(args[3:]);; {
+					pair, ok := it.get()
+			        if !ok {
+						break
+					}
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					var keys []values.Value
@@ -1853,8 +1862,11 @@ loop:
 				vm.Mem[args[0]] = result
 			case WtoM:
 				mp := vm.Mem[args[1]].V.(*values.Map)
-				for _, loc := range args[3:] {
-					key := vm.Mem[loc]
+				for it := vm.NewValueIterator(args[3:]);; {
+					key, ok := it.get()
+			        if !ok {
+						break
+					}
 					if key.T < values.NULL || key.T == values.FUNC { // Check that the key is orderable.
 						vm.Mem[args[0]] = vm.makeError("vm/without", args[2], vm.DescribeType(key.T, LITERAL))
 						break Switch
@@ -2162,3 +2174,49 @@ const (
 	SUFFIX
 	UNFIX
 )
+
+// This takes the vm and a list of memory locations as arguments, and returns an iterator which 
+// which will return one value at a time, automatically decomposing any tuples.
+//
+// We do this because as things like `WthL` don't pass through `CalT`, they don't autosplat tuples,
+//and this is a way of doing it for us.
+//
+// We don't just use something from `iter` because we want some extra logic.
+//
+// TODO --- normally we can detect at compile time if there are going to be any tuples involved
+// and compile to simpler logic if it isn't. This would involves making more opcodes, or a flag,
+// or something.
+type ValueIterator struct {
+	vm   *Vm
+	locs []uint32 
+	locNo int 
+	pos int
+}
+
+func (vit *ValueIterator) get() (values.Value, bool) {
+	for {
+		if vit.locNo >= len(vit.locs) {
+			return values.Value{}, false
+		}
+		val := vit.vm.Mem[vit.locs[vit.locNo]]
+		if val.T == values.TUPLE {
+			vals := val.V.([]values.Value)
+			if vit.pos >= len(vals) {
+				vit.pos = 0
+				vit.locNo++
+				continue
+			}
+			vit.pos++
+			return vals[vit.pos-1], true
+		}
+		vit.locNo++
+		return val, true
+	}
+}
+
+func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
+	return &ValueIterator{vm: vm, locs: locs}
+}
+
+
+
