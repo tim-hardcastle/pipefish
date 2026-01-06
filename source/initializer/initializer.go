@@ -1208,10 +1208,8 @@ type serviceVariableData struct {
 
 // Function auxiliary to the above for compiling constant and variable declarations.
 func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationType, v int) {
-	// dec := iz.ParsedDeclarations[declarations][v]
 	asgn := iz.parsedCode[declarations][v].(*parsedAssignment)
 	iz.cp.Cm("Compiling assignment", asgn.indexTok)
-	// lhs := dec.(*parser.AssignmentExpression).Left
 	rhs := asgn.body
 	sig := asgn.sig
 	if iz.errorsExist() {
@@ -1264,7 +1262,7 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 			if tupleLen == len(sig)-1 {
 				iz.cp.Reserve(values.TUPLE, []values.Value{}, rhs.GetToken())
 			} else {
-				iz.cp.Reserve(values.TUPLE, result.V, rhs.GetToken())
+				iz.cp.Reserve(values.TUPLE, []values.Value{result}, rhs.GetToken())
 			}
 		}
 		iz.cp.AddThatAsVariable(envToAddTo, sig[last].VarName, vAcc, altType(values.TUPLE), rhs.GetToken())

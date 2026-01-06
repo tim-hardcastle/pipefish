@@ -24,6 +24,15 @@ func TestAlias(t *testing.T) {
 	}
 	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
 }
+func TestAssignment(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`x`, `'q'`},
+		{`y`, `2`},
+		{`s`, `(1, 2)`},
+		{`t`, `tuple(42)`},
+	}
+	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
+}
 func TestClones(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`FloatClone(4.2) == FloatClone(4.2)`, `true`},
