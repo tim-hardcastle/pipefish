@@ -16,12 +16,12 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/tim-hardcastle/pipefish/source/hub"
+	"github.com/tim-hardcastle/pipefish/source/settings"
 )
 
 func main() {
@@ -50,18 +50,9 @@ func main() {
 	}
 
 	fmt.Print(hub.Logo())
-	h := hub.New(os.Stdin, os.Stdout)
-	appDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	f, err := os.Open(filepath.Join(appDir, filepath.FromSlash("/user/hub.dat")))
-	if err != nil {
-		println(err.Error())
-		panic("That's all folks!")
-	}
-	scanner := bufio.NewScanner(f)
-	scanner.Scan()
-	line := scanner.Text()
-	h.OpenHubFile(line)
-	hub.StartHub(h, os.Stdin, os.Stdout)
+	hubDir := filepath.Join(settings.PipefishHomeDirectory, ("user/hub"))
+	h := hub.New(hubDir, os.Stdout)
+	hub.StartHub(h)
 }
 
 func showhelp() {

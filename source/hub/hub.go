@@ -18,6 +18,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"testing"
 
 	"github.com/caddyserver/certmagic"
 	"github.com/lmorg/readline/v4"
@@ -35,8 +36,7 @@ type Hub struct {
 	hubFilepath            string
 	services               map[string]*pf.Service // The services the hub knows about.
 	ers                    []*pf.Error            // The errors produced by the latest compilation/execution of one of the hub's services.
-	in                     io.Reader
-	out                    io.Writer
+	Out                    io.Writer
 	snap                   *Snap
 	oldServiceName         string // Somewhere to keep the old service name while taking a snap. TODO --- you can now take snaps on their own dedicated hub, saving a good deal of faffing around.
 	Sources                map[string][]string
@@ -48,22 +48,18 @@ type Hub struct {
 	port                   string
 	Username               string
 	Password               string
-	pipefishHomeDirectory  string
 	store                  values.Map
 	storekey               string
 }
 
-func New(in io.Reader, out io.Writer) *Hub {
-
-	hub := Hub{
+func New(path string, out io.Writer) *Hub {
+	h := Hub{
 		services: make(map[string]*pf.Service),
-		in:       in,
-		out:      out,
+		Out:      out,
 		lastRun:  []string{},
 	}
-	appDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	hub.pipefishHomeDirectory = appDir + "/"
-	return &hub
+	h.OpenHubFile(filepath.Join(path, "hub.hub"))
+	return &h
 }
 
 func (hub *Hub) currentServiceName() string {
@@ -626,7 +622,7 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 			ty, _ := snapService.TypeNameToType("$_OutputAs")
 			snapService.SetVariable("$_outputAs", ty, 0)
 			hub.WriteString("Serialization is ON.\n")
-			in, out := MakeSnapIo(snapService, hub.out, hub.snap)
+			in, out := MakeSnapIo(snapService, hub.Out, hub.snap)
 			currentService := snapService
 			currentService.SetInHandler(in)
 			currentService.SetOutHandler(out)
@@ -911,7 +907,7 @@ func (hub *Hub) GetPretty(s string) string {
 }
 
 func (hub *Hub) isAdministered() bool {
-	_, err := os.Stat(hub.pipefishHomeDirectory + "user/admin.dat")
+	_, err := os.Stat(filepath.Join(settings.PipefishHomeDirectory, "user/admin.dat"))
 	return !errors.Is(err, os.ErrNotExist)
 }
 
@@ -922,7 +918,7 @@ func (hub *Hub) WriteError(s string) {
 }
 
 func (hub *Hub) WriteString(s string) {
-	io.WriteString(hub.out, s)
+	io.WriteString(hub.Out, s)
 }
 
 var helpStrings = map[string]string{}
@@ -985,11 +981,19 @@ func (hub *Hub) createService(name, scriptFilepath string) bool {
 	}
 	newService := pf.NewService()
 	newService.SetLocalExternalServices(hub.services)
+	if text.Head(scriptFilepath, "!") {
+		scriptFilepath = filepath.Join(settings.PipefishHomeDirectory, scriptFilepath[1:])
+	}
 	e := newService.InitializeFromFilepathWithStore(scriptFilepath, &hub.store) // We get an error only if it completely fails to open the file, otherwise there'll be errors in the Common Parser Bindle as usual.
+	if testing.Testing() {
+		newService.SetOutHandler(newService.MakeLiteralOutHandler(hub.Out))
+	}
 	hub.Sources, _ = newService.GetSources()
 	if newService.IsBroken() {
 		if name == "hub" {
-			fmt.Println("Pipefish: unable to compile hub: " + text.Red(newService.GetErrors()[0].ErrorId) + ".")
+			println("Filepath is", scriptFilepath)
+			println("Pipefish: unable to compile hub: " + newService.GetErrors()[0].ErrorId + ".")
+			println(newService.GetErrors()[0].Message)
 			panic("That's all folks!")
 		}
 		if !newService.IsInitialized() {
@@ -1285,7 +1289,7 @@ func (hub *Hub) RunTest(scriptFilepath, testFilepath string, testOutputType Test
 		return
 	}
 	testService := hub.services["#test"]
-	in, out := MakeTestIoHandler(testService, hub.out, scanner, testOutputType)
+	in, out := MakeTestIoHandler(testService, hub.Out, scanner, testOutputType)
 	testService.SetInHandler(in)
 	testService.SetOutHandler(out)
 	if testOutputType == ERROR_CHECK {
@@ -1357,7 +1361,7 @@ func (hub *Hub) playTest(testFilepath string, diffOn bool) {
 	testService := (*hub).services["#test"]
 	ty, _ := testService.TypeNameToType("$_OutputAs")
 	testService.SetVariable("$_outputAs", ty, 0)
-	in, out := MakeTestIoHandler(testService, hub.out, scanner, SHOW_ALL)
+	in, out := MakeTestIoHandler(testService, hub.Out, scanner, SHOW_ALL)
 	testService.SetInHandler(in)
 	testService.SetOutHandler(out)
 	_ = scanner.Scan() // eats the newline
@@ -1437,11 +1441,11 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	var buf bytes.Buffer
-	h.out = &buf
+	h.Out = &buf
 	sv := h.services[request.Service]
 	sv.SetOutHandler(sv.MakeLiteralOutHandler(&buf))
 	serviceName, _ = h.Do(request.Body, request.Username, request.Password, request.Service, true)
-	h.out = os.Stdout
+	h.Out = os.Stdout
 	response := jsonResponse{Body: buf.String(), Service: serviceName}
 	json.NewEncoder(w).Encode(response)
 }
@@ -1464,9 +1468,9 @@ func (h *Hub) addUserAsGuest() {
 
 func (h *Hub) handleConfigUserForm(f *Form) {
 	h.CurrentForm = nil
-	_, err := os.Stat(h.pipefishHomeDirectory + "user/admin.dat")
+	_, err := os.Stat(filepath.Join(settings.PipefishHomeDirectory, "user/admin.dat"))
 	if errors.Is(err, os.ErrNotExist) {
-		h.WriteError("this Charm hub doesn't have administered " +
+		h.WriteError("this Pipefish hub doesn't have administered " +
 			"access: there is nothing to join.")
 		return
 	}
@@ -1512,7 +1516,7 @@ func (h *Hub) handleConfigAdminForm(f *Form) {
 		return
 	}
 	err := database.AddAdmin(h.Db, f.Result["Username"], f.Result["First name"],
-		f.Result["Last name"], f.Result["Email"], f.Result["*Password"], h.currentServiceName(), h.pipefishHomeDirectory)
+		f.Result["Last name"], f.Result["Email"], f.Result["*Password"], h.currentServiceName(), settings.PipefishHomeDirectory)
 	if err != nil {
 		h.WriteError("H/ " + err.Error())
 		return
@@ -1636,13 +1640,13 @@ func FlattenedFilename(s string) string {
 func (h *Hub) MakeFilepath(scriptFilepath string) string {
 	doctoredFilepath := strings.Clone(scriptFilepath)
 	if len(scriptFilepath) >= 4 && scriptFilepath[0:4] == "hub/" {
-		doctoredFilepath = filepath.Join(h.pipefishHomeDirectory, filepath.FromSlash(scriptFilepath))
+		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, filepath.FromSlash(scriptFilepath))
 	}
 	if len(scriptFilepath) >= 7 && scriptFilepath[0:7] == "rsc-pf/" {
-		doctoredFilepath = filepath.Join(h.pipefishHomeDirectory, "source", "initializer", filepath.FromSlash(scriptFilepath))
+		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source", "initializer", filepath.FromSlash(scriptFilepath))
 	}
 	if settings.StandardLibraries.Contains(scriptFilepath) {
-		doctoredFilepath = h.pipefishHomeDirectory + "source/initializer/libraries/" + scriptFilepath
+		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries/", scriptFilepath)
 	}
 	if len(scriptFilepath) >= 3 && scriptFilepath[len(scriptFilepath)-3:] != ".pf" && len(scriptFilepath) >= 4 && scriptFilepath[len(scriptFilepath)-4:] != ".hub" {
 		doctoredFilepath = doctoredFilepath + ".pf"

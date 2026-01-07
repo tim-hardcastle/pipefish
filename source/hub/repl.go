@@ -1,7 +1,6 @@
 package hub
 
 import (
-	"io"
 	"regexp"
 	"strings"
 
@@ -11,7 +10,7 @@ import (
 
 // TODO --- once the highlighting is semantic and not syntactic, we'll
 // need a different highlighter for each service.
-func StartHub(hub *Hub, in io.Reader, out io.Writer) {
+func StartHub(hub *Hub) {
 	colonOrEmdash, _ := regexp.Compile(`.*[\w\s]*(:|--)[\s]*$`)
 	rline := readline.NewInstance()
 	rline.SyntaxHighlighter = func(code []rune) string {

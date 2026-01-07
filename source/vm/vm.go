@@ -2093,8 +2093,6 @@ func (vm *Vm) with(container values.Value, keys []values.Value, val values.Value
 }
 
 // Produces a Value of the internal type ITERATOR for use in implementing `for` loops.
-// TODO --- since the only thing we're using the VM for is to look up the `concreteTypeInfo`,
-// this clearly belongs in the compiler.
 func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) values.Value {
 	ty := container.T
 	if cloneInfo, ok := vm.ConcreteTypeInfo[ty].(CloneType); ok {

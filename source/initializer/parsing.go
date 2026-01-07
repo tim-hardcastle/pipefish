@@ -2,6 +2,7 @@ package initializer
 
 import (
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -53,7 +54,7 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 	}
 	if len(scriptFilepath) >= 4 && scriptFilepath[len(scriptFilepath)-4:] == ".hub" {
 		iz.cmI("Adding hub.pf and themes.pf to hub namespace.")
-		iz.addToNameSpaceByFilename([]string{"rsc-pf/hub.pf", "user/themes.pf"})
+		iz.addToNameSpaceByFilename([]string{"rsc-pf/hub.pf", filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf")})
 	}
 	iz.cmI("Making new relexer with filepath '" + scriptFilepath + "'")
 	iz.P.TokenizedCode = lexer.NewRelexer(scriptFilepath, sourcecode)
