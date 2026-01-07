@@ -15,6 +15,13 @@ func TestHub(t *testing.T) {
 	runTest(t, "default", test)
 }
 
+func TestHubServices(t *testing.T) {
+	test := []testPair{
+		{"hub services", "The hub isn't running any services."},
+	}
+	runTest(t, "default", test)
+}
+
 type testPair struct {
 	input  string
 	expect string
@@ -42,7 +49,7 @@ func runTest(t *testing.T, hubName string, test []testPair) {
 		h.Do(item.input, "", "", "", false)
 		result := h.Out.(*capturingWriter).get()
 		if result != item.expect + "\n" {
-			t.Fatal("\nOn input" + item.input + "\n    Exp : " + item.expect + "\n    Got :" + result)
+			t.Fatal("\nOn input '" + item.input + "'\n    Exp : " + item.expect + "\n    Got : " + result)
 		}
 	}
 }
