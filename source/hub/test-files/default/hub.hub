@@ -1,0 +1,17 @@
+import
+
+NULL::"sql"
+
+var
+
+allServices = map(`hub`::`!/source/hub/test-files/default/hub.hub`)
+
+currentService string? = NULL
+
+isLive = true
+
+theme Theme? = DARK_MODERN
+
+width = 92
+
+database Database? = NULL
