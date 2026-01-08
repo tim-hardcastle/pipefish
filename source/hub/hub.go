@@ -389,6 +389,39 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 			hub.WriteError(err.Error())
 		}
 		return false
+		case "env-key":
+		if hub.storekey != "" {
+			rline := readline.NewInstance()
+			rline.SetPrompt("Enter the current environment key for the hub: ")
+			rline.PasswordMask = '▪'
+			storekey, _ := rline.Readline()
+			if storekey != hub.storekey {
+				hub.WriteError("incorrect environment key.")
+				return false
+			}
+		}
+		rline := readline.NewInstance()
+		rline.SetPrompt("Enter the new environment key: ")
+		rline.PasswordMask = '▪'
+		storekey, _ := rline.Readline()
+		hub.storekey = storekey
+		hub.SaveHubStore()
+		return false
+	case "env-set":
+		hub.store = *hub.store.Set(args[0].V.([]values.Value)[0], args[0].V.([]values.Value)[1])
+		hub.SaveHubStore()
+		hub.WriteString(GREEN_OK + "\n")
+		return false
+	case "env-unset":
+		hub.store = *hub.store.Delete(args[0].V.([]values.Value)[0])
+		hub.SaveHubStore()
+		hub.WriteString(GREEN_OK + "\n")
+		return false
+	case "env-wipe":
+		hub.storekey = ""
+		hub.store = values.Map{}
+		hub.SaveHubStore()
+		return false
 	case "errors":
 		r, _ := hub.services[hub.currentServiceName()].GetErrorReport()
 		hub.WritePretty(r)
@@ -664,29 +697,6 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 		hub.WriteString(GREEN_OK + "\n")
 		hub.setServiceName(hub.oldServiceName)
 		return false
-	case "store":
-		hub.store = *hub.store.Set(args[0].V.([]values.Value)[0], args[0].V.([]values.Value)[1])
-		hub.SaveHubStore()
-		hub.WriteString(GREEN_OK + "\n")
-		return false
-	case "storekey":
-		if hub.storekey != "" {
-			rline := readline.NewInstance()
-			rline.SetPrompt("Enter the current storekey for the hub: ")
-			rline.PasswordMask = '▪'
-			storekey, _ := rline.Readline()
-			if storekey != hub.storekey {
-				hub.WriteError("incorrect store key.")
-				return false
-			}
-		}
-		rline := readline.NewInstance()
-		rline.SetPrompt("Enter the new storekey: ")
-		rline.PasswordMask = '▪'
-		storekey, _ := rline.Readline()
-		hub.storekey = storekey
-		hub.SaveHubStore()
-		return false
 	case "switch":
 		sname := toStr(args[0])
 		_, ok := hub.services[sname]
@@ -841,11 +851,6 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 		hub.WriteString(padding)
 		hub.WritePretty(refLine)
 		hub.WriteString("\n")
-		return false
-	case "wipe-store":
-		hub.storekey = ""
-		hub.store = values.Map{}
-		hub.SaveHubStore()
 		return false
 	default:
 		panic("Didn't return from verb " + verb)
