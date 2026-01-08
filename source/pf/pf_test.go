@@ -1,4 +1,4 @@
-package hub_test
+package pf_test
 
 import (
 	"testing"
@@ -6,6 +6,9 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/hub"
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
+
+// We can mostly test the `pf` package by rerunning the tests for the hub, since the hub wraps 
+// around the `pf` package.
 
 func TestServices(t *testing.T) {
 	test := []test_helper.TestPair{
@@ -19,4 +22,3 @@ func TestServices(t *testing.T) {
 	}
 	test_helper.RunServiceTest(t, "default", test)
 }
-

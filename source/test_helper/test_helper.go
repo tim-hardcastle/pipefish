@@ -10,6 +10,7 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/compiler"
 	"github.com/tim-hardcastle/pipefish/source/err"
+	"github.com/tim-hardcastle/pipefish/source/hub"
 	"github.com/tim-hardcastle/pipefish/source/initializer"
 	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/settings"
@@ -215,4 +216,36 @@ func Teardown(nameOfTestFile string) {
 	goTestFile := absolutePathToGobucket + "/" + text.Flatten(absoluteLocationOfPipefishTestFile) + "_" + strconv.Itoa(int(timestamp)) + ".so"
 	os.Remove(goTestFile)
 	os.WriteFile(locationOfGoTimes, []byte(newTimes), 0644)
+}
+
+type TestPair struct {
+	Input  string
+	Expect string
+}
+
+type capturingWriter struct {capture string} 
+
+func (c *capturingWriter) get() string {
+	s := c.capture 
+	c.capture = ""
+	return s
+}
+
+func (c *capturingWriter) Write(b []byte) (n int, err error) {
+	c.capture = c.capture + string(b)
+	return len(b), nil
+}
+
+func RunServiceTest(t *testing.T, hubName string, test []TestPair) { 
+	wd, _ := os.Getwd() // The working directory is the directory containing the package being tested.
+	sourceDir, _ := filepath.Abs(filepath.Join(wd, "/../")) // We may be calling this either from in the `hub` direcotry or `pf`.
+	hubDir := filepath.Join(sourceDir, "hub/test-files", hubName)
+	h := hub.New(hubDir, &capturingWriter{})
+	for _, item := range test {
+		h.Do(item.Input, "", "", "", false)
+		result := strings.TrimSpace(h.Out.(*capturingWriter).get())
+		if result != item.Expect {
+			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : '" + item.Expect + "'\n    Got : '" + result + "'")
+		}
+	}
 }

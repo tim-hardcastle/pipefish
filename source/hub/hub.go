@@ -581,8 +581,7 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 			fname = filepath.Join(dir, fname)
 		}
 		hub.lastRun = []string{fname, sname}
-		hub.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.")
-		println()
+		hub.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.\n")
 		hub.StartAndMakeCurrent(username, sname, fname)
 		hub.tryMain()
 		return false
@@ -985,9 +984,6 @@ func (hub *Hub) createService(name, scriptFilepath string) bool {
 		scriptFilepath = filepath.Join(settings.PipefishHomeDirectory, scriptFilepath[1:])
 	}
 	e := newService.InitializeFromFilepathWithStore(scriptFilepath, &hub.store) // We get an error only if it completely fails to open the file, otherwise there'll be errors in the Common Parser Bindle as usual.
-	if testing.Testing() {
-		newService.SetOutHandler(newService.MakeLiteralOutHandler(hub.Out))
-	}
 	hub.Sources, _ = newService.GetSources()
 	if newService.IsBroken() {
 		if name == "hub" {
@@ -1008,6 +1004,9 @@ func (hub *Hub) createService(name, scriptFilepath string) bool {
 			os.Exit(2)
 		}
 		return false
+	}
+	if testing.Testing() {
+		newService.SetOutHandler(newService.MakeLiteralOutHandler(hub.Out))
 	}
 	hub.services[name] = newService
 	return true
