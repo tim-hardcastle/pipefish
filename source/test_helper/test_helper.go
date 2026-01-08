@@ -46,11 +46,6 @@ func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compile
 			println("There were errors parsing the line: \n" + r + "\n")
 		}
 		if !(test.Want == got) {
-			// if len(test.Want) != len(got) {
-			// 	for i, ch := range test.Want {
-			// 		println(ch, string(ch), got[i], string(got[i]))
-			// 	}
-			// }
 			t.Fatalf("Test failed with input %s \nExp :\n%s\nGot :\n%s", test.Input, test.Want, got)
 		}
 	}
@@ -115,9 +110,6 @@ func TestCompilerErrors(cp *compiler.Compiler, s string) (string, error) {
 	if cp.P.Common.IsBroken {
 		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)		
 	}
-	if s == "" {
-		return "comp/", nil
-	}
 	v := cp.Do(s)
 	if !cp.ErrorsExist() {
 		return "", errors.New("unexpected successful evaluation returned " + text.Emph(cp.Vm.Literal(v)))
@@ -133,46 +125,31 @@ func TestInitializationErrors(cp *compiler.Compiler, s string) (string, error) {
 // These functions test the internal workings of the initializer.
 func TestSigChunking(iz *initializer.Initializer, s string) string {
 	iz.P.PrimeWithString("test", s)
-	sig, ok := iz.ChunkFunctionSignature()
-	if !ok {
-		return "Couldn't parse sig."
-	}
+	sig, _ := iz.ChunkFunctionSignature()
 	return sig.SigAsString()
 }
 
 func TestFunctionChunking(iz *initializer.Initializer, s string) string {
 	iz.P.PrimeWithString("test", s)
-	fn, ok := iz.ChunkFunction(false, false, "")
-	if !ok {
-		return "Couldn't parse function."
-	}
+	fn, _ := iz.ChunkFunction(false, false, "")
 	return initializer.SummaryString(fn)
 }
 
 func TestTypeChunking(iz *initializer.Initializer, s string) string {
 	iz.P.PrimeWithString("test", s)
-	ty, ok := iz.ChunkTypeDeclaration(false, "")
-	if !ok {
-		return "Couldn't parse type."
-	}
+	ty, _ := iz.ChunkTypeDeclaration(false, "")
 	return initializer.SummaryString(ty)
 }
 
 func TestConstOrVarChunking(iz *initializer.Initializer, s string) string {
 	iz.P.PrimeWithString("test", s)
-	ty, ok := iz.ChunkConstOrVarDeclaration(false, false, "")
-	if !ok {
-		return "Couldn't parse assignment."
-	}
+	ty, _ := iz.ChunkConstOrVarDeclaration(false, false, "")
 	return initializer.SummaryString(ty)
 }
 
 func TestExternalOrImportChunking(iz *initializer.Initializer, s string) string {
 	iz.P.PrimeWithString("test", s)
-	ty, ok := iz.ChunkImportOrExternalDeclaration(false, false, "")
-	if !ok {
-		return "Couldn't parse import/external declaration."
-	}
+	ty, _ := iz.ChunkImportOrExternalDeclaration(false, false, "")
 	return initializer.SummaryString(ty)
 }
 
@@ -201,10 +178,7 @@ func Teardown(nameOfTestFile string) {
 	absolutePathToGobucket, _ := filepath.Abs(currentDirectory + "/../../source/initializer/gobucket/")
 	locationOfGoTimes := absolutePathToGobucket + "/gotimes.dat"
 	absoluteLocationOfPipefishTestFile, _ := filepath.Abs(currentDirectory + "/../compiler/test-files/" + nameOfTestFile)
-	temp, err := os.ReadFile(locationOfGoTimes)
-	if err != nil {
-		panic("Couldn't read gotimes; error was " + err.Error())
-	}
+	temp, _ := os.ReadFile(locationOfGoTimes)
 	timeList := strings.Split(strings.TrimRight(string(temp), "\n"), "\n")
 	newTimes := ""
 	for i := 0; i + 1 < len(timeList); i = i + 2 {
@@ -245,7 +219,6 @@ func RunServiceTest(t *testing.T, hubName string, test []TestItem) {
 		}
 	}
 }
-
 
 // Helper functions for testing the parser             .
 

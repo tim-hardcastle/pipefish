@@ -87,6 +87,14 @@ func TestSigChunking(t *testing.T) {
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestSigChunking)
 }
+func TestTeardown(t *testing.T) {
+	// no t.Parallel()
+	test_helper.Teardown("gocode_test.pf")
+	tests := []test_helper.TestItem{
+		{`anyTest 42`, `42`},
+	}
+	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
+}
 func TestTypeChunking(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{"Number = abstract int/float", `Number = abstract int/float`},
