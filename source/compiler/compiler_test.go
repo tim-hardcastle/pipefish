@@ -649,9 +649,6 @@ func TestTypeExpressionCompilerErrors(t *testing.T) {
 		{`qux.foo 42`, `comp/namespace/private`},
 		{`(error "foo"), 42`, `comp/tuple/err/a`},
 		{`42, (error "foo")`, `comp/tuple/err/b`},
-		{``, `comp/`},
-		{``, `comp/`},
-		{``, `comp/`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }

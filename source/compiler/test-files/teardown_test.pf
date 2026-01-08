@@ -1,0 +1,6 @@
+cmd 
+
+commandTest : golang {
+    println("A big hello from Go!")
+    return struct{}{}
+}

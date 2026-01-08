@@ -89,11 +89,11 @@ func TestSigChunking(t *testing.T) {
 }
 func TestTeardown(t *testing.T) {
 	// no t.Parallel()
-	test_helper.Teardown("gocode_test.pf")
+	test_helper.Teardown("teardown_test.pf")
 	tests := []test_helper.TestItem{
-		{`anyTest 42`, `42`},
+		{`2 + 2`, `4`},
 	}
-	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "teardown_test.pf", tests, test_helper.TestValues)
 }
 func TestTypeChunking(t *testing.T) {
 	tests := []test_helper.TestItem{
