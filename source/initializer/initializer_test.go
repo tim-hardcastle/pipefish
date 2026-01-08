@@ -233,7 +233,6 @@ func TestSigChunking(t *testing.T) {
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestSigChunking)
 }
-
 func TestFunctionChunking(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{"qux : 2 + 2", `qux : 3 tokens.`},
@@ -245,7 +244,6 @@ func TestFunctionChunking(t *testing.T) {
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestFunctionChunking)
 }
-
 func TestTypeChunking(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{"Number = abstract int/float", `Number = abstract int/float`},
@@ -277,7 +275,6 @@ func TestTypeChunking(t *testing.T) {
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestTypeChunking)
 }
-
 func TestConstOrVarChunking(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{"a int = 2 + 2", `a int = 3 tokens.`},
@@ -287,7 +284,6 @@ func TestConstOrVarChunking(t *testing.T) {
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestConstOrVarChunking)
 }
-
 func TestExternalOrImportChunking(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{"foo::\"bar\"", `foo::"bar"`},

@@ -15,6 +15,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/text"
+	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
 	"github.com/tim-hardcastle/pipefish/source/vm"
 )
@@ -218,11 +219,6 @@ func Teardown(nameOfTestFile string) {
 	os.WriteFile(locationOfGoTimes, []byte(newTimes), 0644)
 }
 
-type TestPair struct {
-	Input  string
-	Expect string
-}
-
 type capturingWriter struct {capture string} 
 
 func (c *capturingWriter) get() string {
@@ -236,7 +232,7 @@ func (c *capturingWriter) Write(b []byte) (n int, err error) {
 	return len(b), nil
 }
 
-func RunServiceTest(t *testing.T, hubName string, test []TestPair) { 
+func RunServiceTest(t *testing.T, hubName string, test []TestItem) { 
 	wd, _ := os.Getwd() // The working directory is the directory containing the package being tested.
 	sourceDir, _ := filepath.Abs(filepath.Join(wd, "/../")) // We may be calling this either from in the `hub` direcotry or `pf`.
 	hubDir := filepath.Join(sourceDir, "hub/test-files", hubName)
@@ -244,8 +240,60 @@ func RunServiceTest(t *testing.T, hubName string, test []TestPair) {
 	for _, item := range test {
 		h.Do(item.Input, "", "", "", false)
 		result := strings.TrimSpace(h.Out.(*capturingWriter).get())
-		if result != item.Expect {
-			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : '" + item.Expect + "'\n    Got : '" + result + "'")
+		if result != item.Want {
+			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : '" + item.Want + "'\n    Got : '" + result + "'")
 		}
 	}
 }
+
+
+// Helper functions for testing the parser             .
+
+func TestParserOutput(cp *compiler.Compiler, s string) (string, error) {
+	astOfLine := cp.P.ParseLine("test", s)
+	if cp.P.ErrorsExist() {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
+	}
+	return astOfLine.String(), nil
+}
+
+func TestReparser(cp *compiler.Compiler, s string) (string, error) {
+	ast := cp.P.ParseLine("test", s)
+	if cp.P.ErrorsExist() {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
+	}
+	sig, _ := cp.P.ReparseSig(ast, &parser.TypeWithName{token.Token{}, "foo"})
+	if cp.P.ErrorsExist() {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
+	}
+	return sig.String(), nil
+}
+
+func TestPrettyPrinter(cp *compiler.Compiler, s string) (string, error) {
+	astOfLine := cp.P.ParseLine("test", s)
+	if cp.P.ErrorsExist() {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
+	}
+	return cp.P.PrettyPrint(astOfLine), nil
+}
+
+func TestTypeParserOutput(cp *compiler.Compiler, s string) (string, error) {
+	astOfLine := cp.P.ParseTypeFromString(s)
+	if cp.P.ErrorsExist() {
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
+	}
+	if astOfLine == nil {
+		return "nil", nil
+	}
+	return astOfLine.String(), nil
+}
+
+func TestParserErrors(cp *compiler.Compiler, s string) (string, error) {
+	cp.P.ParseLine("test", s)
+	if cp.P.ErrorsExist() {
+		return cp.P.Common.Errors[0].ErrorId, nil
+	} else {
+		return "", errors.New("unexpected successful parsing")
+	}
+}
+

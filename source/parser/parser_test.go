@@ -1,13 +1,9 @@
 package parser_test
 
 import (
-	"errors"
 	"testing"
 
-	"github.com/tim-hardcastle/pipefish/source/compiler"
-	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
-	"github.com/tim-hardcastle/pipefish/source/token"
 )
 func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -18,7 +14,7 @@ func TestAssignment(t *testing.T) {
 		{`x int? = 1`, `((x (int ?)) = 1)`},
 		{`x list{string} = []`, `((x list{string}) = [ ])`},
 	}
-	test_helper.RunTest(t, "", tests, testParserOutput)
+	test_helper.RunTest(t, "", tests, test_helper.TestParserOutput)
 }
 func TestBuiltins(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -68,14 +64,14 @@ func TestBuiltins(t *testing.T) {
 		{`true : 42 ; else : "moo!"`, `((true : 42) ; (else : "moo!"))`},
 		{`first (tuple 1, 2, 3)`, `(first (tuple 1, 2, 3))`},
 	}
-	test_helper.RunTest(t, "", tests, testParserOutput)
+	test_helper.RunTest(t, "", tests, test_helper.TestParserOutput)
 }
 func TestCorners(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`5 apples`, `(5 apples)`}, // We mmake sure clones of int and float work as suffixes.
 		{`5.2 km`, `(5.2 km)`},
 	}
-	test_helper.RunTest(t, "corners_parsing_test", tests, testParserOutput)
+	test_helper.RunTest(t, "corners_parsing_test", tests, test_helper.TestParserOutput)
 }
 func TestFancyFunctionSyntax(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -94,7 +90,7 @@ func TestFancyFunctionSyntax(t *testing.T) {
 		{`8 ding 9 dong 0 dang`, `(8 ding 9 dong 0 dang)`},
 		{`spong()`, `(spong ())`},
 	}
-	test_helper.RunTest(t, "fancy_function_test.pf", tests, testParserOutput)
+	test_helper.RunTest(t, "fancy_function_test.pf", tests, test_helper.TestParserOutput)
 } 
 func TestForLoops(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -102,7 +98,7 @@ func TestForLoops(t *testing.T) {
 		{`from a = 0 for k::v = range L : a + v`, `from (a = 0) for ((k :: v) = (range L)) : (a + v)`},
 		{`from a = 0 for i = 0; i < len L; i + 1 : a + v`, `from (a = 0) for (i = 0); (i < (len L)); (i + 1) : (a + v)`},
 	}
-	test_helper.RunTest(t, "function_syntax_test.pf", tests, testParserOutput)
+	test_helper.RunTest(t, "function_syntax_test.pf", tests, test_helper.TestParserOutput)
 }
 func TestFunctionSyntax(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -113,7 +109,7 @@ func TestFunctionSyntax(t *testing.T) {
 		{`flerp x blerp y`, `(flerp x blerp y)`},
 		{`qux`, `(qux)`},
 	}
-	test_helper.RunTest(t, "function_syntax_test.pf", tests, testParserOutput)
+	test_helper.RunTest(t, "function_syntax_test.pf", tests, test_helper.TestParserOutput)
 }
 
 // TODO --- this and `TestLogging` are a bit of a nothingburger, it only checks that the thing does 
@@ -123,7 +119,7 @@ func TestGocode(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`multiply(8, 9)`, `(multiply 8, 9)`},
 	}
-	test_helper.RunTest(t, "gocode_test.pf", tests, testParserOutput)
+	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestParserOutput)
 }
 func TestLambdas(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -146,13 +142,13 @@ func TestLambdas(t *testing.T) {
 		{`func(x list{_ type}) : x`, `func(x list{_ type}) : x`},
 		{`func(x rune, y int) -> rune, int : x, y`, `func(x rune, y int) -> ( rune,  int) : (x , y)`},
 	}
-	test_helper.RunTest(t, "lambda_parsing_test.pf", tests, testParserOutput)
+	test_helper.RunTest(t, "lambda_parsing_test.pf", tests, test_helper.TestParserOutput)
 }
 func TestLogging(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`qux(8)`, `(qux 8)`},
 	}
-	test_helper.RunTest(t, "logging_test.pf", tests, testParserOutput)
+	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestParserOutput)
 }
 func TestParserErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -168,12 +164,11 @@ func TestParserErrors(t *testing.T) {
 		{`from 1`, `parse/from`},
 		{`(1))`, `parse/expected`},
 	}
-	test_helper.RunTest(t, "", tests, testParserErrors)
+	test_helper.RunTest(t, "", tests, test_helper.TestParserErrors)
 }
-
 func TestPrettyPrint(t *testing.T) {
 	tests := []test_helper.TestItem{
-		//{`func(x int) : x`, "func(x int) :\n    x"},
+		{`func(x int) : x`, "func(x int) :\n    x"},
 		{`func(x) : x`, "func(x any?) :\n    x"},
 		{`2 + 2 == 4`, `2 + 2 == 4`},
 		{`2 + 2 * 3`, `2 + 2 * 3`},
@@ -217,7 +212,7 @@ func TestPrettyPrint(t *testing.T) {
 		{`from a = 0 for i = 0; i < n; i + 1 : a + i`, "from a = 0 for i = 0; i < n; i + 1 :\n    a + i"},
 		{`try e : post x div i ; else : post "Oopsie!"`, "try e :\n    post x div i\nelse :\n    post \"Oopsie!\""},
 	}
-	test_helper.RunTest(t, "prettyprint_test.pf", tests, testPrettyPrinter)
+	test_helper.RunTest(t, "prettyprint_test.pf", tests, test_helper.TestPrettyPrinter)
 }
 func TestReparser(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -229,20 +224,20 @@ func TestReparser(t *testing.T) {
 		{`x, y rune`, `(x rune, y rune)`},
 		{`x int?`, `(x int?)`},
 	}
-	test_helper.RunTest(t, "", tests, testReparser)
+	test_helper.RunTest(t, "", tests, test_helper.TestReparser)
 }
 func TestSnippets(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`-- foo |bar| qux`, `(-- foo |bar| qux)`},
 		{`true -- foo |bar| qux`, `(true , (-- foo |bar| qux))`},
 	}
-	test_helper.RunTest(t, "", tests, testParserOutput)
+	test_helper.RunTest(t, "", tests, test_helper.TestParserOutput)
 }
 func TestSplat(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`[1, 2, 3] ...`, `([((1 , 2) , 3) ] ...)`},
 	}
-	test_helper.RunTest(t, "", tests, testParserOutput)
+	test_helper.RunTest(t, "", tests, test_helper.TestParserOutput)
 }
 
 func TestTry(t *testing.T) {
@@ -250,7 +245,7 @@ func TestTry(t *testing.T) {
 		{"try :\n\tpost(12 div i)\nelse :\n\tpost \"Oops\"", `(try : ((post (12 div i))) ; (else : (post "Oops")))`},
 		{"try e :\n\tpost(12 div i)\nelse :\n\tpost \"Oops\"", `(try e : ((post (12 div i))) ; (else : (post "Oops")))`},
 	}
-	test_helper.RunTest(t, "", tests, testParserOutput)
+	test_helper.RunTest(t, "", tests, test_helper.TestParserOutput)
 }
 func TestTypeExpressions(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -258,7 +253,7 @@ func TestTypeExpressions(t *testing.T) {
 		{`list{string}(x)`, `(list{string} x)`},
 		{`list{1, 'q'}(x)`, `(list{1, 'q'} x)`},
 	}
-	test_helper.RunTest(t, "", tests, testParserOutput)
+	test_helper.RunTest(t, "", tests, test_helper.TestParserOutput)
 }
 func TestTypeParser(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -280,55 +275,5 @@ func TestTypeParser(t *testing.T) {
 		{`clones{int}/string`, `clones{int}/string`},
 		{`clones{int}/clones{string}`, `clones{int}/clones{string}`},
 	}
-	test_helper.RunTest(t, "", tests, testTypeParserOutput)
-}
-
-// Helper functions.
-
-func testParserOutput(cp *compiler.Compiler, s string) (string, error) {
-	astOfLine := cp.P.ParseLine("test", s)
-	if cp.P.ErrorsExist() {
-		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
-	}
-	return astOfLine.String(), nil
-}
-
-func testReparser(cp *compiler.Compiler, s string) (string, error) {
-	ast := cp.P.ParseLine("test", s)
-	if cp.P.ErrorsExist() {
-		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
-	}
-	sig, _ := cp.P.ReparseSig(ast, &parser.TypeWithName{token.Token{}, "foo"})
-	if cp.P.ErrorsExist() {
-		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
-	}
-	return sig.String(), nil
-}
-
-func testPrettyPrinter(cp *compiler.Compiler, s string) (string, error) {
-	astOfLine := cp.P.ParseLine("test", s)
-	if cp.P.ErrorsExist() {
-		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
-	}
-	return cp.P.PrettyPrint(astOfLine), nil
-}
-
-func testTypeParserOutput(cp *compiler.Compiler, s string) (string, error) {
-	astOfLine := cp.P.ParseTypeFromString(s)
-	if cp.P.ErrorsExist() {
-		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
-	}
-	if astOfLine == nil {
-		return "nil", nil
-	}
-	return astOfLine.String(), nil
-}
-
-func testParserErrors(cp *compiler.Compiler, s string) (string, error) {
-	cp.P.ParseLine("test", s)
-	if cp.P.ErrorsExist() {
-		return cp.P.Common.Errors[0].ErrorId, nil
-	} else {
-		return "", errors.New("unexpected successful parsing")
-	}
+	test_helper.RunTest(t, "", tests, test_helper.TestTypeParserOutput)
 }
