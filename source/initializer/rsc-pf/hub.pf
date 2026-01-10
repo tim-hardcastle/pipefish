@@ -27,6 +27,18 @@ create(grp string) :
 edit(filename string) :
     HubResponse("edit", [filename])
 
+env (p pair) :
+    HubResponse("env", [p])
+
+env delete(x any) :
+    HubResponse("env-delete", [x])
+
+env key :
+    HubResponse("env-key", [])
+
+env wipe :
+    HubResponse("env-wipe", [])
+
 errors :
     HubResponse("errors", [])
 
@@ -132,12 +144,6 @@ snap good :
 snap record :
     HubResponse("snap-record", [])  
 
-store(p pair) :
-    HubResponse("store", [p])
-
-storekey :
-    HubResponse("storekey", [])
-
 switch(srv string) :
     HubResponse("switch", [srv])
 
@@ -180,6 +186,5 @@ where(errorNo int) :
 why(errorNo int) :
     HubResponse("why", [errorNo])
 
-wipe store :
-    HubResponse("wipe-store", [])
+
 

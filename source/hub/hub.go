@@ -389,7 +389,12 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 			hub.WriteError(err.Error())
 		}
 		return false
-		case "env-key":
+	case "env":
+		hub.store = *hub.store.Set(args[0].V.([]values.Value)[0], args[0].V.([]values.Value)[1])
+		hub.SaveHubStore()
+		hub.WriteString(GREEN_OK + "\n")
+		return false
+	case "env-key":
 		if hub.storekey != "" {
 			rline := readline.NewInstance()
 			rline.SetPrompt("Enter the current environment key for the hub: ")
@@ -406,14 +411,10 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 		storekey, _ := rline.Readline()
 		hub.storekey = storekey
 		hub.SaveHubStore()
-		return false
-	case "env-set":
-		hub.store = *hub.store.Set(args[0].V.([]values.Value)[0], args[0].V.([]values.Value)[1])
-		hub.SaveHubStore()
 		hub.WriteString(GREEN_OK + "\n")
 		return false
-	case "env-unset":
-		hub.store = *hub.store.Delete(args[0].V.([]values.Value)[0])
+	case "env-delete":
+		hub.store = *hub.store.Delete(args[0])
 		hub.SaveHubStore()
 		hub.WriteString(GREEN_OK + "\n")
 		return false
@@ -421,6 +422,7 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 		hub.storekey = ""
 		hub.store = values.Map{}
 		hub.SaveHubStore()
+		hub.WriteString(GREEN_OK + "\n")
 		return false
 	case "errors":
 		r, _ := hub.services[hub.currentServiceName()].GetErrorReport()
