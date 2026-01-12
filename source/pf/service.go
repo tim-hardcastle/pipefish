@@ -288,14 +288,14 @@ func (sv *Service) SetVariable(vname string, ty values.ValueType, v any) error {
 	return nil
 }
 
-func (sv *Service) Store(k, v Value) error {
+func (sv *Service) SetEnv(env *values.Map) error {
 	if sv.cp == nil {
 		return errors.New("service is uninitialized")
 	}
 	if sv.IsBroken() {
 		return errors.New("service is broken")
 	}
-	sv.cp.Store(k, v)
+	sv.cp.SetEnv(env)
 	return nil
 }
 
@@ -525,7 +525,6 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 			return nil, myError
 		}
 	}
-	var goDatum any
 	if structInfo, ok := pfTypeInfo.(vm.StructType); ok {
 		if goType.Kind() != reflect.Struct || structInfo.Len() != goType.NumField() {
 			return nil, myError
@@ -540,6 +539,9 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 		}
 		return goStruct.Interface(), nil
 	}
+	if _, ok := pfTypeInfo.(vm.WrapperType); ok && goType == reflect.TypeOf(pfValue.V) {
+		 return pfValue.V, nil
+	}
 	pfBaseType := UNDEFINED_TYPE
 	if _, ok := pfTypeInfo.(vm.BuiltinType); ok {
 		pfBaseType = pfValue.T
@@ -550,6 +552,7 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 	if _, ok := pfTypeInfo.(vm.EnumType); ok {
 		pfBaseType = INT
 	}
+	var goDatum any
 	switch pfBaseType {
 	case UNDEFINED_TYPE: // Then we didn't find anything we could do with it.
 		return nil, myError
@@ -587,7 +590,7 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 		if goType.Kind() != reflect.String {
 			return nil, myError
 		}
-		goDatum = pfValue.V.(bool)
+		goDatum = pfValue.V.(string)
 	case RUNE:
 		if goType.Kind() != reflect.Int32 {
 			return nil, myError

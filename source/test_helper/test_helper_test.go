@@ -79,7 +79,7 @@ func TestServices(t *testing.T) {
 	test := []test_helper.TestItem{
 		{"2 + 2", "4"},
 	}
-	test_helper.RunServiceTest(t, "default", test)
+	test_helper.RunHubTest(t, "default", test)
 }
 func TestSigChunking(t *testing.T) {
 	tests := []test_helper.TestItem{

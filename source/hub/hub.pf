@@ -12,6 +12,11 @@ var
 
 HUB Hub? = NULL
 
+cmd
+
+testing(args ... any) :
+    do "testing", [args]
+
 cmd private
 
 do(verb string, args list) :
@@ -26,7 +31,7 @@ def private
 
 makeString(verb string, args list) :
     from a = verb for _::el = range args :
-        a + ", " + el
+        a + ", " + string(el)
 
 def
 

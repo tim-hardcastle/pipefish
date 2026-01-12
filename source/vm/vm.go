@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	
+
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -1713,9 +1713,9 @@ loop:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].T != values.ERROR}
 			case WthL:
 				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(vector.Vector)}
-				for it := vm.NewValueIterator(args[3:]);; {
+				for it := vm.NewValueIterator(args[3:]); ; {
 					pair, ok := it.get()
-			        if !ok {
+					if !ok {
 						break
 					}
 					key := pair.V.([]values.Value)[0]
@@ -1744,9 +1744,9 @@ loop:
 				vm.Mem[args[0]] = result
 			case WthM:
 				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(*values.Map)}
-				for it := vm.NewValueIterator(args[3:]);; {
+				for it := vm.NewValueIterator(args[3:]); ; {
 					pair, ok := it.get()
-			        if !ok {
+					if !ok {
 						break
 					}
 					key := pair.V.([]values.Value)[0]
@@ -1786,9 +1786,9 @@ loop:
 				}
 				typeInfo := vm.ConcreteTypeInfo[typ].(StructType)
 				outVals := make([]values.Value, len(vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers))
-				for it := vm.NewValueIterator(args[3:]);; {
+				for it := vm.NewValueIterator(args[3:]); ; {
 					pair, ok := it.get()
-			        if !ok {
+					if !ok {
 						break
 					}
 					key := pair.V.([]values.Value)[0]
@@ -1813,7 +1813,7 @@ loop:
 						if vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i].Contains(values.NULL) {
 							outVals[i] = values.Value{values.NULL, nil}
 							break Switch
-						} else {   // Otherwise, omitting a field is an error.
+						} else { // Otherwise, omitting a field is an error.
 							labName := vm.Labels[vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers[i]]
 							vm.Mem[args[0]] = vm.makeError("vm/with/type/g", args[2], labName)
 							break Switch
@@ -1831,9 +1831,9 @@ loop:
 				outVals := make([]values.Value, len(vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers))
 				copy(outVals, vm.Mem[args[1]].V.([]values.Value))
 				result := values.Value{typ, outVals}
-				for it := vm.NewValueIterator(args[3:]);; {
+				for it := vm.NewValueIterator(args[3:]); ; {
 					pair, ok := it.get()
-			        if !ok {
+					if !ok {
 						break
 					}
 					key := pair.V.([]values.Value)[0]
@@ -1862,9 +1862,9 @@ loop:
 				vm.Mem[args[0]] = result
 			case WtoM:
 				mp := vm.Mem[args[1]].V.(*values.Map)
-				for it := vm.NewValueIterator(args[3:]);; {
+				for it := vm.NewValueIterator(args[3:]); ; {
 					key, ok := it.get()
-			        if !ok {
+					if !ok {
 						break
 					}
 					if key.T < values.NULL || key.T == values.FUNC { // Check that the key is orderable.
@@ -1965,7 +1965,7 @@ func (vm Vm) equals(v, w values.Value) bool {
 		}
 	case EnumType:
 		return v.V.(int) == w.V.(int)
-	case GoType:
+	case WrapperType:
 		if vm.GoEquals == nil {
 			return false
 		}
@@ -2036,7 +2036,7 @@ func (vm *Vm) with(container values.Value, keys []values.Value, val values.Value
 	key := keys[0]
 	parentType := container.T
 	info := vm.ConcreteTypeInfo[container.T]
-	if cloneInfo, ok :=info.(CloneType); ok {
+	if cloneInfo, ok := info.(CloneType); ok {
 		parentType = cloneInfo.Parent
 	}
 	switch parentType {
@@ -2173,11 +2173,11 @@ const (
 	UNFIX
 )
 
-// This takes the vm and a list of memory locations as arguments, and returns an iterator which 
+// This takes the vm and a list of memory locations as arguments, and returns an iterator which
 // which will return one value at a time, automatically decomposing any tuples.
 //
 // We do this because as things like `WthL` don't pass through `CalT`, they don't autosplat tuples,
-//and this is a way of doing it for us.
+// and this is a way of doing it for us.
 //
 // We don't just use something from `iter` because we want some extra logic.
 //
@@ -2185,10 +2185,10 @@ const (
 // and compile to simpler logic if it isn't. This would involves making more opcodes, or a flag,
 // or something.
 type ValueIterator struct {
-	vm   *Vm
-	locs []uint32 
-	locNo int 
-	pos int
+	vm    *Vm
+	locs  []uint32
+	locNo int
+	pos   int
 }
 
 func (vit *ValueIterator) get() (values.Value, bool) {
@@ -2215,6 +2215,3 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
-
-
-

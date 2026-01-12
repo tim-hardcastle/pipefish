@@ -1,9 +1,13 @@
 package pf_test
 
 import (
+	"os"
+	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/hub"
+	"github.com/tim-hardcastle/pipefish/source/pf"
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
@@ -25,7 +29,7 @@ func TestServices(t *testing.T) {
 		{`hub halt "bar"`, `[32mOK[0m`},
 		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
-	test_helper.RunServiceTest(t, "default", test)
+	test_helper.RunHubTest(t, "default", test)
 }
 func TestEnv(t *testing.T) {
 	test := []test_helper.TestItem{
@@ -34,5 +38,31 @@ func TestEnv(t *testing.T) {
 		{`hub env wipe`, `[32mOK[0m`},
 		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
-	test_helper.RunServiceTest(t, "default", test)
+	test_helper.RunHubTest(t, "default", test)
+}
+func TestToGo(t *testing.T) {
+	wd, _ := os.Getwd()                                  
+	pfFile, _ := filepath.Abs(filepath.Join(wd, "/../hub/test-files/togo.pf"))
+	srv := pf.NewService()
+	srv.InitializeFromFilepath(pfFile)
+	pfVal, _ := srv.Do(`42`)
+	goVal, _ := srv.ToGo(pfVal, reflect.TypeFor[int]())
+	if goVal.(int) != 42 {
+		t.Fatal("Can't convert 42.")
+	}
+	pfVal, _ = srv.Do(`42.0`)
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[float64]())
+	if goVal.(float64) != 42.0 {
+		t.Fatal("Can't convert 42.0.")
+	}
+	pfVal, _ = srv.Do(`"foo"`)
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[string]())
+	if goVal.(string) != "foo" {
+		t.Fatal("Can't convert `foo`.")
+	}
+	pfVal, _ = srv.Do(`true`)
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[bool]())
+	if goVal.(bool) != true {
+		t.Fatal("Can't convert true.")
+	}
 }

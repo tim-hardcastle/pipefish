@@ -286,7 +286,7 @@ func (hub *Hub) ParseHubCommand(line string) (string, []values.Value) {
 		return verb, args
 	}
 	if hubReturn.T == pf.OK {
-		if hub.getSV("display").V.(int) == 0 {
+		if hub.getSV("$_outputAs").V.(int) == 0 {
 			hub.WriteString("OK" + "\n")
 		} else {
 			hub.WriteString(GREEN_OK + "\n")
@@ -391,7 +391,7 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 		return false
 	case "env":
 		hub.store = *hub.store.Set(args[0].V.([]values.Value)[0], args[0].V.([]values.Value)[1])
-		hub.SaveHubStore()
+		hub.SaveAndPropagateHubStore()
 		hub.WriteString(GREEN_OK + "\n")
 		return false
 	case "env-key":
@@ -410,18 +410,18 @@ func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Valu
 		rline.PasswordMask = '▪'
 		storekey, _ := rline.Readline()
 		hub.storekey = storekey
-		hub.SaveHubStore()
+		hub.SaveAndPropagateHubStore()
 		hub.WriteString(GREEN_OK + "\n")
 		return false
 	case "env-delete":
 		hub.store = *hub.store.Delete(args[0])
-		hub.SaveHubStore()
+		hub.SaveAndPropagateHubStore()
 		hub.WriteString(GREEN_OK + "\n")
 		return false
 	case "env-wipe":
 		hub.storekey = ""
 		hub.store = values.Map{}
-		hub.SaveHubStore()
+		hub.SaveAndPropagateHubStore()
 		hub.WriteString(GREEN_OK + "\n")
 		return false
 	case "errors":
@@ -1146,9 +1146,9 @@ func (hub *Hub) saveHubFile() string {
 
 }
 
-func (hub *Hub) OpenHubFile(hubFilepath string) {
-	hub.createService("", "")
-	hub.createService("hub", hubFilepath)
+func (h *Hub) OpenHubFile(hubFilepath string) {
+	h.createService("", "")
+	h.createService("hub", hubFilepath)
 	storePath := hubFilepath[0:len(hubFilepath)-len(filepath.Ext(hubFilepath))] + ".str"
 	_, err := os.Stat(storePath)
 	if err == nil {
@@ -1185,46 +1185,62 @@ func (hub *Hub) OpenHubFile(hubFilepath string) {
 			mode.CryptBlocks(decrypt, []byte(ciphertext))
 			if string(decrypt[0:9]) == "PLAINTEXT" {
 				s = string(decrypt)
-				hub.storekey = storekey
+				h.storekey = storekey
 				break
 			}
 		}
 		bits := strings.Split(strings.TrimSpace(s), "\n")[1:]
 		for _, bit := range bits {
-			pair, _ := hub.services["hub"].Do(bit)
-			hub.store = *hub.store.Set(pair.V.([]pf.Value)[0], pair.V.([]pf.Value)[1])
+			pair, _ := h.services["hub"].Do(bit)
+			h.store = *h.store.Set(pair.V.([]pf.Value)[0], pair.V.([]pf.Value)[1])
 		}
 	}
-	hubService := hub.services["hub"]
-	hub.hubFilepath = hub.MakeFilepath(hubFilepath)
+	hubService := h.services["hub"]
+	ty, _ := hubService.TypeNameToType("Hub")
+	hubService.SetVariable("HUB", ty, h.makeWriter())
+	h.hubFilepath = h.MakeFilepath(hubFilepath)
 	v, _ := hubService.GetVariable("allServices")
 	services := v.V.(pf.Map).AsSlice()
 
 	var driver, name, host, username, password string
 	var port int
 
-	if hub.hasDatabase() {
-		driver, name, host, port, username, password = hub.getDB()
-		hub.Db, _ = database.GetdB(driver, host, name, port, username, password)
+	if h.hasDatabase() {
+		driver, name, host, port, username, password = h.getDB()
+		h.Db, _ = database.GetdB(driver, host, name, port, username, password)
 	}
 
 	errors := false
 	for _, pair := range services {
 		serviceName := pair.Key.V.(string)
 		serviceFilepath := pair.Val.V.(string)
-		hub.createService(serviceName, serviceFilepath)
-		errorsExist, _ := hub.services[serviceName].ErrorsExist()
+		h.createService(serviceName, serviceFilepath)
+		errorsExist, _ := h.services[serviceName].ErrorsExist()
 		if errorsExist {
 			errors = true
 		}
 	}
 	if errors {
-		hub.WriteString("\n\n")
+		h.WriteString("\n\n")
 	}
-	hub.list()
+	h.list()
 }
 
-func (hub *Hub) SaveHubStore() {
+type hubWriter struct{}
+
+func (hw hubWriter) Write(b []byte) (int, error) {
+	println(string(b))
+	return len(b), nil
+}
+
+func (hub *Hub) makeWriter() io.Writer {
+	return hubWriter{}
+}  
+
+func (hub *Hub) SaveAndPropagateHubStore() {
+	for _, srv := range hub.services {
+		srv.SetEnv(&hub.store)
+	}
 	storePath := hub.hubFilepath[0:len(hub.hubFilepath)-len(filepath.Ext(hub.hubFilepath))] + ".str"
 	storeDump := hub.services["hub"].WriteSecret(hub.store, hub.storekey)
 	file, _ := os.Create(storePath)

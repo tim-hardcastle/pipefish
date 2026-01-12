@@ -71,7 +71,7 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 			fmt.Fprint(sb, "(v.(", cloneConv[typeInfo.Parent], "))},\n")
 		case vm.EnumType:
 			fmt.Fprint(sb, "(v.(int))},\n")
-		case vm.GoType:
+		case vm.WrapperType:
 			fmt.Fprint(sb, "v},\n")
 		case vm.StructType:
 			fmt.Fprint(sb, "{")
@@ -91,7 +91,7 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 
 	for name := range userDefinedTypes {
 		typeInfo := iz.cp.TypeInfoNow(name)
-		if typeInfo, ok := typeInfo.(vm.GoType); ok {
+		if typeInfo, ok := typeInfo.(vm.WrapperType); ok {
 			fmt.Fprint(sb, "    \"", name, "\": (*", typeInfo.Gotype, ")(nil),\n")
 		} else {
 			fmt.Fprint(sb, "    \"", name, "\": (*", name, ")(nil),\n")

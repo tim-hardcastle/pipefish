@@ -22,7 +22,7 @@ func TestServices(t *testing.T) {
 		{`hub halt "bar"`, `[32mOK[0m`},
 		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
-	test_helper.RunServiceTest(t, "default", test)
+	test_helper.RunHubTest(t, "default", test)
 }
 func TestEnv(t *testing.T) {
 	test := []test_helper.TestItem{
@@ -31,5 +31,5 @@ func TestEnv(t *testing.T) {
 		{`hub env wipe`, `[32mOK[0m`},
 		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
-	test_helper.RunServiceTest(t, "default", test)
+	test_helper.RunHubTest(t, "default", test)
 }

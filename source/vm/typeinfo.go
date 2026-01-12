@@ -28,53 +28,53 @@ type TypeInformation interface {
 	IsClonedBy() values.AbstractType
 }
 
-type GoType struct {
-	Name string 
-	Path string 
+type WrapperType struct {
+	Name    string
+	Path    string
 	Private bool
-	Gotype string
+	Gotype  string
 }
 
-func (t GoType) GetName(flavor descriptionFlavor) string {
+func (t WrapperType) GetName(flavor descriptionFlavor) string {
 	if flavor == LITERAL {
 		return t.Path + t.Name
 	}
 	return string(t.Name)
 }
 
-func (t GoType) IsEnum() bool {
+func (t WrapperType) IsEnum() bool {
 	return false
 }
 
-func (t GoType) IsStruct() bool {
+func (t WrapperType) IsStruct() bool {
 	return false
 }
 
-func (t GoType) isSnippet() bool {
+func (t WrapperType) isSnippet() bool {
 	return false
 }
 
-func (t GoType) IsPrivate() bool {
+func (t WrapperType) IsPrivate() bool {
 	return t.Private
 }
 
-func (t GoType) IsClone() bool {
+func (t WrapperType) IsClone() bool {
 	return false
 }
 
-func (t GoType) IsGoType() bool {
+func (t WrapperType) IsGoType() bool {
 	return true
 }
 
-func (t GoType) getPath() string {
+func (t WrapperType) getPath() string {
 	return t.Path
 }
 
-func (t GoType) IsMandatoryImport() bool {
+func (t WrapperType) IsMandatoryImport() bool {
 	return false
 }
 
-func (GoType) IsClonedBy() values.AbstractType {
+func (WrapperType) IsClonedBy() values.AbstractType {
 	return values.MakeAbstractType()
 }
 

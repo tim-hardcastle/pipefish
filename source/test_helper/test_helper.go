@@ -73,7 +73,7 @@ func RunInitializerTest(t *testing.T, tests []TestItem, F func(iz *initializer.I
 
 func TestValues(cp *compiler.Compiler, s string) (string, error) {
 	if cp.P.Common.IsBroken {
-		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)		
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
 	}
 	v := cp.Do(s)
 	if cp.ErrorsExist() {
@@ -92,7 +92,7 @@ func TestHighlighter(cp *compiler.Compiler, s string) (string, error) {
 
 func TestOutput(cp *compiler.Compiler, s string) (string, error) {
 	if cp.P.Common.IsBroken {
-		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)		
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
 	}
 	cp.Vm.OutHandle = vm.MakeCapturingOutHandler(cp.Vm)
 	ok := cp.Do(s)
@@ -108,7 +108,7 @@ func TestOutput(cp *compiler.Compiler, s string) (string, error) {
 // Tests for the error in a line of code, given successful compilation of the `_test.pf` file.`
 func TestCompilerErrors(cp *compiler.Compiler, s string) (string, error) {
 	if cp.P.Common.IsBroken {
-		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)		
+		return cp.P.Common.Errors[0].ErrorId, errors.New(cp.P.Common.Errors[0].Message)
 	}
 	v := cp.Do(s)
 	if !cp.ErrorsExist() {
@@ -181,7 +181,7 @@ func Teardown(nameOfTestFile string) {
 	temp, _ := os.ReadFile(locationOfGoTimes)
 	timeList := strings.Split(strings.TrimRight(string(temp), "\n"), "\n")
 	newTimes := ""
-	for i := 0; i + 1 < len(timeList); i = i + 2 {
+	for i := 0; i+1 < len(timeList); i = i + 2 {
 		if timeList[i] != absoluteLocationOfPipefishTestFile {
 			newTimes = newTimes + timeList[i] + "\n" + timeList[i+1] + "\n"
 		}
@@ -193,10 +193,10 @@ func Teardown(nameOfTestFile string) {
 	os.WriteFile(locationOfGoTimes, []byte(newTimes), 0644)
 }
 
-type capturingWriter struct {capture string} 
+type capturingWriter struct{ capture string }
 
 func (c *capturingWriter) get() string {
-	s := c.capture 
+	s := c.capture
 	c.capture = ""
 	return s
 }
@@ -206,9 +206,9 @@ func (c *capturingWriter) Write(b []byte) (n int, err error) {
 	return len(b), nil
 }
 
-func RunServiceTest(t *testing.T, hubName string, test []TestItem) { 
-	wd, _ := os.Getwd() // The working directory is the directory containing the package being tested.
-	sourceDir, _ := filepath.Abs(filepath.Join(wd, "/../")) // We may be calling this either from in the `hub` direcotry or `pf`.
+func RunHubTest(t *testing.T, hubName string, test []TestItem) {
+	wd, _ := os.Getwd()                                     // The working directory is the directory containing the package being tested.
+	sourceDir, _ := filepath.Abs(filepath.Join(wd, "/../")) // We may be calling this either from the `hub` directory or `pf`.
 	hubDir := filepath.Join(sourceDir, "hub/test-files", hubName)
 	h := hub.New(hubDir, &capturingWriter{})
 	for _, item := range test {
@@ -269,4 +269,3 @@ func TestParserErrors(cp *compiler.Compiler, s string) (string, error) {
 		return "", errors.New("unexpected successful parsing")
 	}
 }
-

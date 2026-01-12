@@ -2886,11 +2886,10 @@ func altType(t ...values.ValueType) AlternateType {
 	return AltType(t...)
 }
 
-func (cp *Compiler) Store(k, v values.Value) {
+func (cp *Compiler) SetEnv(env *values.Map) {
 	for _, child := range cp.Modules {
-		child.Store(k, v)
+		child.SetEnv(env)
 	}
 	hubStore, _ := cp.GlobalVars.GetVar("$_env")
-	storeMap := cp.Vm.Mem[hubStore.MLoc].V.(*values.Map)
-	cp.Vm.Mem[hubStore.MLoc].V = storeMap.Set(k, v)
+	cp.Vm.Mem[hubStore.MLoc].V = env
 }

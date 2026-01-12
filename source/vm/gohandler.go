@@ -142,7 +142,7 @@ func (vm *Vm) pipefishToGo(v values.Value) (any, bool) {
 			return constructor(uint32(v.T), v.V), true
 		case EnumType:
 			return constructor(uint32(v.T), v.V.(int)), true
-		case GoType:
+		case WrapperType:
 			return constructor(uint32(v.T), v.V), true
 		case StructType:
 			pVals := v.V.([]values.Value)
@@ -239,7 +239,7 @@ func (vm *Vm) goToPipefish(goValue reflect.Value) values.Value {
 			}
 		case EnumType:
 			return values.Value{pipefishType, int(reflect.ValueOf(someGoDatum).Int())}
-		case GoType: 
+		case WrapperType:
 			return values.Value{pipefishType, someGoDatum}
 		case StructType:
 			// At this point someValue must contain a struct of type Foo where uint32
@@ -311,7 +311,7 @@ func (vm *Vm) goToPipefish(goValue reflect.Value) values.Value {
 		}
 	}
 	if goValue.Type().Implements(reflect.TypeOf((*error)(nil)).Elem()) {
-		return values.Value{values.ERROR, 
+		return values.Value{values.ERROR,
 			&err.Error{
 				ErrorId: "golang/error",
 				Message: "golang returned error `" + goValue.MethodByName("Error").Call(nil)[0].Interface().(string) + "`",

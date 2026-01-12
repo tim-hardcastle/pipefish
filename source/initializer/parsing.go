@@ -54,7 +54,7 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 	}
 	if len(scriptFilepath) >= 4 && scriptFilepath[len(scriptFilepath)-4:] == ".hub" {
 		iz.cmI("Adding hub.pf and themes.pf to hub namespace.")
-		iz.addToNameSpaceByFilename([]string{"rsc-pf/hub.pf", filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf")})
+		iz.addToNameSpaceByFilename([]string{filepath.Join(settings.PipefishHomeDirectory, "source/hub/hub.pf"), filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf")})
 	}
 	iz.cmI("Making new relexer with filepath '" + scriptFilepath + "'")
 	iz.P.TokenizedCode = lexer.NewRelexer(scriptFilepath, sourcecode)
@@ -673,7 +673,7 @@ func (iz *Initializer) createGotypes() {
 		info, typeExists := iz.getDeclaration(decGOTYPE, &dec.op, DUMMY)
 		if typeExists {
 			typeNo = info.(values.ValueType)
-			typeInfo := iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.GoType)
+			typeInfo := iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.WrapperType)
 			typeInfo.Path = iz.P.NamespacePath
 			iz.cp.Vm.ConcreteTypeInfo[typeNo] = typeInfo
 		} else {
@@ -681,7 +681,7 @@ func (iz *Initializer) createGotypes() {
 			iz.setDeclaration(decGOTYPE, &dec.op, DUMMY, typeNo)
 		}
 		iz.addType(dec.op.Literal, "wrapper", typeNo)
-		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.GoType{Name: dec.op.Literal, Path: iz.P.NamespacePath, Private: dec.private, Gotype: token.Stringify(dec.goType)})
+		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.WrapperType{Name: dec.op.Literal, Path: iz.P.NamespacePath, Private: dec.private, Gotype: token.Stringify(dec.goType)})
 	}
 }
 
