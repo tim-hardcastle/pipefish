@@ -729,7 +729,6 @@ func (p *Parser) parseLambdaExpression() Node {
 	expression.NameSig, _ = p.ReparseSig(sig, ANY_NULLABLE_TYPE_AST)
 	expression.NameRets = p.RecursivelySlurpReturnTypes(returns)
 	bodyRoot := root.(*LazyInfixExpression).Right
-	println("body is", bodyRoot.String())
 	expression.Body = bodyRoot
 	expression.Given = given
 	return expression

@@ -273,14 +273,14 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 		iz.throw("golang/build", sourceToken, err.Error()+": "+string(output))
 		return nil
 	}
-	// We do this here and not earlier because a .go file that doesn't compile should be visible
-	// for debugging.
-	defer os.Remove(goFile)
 	plugins, err := plugin.Open(soFile)
 	if err != nil {
 		iz.throw("golang/open/a", sourceToken, err.Error())
 		return nil
 	}
+	// We do this here and not earlier with defer because a .go file that doesn't compile should 
+	// be visible for debugging.
+	os.Remove(goFile)
 	timeMap[source] = newTime
 	iz.recordGoTimes(timeMap)
 	return plugins

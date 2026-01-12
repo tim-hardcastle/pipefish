@@ -94,6 +94,7 @@ func TestTeardown(t *testing.T) {
 		{`2 + 2`, `4`},
 	}
 	test_helper.RunTest(t, "teardown_test.pf", tests, test_helper.TestValues)
+	test_helper.Teardown("teardown_test.pf")
 }
 func TestTypeChunking(t *testing.T) {
 	tests := []test_helper.TestItem{

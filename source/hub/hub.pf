@@ -14,12 +14,195 @@ HUB Hub? = NULL
 
 cmd
 
-testing(args ... any) :
-    do "testing", [args]
+// Verb are in alphabetical order:
+// add, config, create, do, edit, env, errors, halt, help, let, listen, live, log, my, peek, quit, register, replay, run, services, snap,
+// test, trace, track, where, why, values
 
-cmd private
+add(usr string) to (grp string) :
+    do("add", [usr, grp])
 
-do(verb string, args list) :
+api :
+    do("api", [])
+
+config admin :
+    do("config-admin", [])
+
+config db :
+    do("config-db", [])
+
+create(grp string) :
+    do("create", [grp])
+
+edit(filename string) :
+    do("edit", [filename])
+
+env (p pair) :
+    global $_env 
+    $_env = $_env with p
+    do("env", [])
+
+env delete(x any) :
+    global $_env 
+    $_env = $_env without x
+    do("env", [])
+
+env key :
+    do("env-key", [])
+
+env wipe :
+    do("env-wipe", [])
+
+errors :
+    do("errors", [])
+
+groups :
+    do("groups", [])
+
+groups of service(srv string) :
+    do("groups-of-service", [srv])
+
+groups of user(usr string) :
+    do("groups-of-user", [usr])
+
+halt(srv string) :
+    do("halt", [srv])
+
+help :
+    do("help", ["topics"])
+
+help(topic string) :
+    do("help", [topic])
+
+http :
+    do("http", ["50005"])
+
+http(port int) :
+    do("http", [string port])
+
+https(domains ... string) :
+    do("https", [domains])
+
+let(usr string) own (grp string) :
+    do("let-own", [usr, grp])
+
+let(grp string) use (srv string) :
+    do("let", [grp, srv])
+
+live on :
+    do("live-on", [])
+
+live off :
+    do("live-off", [])
+
+log :
+    do("log", [])
+
+log on :
+    do("log-on", [])
+
+log off :
+    do("log-off", [])
+
+quit :
+    do("quit", [])
+
+register :
+    do("register", [])
+
+replay (filename string) :
+    do("replay", [filename])
+
+replay diff (filename string) :
+    do("replay-with-diff", [filename])
+
+reset :
+    do("reset", [])
+
+rerun :
+    do("rerun", [])
+
+run(filename string) :
+    do("run", [filename, ""])
+
+run(filename string) as (srv string) :
+    do("run", [filename, srv])
+
+serialize(srv string) :
+    do("serialize", [srv])
+
+snap(filename string) :
+    do("snap", [filename, ""])
+
+snap(filename string) as (testName string) :
+    do("snap", [filename, testName])
+
+snap bad :
+    do("snap-bad", [])
+
+snap discard :
+    do("snap-discard", []) 
+
+snap good :
+    do("snap-good", [])
+    
+snap record :
+    do("snap-record", []) 
+
+services :
+    do("services", [])
+
+services of group(grp string) :
+    do("services-of-group", [grp])
+
+services of user(usr string) :
+    do("services-of-user", [usr])
+
+switch(srv string) :
+    do("switch", [srv])
+
+test(filename string) :
+    do("test", [filename])
+
+trace :
+    do("trace", [])
+
+track :
+    do("track", [])
+
+unadd(usr string) to (grp string) :
+    do("unadd", [usr, grp])
+
+uncreate(grp string) :
+    do("uncreate", [grp])
+
+unlet(grp string) use (srv string) :
+    do("unlet-use", [grp, srv])
+
+unlet(usr string) own (grp string) :
+    do("unlet-own", [usr, grp])
+
+unregister :
+    do("unregister", [])
+
+users of group(grp string) :
+    do("users-of-group", [grp])
+
+users of service(srv string) :
+    do("users-of-service", [srv])
+
+values :
+    do("values", [])
+
+where(errorNo int) :
+    do("where", [errorNo])
+    
+why(errorNo int) :
+    do("why", [errorNo])
+
+private
+
+do(verb string, args list) : 
+    global HUB
     goDo(HUB, makeString verb, args)
 
 goDo(hub Hub, s string) : golang {
@@ -32,188 +215,3 @@ def private
 makeString(verb string, args list) :
     from a = verb for _::el = range args :
         a + ", " + string(el)
-
-def
-
-// Verb are in alphabetical order:
-// add, config, create, do, edit, env, errors, halt, help, let, listen, live, log, my, peek, quit, register, replay, run, services, snap,
-// test, trace, track, where, why, values
-
-add(usr string) to (grp string) :
-    HubResponse("add", [usr, grp])
-
-api :
-    HubResponse("api", [])
-
-config admin :
-    HubResponse("config-admin", [])
-
-config db :
-    HubResponse("config-db", [])
-
-create(grp string) :
-    HubResponse("create", [grp])
-
-edit(filename string) :
-    HubResponse("edit", [filename])
-
-env (p pair) :
-    HubResponse("env", [p])
-
-env delete(x any) :
-    HubResponse("env-delete", [x])
-
-env key :
-    HubResponse("env-key", [])
-
-env wipe :
-    HubResponse("env-wipe", [])
-
-errors :
-    HubResponse("errors", [])
-
-groups :
-    HubResponse("groups", [])
-
-groups of service(srv string) :
-    HubResponse("groups-of-service", [srv])
-
-groups of user(usr string) :
-    HubResponse("groups-of-user", [usr])
-
-halt(srv string) :
-    HubResponse("halt", [srv])
-
-help :
-    HubResponse("help", ["topics"])
-
-help(topic string) :
-    HubResponse("help", [topic])
-
-http :
-    HubResponse("http", ["50005"])
-
-http(port int) :
-    HubResponse("http", [string port])
-
-https(domains ... string) :
-    HubResponse("https", [domains])
-
-let(usr string) own (grp string) :
-    HubResponse("let-own", [usr, grp])
-
-let(grp string) use (srv string) :
-    HubResponse("let", [grp, srv])
-
-live on :
-    HubResponse("live-on", [])
-
-live off :
-    HubResponse("live-off", [])
-
-log :
-    HubResponse("log", [])
-
-log on :
-    HubResponse("log-on", [])
-
-log off :
-    HubResponse("log-off", [])
-
-quit :
-    HubResponse("quit", [])
-
-register :
-    HubResponse("register", [])
-
-replay (filename string) :
-    HubResponse("replay", [filename])
-
-replay diff (filename string) :
-    HubResponse("replay-with-diff", [filename])
-
-reset :
-    HubResponse("reset", [])
-
-rerun :
-    HubResponse("rerun", [])
-
-run(filename string) :
-    HubResponse("run", [filename, ""])
-
-run(filename string) as (srv string) :
-    HubResponse("run", [filename, srv])
-
-serialize(srv string) :
-    HubResponse("serialize", [srv])
-
-services :
-    HubResponse("services", [])
-
-services of group(grp string) :
-    HubResponse("services-of-group", [grp])
-
-services of user(usr string) :
-    HubResponse("services-of-user", [usr])
-
-snap(filename string) :
-    HubResponse("snap", [filename, ""])
-
-snap(filename string) as (testName string) :
-    HubResponse("snap", [filename, testName])
-
-snap bad :
-    HubResponse("snap-bad", [])
-
-snap discard :
-    HubResponse("snap-discard", []) 
-
-snap good :
-    HubResponse("snap-good", [])
-    
-snap record :
-    HubResponse("snap-record", [])  
-
-switch(srv string) :
-    HubResponse("switch", [srv])
-
-test(filename string) :
-    HubResponse("test", [filename])
-
-trace :
-    HubResponse("trace", [])
-
-track :
-    HubResponse("track", [])
-
-unadd(usr string) to (grp string) :
-    HubResponse("unadd", [usr, grp])
-
-uncreate(grp string) :
-    HubResponse("uncreate", [grp])
-
-unlet(grp string) use (srv string) :
-    HubResponse("unlet-use", [grp, srv])
-
-unlet(usr string) own (grp string) :
-    HubResponse("unlet-own", [usr, grp])
-
-unregister :
-    HubResponse("unregister", [])
-
-users of group(grp string) :
-    HubResponse("users-of-group", [grp])
-
-users of service(srv string) :
-    HubResponse("users-of-service", [srv])
-
-values :
-    HubResponse("values", [])
-
-where(errorNo int) :
-    HubResponse("where", [errorNo])
-    
-why(errorNo int) :
-    HubResponse("why", [errorNo])
-
-

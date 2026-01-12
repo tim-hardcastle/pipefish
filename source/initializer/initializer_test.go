@@ -67,12 +67,12 @@ func TestFunctionSharing(t *testing.T) {
 }
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
-	test_helper.Teardown("gocode_test.pf")
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`multiply 2, 3`, `6`},
 	}
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
+	test_helper.Teardown("gocode_test.pf")
 }
 func TestIndexing(t *testing.T) {
 	tests := []test_helper.TestItem{

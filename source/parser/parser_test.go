@@ -120,6 +120,7 @@ func TestGocode(t *testing.T) {
 		{`multiply(8, 9)`, `(multiply 8, 9)`},
 	}
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestParserOutput)
+	test_helper.Teardown("gocode_test.pf")
 }
 func TestLambdas(t *testing.T) {
 	tests := []test_helper.TestItem{

@@ -14,7 +14,7 @@ func StartHub(hub *Hub) {
 	colonOrEmdash, _ := regexp.Compile(`.*[\w\s]*(:|--)[\s]*$`)
 	rline := readline.NewInstance()
 	rline.SyntaxHighlighter = func(code []rune) string {
-		return hub.services[hub.currentServiceName()].Highlight(code, hub.getFonts())
+		return hub.Services[hub.currentServiceName()].Highlight(code, hub.getFonts())
 	}
 	for {
 		// The hub's CurrentForm setting allows it to ask for information from the user instead of
@@ -58,9 +58,9 @@ func StartHub(hub *Hub) {
 			right := pair[1]
 			handler := func(i int, st *readline.EventState) *readline.EventReturn {
 				return &readline.EventReturn{
-					SetLine: []rune(st.Line[:st.CursorPos] + right + st.Line[st.CursorPos:]),
+					SetLine:  []rune(st.Line[:st.CursorPos] + right + st.Line[st.CursorPos:]),
 					Continue: true,
-					SetPos: st.CursorPos,
+					SetPos:   st.CursorPos,
 				}
 			}
 			rline.AddEvent(left, handler)
@@ -97,9 +97,9 @@ func StartHub(hub *Hub) {
 			}
 		}
 		input = strings.TrimSpace(input)
-		sv := hub.services[hub.currentServiceName()]
+		sv := hub.Services[hub.currentServiceName()]
 		sv.SetOutHandler(sv.MakeTerminalOutHandler())
-		_, quit := hub.Do(input, hub.Username, hub.Password, hub.currentServiceName(), false)
+		_, quit := hub.Do(input, hub.TerminalUsername, hub.TerminalPassword, hub.currentServiceName(), false)
 		if quit {
 			break
 		}

@@ -8,6 +8,7 @@ import (
 )
 
 func TestServices(t *testing.T) {
+	// no t.Parallel()
 	test := []test_helper.TestItem{
 		{"2 + 2", "4"},
 		{`hub services`, `The hub isn't running any services.`},
@@ -25,6 +26,7 @@ func TestServices(t *testing.T) {
 	test_helper.RunHubTest(t, "default", test)
 }
 func TestEnv(t *testing.T) {
+	// no t.Parallel()
 	test := []test_helper.TestItem{
 		{`hub env "foo"::42`, `[32mOK[0m`},
 		{`hub env delete "foo"`, `[32mOK[0m`},

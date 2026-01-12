@@ -374,6 +374,7 @@ func TestGocode(t *testing.T) {
 		{`multiply 2, 3`, `6`},
 	}
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
+	test_helper.Teardown("gocode_test.pf")
 }
 func TestHighlighter(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -721,4 +722,5 @@ func TestWrappers(t *testing.T) {
 		{`literal Uint_32(5)`, `"Uint_32(5)"`},
 	}
 	test_helper.RunTest(t, "wrapper_test.pf", tests, test_helper.TestValues)
+	test_helper.Teardown("wrapper_test.pf")
 }
