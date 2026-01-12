@@ -25,6 +25,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 
 	"github.com/tim-hardcastle/pipefish/source/database"
+	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/pf"
 	"github.com/tim-hardcastle/pipefish/source/settings"
@@ -163,20 +164,8 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 		}
 		hub.username = username
 		hub.password = password
-		verb, args := hub.ParseHubCommand(strings.Join(hubWords[1:], " "))
-		if verb == "error" || verb == "OK" {
-			return passedServiceName, false
-		}
-		hubResult := hub.DoHubCommand(username, password, verb, args)
-		if len(hubWords) > 1 && hubWords[1] == "run" && hub.administered { // TODO: find out what it does and where it should be now that we have ++ for hub commands.
-			serviceName, _ := database.ValidateUser(hub.Db, username, password)
-			return serviceName, false
-		}
-		if hubResult {
-			return passedServiceName, true
-		} else {
-			return passedServiceName, false
-		}
+		hub.DoHubCommand(strings.Join(hubWords[1:], " "))
+		return passedServiceName, false
 	}
 
 	// We may be talking to the os
@@ -267,34 +256,22 @@ func (hub *Hub) update() {
 	}
 }
 
-func (hub *Hub) ParseHubCommand(line string) (string, []values.Value) {
+func (hub *Hub) DoHubCommand(line string) {
 	hubService := hub.Services["hub"]
 	hubReturn := ServiceDo(hubService, line)
 	if hubReturn.T == pf.OK {
-		return "OK", nil
+		return
 	}
-	if errorsExist, _ := hubService.ErrorsExist(); errorsExist { // Any lex-parse-compile errors should end up in the parser of the compiler of the service, returned in p.
+	if errorsExist, _ := hubService.ErrorsExist(); errorsExist { 
 		hub.GetAndReportErrors(hubService)
-		return "error", []values.Value{}
+		return
 	}
 	if hubReturn.T == pf.ERROR {
 		hub.WriteError(hubReturn.V.(*pf.Error).Message)
-		return "error", []values.Value{hubReturn}
-	}
-	hrType, _ := hubService.TypeNameToType("HubResponse")
-	if hubReturn.T == hrType {
-		hR := hubReturn.V.([]pf.Value)
-		verb := hR[0].V.(string)
-		vargs := hR[1].V.(pf.List)
-		args := []values.Value{}
-		for i := 0; i < vargs.Len(); i++ {
-			el, _ := vargs.Index(i)
-			args = append(args, el.(values.Value))
-		}
-		return verb, args
+		return
 	}
 	hub.WriteError("couldn't parse hub instruction.")
-	return "error", []values.Value{values.Value{values.UNDEFINED_TYPE, nil}}
+	return
 }
 
 // Quick and dirty auxilliary function for when we know the value is in fact a string.
@@ -312,6 +289,30 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	args := bits[1:]
 	hub := hw.hub
 	username := hub.username
+	var isAdmin bool
+	var err error
+	if hub.isAdministered() {
+		isAdmin, err = database.IsUserAdmin(hub.Db, username)
+		if err != nil {
+			hub.WriteError(err.Error())
+			return len(b), nil
+		}
+		if !isAdmin && !greenList.Contains(verb) {
+			hub.WriteError("you don't have the admin status necessary to do that.")
+			return len(b), nil
+		}
+		if username == "" && !(verb == "log-on" || verb == "register" || verb == "quit") {
+			hub.WriteError("\nthis is an administered hub and you aren't logged on. Please enter either " +
+				"`hub register` to register as a guest, or `hub log on` to log on if you're already registered " +
+				"with this hub.")
+			return len(b), nil
+		}
+	} else {
+		if rbamVerbs.Contains(verb) {
+			hub.WriteError("this hub doesn't have RBAM intitialized.")
+		}
+	}
+
 	switch verb {
 	case "add":
 		err := database.IsUserGroupOwner(hub.Db, username, args[1])
@@ -760,51 +761,16 @@ func (hub *Hub) makeWriter() io.Writer {
 	}
 }
 
-func (hub *Hub) DoHubCommand(username, password, verb string, args []values.Value) bool {
-	if (!hub.isAdministered()) &&
-		(verb == "add" || verb == "create" || verb == "log-on" || verb == "log-off" ||
-			verb == "let" || verb == "register" || verb == "groups" ||
-			verb == "groups-of-user" || verb == "groups-of-service" || verb == "services of group" ||
-			verb == "services-of-user" || verb == "users-of-service" || verb == "users-of-group" ||
-			verb == "let-use" || verb == "let-own") {
-		hub.WriteError("this is not an administered hub. To initialize it as one, first do `hub config db` " +
-			"(if you haven't already) and then `hub config admin`.")
-		return false
-	}
-	if hub.isAdministered() {
-		isAdmin, err := database.IsUserAdmin(hub.Db, username)
-		if err != nil {
-			hub.WriteError(err.Error())
-			return false
-		}
-		// TODO --- replace with set containing green list.
-		if !isAdmin && (verb == "config-db" || verb == "create" || verb == "let" ||
-			verb == "live-on" || verb == "live-off" || verb == "listen" ||
-			verb == "run" || verb == "reset" || verb == "rerun" ||
-			verb == "replay" || verb == "replay-diff" || verb == "snap" || verb == "test" ||
-			verb == "groups-of-user" || verb == "groups-of-service" || verb == "services of group" ||
-			verb == "services-of-user" || verb == "users-of-service" || verb == "users-of-group" ||
-			verb == "let-use" || verb == "let-own" || verb == "store" || verb == "store-secret") {
-			hub.WriteError("you don't have the admin status necessary to do that.")
-			return false
-		}
-		if username == "" && !(verb == "log-on" || verb == "register" || verb == "quit") {
-			hub.WriteError("\nThis is an administered hub and you aren't logged on. Please enter either " +
-				"`hub register` to register as a user, or `hub log on` to log on if you're already registered " +
-				"with this hub.\n\n")
-			return false
-		}
-	}
-	switch verb {
+// Things that only make sense if we have RBAM set up.
+var rbamVerbs = dtypes.MakeFromSlice([]string{"add", "create", "log-on", "log-off", "let", 
+"register", "groups", "groups-of-user", "groups-of-service", "services of group", 
+"services-of-user", "users-of-service", "users-of-group", "let-use", "let-own"})
 
-	default:
-		panic("Didn't return from verb " + verb)
-	}
-	panic("Don't know what to do with verb " + verb)
-}
+// Things you can use if you're logged in to a service with RBAM, but not as admin.
+var greenList = dtypes.MakeFromSlice([]string{"api", "errors", "help", "log-on", "log-off", 
+"groups", "register", "service", "switch", "values", "why", "quit"})
 
 func getUnusedTestFilename(scriptFilepath string) string {
-
 	fname := filepath.Base(scriptFilepath)
 	fname = fname[:len(fname)-len(filepath.Ext(fname))]
 	dname := filepath.Dir(scriptFilepath)
