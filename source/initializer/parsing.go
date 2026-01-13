@@ -52,9 +52,11 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 		iz.cmI("Adding mandatory imports to namespace.")
 		iz.addToNameSpaceByFilename(settings.MandatoryImports)
 	}
-	if len(scriptFilepath) >= 4 && scriptFilepath[len(scriptFilepath)-4:] == ".hub" {
-		iz.cmI("Adding hub.pf and themes.pf to hub namespace.")
-		iz.addToNameSpaceByFilename([]string{filepath.Join(settings.PipefishHomeDirectory, "source/hub/hub.pf"), filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf")})
+	if filepath.Base(scriptFilepath) == "hub.hub" {
+		iz.cmI("Adding hub.pf files and themes.pf to hub namespace.")
+		iz.addToNameSpaceByFilename([]string{filepath.Join(settings.PipefishHomeDirectory, "source/hub/hub.pf"),
+										     filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf"),
+											 filepath.Join(filepath.Dir(scriptFilepath), "hub.pf")})
 	}
 	iz.cmI("Making new relexer with filepath '" + scriptFilepath + "'")
 	iz.P.TokenizedCode = lexer.NewRelexer(scriptFilepath, sourcecode)

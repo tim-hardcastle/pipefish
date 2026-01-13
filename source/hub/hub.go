@@ -137,15 +137,6 @@ func (hub *Hub) getFonts() *values.Map {
 // as an instruction to the os if it begins with 'os', and as an expression to be passed to
 // the current service if none of the above hold.
 func (hub *Hub) Do(line, username, password, passedServiceName string, external bool) (string, bool) {
-	if hub.administered && !hub.listeningToHttpOrHttps && hub.TerminalPassword == "" &&
-		!(line == "hub register" || line == "hub log on" || line == "hub quit") {
-		hub.WriteError("this is an administered hub and you aren't logged on. Please enter either " +
-			"`hub register` to register as a user, or `hub log on` to log on if you're already registered " +
-			"with this hub.")
-		return passedServiceName, false
-	}
-
-	// Otherwise, we're talking to the current service.
 
 	serviceToUse, ok := hub.Services[passedServiceName]
 	if !ok {
@@ -154,7 +145,6 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 	}
 
 	// We may be talking to the hub itself.
-
 	hubWords := strings.Fields(line)
 	if len(hubWords) > 0 && hubWords[0] == "hub" {
 		if len(hubWords) == 1 {
@@ -224,7 +214,11 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 		hub.GetAndReportErrors(serviceToUse)
 		return passedServiceName, false
 	}
+	hub.outputVal(val, serviceToUse, external)
+	return passedServiceName, false
+}
 
+func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external bool) {
 	if val.T == pf.ERROR && !external {
 		e := val.V.(*pf.Error)
 		if e.Message == "" {
@@ -244,7 +238,6 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 			hub.snap.AddOutput(serviceToUse.ToLiteral(val))
 		}
 	}
-	return passedServiceName, false
 }
 
 func (hub *Hub) update() {
@@ -255,21 +248,14 @@ func (hub *Hub) update() {
 	}
 }
 
-func (hub *Hub) DoHubCommand(line string) {
+func (hub *Hub) DoHubCommand(line string) { // TODO --- this is where we need to pass in whether it's external.
 	hubService := hub.Services["hub"]
 	hubReturn := ServiceDo(hubService, line)
-	if hubReturn.T == pf.OK {
-		return
-	}
 	if errorsExist, _ := hubService.ErrorsExist(); errorsExist { 
 		hub.GetAndReportErrors(hubService)
 		return
 	}
-	if hubReturn.T == pf.ERROR {
-		hub.WriteError(hubReturn.V.(*pf.Error).Message)
-		return
-	}
-	hub.WriteError("couldn't parse hub instruction.")
+	hub.outputVal(hubReturn, hubService, false)
 	return
 }
 
@@ -311,7 +297,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError("this hub doesn't have RBAM intitialized.")
 		}
 	}
-
 	switch verb {
 	case "add":
 		err := database.IsUserGroupOwner(h.Db, username, args[1])
@@ -322,7 +307,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-		h.WriteString(GREEN_OK + "\n")
 	case "api":
 		h.update()
 		h.WriteString(h.Services[h.currentServiceName()].Api(h.currentServiceName(), h.getFonts(), h.getSV("width").V.(int)))
@@ -337,10 +321,9 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	}
 	err := database.AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4], h.currentServiceName(), settings.PipefishHomeDirectory)
 	if err != nil {
-		h.WriteError("H/ " + err.Error())
+		h.WriteError(err.Error())
 		break
 	}
-	h.WriteString(GREEN_OK + "\n")
 	h.TerminalUsername = args[0]
 	h.TerminalPassword = args[4]
 	h.WritePretty("You are logged on as " + h.TerminalUsername + ".\n")
@@ -354,7 +337,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-		h.WriteString(GREEN_OK + "\n")
+		
 	case "edit":
 		command := exec.Command("vim", args[0])
 		command.Stdin = os.Stdin
@@ -368,7 +351,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		env, _ := h.Services["hub"].GetVariable("$_env")
 		h.store = *env.V.(*values.Map)
 		h.SaveAndPropagateHubStore()
-		h.WriteString(GREEN_OK + "\n")
+		
 	case "env-key":
 		cur := args[0]
 		new := args[1]	
@@ -383,7 +366,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.storekey = ""
 		h.store = values.Map{}
 		h.SaveAndPropagateHubStore()
-		h.WriteString(GREEN_OK + "\n")
+		
 	case "errors":
 		r, _ := h.Services[h.currentServiceName()].GetErrorReport()
 		h.WritePretty(r)
@@ -413,7 +396,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError("the hub doesn't know what you want to stop.")
 		}
 		delete(h.Services, name)
-		h.WriteString(GREEN_OK + "\n")
+		
 		if name == h.currentServiceName() {
 			h.makeEmptyServiceCurrent()
 		}
@@ -442,7 +425,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-		h.WriteString(GREEN_OK + "\n")
+		
 	case "live-on":
 		h.setLive(true)
 	case "live-off":
@@ -465,7 +448,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.TerminalUsername = ""
 		h.TerminalPassword = ""
 		h.makeEmptyServiceCurrent()
-		h.WriteString("\n" + GREEN_OK + "\n")
 		h.WritePretty("\nThis is an administered hub and you aren't logged on. Please enter either " +
 			"`hub register` to register as a user, or `hub log on` to log on if you're already registered " +
 			"with this hub.\n\n")
@@ -624,13 +606,13 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if h.currentServiceName() != "#snap" {
 			h.WriteError("you aren't taking a snap.")
 		}
-		h.WriteString(GREEN_OK + "\n")
+		
 		h.setServiceName(h.oldServiceName)
 	case "switch":
 		sname := args[0]
 		_, ok := h.Services[sname]
 		if ok {
-			h.WriteString(GREEN_OK + "\n")
+			
 			if h.administered {
 				access, err := database.DoesUserHaveAccess(h.Db, username, sname)
 				if err != nil {
@@ -853,6 +835,7 @@ func (hub *Hub) WriteError(s string) {
 
 func (hub *Hub) WriteString(s string) {
 	io.WriteString(hub.Out, s)
+	hub.Services["hub"].SetPostHappened() 
 }
 
 var helpStrings = map[string]string{}

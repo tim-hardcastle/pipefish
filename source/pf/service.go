@@ -487,6 +487,10 @@ func (sv *Service) PostHappened() bool {
 	return sv.cp.Vm.PostHappened
 }
 
+func (sv *Service) SetPostHappened() {
+	sv.cp.Vm.PostHappened = true
+}
+
 // Gets markdown with appropriate highlighting.
 func (sv *Service) GetMarkdowner(leftMargin string, rightMargin int, fonts *values.Map) func(string) string {
 	return sv.cp.GetMarkdowner(leftMargin, rightMargin, fonts)

@@ -24,10 +24,10 @@ func TestServices(t *testing.T) {
 		{`foo 2`, `4`},
 		{`hub run "../hub/test-files/bar.pf"`, `Starting script [36m"bar.pf"[39m as service [36m"bar"[39m.`},
 		{`bar 2`, `6`},
-		{`hub switch "foo"`, `[32mOK[0m`},
+		{`hub switch "foo"`, `OK`},
 		{`foo 2`, `4`},
-		{`hub halt "foo"`, `[32mOK[0m`},
-		{`hub halt "bar"`, `[32mOK[0m`},
+		{`hub halt "foo"`, `OK`},
+		{`hub halt "bar"`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
@@ -35,9 +35,9 @@ func TestServices(t *testing.T) {
 func TestEnv(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
-		{`hub env "foo"::42`, `[32mOK[0m`},
-		{`hub env delete "foo"`, `[32mOK[0m`},
-		{`hub env wipe`, `[32mOK[0m`},
+		{`hub env "foo"::42`, `OK`},
+		{`hub env delete "foo"`, `OK`},
+		{`hub env wipe`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
