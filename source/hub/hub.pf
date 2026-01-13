@@ -1,11 +1,10 @@
 import
 
+NULL::"sql"
 golang "io"
 
 newtype
 
-HubResponse = struct(responseName string, vals list)
-Admin = struct(username, password string)
 Hub = wrapper io.Writer
 
 var

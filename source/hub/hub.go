@@ -965,11 +965,7 @@ func (hub *Hub) CurrentServiceIsBroken() bool {
 	return hub.Services[hub.currentServiceName()].IsBroken()
 }
 
-var prefix = `import
-
-NULL::"sql"
-
-var
+var prefix = `var
 
 `
 
