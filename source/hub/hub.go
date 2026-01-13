@@ -1016,7 +1016,7 @@ func (hub *Hub) saveHubFile() string {
 	buf.WriteString("width = ")
 	buf.WriteString(hubService.ToLiteral(hub.getSV("width")))
 	buf.WriteString("\n\n")
-	buf.WriteString("database Database? = ")
+	buf.WriteString("database SqlDb? = ")
 	dbVal := hub.getSV("database")
 	if dbVal.T == pf.NULL {
 		buf.WriteString("NULL\n")
