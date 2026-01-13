@@ -1057,7 +1057,7 @@ func (hub *Hub) saveHubFile() string {
 func (h *Hub) OpenHubFile(hubFilepath string) {
 	h.createService("", "")
 	h.createService("hub", hubFilepath)
-	storePath := hubFilepath[0:len(hubFilepath)-len(filepath.Ext(hubFilepath))] + ".str"
+	storePath := hubFilepath[0:len(hubFilepath)-len(filepath.Ext(hubFilepath))] + ".env"
 	_, err := os.Stat(storePath)
 	if err == nil {
 		file, err := os.Open(storePath)
@@ -1142,7 +1142,7 @@ func (hub *Hub) SaveAndPropagateHubStore() {
 	for _, srv := range hub.Services {
 		srv.SetEnv(&hub.store)
 	}
-	storePath := hub.hubFilepath[0:len(hub.hubFilepath)-len(filepath.Ext(hub.hubFilepath))] + ".str"
+	storePath := hub.hubFilepath[0:len(hub.hubFilepath)-len(filepath.Ext(hub.hubFilepath))] + ".env"
 	storeDump := hub.Services["hub"].WriteSecret(hub.store, hub.storekey)
 	file, _ := os.Create(storePath)
 	file.WriteString(storeDump)
