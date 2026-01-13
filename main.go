@@ -52,7 +52,7 @@ func main() {
 	fmt.Print(hub.Logo())
 	hubDir := filepath.Join(settings.PipefishHomeDirectory, ("user/hub"))
 	h := hub.New(hubDir, os.Stdout)
-	hub.StartHub(h)
+	h.Repl()
 }
 
 func showhelp() {

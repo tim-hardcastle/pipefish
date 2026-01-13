@@ -42,7 +42,6 @@ type Hub struct {
 	oldServiceName         string // Somewhere to keep the old service name while taking a snap. TODO --- you can now take snaps on their own dedicated hub, saving a good deal of faffing around.
 	Sources                map[string][]string
 	lastRun                []string
-	CurrentForm            *Form // TODO!!! --- deprecate, you've had IO for a while.
 	Db                     *sql.DB
 	administered           bool
 	listeningToHttpOrHttps bool
@@ -287,233 +286,250 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	bits := strings.Split(string(b), ", ")
 	verb := bits[0]
 	args := bits[1:]
-	hub := hw.hub
-	username := hub.username
+	h := hw.hub
+	username := h.username
 	var isAdmin bool
 	var err error
-	if hub.isAdministered() {
-		isAdmin, err = database.IsUserAdmin(hub.Db, username)
+	if h.isAdministered() {
+		isAdmin, err = database.IsUserAdmin(h.Db, username)
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 			return len(b), nil
 		}
 		if !isAdmin && !greenList.Contains(verb) {
-			hub.WriteError("you don't have the admin status necessary to do that.")
+			h.WriteError("you don't have the admin status necessary to do that.")
 			return len(b), nil
 		}
 		if username == "" && !(verb == "log-on" || verb == "register" || verb == "quit") {
-			hub.WriteError("\nthis is an administered hub and you aren't logged on. Please enter either " +
+			h.WriteError("\nthis is an administered hub and you aren't logged on. Please enter either " +
 				"`hub register` to register as a guest, or `hub log on` to log on if you're already registered " +
 				"with this hub.")
 			return len(b), nil
 		}
 	} else {
 		if rbamVerbs.Contains(verb) {
-			hub.WriteError("this hub doesn't have RBAM intitialized.")
+			h.WriteError("this hub doesn't have RBAM intitialized.")
 		}
 	}
 
 	switch verb {
 	case "add":
-		err := database.IsUserGroupOwner(hub.Db, username, args[1])
+		err := database.IsUserGroupOwner(h.Db, username, args[1])
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		}
-		err = database.AddUserToGroup(hub.Db, args[0], args[1], false)
+		err = database.AddUserToGroup(h.Db, args[0], args[1], false)
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		}
-		hub.WriteString(GREEN_OK + "\n")
+		h.WriteString(GREEN_OK + "\n")
 	case "api":
-		hub.update()
-		hub.WriteString(hub.Services[hub.currentServiceName()].Api(hub.currentServiceName(), hub.getFonts(), hub.getSV("width").V.(int)))
+		h.update()
+		h.WriteString(h.Services[h.currentServiceName()].Api(h.currentServiceName(), h.getFonts(), h.getSV("width").V.(int)))
 	case "config-admin":
-		if !hub.isAdministered() {
-			hub.configAdmin()
-		} else {
-			hub.WriteError("this hub is already administered.")
+		if h.isAdministered() {
+			h.WriteError("this hub is already administered.")
+			break
 		}
-	case "config-db":
-		hub.configDb()
+		if h.Db == nil {
+		h.WriteError("database has not been configured: edit the `hub.usr` file of this hub to specify a database and a mailer.")
+		break
+	}
+	err := database.AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4], h.currentServiceName(), settings.PipefishHomeDirectory)
+	if err != nil {
+		h.WriteError("H/ " + err.Error())
+		break
+	}
+	h.WriteString(GREEN_OK + "\n")
+	h.TerminalUsername = args[0]
+	h.TerminalPassword = args[4]
+	h.WritePretty("You are logged on as " + h.TerminalUsername + ".\n")
+	h.administered = true
 	case "create":
-		err := database.AddGroup(hub.Db, args[0])
+		err := database.AddGroup(h.Db, args[0])
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		}
-		err = database.AddUserToGroup(hub.Db, username, args[0], true)
+		err = database.AddUserToGroup(h.Db, username, args[0], true)
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		}
-		hub.WriteString(GREEN_OK + "\n")
+		h.WriteString(GREEN_OK + "\n")
 	case "edit":
 		command := exec.Command("vim", args[0])
 		command.Stdin = os.Stdin
 		command.Stdout = os.Stdout
 		err := command.Run()
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		}
 	case "env":
 		// $_env has been updated by hub.pf. This is called by both `env` and `env delete`.
-		env, _ := hub.Services["hub"].GetVariable("$_env")
-		hub.store = *env.V.(*values.Map)
-		hub.SaveAndPropagateHubStore()
-		hub.WriteString(GREEN_OK + "\n")
+		env, _ := h.Services["hub"].GetVariable("$_env")
+		h.store = *env.V.(*values.Map)
+		h.SaveAndPropagateHubStore()
+		h.WriteString(GREEN_OK + "\n")
 	case "env-key":
-		if hub.storekey != "" {
-			rline := readline.NewInstance()
-			rline.SetPrompt("Enter the current environment key for the hub: ")
-			rline.PasswordMask = '▪'
-			storekey, _ := rline.Readline()
-			if storekey != hub.storekey {
-				hub.WriteError("incorrect environment key.")
-			}
+		cur := args[0]
+		new := args[1]	
+		if cur != h.storekey {
+			h.WriteError("incorrect environment key.")
+			break
 		}
-		rline := readline.NewInstance()
-		rline.SetPrompt("Enter the new environment key: ")
-		rline.PasswordMask = '▪'
-		storekey, _ := rline.Readline()
-		hub.storekey = storekey
-		hub.SaveAndPropagateHubStore()
-		hub.WriteString(GREEN_OK + "\n")
+		h.storekey = new
+		h.SaveAndPropagateHubStore()
+		h.WriteString(GREEN_OK + "\n")
 	case "env-wipe":
-		hub.storekey = ""
-		hub.store = values.Map{}
-		hub.SaveAndPropagateHubStore()
-		hub.WriteString(GREEN_OK + "\n")
+		h.storekey = ""
+		h.store = values.Map{}
+		h.SaveAndPropagateHubStore()
+		h.WriteString(GREEN_OK + "\n")
 	case "errors":
-		r, _ := hub.Services[hub.currentServiceName()].GetErrorReport()
-		hub.WritePretty(r)
+		r, _ := h.Services[h.currentServiceName()].GetErrorReport()
+		h.WritePretty(r)
 	case "groups-of-user":
-		result, err := database.GetGroupsOfUser(hub.Db, args[0], false)
+		result, err := database.GetGroupsOfUser(h.Db, args[0], false)
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		} else {
-			hub.WriteString(result)
+			h.WriteString(result)
 		}
 	case "groups-of-service":
-		result, err := database.GetGroupsOfService(hub.Db, args[0])
+		result, err := database.GetGroupsOfService(h.Db, args[0])
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		} else {
-			hub.WriteString(result)
+			h.WriteString(result)
 		}
 	case "halt":
 		var name string
-		_, ok := hub.Services[args[0]]
+		_, ok := h.Services[args[0]]
 		if ok {
 			name = args[0]
 		} else {
-			hub.WriteError("the hub can't find the service <C>\"" + args[0] + "\"</>.")
+			h.WriteError("the hub can't find the service <C>\"" + args[0] + "\"</>.")
 		}
 		if name == "" || name == "hub" {
-			hub.WriteError("the hub doesn't know what you want to stop.")
+			h.WriteError("the hub doesn't know what you want to stop.")
 		}
-		delete(hub.Services, name)
-		hub.WriteString(GREEN_OK + "\n")
-		if name == hub.currentServiceName() {
-			hub.makeEmptyServiceCurrent()
+		delete(h.Services, name)
+		h.WriteString(GREEN_OK + "\n")
+		if name == h.currentServiceName() {
+			h.makeEmptyServiceCurrent()
 		}
 	case "help":
 		if helpMessage, ok := helpStrings[args[0]]; ok {
-			hub.WritePretty(helpMessage + "\n")
+			h.WritePretty(helpMessage + "\n")
 		} else {
-			hub.WriteError("the `hub help` command doesn't accept " +
+			h.WriteError("the `hub help` command doesn't accept " +
 				"`\"" + args[0] + "\"` as a parameter.")
 		}
-	case "let":
-		isAdmin, err := database.IsUserAdmin(hub.Db, username)
-		if err != nil {
-			hub.WriteError(err.Error())
-		}
-		if !isAdmin {
-			hub.WriteError("you don't have the admin status necessary to do that.")
-		}
-		err = database.LetGroupUseService(hub.Db, args[0], args[1])
-		if err != nil {
-			hub.WriteError(err.Error())
-		}
-		hub.WriteString(GREEN_OK + "\n")
 	case "http":
-		hub.WriteString(GREEN_OK)
-		go hub.StartHttp([]string{args[0]}, false)
+		h.WriteString(GREEN_OK)
+		go h.StartHttp([]string{args[0]}, false)
 	case "https":
 		if len(args) == 0 {
-			hub.WriteError("list of domain names cannot be empty")
+			h.WriteError("list of domain names cannot be empty")
 		}
-		hub.WriteString(GREEN_OK)
+		h.WriteString(GREEN_OK)
 		domains := []string{}
 		for _, arg := range args {
 			domains = append(domains, arg)
 		}
-		go hub.StartHttp(domains, true)
+		go h.StartHttp(domains, true)
+	case "let":
+		err = database.LetGroupUseService(h.Db, args[0], args[1])
+		if err != nil {
+			h.WriteError(err.Error())
+		}
+		h.WriteString(GREEN_OK + "\n")
 	case "live-on":
-		hub.setLive(true)
+		h.setLive(true)
 	case "live-off":
-		hub.setLive(false)
+		h.setLive(false)
 	case "log":
-		tracking, _ := hub.Services[hub.currentServiceName()].GetTrackingReport()
-		hub.WritePretty(tracking)
-		hub.WriteString("\n")
+		tracking, _ := h.Services[h.currentServiceName()].GetTrackingReport()
+		h.WritePretty(tracking)
+		h.WriteString("\n")
 	case "log-on":
-		hub.getLogin()
+		_, err := database.ValidateUser(h.Db, args[0], args[1])
+		if err != nil {
+			h.WriteError(err.Error())
+			h.WriteString("Please try again.\n\n")
+			break
+		}
+		h.TerminalUsername = args[0]
+		h.TerminalPassword = args[1]
+		h.WriteString(GREEN_OK + "\n")
 	case "log-off":
-		hub.TerminalUsername = ""
-		hub.TerminalPassword = ""
-		hub.makeEmptyServiceCurrent()
-		hub.WriteString("\n" + GREEN_OK + "\n")
-		hub.WritePretty("\nThis is an administered hub and you aren't logged on. Please enter either " +
+		h.TerminalUsername = ""
+		h.TerminalPassword = ""
+		h.makeEmptyServiceCurrent()
+		h.WriteString("\n" + GREEN_OK + "\n")
+		h.WritePretty("\nThis is an administered hub and you aren't logged on. Please enter either " +
 			"`hub register` to register as a user, or `hub log on` to log on if you're already registered " +
 			"with this hub.\n\n")
 	case "groups":
-		result, err := database.GetGroupsOfUser(hub.Db, username, true)
+		result, err := database.GetGroupsOfUser(h.Db, username, true)
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		} else {
-			hub.WriteString(result)
+			h.WriteString(result)
 		}
 	case "quit":
-		hub.Quit()
+		h.Quit()
 	case "register":
-		hub.addUserAsGuest()
+		err = database.AddUser(h.Db, args[0], args[1], args[2], args[3], args[4], "")
+		if err != nil {
+			h.WriteError(err.Error())
+			break
+		}
+		err = database.AddUserToGroup(h.Db, args[0], "Guests", false)
+		if err != nil {
+			h.WriteError(err.Error())
+			break
+		}
+		h.TerminalUsername = args[0]
+		h.TerminalPassword = args[4]
+		h.WriteString("You are logged in as " + h.TerminalUsername + ".\n")
 	case "replay":
-		hub.oldServiceName = hub.currentServiceName()
-		hub.playTest(args[0], false)
-		hub.setServiceName(hub.oldServiceName)
-		_, ok := hub.Services["#test"]
+		h.oldServiceName = h.currentServiceName()
+		h.playTest(args[0], false)
+		h.setServiceName(h.oldServiceName)
+		_, ok := h.Services["#test"]
 		if ok {
-			delete(hub.Services, "#test")
+			delete(h.Services, "#test")
 		}
 	case "replay-diff":
-		hub.oldServiceName = hub.currentServiceName()
-		hub.playTest(args[0], true)
-		hub.setServiceName(hub.oldServiceName)
-		_, ok := hub.Services["#test"]
+		h.oldServiceName = h.currentServiceName()
+		h.playTest(args[0], true)
+		h.setServiceName(h.oldServiceName)
+		_, ok := h.Services["#test"]
 		if ok {
-			delete(hub.Services, "#test")
+			delete(h.Services, "#test")
 		}
 	case "reset":
-		serviceToReset, ok := hub.Services[hub.currentServiceName()]
+		serviceToReset, ok := h.Services[h.currentServiceName()]
 		if !ok {
-			hub.WriteError("the hub can't find the service <C>\"" + hub.currentServiceName() + "\".")
+			h.WriteError("the hub can't find the service <C>\"" + h.currentServiceName() + "\".")
 		}
-		if hub.currentServiceName() == "" {
-			hub.WriteError("service is empty, nothing to reset.")
+		if h.currentServiceName() == "" {
+			h.WriteError("service is empty, nothing to reset.")
 		}
 		filepath, _ := serviceToReset.GetFilepath()
-		hub.WritePretty("Restarting script <C>\"" + filepath +
-			"\"</> as service <C>\"" + hub.currentServiceName() + "\"</>.\n")
-		hub.StartAndMakeCurrent(username, hub.currentServiceName(), filepath)
-		hub.lastRun = []string{hub.currentServiceName()}
+		h.WritePretty("Restarting script <C>\"" + filepath +
+			"\"</> as service <C>\"" + h.currentServiceName() + "\"</>.\n")
+		h.StartAndMakeCurrent(username, h.currentServiceName(), filepath)
+		h.lastRun = []string{h.currentServiceName()}
 	case "rerun":
-		if len(hub.lastRun) == 0 {
-			hub.WriteError("nothing to rerun.")
+		if len(h.lastRun) == 0 {
+			h.WriteError("nothing to rerun.")
 		}
-		filepath, _ := hub.Services[hub.lastRun[0]].GetFilepath()
-		hub.WritePretty("Rerunning script <C>\"" + filepath +
-			"</>\" as service <C>\"" + hub.lastRun[0] + "\"</>.\n")
-		hub.StartAndMakeCurrent(username, hub.lastRun[0], filepath)
-		hub.tryMain()
+		filepath, _ := h.Services[h.lastRun[0]].GetFilepath()
+		h.WritePretty("Rerunning script <C>\"" + filepath +
+			"</>\" as service <C>\"" + h.lastRun[0] + "\"</>.\n")
+		h.StartAndMakeCurrent(username, h.lastRun[0], filepath)
+		h.tryMain()
 	case "run":
 		fname := args[0]
 		sname := args[1]
@@ -524,40 +540,40 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			dir, _ := os.Getwd()
 			fname = filepath.Join(dir, fname)
 		}
-		hub.lastRun = []string{fname, sname}
-		hub.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.\n")
-		hub.StartAndMakeCurrent(username, sname, fname)
-		hub.tryMain()
+		h.lastRun = []string{fname, sname}
+		h.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.\n")
+		h.StartAndMakeCurrent(username, sname, fname)
+		h.tryMain()
 	case "serialize":
-		hub.WriteString(hub.Services[args[0]].SerializeApi())
+		h.WriteString(h.Services[args[0]].SerializeApi())
 	case "services":
-		if hub.isAdministered() {
-			result, err := database.GetServicesOfUser(hub.Db, username, true)
+		if h.isAdministered() {
+			result, err := database.GetServicesOfUser(h.Db, username, true)
 			if err != nil {
-				hub.WriteError(err.Error())
+				h.WriteError(err.Error())
 			} else {
-				hub.WriteString(result)
+				h.WriteString(result)
 			}
 		} else {
-			if len(hub.Services) == 2 {
-				hub.WriteString("The hub isn't running any services.\n")
+			if len(h.Services) == 2 {
+				h.WriteString("The hub isn't running any services.\n")
 			}
-			hub.WriteString("\n")
-			hub.list()
+			h.WriteString("\n")
+			h.list()
 		}
 	case "services-of-user":
-		result, err := database.GetServicesOfUser(hub.Db, args[0], false)
+		result, err := database.GetServicesOfUser(h.Db, args[0], false)
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		} else {
-			hub.WriteString(result)
+			h.WriteString(result)
 		}
 	case "services-of-group":
-		result, err := database.GetServicesOfGroup(hub.Db, args[0])
+		result, err := database.GetServicesOfGroup(h.Db, args[0])
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		} else {
-			hub.WriteString(result)
+			h.WriteString(result)
 		}
 	case "snap":
 		scriptFilepath := args[0]
@@ -569,67 +585,67 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if testFilepath == "" {
 			testFilepath = getUnusedTestFilename(scriptFilepath) // If no filename is given, we just generate one.
 		}
-		hub.snap = NewSnap(scriptFilepath, testFilepath)
-		hub.oldServiceName = hub.currentServiceName()
-		if hub.StartAndMakeCurrent(username, "#snap", scriptFilepath) {
-			snapService := hub.Services["#snap"]
+		h.snap = NewSnap(scriptFilepath, testFilepath)
+		h.oldServiceName = h.currentServiceName()
+		if h.StartAndMakeCurrent(username, "#snap", scriptFilepath) {
+			snapService := h.Services["#snap"]
 			ty, _ := snapService.TypeNameToType("$_OutputAs")
 			snapService.SetVariable("$_outputAs", ty, 0)
-			hub.WriteString("Serialization is ON.\n")
-			in, out := MakeSnapIo(snapService, hub.Out, hub.snap)
+			h.WriteString("Serialization is ON.\n")
+			in, out := MakeSnapIo(snapService, h.Out, h.snap)
 			currentService := snapService
 			currentService.SetInHandler(in)
 			currentService.SetOutHandler(out)
 		} else {
-			hub.WriteError("failed to start snap")
+			h.WriteError("failed to start snap")
 		}
 	case "snap-good":
-		if hub.currentServiceName() != "#snap" {
-			hub.WriteError("you aren't taking a snap.")
+		if h.currentServiceName() != "#snap" {
+			h.WriteError("you aren't taking a snap.")
 		}
-		result := hub.snap.Save(GOOD)
-		hub.WriteString(result + "\n")
-		hub.setServiceName(hub.oldServiceName)
+		result := h.snap.Save(GOOD)
+		h.WriteString(result + "\n")
+		h.setServiceName(h.oldServiceName)
 	case "snap-bad":
-		if hub.currentServiceName() != "#snap" {
-			hub.WriteError("you aren't taking a snap.")
+		if h.currentServiceName() != "#snap" {
+			h.WriteError("you aren't taking a snap.")
 		}
-		result := hub.snap.Save(BAD)
-		hub.WriteString(result + "\n")
-		hub.setServiceName(hub.oldServiceName)
+		result := h.snap.Save(BAD)
+		h.WriteString(result + "\n")
+		h.setServiceName(h.oldServiceName)
 	case "snap-record":
-		if hub.currentServiceName() != "#snap" {
-			hub.WriteError("you aren't taking a snap.")
+		if h.currentServiceName() != "#snap" {
+			h.WriteError("you aren't taking a snap.")
 		}
-		result := hub.snap.Save(RECORD)
-		hub.WriteString(result + "\n")
-		hub.setServiceName(hub.oldServiceName)
+		result := h.snap.Save(RECORD)
+		h.WriteString(result + "\n")
+		h.setServiceName(h.oldServiceName)
 	case "snap-discard":
-		if hub.currentServiceName() != "#snap" {
-			hub.WriteError("you aren't taking a snap.")
+		if h.currentServiceName() != "#snap" {
+			h.WriteError("you aren't taking a snap.")
 		}
-		hub.WriteString(GREEN_OK + "\n")
-		hub.setServiceName(hub.oldServiceName)
+		h.WriteString(GREEN_OK + "\n")
+		h.setServiceName(h.oldServiceName)
 	case "switch":
 		sname := args[0]
-		_, ok := hub.Services[sname]
+		_, ok := h.Services[sname]
 		if ok {
-			hub.WriteString(GREEN_OK + "\n")
-			if hub.administered {
-				access, err := database.DoesUserHaveAccess(hub.Db, username, sname)
+			h.WriteString(GREEN_OK + "\n")
+			if h.administered {
+				access, err := database.DoesUserHaveAccess(h.Db, username, sname)
 				if err != nil {
-					hub.WriteError("o/ " + err.Error())
+					h.WriteError("o/ " + err.Error())
 				}
 				if !access {
-					hub.WriteError("you don't have access to service <C>\"" + sname + "\"</>.")
+					h.WriteError("you don't have access to service <C>\"" + sname + "\"</>.")
 				}
-				database.UpdateService(hub.Db, username, sname)
+				database.UpdateService(h.Db, username, sname)
 			} else {
-				hub.setServiceName(sname)
+				h.setServiceName(sname)
 			}
 			break
 		}
-		hub.WriteError("service <C>\"" + sname + "\"</> doesn't exist.")
+		h.WriteError("service <C>\"" + sname + "\"</> doesn't exist.")
 	case "test":
 		fname := args[0]
 		if filepath.IsLocal(fname) {
@@ -638,119 +654,119 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 		file, err := os.Open(fname)
 		if err != nil {
-			hub.WriteError(strings.TrimSpace(err.Error()) + "\n")
+			h.WriteError(strings.TrimSpace(err.Error()) + "\n")
 			break
 		}
 		defer file.Close()
 		fileInfo, err := file.Stat()
 		if err != nil {
-			hub.WriteError(strings.TrimSpace(err.Error()) + "\n")
+			h.WriteError(strings.TrimSpace(err.Error()) + "\n")
 			break
 		}
 		if fileInfo.IsDir() {
 			files, err := file.Readdir(0)
 			if err != nil {
-				hub.WriteError(strings.TrimSpace(err.Error()) + "\n")
+				h.WriteError(strings.TrimSpace(err.Error()) + "\n")
 				break
 			}
 			for _, potentialPfFile := range files {
 				if filepath.Ext(potentialPfFile.Name()) == ".pf" {
-					hub.TestScript(fname+"/"+potentialPfFile.Name(), ERROR_CHECK)
+					h.TestScript(fname+"/"+potentialPfFile.Name(), ERROR_CHECK)
 				}
 			}
 		} else {
-			hub.TestScript(fname, ERROR_CHECK)
+			h.TestScript(fname, ERROR_CHECK)
 		}
 	case "trace":
-		if len(hub.ers) == 0 {
-			hub.WriteError("there are no recent errors.")
+		if len(h.ers) == 0 {
+			h.WriteError("there are no recent errors.")
 			break
 		}
-		if len(hub.ers[0].Trace) == 0 {
-			hub.WriteError("not a runtime error.")
+		if len(h.ers[0].Trace) == 0 {
+			h.WriteError("not a runtime error.")
 			break
 		}
-		hub.WritePretty(pf.GetTraceReport(hub.ers[0]))
+		h.WritePretty(pf.GetTraceReport(h.ers[0]))
 	case "users-of-group":
-		result, err := database.GetUsersOfGroup(hub.Db, args[0])
+		result, err := database.GetUsersOfGroup(h.Db, args[0])
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		} else {
-			hub.WriteString(result)
+			h.WriteString(result)
 		}
 	case "users-of-service":
-		result, err := database.GetUsersOfService(hub.Db, args[0])
+		result, err := database.GetUsersOfService(h.Db, args[0])
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 		} else {
-			hub.WriteString(result)
+			h.WriteString(result)
 		}
 	case "values":
-		if len(hub.ers) == 0 {
-			hub.WriteError("there are no recent errors.")
+		if len(h.ers) == 0 {
+			h.WriteError("there are no recent errors.")
 			break
 		}
-		if hub.ers[0].Values == nil {
-			hub.WriteError("no values were passed.")
+		if h.ers[0].Values == nil {
+			h.WriteError("no values were passed.")
 			break
 		}
-		if len(hub.ers[0].Values) == 0 {
-			hub.WriteError("no values were passed.")
+		if len(h.ers[0].Values) == 0 {
+			h.WriteError("no values were passed.")
 			break
 		}
-		if len(hub.ers[0].Values) == 1 {
-			hub.WriteString("\nThe value passed was:\n\n")
+		if len(h.ers[0].Values) == 1 {
+			h.WriteString("\nThe value passed was:\n\n")
 		} else {
-			hub.WriteString("\nValues passed were:\n\n")
+			h.WriteString("\nValues passed were:\n\n")
 		}
-		for _, v := range hub.ers[0].Values {
+		for _, v := range h.ers[0].Values {
 			if v.T == pf.BLING {
-				hub.WriteString(BULLET_SPACING + hub.Services[hub.currentServiceName()].ToLiteral(v))
+				h.WriteString(BULLET_SPACING + h.Services[h.currentServiceName()].ToLiteral(v))
 			} else {
-				hub.WriteString(BULLET + hub.Services[hub.currentServiceName()].ToLiteral(v))
+				h.WriteString(BULLET + h.Services[h.currentServiceName()].ToLiteral(v))
 			}
-			hub.WriteString("\n")
+			h.WriteString("\n")
 		}
-		hub.WriteString("\n")
+		h.WriteString("\n")
 	case "where":
 		num, _ := strconv.Atoi(args[0])
 		if num < 0 {
-			hub.WriteError("the `where` keyword can't take a negative number as a parameter.")
+			h.WriteError("the `where` keyword can't take a negative number as a parameter.")
 			break
 		}
-		if num >= len(hub.ers) {
-			hub.WriteError("there aren't that many errors.")
+		if num >= len(h.ers) {
+			h.WriteError("there aren't that many errors.")
 			break
 		}
 		println()
-		line := hub.Sources[hub.ers[num].Token.Source][hub.ers[num].Token.Line-1] + "\n"
-		startUnderline := hub.ers[num].Token.ChStart
-		lenUnderline := hub.ers[num].Token.ChEnd - startUnderline
+		line := h.Sources[h.ers[num].Token.Source][h.ers[num].Token.Line-1] + "\n"
+		startUnderline := h.ers[num].Token.ChStart
+		lenUnderline := h.ers[num].Token.ChEnd - startUnderline
 		if lenUnderline == 0 {
 			lenUnderline = 1
 		}
 		endUnderline := startUnderline + lenUnderline
-		hub.WriteString(line[0:startUnderline])
-		hub.WriteString(Red(line[startUnderline:endUnderline]))
-		hub.WriteString(line[endUnderline:])
-		hub.WriteString(strings.Repeat(" ", startUnderline))
-		hub.WriteString(Red(strings.Repeat("▔", lenUnderline)))
+		h.WriteString(line[0:startUnderline])
+		h.WriteString(Red(line[startUnderline:endUnderline]))
+		h.WriteString(line[endUnderline:])
+		h.WriteString(strings.Repeat(" ", startUnderline))
+		h.WriteString(Red(strings.Repeat("▔", lenUnderline)))
 	case "why":
-		hub.WriteString("\n")
+		h.WriteString("\n")
 		num, _ := strconv.Atoi(args[0])
-		if num >= len(hub.ers) {
-			hub.WriteError("there aren't that many errors.")
+		if num >= len(h.ers) {
+			h.WriteError("there aren't that many errors.")
 			break
 		}
-		exp, _ := pf.ExplainError(hub.ers, num)
-		hub.WritePretty("<R>Error</>: " + hub.ers[num].Message + ".")
-		hub.WriteString("\n\n")
-		hub.WritePretty(exp + "\n\n")
-		refLine := hub.GetPretty("Error has reference `\"" + hub.ers[num].ErrorId + "\"`.")
-		padding := strings.Repeat(" ", hub.getSV("width").V.(int)-len(text.StripColors(refLine))-2)
-		hub.WriteString(padding)
-		hub.WritePretty(refLine)
-		hub.WriteString("\n")
+		exp, _ := pf.ExplainError(h.ers, num)
+		h.WritePretty("<R>Error</>: " + h.ers[num].Message + ".")
+		h.WriteString("\n\n")
+		h.WritePretty(exp + "\n\n")
+		refLine := h.GetPretty("Error has reference `\"" + h.ers[num].ErrorId + "\"`.")
+		padding := strings.Repeat(" ", h.getSV("width").V.(int)-len(text.StripColors(refLine))-2)
+		h.WriteString(padding)
+		h.WritePretty(refLine)
+		h.WriteString("\n")
 	}
 	return len(b), nil
 }
@@ -965,14 +981,10 @@ func (hub *Hub) CurrentServiceIsBroken() bool {
 	return hub.Services[hub.currentServiceName()].IsBroken()
 }
 
-var prefix = `var
-
-`
-
 func (hub *Hub) saveHubFile() string {
 	hubService := hub.Services["hub"]
 	var buf strings.Builder
-	buf.WriteString(prefix)
+	buf.WriteString("var\n\n")
 	buf.WriteString("allServices = map(")
 	serviceList := []string{}
 	for k := range hub.Services {
@@ -1371,134 +1383,6 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 	h.Out = os.Stdout
 	response := jsonResponse{Body: buf.String(), Service: serviceName}
 	json.NewEncoder(w).Encode(response)
-}
-
-// So, the Form type. Yes, I basically am reinventing the object here because the fields of
-// a struct aren't first-class objects in Go, unlike other superior langages I could name.
-// I can get rid of the whole thing when I do SQL integration and can just make the hub into
-// a regular Pipefish service. TODO --- you can do this now!
-type Form struct { // For when the hub wants to initiate structured input.
-	Fields []string
-	Result map[string]string
-	Call   func(f *Form)
-}
-
-func (h *Hub) addUserAsGuest() {
-	h.CurrentForm = &Form{Fields: []string{"Username", "First name", "Last name", "Email", "*Password", "*Confirm password"},
-		Call:   func(f *Form) { h.handleConfigUserForm(f) },
-		Result: make(map[string]string)}
-}
-
-func (h *Hub) handleConfigUserForm(f *Form) {
-	h.CurrentForm = nil
-	_, err := os.Stat(filepath.Join(settings.PipefishHomeDirectory, "user/admin.dat"))
-	if errors.Is(err, os.ErrNotExist) {
-		h.WriteError("this Pipefish hub doesn't have administered " +
-			"access: there is nothing to join.")
-		return
-	}
-	if err != nil {
-		h.WriteError("E/ " + err.Error())
-		return
-	}
-	if f.Result["*Password"] != f.Result["*Confirm password"] {
-		h.WriteError("passwords don't match.")
-		return
-	}
-
-	err = database.AddUser(h.Db, f.Result["Username"], f.Result["First name"],
-		f.Result["Last name"], f.Result["Email"], f.Result["*Password"], "")
-	if err != nil {
-		h.WriteError("F/ " + err.Error())
-		return
-	}
-	err = database.AddUserToGroup(h.Db, f.Result["Username"], "Guests", false)
-	if err != nil {
-		h.WriteError("G/ " + err.Error())
-		return
-	}
-	h.TerminalUsername = f.Result["Username"]
-	h.TerminalPassword = f.Result["*Password"]
-	h.WriteString("You are logged in as " + h.TerminalUsername + ".\n")
-}
-
-func (h *Hub) configAdmin() {
-	h.CurrentForm = &Form{Fields: []string{"Username", "First name", "Last name", "Email", "*Password", "*Confirm password"},
-		Call:   func(f *Form) { h.handleConfigAdminForm(f) },
-		Result: make(map[string]string)}
-}
-
-func (h *Hub) handleConfigAdminForm(f *Form) {
-	h.CurrentForm = nil
-	if h.Db == nil {
-		h.WriteError("database has not been configured: edit the hub file or do `hub config db` first.")
-		return
-	}
-	if f.Result["*Password"] != f.Result["*Confirm password"] {
-		h.WriteError("passwords don't match.")
-		return
-	}
-	err := database.AddAdmin(h.Db, f.Result["Username"], f.Result["First name"],
-		f.Result["Last name"], f.Result["Email"], f.Result["*Password"], h.currentServiceName(), settings.PipefishHomeDirectory)
-	if err != nil {
-		h.WriteError("H/ " + err.Error())
-		return
-	}
-	h.WriteString(GREEN_OK + "\n")
-	h.TerminalUsername = f.Result["Username"]
-	h.TerminalPassword = f.Result["*Password"]
-	h.WritePretty("You are logged in as " + h.TerminalUsername + ".\n")
-
-	h.administered = true
-}
-
-func (h *Hub) getLogin() {
-	h.CurrentForm = &Form{Fields: []string{"Username", "*Password"},
-		Call:   func(f *Form) { h.handleLoginForm(f) },
-		Result: make(map[string]string)}
-}
-
-func (h *Hub) handleLoginForm(f *Form) {
-	h.CurrentForm = nil
-	_, err := database.ValidateUser(h.Db, f.Result["Username"], f.Result["*Password"])
-	if err != nil {
-		h.WriteError("I/ " + err.Error())
-		h.WriteString("Please try again.\n\n")
-		return
-	}
-	h.TerminalUsername = f.Result["Username"]
-	h.TerminalPassword = f.Result["*Password"]
-	h.WriteString(GREEN_OK + "\n")
-}
-
-func (h *Hub) configDb() {
-	h.CurrentForm = &Form{Fields: []string{database.GetDriverOptions(), "Host", "Port", "Database name", "Username for database access", "*Password for database access"},
-		Call:   func(f *Form) { h.handleConfigDbForm(f) },
-		Result: make(map[string]string)}
-}
-
-func (h *Hub) handleConfigDbForm(f *Form) {
-	h.CurrentForm = nil
-	number, err := strconv.Atoi(f.Result[database.GetDriverOptions()])
-	if err != nil {
-		h.WriteError("hub/db/config/a: " + err.Error())
-		return
-	}
-	port, err := strconv.Atoi(f.Result["Port"])
-	if err != nil {
-		h.WriteError("hub/db/config/b: " + err.Error())
-		return
-	}
-	DbDriverAsPfEnum := database.GetSortedDrivers()[number]
-	h.Db, err = database.GetdB(DbDriverAsPfEnum, f.Result["Host"], f.Result["Database name"], port,
-		f.Result["Username for database access"], f.Result["*Password for database access"])
-	h.setDB(DbDriverAsPfEnum, f.Result["Host"], f.Result["Database name"], port,
-		f.Result["Username for database access"], f.Result["*Password for database access"])
-	if err != nil {
-		h.WriteError("hub/db/config/c: " + err.Error())
-		return
-	}
-	h.WriteString(GREEN_OK + "\n")
 }
 
 func ServiceDo(serviceToUse *pf.Service, line string) pf.Value {

@@ -1,6 +1,7 @@
 import
 
 NULL::"sql"
+NULL::"terminal"
 golang "io"
 
 newtype
@@ -14,8 +15,9 @@ HUB Hub? = NULL
 cmd
 
 // Verb are in alphabetical order:
-// add, config, create, do, edit, env, errors, halt, help, let, listen, live, log, my, peek, quit, register, replay, run, services, snap,
-// test, trace, track, where, why, values
+// add, config, create, do, edit, env, errors, halt, help, let, listen, live, log, log on, 
+// log off, quit, register, replay, run, services, snap, test, trace, track, where, why, 
+// values
 
 add(usr string) to (grp string) :
     do("add", [usr, grp])
@@ -24,10 +26,18 @@ api :
     do("api", [])
 
 config admin :
-    do("config-admin", [])
+    get username from Keyboard("Username? ")
+    get firstName from Keyboard("First name? ")
+    get lastName from Keyboard("Last name? ")
+    get email from Keyboard("Email? ")
+    get password from masked Keyboard("Password? ")
+    get confirm from masked Keyboard("Confirm password? ")
+    password != confirm :
+        error "password and confirmation don't match"
+    do("config-admin", [username, firstName, lastName, email, password])
 
-config db :
-    do("config-db", [])
+config admin(username, firstName, lastName, email, password string):
+    do("config-admin", [username, firstName, lastName, email, password])
 
 create(grp string) :
     do("create", [grp])
@@ -46,7 +56,14 @@ env delete(x any) :
     do("env", [])
 
 env key :
-    do("env-key", [])
+    post ("Input current env key (or newline to continue if there isn't one):")
+    get old from masked Keyboard("? ")
+    post ("Input new env key:")
+    get new from masked Keyboard("? ")
+    do("env-key", [old, new])
+
+env key(old, new string):
+    do("env-key", [old, new])
 
 env wipe :
     do("env-wipe", [])
@@ -97,7 +114,9 @@ log :
     do("log", [])
 
 log on :
-    do("log-on", [])
+    get username from Keyboard("Username? ")
+    get password from masked Keyboard("Password? ")
+    do("log-on", [username, password])
 
 log off :
     do("log-off", [])
@@ -106,7 +125,18 @@ quit :
     do("quit", [])
 
 register :
-    do("register", [])
+    get username from Keyboard("Username? ")
+    get firstName from Keyboard("First name? ")
+    get lastName from Keyboard("Last name? ")
+    get email from Keyboard("Email? ")
+    get password from masked Keyboard("Password? ")
+    get confirm from masked Keyboard("Confirm password? ")
+    password != confirm :
+        error "password and confirmation don't match"
+    do("register", [username, firstName, lastName, email, password])
+
+register (username, firstName, lastName, email, password string):
+    do("register", [username, firstName, lastName, email, password])
 
 replay (filename string) :
     do("replay", [filename])
