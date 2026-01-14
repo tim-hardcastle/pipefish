@@ -1,10 +1,6 @@
-import
-
-NULL::"sql"
-
 var
 
-allServices = map(`hub`::`user/hub/hub.hub`)
+allServices = map(`hub`::`!/user/hub/hub.hub`)
 
 currentService string? = NULL
 
@@ -14,4 +10,4 @@ theme Theme? = DARK_MODERN
 
 width = 92
 
-database Database? = NULL
+database SqlDb? = NULL

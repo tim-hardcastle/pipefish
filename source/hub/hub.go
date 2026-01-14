@@ -906,6 +906,7 @@ func (hub *Hub) createService(name, scriptFilepath string) bool {
 			println("Filepath is", scriptFilepath)
 			println("Pipefish: unable to compile hub: " + newService.GetErrors()[0].ErrorId + ".")
 			println(newService.GetErrors()[0].Message)
+			println(text.DescribePos(newService.GetErrors()[0].Token))
 			panic("That's all folks!")
 		}
 		if !newService.IsInitialized() {

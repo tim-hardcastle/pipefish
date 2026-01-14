@@ -1,7 +1,3 @@
-import
-
-NULL::"sql"
-
 var
 
 allServices = map(`hub`::`!/source/hub/test-files/default/hub.hub`)
@@ -14,4 +10,3 @@ theme Theme? = DARK_MODERN
 
 width = 92
 
-database Database? = NULL
