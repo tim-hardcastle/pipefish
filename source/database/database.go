@@ -50,10 +50,10 @@ var SqlDrivers = []string{"postgres", "firebirdsql", "mysql", "sqlserver", "mysq
 var driversFromPipefishEnum = map[string]string{"COCKROACHDB": "postgres", "FIREBIRD_SQL": "firebirdsql", "MARIADB": "mysql", "MICROSOFT_SQL_SERVER": "sqlserver", "MYSQL": "mysql",
 	"ORACLE": "oracle", "POSTGRESQL": "postgres", "SNOWFLAKE": "snowflake", "SQLITE": "sqlite", "TIDB": "mysql"}
 
-func GetdB(driverAsPipefishEnum, name, host string, port int, user, password string) (*sql.DB, error) {
+func GetdB(driverAsPipefishEnum, hostpath string, port int, hostname, user, password string) (*sql.DB, error) {
 
 	connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
-		host, port, name, user, password)
+		hostpath, port, hostname, user, password)
 
 	sqlObj, connectionError := sql.Open(driversFromPipefishEnum[driverAsPipefishEnum], connectionString)
 	if connectionError != nil {

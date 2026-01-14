@@ -75,20 +75,18 @@ func (hub *Hub) currentServiceName() string {
 }
 
 func (hub *Hub) hasDatabase() bool {
-	return hub.getSV("database").T != pf.NULL
+	return hub.getSV("$_db").V != nil
 }
 
-func (hub *Hub) getDB() (string, string, string, int, string, string) {
-	dbStruct := hub.getSV("database").V.([]pf.Value)
+func (hub *Hub) hasMailer() bool {
+	return hub.getSV("$_mailer").V != nil
+}
+
+// Temporary thing until all SQL io is in hub.pf.
+func (hub *Hub) getDB() (string, string, int, string, string, string) {
+	dbStruct := hub.getSV("$_db").V.([]pf.Value)
 	driver := hub.Services["hub"].ToLiteral(dbStruct[0])
-	return driver, dbStruct[1].V.(string), dbStruct[2].V.(string), dbStruct[3].V.(int), dbStruct[4].V.(string), dbStruct[5].V.(string)
-}
-
-func (hub *Hub) setDB(driver, name, path string, port int, username, password string) {
-	hubService := hub.Services["hub"]
-	driverAsEnumValue, _ := hubService.Do(driver)
-	structType, _ := hubService.TypeNameToType("Database")
-	hub.setSV("database", structType, []pf.Value{driverAsEnumValue, {pf.STRING, name}, {pf.STRING, path}, {pf.INT, port}, {pf.STRING, username}, {pf.STRING, password}})
+	return driver, dbStruct[1].V.(string), dbStruct[2].V.(int), dbStruct[3].V.(string), dbStruct[4].V.(string), dbStruct[5].V.(string)
 }
 
 func (hub *Hub) isLive() bool {
@@ -1011,31 +1009,6 @@ func (hub *Hub) saveHubFile() string {
 	buf.WriteString("width = ")
 	buf.WriteString(hubService.ToLiteral(hub.getSV("width")))
 	buf.WriteString("\n\n")
-	buf.WriteString("database SqlDb? = ")
-	dbVal := hub.getSV("database")
-	if dbVal.T == pf.NULL {
-		buf.WriteString("NULL\n")
-	} else {
-		args := dbVal.V.([]pf.Value)
-		buf.WriteString("Database with (driver::")
-		buf.WriteString(hubService.ToLiteral(args[0]))
-		buf.WriteString(",\n")
-		buf.WriteString("                                 .. name::")
-		buf.WriteString(hubService.ToLiteral(args[1]))
-		buf.WriteString(",\n")
-		buf.WriteString("                                 .. host::")
-		buf.WriteString(hubService.ToLiteral(args[2]))
-		buf.WriteString(",\n")
-		buf.WriteString("                                 .. port::")
-		buf.WriteString(hubService.ToLiteral(args[3]))
-		buf.WriteString(",\n")
-		buf.WriteString("                                 .. username::")
-		buf.WriteString(hubService.ToLiteral(args[4]))
-		buf.WriteString(",\n")
-		buf.WriteString("                                 .. password::")
-		buf.WriteString(hubService.ToLiteral(args[5]))
-		buf.WriteString(")\n")
-	}
 
 	fname := hub.MakeFilepath(hub.hubFilepath)
 
@@ -1103,12 +1076,9 @@ func (h *Hub) OpenHubFile(hubFilepath string) {
 	v, _ := hubService.GetVariable("allServices")
 	services := v.V.(pf.Map).AsSlice()
 
-	var driver, name, host, username, password string
-	var port int
-
 	if h.hasDatabase() {
-		driver, name, host, port, username, password = h.getDB()
-		h.Db, _ = database.GetdB(driver, host, name, port, username, password)
+		driver, hostpath, port, hostname, username, password := h.getDB()
+		h.Db, _ = database.GetdB(driver, hostpath, port, hostname, username, password)
 	}
 
 	errors := false
