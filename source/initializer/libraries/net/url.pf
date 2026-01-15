@@ -1,0 +1,193 @@
+import 
+
+golang "net/url"
+golang "errors"
+
+newtype
+
+UserInfo = struct(username, password)
+
+Url = struct(scheme string,
+          .. opaque string,         // encoded opaque data
+          .. user Userinfo,         // username and password information
+          .. host string,           // host or host:port (see Hostname and Port methods)
+          .. path string,           // path (relative paths may omit leading slash)
+          .. rawPath string,        // encoded path hint (see EscapedPath method)
+          .. omitHost bool,         // do not emit empty host (authority)
+          .. forceQuery bool,       // append a query ('?') even if RawQuery is empty
+          .. rawQuery string,       // encoded query values, without '?'
+          .. fragment string,       // fragment for references, without '#'
+          .. rawFragment string)    // encoded fragment hint (see EscapedFragment method)
+
+golang {
+    func urlUrlToUrl(u *url.URL) Url {
+        return  Url{
+            Scheme: u.Scheme,
+            Opaque: u.Opaque, 
+            User: UserInfo{username: u.User.Username,
+                           password: u.User.Password
+            },
+            Host: u.Host,
+            Path: u.Path,
+            RawPath: u.RawPath,
+            OmitHost: u.OmitHost,
+            ForceQuery: u.ForceQuery,
+            RawQuery: u.RawQuery,
+            Fragment: u.Fragment,
+            RawFragment: u.RawFragment
+        }
+    }
+
+    func urlToUrlUrl(u Url) *url.URL {
+        return &url.Url{
+            Scheme: u.Scheme,
+            Opaque: u.Opaque, 
+            User: &url.Userinfo{Username: u.User.Username,
+                                Password: u.User.Password
+            },
+            Host: u.Host,
+            Path: u.Path,
+            RawPath: u.RawPath,
+            OmitHost: u.OmitHost,
+            ForceQuery: u.ForceQuery,
+            RawQuery: u.RawQuery,
+            Fragment: u.Fragment,
+            RawFragment: u.RawFragment
+        }
+    }
+
+}
+
+def
+
+joinPath(base string, elem ... string) -> string/error : golang {
+    r, e := url.JoinPath(base, elem ...)
+    if e != nil {
+        return e 
+    }
+    return r 
+}
+
+pathEscape(s string) -> string : golang {
+    return url.PathEscape(s)
+}
+
+pathUnescape(s string) -> string/error  : golang {
+    r, e := url.PathUnescape(s)
+    if e != nil {
+        return e 
+    }
+    return r 
+}
+
+queryEscape(s string) -> string : golang {
+    return url.QueryEscape(s)
+}
+
+queryUnescape(s string) -> string/error : golang {
+    r, e := url.QueryUnescape(s)
+    if e != nil {
+        return e 
+    }
+    return r 
+}
+
+parse(rawUrl string) -> Url/error : golang {
+    u, err := url.Parse(rawUrl)
+    if err != nil {
+        return err 
+    } else {
+        return urlUrlToUrl(u)
+    }
+}
+
+parse(u Url, rawUrl string) -> Url/error : golang {
+    u, err := urlToUrlUrl(u).Parse(rawUrl)
+    if err != nil {
+        return err 
+    } else {
+        return urlUrlToUrl(u)
+    }
+}
+
+parseRequestUri(rawUrl string) -> Url/error : golang {
+    u, err := url.ParseRequestURI(rawUrl)
+    if err != nil {
+        return err 
+    } else {
+        return urlUrlToUrl(u)
+    }
+}
+
+escapedFragment(u Url) -> string : golang {
+    return urlToUrlUrl(u).EscapedFragment()
+}
+
+escapedPath(u Url) -> string : golang {
+    return urlToUrlUrl(u).EscapedPath()
+}
+
+hostname(u Url) -> string : golang {
+    return urlToUrlUrl(u).Hostname()
+}
+
+isAbs(u Url) -> bool : golang {
+    return urlToUrlUrl(u).IsAbs()
+}
+
+joinPath(u Url, elem ... string): golang {
+    return urlToUrlUrl(u).JoinPath(elem ...)
+}
+
+port(u Url) -> string : golang {
+    return urlToUrlUrl(u).Port()
+}
+
+query(u Url) -> map : golang {
+    return urlToUrlUrl(u).Query()
+}
+
+redacted(u Url) -> string : golang {
+    return urlToUrlUrl(u).Redacted()
+}
+
+requestUri(u Url) -> string : golang {
+    return urlToUrlUrl(u).RequestUri()
+}
+
+resolveReference(u, v Url) -> string : golang {
+    return urlToUrlUrl(u).ResolveReference(urlToUrlUrl(v))
+}
+
+port(u Url) -> string : golang {
+    return urlToUrlUrl(u).Port()
+}
+
+string(u Url) -> string : golang {
+    return urlToUrlUrl(u).String()
+}
+
+parseQuery(query string) -> map : golang {
+    return url.ParseQuery(query)
+}
+
+encode(values map) -> string : golang {
+    goMap := url.Values{}
+    for key, list := range values {
+        if goKey, ok := key.(string); !ok {
+            return errors.New("key in map is not of type `string`")
+        } else {
+            goList := []string
+            for _, el := range list {
+                if goEl, ok := el.(string); !ok {
+                    return errors.New("value in map is not of type `string`")
+                } else {
+                    goList = append(goList, goEl)
+                }
+            }
+        }
+        goMap[goKey] = goList
+    }
+    return url.Encode(goMap)
+}
+

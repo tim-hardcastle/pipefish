@@ -1,6 +1,6 @@
 ~~ Implements the Simple Mail Transfer Protocol (SMTP).
 
-import
+import private
 
 golang "net/smtp"
 golang "errors"
