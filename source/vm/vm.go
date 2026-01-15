@@ -98,11 +98,6 @@ type Lambda struct {
 	Gocode         *reflect.Value // If it's a lambda returned from Go code, this will be non-nil, and most of the other fields will be their zero value except the sig information.
 }
 
-// What a thing of type SECRET keeps in its V field.
-type Secret struct {
-	secret values.Value
-}
-
 // Interface wrapping around external calls whether to the same hub or via HTTP.
 type ExternalCallHandler interface {
 	Evaluate(line string) values.Value
@@ -148,7 +143,7 @@ var CONSTANTS = []values.Value{values.UNDEF, values.FALSE, values.TRUE, values.U
 var nativeTypeNames = []string{"UNDEFINED VALUE", "INT ARRAY", "THUNK", "CREATED LOCAL CONSTANT",
 	"BLING", "UNSATISFIED CONDITIONAL", "REFERENCE VARIABLE",
 	"ITERATOR", "ok", "tuple", "error", "null", "int", "bool", "string", "rune", "float", "type", "func",
-	"pair", "list", "map", "set", "label", "snippet", "secret"}
+	"pair", "list", "map", "set", "label", "snippet"}
 
 func BlankVm() *Vm {
 	vm := &Vm{Mem: make([]values.Value, len(CONSTANTS)),
@@ -244,8 +239,8 @@ loop:
 				host := dbValue[1].V.(string)
 				port := dbValue[2].V.(int)
 				name := dbValue[3].V.(string)
-				user := dbValue[4].V.(Secret).secret.V.(string)
-				password := dbValue[5].V.(Secret).secret.V.(string)
+				user := dbValue[4].V.(string)
+				password := dbValue[5].V.(string)
 				connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
 					host, port, name, user, password)
 				sqlObj, connectionError := sql.Open(database.SqlDrivers[driverNo], connectionString)
@@ -285,8 +280,8 @@ loop:
 				host := dbValue[1].V.(string)
 				port := dbValue[2].V.(int)
 				name := dbValue[3].V.(string)
-				user := dbValue[4].V.(Secret).secret.V.(string)
-				password := dbValue[5].V.(Secret).secret.V.(string)
+				user := dbValue[4].V.(string)
+				password := dbValue[5].V.(string)
 				connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
 					host, port, name, user, password)
 				sqlObj, connectionError := sql.Open(database.SqlDrivers[driverNo], connectionString)
@@ -1254,8 +1249,6 @@ loop:
 				vm.Mem[args[0]] = values.Value{values.MAP, result}
 			case Mkpr:
 				vm.Mem[args[0]] = values.Value{values.PAIR, []values.Value{vm.Mem[args[1]], vm.Mem[args[2]]}}
-			case MkSc:
-				vm.Mem[args[0]] = values.Value{values.SECRET, Secret{vm.Mem[args[1]]}}
 			case Mkst:
 				result := values.Set{}
 				for _, v := range vm.Mem[args[1]].V.([]values.Value) {

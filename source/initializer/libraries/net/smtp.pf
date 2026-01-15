@@ -1,0 +1,74 @@
+~~ Implements the Simple Mail Transfer Protocol (SMTP).
+
+import
+
+golang "net/smtp"
+golang "errors"
+
+newtype
+
+Crammd_5_Auth = struct(username, password string)
+PlainAuth = struct(identity, username, password, host string)
+Auth = abstract Crammd_5_Auth/PlainAuth
+Mailer = struct(addr string, auth Auth, sender string)
+
+cmd 
+
+post from (m Mailer) to (recipient string, msg snippet) :
+    post from m to [recipient], msg
+
+post from (m Mailer) to (recipients list, msg snippet) :
+    type n[auth] == Crammd_5_Auth :
+        goCrammd(m[addr], m[auth][username], m[auth][password], m[sender], 
+              .. recipients, parse msg)
+    else :
+        goPlain(m[addr], m[auth][identity], m[auth][username], m[auth][password], 
+             .. m[auth][host], m[sender], recipients, parse msg)
+
+private
+
+goCrammd(addr, username, password, sender string, recipients list, msg string) {
+    auth := smtp.CRAMMD5Auth(username, password)
+    to, ok := stringList(recipients)
+    if !ok {
+        return errors.New("non-string value in list of recipients")
+    }
+	err := smtp.SendMail(addr, auth, sender, to, msg)
+	if err != nil {
+		return err
+	}
+    return struct{}{}
+}
+
+goPlain(addr, identity, username, password, host, sender string, recipients list, msg string) {
+    auth := smtp.PlainAuth(identity, username, password, host)
+    to, ok := stringList(recipients)
+    if !ok {
+        return errors.New("non-string value in list of recipients")
+    }
+	err := smtp.SendMail(addr, auth, sender, to, msg)
+	if err != nil {
+		return err
+	}
+    return struct{}{}
+}
+
+golang{
+    func stringList(L []any) ([]string, bool) {
+        r := string{}
+        for _, el := range L {
+            s, ok := el.(string)
+            if !ok {
+                return nil, false
+            }
+            r = append(r, el.(string))
+        }
+        return r, true
+    }
+}
+
+def private
+
+parse(msg snippet) :
+    from a = "" for _::el = range msg :
+        a + string(el)

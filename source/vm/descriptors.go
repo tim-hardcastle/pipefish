@@ -57,7 +57,6 @@ type descriptionFlavor int
 const (
 	DEFAULT descriptionFlavor = iota
 	LITERAL
-	SECRET
 )
 
 // TODO --- LITERAL should produce an error on being fed something unserializable.
@@ -79,7 +78,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 	}
 	if typeInfo.IsEnum() {
 		var buf strings.Builder
-		if flavor == LITERAL || flavor == SECRET {
+		if flavor == LITERAL {
 			buf.WriteString(typeInfo.(EnumType).Path)
 		}
 		buf.WriteString(typeInfo.(EnumType).ElementNames[v.V.(int)])
@@ -206,18 +205,8 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		if flavor == DEFAULT {
 			return fmt.Sprintf("%c", v.V.(rune))
 		}
-		if flavor == LITERAL || flavor == SECRET {
+		if flavor == LITERAL {
 			return fmt.Sprintf("'%c'", v.V.(rune))
-		}
-	case values.SECRET:
-		if flavor == SECRET {
-			var buf strings.Builder
-			buf.WriteString("secret(")
-			buf.WriteString(vm.toString(v.V.(Secret).secret, SECRET))
-			buf.WriteString(")")
-			return buf.String()
-		} else {
-			return "secret(?)"
 		}
 	case values.SET:
 		var buf strings.Builder
@@ -243,14 +232,14 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		if flavor == DEFAULT {
 			return v.V.(string)
 		}
-		if flavor == LITERAL || flavor == SECRET {
+		if flavor == LITERAL {
 			return strconv.Quote(v.V.(string))
 		}
 	case values.SUCCESSFUL_VALUE:
 		if flavor == DEFAULT {
 			return text.GREEN + "OK" + text.RESET
 		}
-		if flavor == LITERAL || flavor == SECRET {
+		if flavor == LITERAL {
 			return "OK"
 		}
 
@@ -308,7 +297,7 @@ func (vm *Vm) DescribeAbstractType(aT values.AbstractType, flavor descriptionFla
 		if sizeOfBiggestType == 0 {
 			break
 		}
-		if flavor == LITERAL || flavor == SECRET {
+		if flavor == LITERAL {
 			result = append(result, vm.AbstractTypes[biggestType].Path+vm.AbstractTypes[biggestType].Name)
 		} else {
 			result = append(result, vm.AbstractTypes[biggestType].Name)
@@ -390,9 +379,9 @@ func (vm *Vm) DumpStore(store values.Map, password string) string {
 	var plaintext strings.Builder
 	plaintext.WriteString("PLAINTEXT\n")
 	for _, pair := range store.AsSlice() {
-		plaintext.WriteString(vm.toString(pair.Key, SECRET))
+		plaintext.WriteString(vm.toString(pair.Key, LITERAL))
 		plaintext.WriteString("::")
-		plaintext.WriteString(vm.toString(pair.Val, SECRET))
+		plaintext.WriteString(vm.toString(pair.Val, LITERAL))
 		plaintext.WriteString("\n")
 	}
 	if password == "" {

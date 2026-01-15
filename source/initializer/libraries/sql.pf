@@ -3,7 +3,7 @@ newtype
 SqlDriver = enum COCKROACHDB, FIREBIRD_SQL, MARIADB, MICROSOFT_SQL_SERVER, MYSQL, ORACLE, 
               .. POSTGRESQL, SNOWFLAKE, SQLITE, TIDB
 
-SqlDb = struct(driver SqlDriver, hostpath string, port int, hostname string, username, password secret)
+SqlDb = struct(driver SqlDriver, hostpath string, port int, hostname, username, password string)
 
 Varchar = clone{i int} string :
     len that <= i 

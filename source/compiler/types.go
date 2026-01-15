@@ -24,7 +24,6 @@ var BASE_TYPES = map[string]values.ValueType{
 	"func":    values.FUNC,
 	"null":    values.NULL,
 	"snippet": values.SNIPPET,
-	"secret":  values.SECRET,
 }
 
 func NewCommonTypeMap() TypeSys {

@@ -43,7 +43,6 @@ const ( // Cross-reference with typeNames in BlankVm()
 	SET                // V : values.Set
 	LABEL              // V : int
 	SNIPPET            // V : Snippet struct{Data []values.Value, Bindle *SnippetBindle}
-	SECRET             // V : SecretContainer
 	FIRST_DEFINED_TYPE // I.e the first of the enums.
 )
 

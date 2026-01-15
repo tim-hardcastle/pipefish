@@ -87,7 +87,6 @@ var BUILTINS = map[string]functionAndReturnType{
 	"post_sql":                  {(*Compiler).btPostToSQL, AltType(values.SUCCESSFUL_VALUE, values.ERROR)},
 	"post_to_terminal":          {(*Compiler).btPostToTerminal, AltType(values.SUCCESSFUL_VALUE)},
 	"rune":                      {(*Compiler).btRune, AltType(values.RUNE)},
-	"secret":                    {(*Compiler).btSecret, AltType(values.SECRET)},
 	"single_in_list":            {(*Compiler).btSingleInList, AltType(values.BOOL)},
 	"single_in_set":             {(*Compiler).btSingleInSet, AltType(values.BOOL)},
 	"single_in_tuple":           {(*Compiler).btSingleInTuple, AltType(values.BOOL)},
@@ -410,10 +409,6 @@ func (cp *Compiler) btPostToTerminal(tok *token.Token, dest uint32, args []uint3
 
 func (cp *Compiler) btRune(tok *token.Token, dest uint32, args []uint32) {
 	cp.Emit(vm.Itor, dest, args[0])
-}
-
-func (cp *Compiler) btSecret(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.MkSc, dest, args[0])
 }
 
 func (cp *Compiler) btSingleInList(tok *token.Token, dest uint32, args []uint32) {

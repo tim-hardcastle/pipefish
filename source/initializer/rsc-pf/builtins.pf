@@ -85,7 +85,6 @@ map(x ... pair) -> map : makeMap(x)
 makeMap(x tuple) -> map : builtin "make_map"
 pair(x clones{pair}) -> pair : builtin "cast_to_pair"
 rune(x int) -> rune : builtin "rune"
-secret(x any?) -> secret : builtin "secret"
 set(x clones{set}) -> set : builtin "cast_to_set"
 set(x ... any?) -> set : makeSet(x)
 makeSet(x tuple) -> set : builtin "make_set"   
@@ -98,7 +97,6 @@ tuple(x ... any?) -> tuple : builtin "tuple_of_varargs"
 type(x any?) -> type : builtin "type"
 type(x ok) -> type : builtin "type"
 type(x tuple) -> type : builtin "type_of_tuple"
-
 (x list) with (y ... pair) -> list : builtin "list_with"
 (x map) with (y ... pair) -> map : builtin "map_with"
 (x struct) with (y ... pair) -> struct : builtin "struct_with"

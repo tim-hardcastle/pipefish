@@ -222,7 +222,7 @@ var (
 	illegalInRepl        = dtypes.MakeFromSlice([]string{"cmd", "const", "def", "external", "global", "golang", "import", "newtype", "private", "var", "\\\\", "~~"})
 	// Used by the syntax highlighter; should not be used by anything else without much forethought.
 	// TODO --- there must be some principled way to generate this from something else.
-	nativeTypes   = dtypes.MakeFromSlice([]string{"ok", "int", "string", "rune", "bool", "float", "error", "type", "pair", "list", "map", "set", "label", "func", "null", "snippet", "secret", "clone", "clones", "enum", "struct", "any", "ref", "tuple"})
+	nativeTypes   = dtypes.MakeFromSlice([]string{"ok", "int", "string", "rune", "bool", "float", "error", "type", "pair", "list", "map", "set", "label", "func", "null", "snippet", "clone", "clones", "enum", "struct", "any", "ref", "tuple"})
 	enumlike, _   = regexp.Compile(`^[A-Z][A-Z_]+$`)
 	typelike, _   = regexp.Compile(`^[A-Z][A-Z]*[a-z]+[A-Za-z]*$`)
 	bracketMatch  = map[rune]rune{'(': ')', '[': ']', '{': '}'}

@@ -222,7 +222,6 @@ var goTypes = map[string]string{
 	"pair":    "[2]any",
 	"set":     "map[any]struct{}",
 	"snippet": "!",
-	"secret":  "!",
 	"tuple":   "[]any",
 	"type":    "!",
 }
