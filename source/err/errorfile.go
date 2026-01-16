@@ -1138,11 +1138,10 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"golang/concrete/b": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "abstract type in signature of golang function"
+			return "abstract type " + emph(args[0]) + " in field " + emph(args[2]) + " of struct type " + emph(args[1]) + " being converted to golang"
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "Only concrete types can appear in the signature of a golang function because " +
-				"how would you convert an abstract type to Go?"
+			return "Only concrete types can appear in the signature of a Pipefish struct that participates in Go interop"
 		},
 	},
 

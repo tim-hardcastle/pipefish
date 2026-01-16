@@ -719,6 +719,9 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			break
 		}
 		println()
+		if h.ers[num].Token.Line <= 0 {
+			h.WriteError("line number is not available.")
+		}
 		line := h.Sources[h.ers[num].Token.Source][h.ers[num].Token.Line-1] + "\n"
 		startUnderline := h.ers[num].Token.ChStart
 		lenUnderline := h.ers[num].Token.ChEnd - startUnderline

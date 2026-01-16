@@ -48,7 +48,7 @@ func (cp *Compiler) TypeInfoNow(name string) vm.TypeInformation {
 	return cp.Vm.ConcreteTypeInfo[concreteType]
 }
 
-func (cp *Compiler) getTypeInformation(name string) (vm.TypeInformation, bool) {
+func (cp *Compiler) GetTypeInformation(name string) (vm.TypeInformation, bool) {
 	concreteType, ok := cp.GetConcreteType(name)
 	if !ok {
 		return nil, false
@@ -57,7 +57,7 @@ func (cp *Compiler) getTypeInformation(name string) (vm.TypeInformation, bool) {
 }
 
 func (cp *Compiler) IsBuiltin(name string) bool {
-	typeInfo, ok := cp.getTypeInformation(name)
+	typeInfo, ok := cp.GetTypeInformation(name)
 	if !ok {
 		return false
 	} else {
@@ -67,7 +67,7 @@ func (cp *Compiler) IsBuiltin(name string) bool {
 }
 
 func (cp *Compiler) IsStruct(name string) bool {
-	typeInfo, ok := cp.getTypeInformation(name)
+	typeInfo, ok := cp.GetTypeInformation(name)
 	if !ok {
 		return false
 	} else {

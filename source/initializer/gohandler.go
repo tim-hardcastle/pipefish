@@ -296,11 +296,14 @@ func (iz *Initializer) transitivelyCloseTypes(userDefinedTypes dtypes.Set[string
 			structsToCheck.Add(name)
 		}
 	}
-	for newStructsToCheck := make(dtypes.Set[string]); len(structsToCheck) > 0; {
+	for ; len(structsToCheck) > 0; {
+		newStructsToCheck := make(dtypes.Set[string])
 		for structName := range structsToCheck {
 			for _, fieldType := range iz.cp.TypeInfoNow(structName).(vm.StructType).AbstractStructFields {
 				if fieldType.Len() != 1 {
 					iz.throw("golang/concrete/b", INTEROP_TOKEN, iz.cp.Vm.DescribeAbstractType(fieldType, vm.LITERAL))
+					structsToCheck = newStructsToCheck
+					continue
 				}
 				typeOfField := iz.cp.GetTypeNameFromNumber(fieldType.Types[0])
 				switch fieldData := iz.cp.TypeInfoNow(typeOfField).(type) {
@@ -315,8 +318,8 @@ func (iz *Initializer) transitivelyCloseTypes(userDefinedTypes dtypes.Set[string
 					}
 				}
 			}
+			structsToCheck = newStructsToCheck
 		}
-		structsToCheck = newStructsToCheck
 	}
 }
 
