@@ -9,7 +9,7 @@ newtype
 UserInfo = struct(username, password string)
 
 // TODO --- it is currently a syntax error to use , newline .. in cases like these.
-Url = struct(scheme, opaque string, user UserInfo, host, path, rawPath string, omitHost, forceQuery bool, fragment, rawFragment string) 
+Url = struct(scheme, opaque string, user UserInfo, host, path, rawPath string, omitHost, forceQuery bool, rawQuery, fragment, rawFragment string) 
 
 def
 
@@ -54,8 +54,8 @@ parse(rawUrl string) -> Url/error : golang {
     }
 }
 
-parse(u Url, rawUrl string) -> Url/error : golang {
-    u, err := urlToUrlUrl(u).Parse(rawUrl)
+parseInContext(v Url, rawUrl string) -> Url/error : golang {
+    u, err := urlToUrlUrl(v).Parse(rawUrl)
     if err != nil {
         return err 
     } else {
@@ -96,7 +96,7 @@ port(u Url) -> string : golang {
     return urlToUrlUrl(u).Port()
 }
 
-query(u Url) -> map : golang {
+query(u Url) : golang {
     return urlToUrlUrl(u).Query()
 }
 
@@ -105,48 +105,58 @@ redacted(u Url) -> string : golang {
 }
 
 requestUri(u Url) -> string : golang {
-    return urlToUrlUrl(u).RequestUri()
+    return urlToUrlUrl(u).RequestURI()
 }
 
-resolveReference(u, v Url) -> string : golang {
-    return urlToUrlUrl(u).ResolveReference(urlToUrlUrl(v))
+resolveReference(u, v Url) -> Url : golang {
+    return urlUrlToUrl(urlToUrlUrl(u).ResolveReference(urlToUrlUrl(v)))
 }
 
 string(u Url) -> string : golang {
     return urlToUrlUrl(u).String()
 }
 
-parseQuery(query string) -> map : golang {
-    return url.ParseQuery(query)
+parseQuery(query string) -> map/error : golang {
+    r, err := url.ParseQuery(query)
+    if err != nil {
+        return err 
+    } else {
+        return r
+    }
 }
 
-encode(values map) -> string : golang {
+encode(values map) -> string/error : golang {
     goMap := url.Values{}
     for key, list := range values {
         if goKey, ok := key.(string); !ok {
             return errors.New("key in map is not of type `string`")
         } else {
-            goList := []string
-            for _, el := range list {
+            if rawList, ok := list.([]any); ok {
+                return errors.New("value in map is not of type `list`")
+            } else {
+            goList := []string{}
+            for _, el := range rawList {
                 if goEl, ok := el.(string); !ok {
-                    return errors.New("value in map is not of type `string`")
+                    return errors.New("element in list in map is not of type `string`")
                 } else {
                     goList = append(goList, goEl)
                 }
             }
+            goMap[goKey] = goList
+            }
         }
-        goMap[goKey] = goList
     }
-    return url.Encode(goMap)
+    return goMap.Encode()
 }
 
 golang {
     func urlUrlToUrl(u *url.URL) Url {
-        return  Url{
+        password, _ := u.User.Password()
+        return Url{
             Scheme: u.Scheme,
             Opaque: u.Opaque, 
-            User: UserInfo{username: u.User.Username,
-                           password: u.User.Password
+            User: UserInfo{Username: u.User.Username(),
+                           Password: password,
             },
             Host: u.Host,
             Path: u.Path,
@@ -155,17 +165,15 @@ golang {
             ForceQuery: u.ForceQuery,
             RawQuery: u.RawQuery,
             Fragment: u.Fragment,
-            RawFragment: u.RawFragment
+            RawFragment: u.RawFragment,
         }
     }
 
     func urlToUrlUrl(u Url) *url.URL {
-        return &url.Url{
+        return &url.URL{
             Scheme: u.Scheme,
             Opaque: u.Opaque, 
-            User: &url.Userinfo{Username: u.User.Username,
-                                Password: u.User.Password
-            },
+            User: url.UserPassword(u.User.Username, u.User.Password),
             Host: u.Host,
             Path: u.Path,
             RawPath: u.RawPath,
@@ -173,7 +181,7 @@ golang {
             ForceQuery: u.ForceQuery,
             RawQuery: u.RawQuery,
             Fragment: u.Fragment,
-            RawFragment: u.RawFragment
+            RawFragment: u.RawFragment,
         }
     }
 }
