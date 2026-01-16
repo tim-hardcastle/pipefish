@@ -17,8 +17,9 @@ cmd
 post from (m Mailer) to (recipient string, msg snippet) :
     post from m to [recipient], msg
 
-post from (m Mailer) to (recipients list, msg snippet) :
-    type n[auth] == Crammd_5_Auth :
+// TODO --- it's not clear why this needs the return types to make the previous function compile.
+post from (m Mailer) to (recipients list, msg snippet) -> ok/error :
+    type m[auth] == Crammd_5_Auth :
         goCrammd(m[addr], m[auth][username], m[auth][password], m[sender], 
               .. recipients, parse msg)
     else :
@@ -27,26 +28,26 @@ post from (m Mailer) to (recipients list, msg snippet) :
 
 private
 
-goCrammd(addr, username, password, sender string, recipients list, msg string) {
+goCrammd(addr, username, password, sender string, recipients list, msg string) -> ok/error : golang {
     auth := smtp.CRAMMD5Auth(username, password)
     to, ok := stringList(recipients)
     if !ok {
         return errors.New("non-string value in list of recipients")
     }
-	err := smtp.SendMail(addr, auth, sender, to, msg)
+	err := smtp.SendMail(addr, auth, sender, to, []byte(msg))
 	if err != nil {
 		return err
 	}
     return struct{}{}
 }
 
-goPlain(addr, identity, username, password, host, sender string, recipients list, msg string) {
+goPlain(addr, identity, username, password, host, sender string, recipients list, msg string) -> ok/error : golang {
     auth := smtp.PlainAuth(identity, username, password, host)
     to, ok := stringList(recipients)
     if !ok {
         return errors.New("non-string value in list of recipients")
     }
-	err := smtp.SendMail(addr, auth, sender, to, msg)
+	err := smtp.SendMail(addr, auth, sender, to, []byte(msg))
 	if err != nil {
 		return err
 	}
@@ -55,13 +56,13 @@ goPlain(addr, identity, username, password, host, sender string, recipients list
 
 golang{
     func stringList(L []any) ([]string, bool) {
-        r := string{}
+        r := []string{}
         for _, el := range L {
             s, ok := el.(string)
             if !ok {
                 return nil, false
             }
-            r = append(r, el.(string))
+            r = append(r, s)
         }
         return r, true
     }

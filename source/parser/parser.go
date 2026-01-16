@@ -310,7 +310,7 @@ func (p *Parser) ParseExpression(precedence int) Node {
 					case p.CurToken.Literal == "func":
 						leftExp = p.parseLambdaExpression()
 						return leftExp // TODO --- don't.
-					case p.CurToken.Literal == "from":
+					case p.CurToken.Literal == "from" && !p.Common.BlingManager.canBling("from", FOREFIX, MIDFIX, ENDFIX):
 						leftExp = p.parseFromExpression()
 						return leftExp
 					default:
