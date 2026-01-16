@@ -1050,7 +1050,7 @@ NodeTypeSwitch:
 			lResult := cp.CompileNode(node.Args[0], ctxt.x())
 			overlap := lResult.Types.intersect(cp.Common.SharedTypenameToTypeList["clones{list}"])
 			if len(overlap) == 0 {
-				cp.Throw("comp/splat/type", node.GetToken(), lResult.Types)
+				cp.Throw("comp/splat/type", node.GetToken(), lResult.Types.describe(cp.Vm))
 				return FAIL
 			}
 			if len(lResult.Types) == len(overlap) {

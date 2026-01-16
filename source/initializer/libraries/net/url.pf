@@ -13,13 +13,8 @@ Url = struct(scheme, opaque string, user UserInfo, host, path, rawPath string, o
 
 def
 
-// joinPath(base string, elem ... string) -> string/error : golang {
-//     r, e := url.JoinPath(base, elem ...)
-//     if e != nil {
-//         return e 
-//     }
-//     return r 
-// }
+joinPath(base string, elem ... string) -> string/error : 
+    goJoinPathToString(base, elem)
 
 pathEscape(s string) -> string : golang {
     return url.PathEscape(s)
@@ -186,3 +181,12 @@ golang {
     }
 }
 
+private 
+
+goJoinPathToString(base string, elem ... string) : golang {
+    r, e := url.JoinPath(base, elem ...)
+    if e != nil {
+        return e 
+    }
+    return r 
+}
