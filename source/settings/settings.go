@@ -25,8 +25,9 @@ var ThingsToIgnore = (dtypes.MakeFromSlice(MandatoryImports)).
 	Add("Builtin constant").Add("user/themes.pf")
 
 var StandardLibraries = dtypes.MakeFromSlice([]string{"encoding/csv", "files", "fmt", "html", 
-    "math", "math/big", "math/cmplx", "math/rand", "net/mail", "net/smtp", "net/url", "path", 
-	"path/filepath", "reflect", "regexp", "sql", "strings", "terminal", "time", "unicode"})
+    "math", "math/big", "math/cmplx", "math/rand", "net/mail", "net/smtp", "net/url", "os/exec",
+	"path", "path/filepath", "reflect", "regexp", "sql", "strings", "terminal", "time", 
+	"unicode"})
 
 const (
 	OMIT_BUILTINS      = false // If true then the file builtins.pf, etc, will not be added to the service. Note that this means the hub won't work.

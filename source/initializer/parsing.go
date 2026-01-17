@@ -789,7 +789,9 @@ func (iz *Initializer) addCloneType(name, typeToClone string, private bool, decT
 		iz.setDeclaration(decCLONE, decTok, DUMMY, typeNo)
 		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.CloneType{Name: name, Path: iz.P.NamespacePath, Parent: parentTypeNo,
 			Private: private, IsMI: settings.MandatoryImportSet().Contains(decTok.Source)})
-		if parentTypeNo == values.LIST || parentTypeNo == values.STRING || parentTypeNo == values.SET || parentTypeNo == values.MAP {
+		if parentTypeNo == values.LIST || parentTypeNo == values.STRING || 
+		   parentTypeNo == values.SET || parentTypeNo == values.MAP || 
+		   parentTypeNo == values.SNIPPET {
 			iz.cp.Common.IsRangeable = iz.cp.Common.IsRangeable.Union(altType(typeNo))
 		}
 	}

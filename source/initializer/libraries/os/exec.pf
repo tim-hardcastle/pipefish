@@ -1,0 +1,53 @@
+import
+
+golang "os/exec"
+golang "github.com/google/shlex"
+
+newtype
+
+Os = clone snippet 
+
+cmd 
+
+get (x ref) from (command Os) :
+    x = goGet(parse command)
+
+post to (command Os) :
+    goPost(parse command)
+
+private
+
+goPost(command string) -> ok/error : golang {
+    bits, err1 := shlex.Split(command)
+    if err1 != nil {
+        return err1
+    }
+    c := bits[0]
+    a := bits[1:]
+    err2 := exec.Command(c, a ...).Run()
+    if err2 != nil {
+        return err2
+    }
+    return struct{}{}
+}
+
+def private
+
+parse(command Os) :
+    from a = "" for _::el = range command :
+        a + string(el)
+
+goGet(command string) -> string/error : golang {
+    bits, err1 := shlex.Split(command)
+    if err1 != nil {
+        return err1
+    }
+    c := bits[0]
+    a := bits[1:]
+    bytes, err2 := exec.Command(c, a ...).Output()
+    if err2 != nil {
+        return err2
+    }
+    return string(bytes)
+}
+
