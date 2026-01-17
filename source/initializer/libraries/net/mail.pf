@@ -1,0 +1,136 @@
+import
+
+NULL::"time"
+golang "time"
+golang "net/mail"
+golang "strings"
+golang "io"
+golang "errors"
+
+newtype
+
+Address = struct(name, address string)
+Message = struct(header map, body string)
+
+def
+
+parseAddress(address string) -> Address/error : golang {
+    ad, err := mail.ParseAddress(address)
+    if err != nil{
+        return err
+    }
+    return Address{ad.Name, ad.Address}
+}
+
+// Given the existence of the `>>` operator there is no need for a seperate `parseAddressList`.
+
+string(ad Address) -> string : golang {
+    return (&mail.Address{ad.Name, ad.Address}).String()
+}
+
+addressList(header map, key string) -> list/error : golang {
+    g, err1 := pfToGoHeader(header)
+    if err1 != nil {
+        return err1
+    }
+    goAddresses, err2 := g.AddressList(key)
+    if err2 != nil {
+        return err2
+    }
+    pfAddresses := []Address{}
+    for _, ad := range goAddresses {
+        pfAddresses = append(pfAddresses, goToPfAddress(ad))
+    }
+    return pfAddresses
+}
+
+date(h map) -> Time/error : golang {
+    g, err1 := pfToGoHeader(h)
+    if err1 != nil {
+        return err1
+    }
+    t, err2 := g.Date()
+    if err2 != nil {
+        return err2
+    }
+    return goToPfTime(t)
+}
+
+parseDate(s string) -> Time/error : golang {
+    t, err := mail.ParseDate(s)
+    if err != nil {
+        return err
+    }
+    return goToPfTime(t)
+}
+
+readMessage(raw string) -> Message/error : golang {
+    m, err := mail.ReadMessage(strings.NewReader(raw))
+    if err != nil {
+        return err
+    }
+    body, e  := io.ReadAll(m.Body)
+    if e != nil {
+        return e
+    }
+    return Message{goToPfHeader(m.Header), string(body)}
+}
+
+// TODO --- this forces compilation of Message for the function above.
+iotaM(m Message) -> Message : golang {
+    return m
+}
+// TODO --- this forces compilation of Time for the function above.
+iotaT(m Time) -> Time : golang {
+    return m
+}
+
+golang {
+
+    func pfToGoHeader(header map[any]any) (mail.Header, error)  {
+        goMap := mail.Header{}
+        for key, list := range header {
+            if goKey, ok := key.(string); !ok {
+                return nil, errors.New("key in map is not of type `string`")
+            } else {
+                if rawList, ok := list.([]any); ok {
+                    return nil, errors.New("value in map is not of type `list`")
+                } else {
+                goList := []string{}
+                for _, el := range rawList {
+                    if goEl, ok := el.(string); !ok {
+                        return nil, errors.New("element in list in map is not of type `string`")
+                    } else {
+                        goList = append(goList, goEl)
+                    }
+                }
+                goMap[goKey] = goList
+                }
+            }
+        }
+        return goMap, nil
+    }
+
+    func goToPfHeader(m mail.Header) map[any]any {
+        pfMap := map[any]any{}
+        for key, list := range m {
+            pfList := []any{}
+            for _, el := range list {
+                pfList = append(pfList, el)
+            }
+            pfMap[key] = pfList
+        }
+        return pfMap
+    }
+
+    func goToPfAddress(a *mail.Address) Address {
+        return Address{a.Name, a.Address}
+    }
+
+    func goToPfTime(t time.Time) Time {
+        return Time{t.Year(), int(t.Month()), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location().String()}
+    }
+}
+
+
+
