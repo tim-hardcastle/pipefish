@@ -1,0 +1,39 @@
+import
+
+golang "encoding/csv"
+golang "errors"
+golang "strings"
+
+def 
+
+encode(L list) -> string/error : golang {
+    stringLists := [][]string{}
+    for _, shouldBeList := range L {
+        if shouldBeList, ok := shouldBeList.([]any); !ok {
+            return errors.New("non-list in list of things to be encoded")
+        } else {
+            stringList := []string{}
+                for _, shouldBeString := range shouldBeList {
+                if shouldBeString, ok := shouldBeString.(string); !ok {
+                    return errors.New("non-string element in row of things to be encoded")
+                } else {
+                    stringList = append(stringList, shouldBeString)
+                }
+            }
+            stringLists = append(stringLists, stringList)
+        }
+    }
+    var b = strings.Builder{}
+    w := csv.NewWriter(&b)
+	w.WriteAll(stringLists) 
+    return b.String()
+}
+
+decode(s string) -> list/error : golang {
+    rd := csv.NewReader(strings.NewReader(s))
+    r, e := rd.ReadAll()
+    if e != nil {
+        return e
+    }
+    return r
+}
