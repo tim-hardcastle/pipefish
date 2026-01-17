@@ -1,0 +1,24 @@
+def 
+
+binarySearch(L list, x any?) -> int/error :
+    L == [] :
+        error "element is not in list"
+    x < pivot :
+        binarySearch(L[0::midpoint], x)
+    x > pivot :
+        midpoint + 1 + binarySearch(L[midpoint+1::len(L)], x)
+    else :
+        midpoint
+given :
+    midpoint = len(L) div 2
+    pivot = L[midpoint]
+
+compact(L list) -> list : 
+    from K = [] for i::x = range L :
+        i == 0 :
+            [L[0]]
+        type(L[i]) == type(L[i-1]) and L[i] == L[i-1] :
+            continue
+        else :
+            K & L[i]
+
