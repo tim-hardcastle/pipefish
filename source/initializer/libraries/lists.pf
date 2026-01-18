@@ -5,7 +5,7 @@ binarySearch(L list, x any?) -> int/error :
         error "element is not in list"
     x < pivot :
         binarySearch(L[0::midpoint], x)
-    x > pivot :
+    pivot < x :
         midpoint + 1 + binarySearch(L[midpoint+1::len(L)], x)
     else :
         midpoint
@@ -22,3 +22,188 @@ compact(L list) -> list :
         else :
             K & L[i]
 
+count(L list, x any?) -> int :
+    from a = 0 for _::el = range L :
+        type(el) == type(x) and el == x :
+            a + 1
+        else :
+            continue 
+
+count(L list, F func) -> int :
+    from a = 0 for _::el = range L :
+        F(el) :
+            a + 1
+        else :
+            continue  
+
+find(L list, x any?) -> int? :
+    from a int? = NULL for i::el = range L :
+        type(el) == type(x) and el == x :
+            break i
+        else :
+            continue 
+
+find(L list, F func) -> int? :
+    from a int? = NULL for i::el = range L :
+        F el :
+            break i
+        else :
+            continue 
+
+findAll(L list, x any?) -> list :
+    from a = [] for i::el = range L :
+        type(el) == type(x) and el == x :
+            a & i
+        else :
+            continue 
+
+findAll(L list, F func) -> list :
+    from a = [] for i::el = range L :
+        F el :
+            a & i
+        else :
+            continue
+
+fold(L list, F func) :
+    L == [] :
+        error "can't fold empty list"
+    else :
+        from a = L[0] for _::el = range L[1::len L] :
+            F(a, el)
+
+insert(L list, x any?) -> list :
+    L[0::ip] + [x] + L[ip::len L]
+given :
+    ip = findInsertion(L, x)
+
+isSorted(L list) -> bool :
+    len(L) <= 1 :
+        true 
+    else :
+        from a = true for i::el = range L[0::len(L)-1] :
+            el < L[i+1] or el == L[i+1] :
+                continue 
+            else :
+                break false 
+
+max(L list) : 
+    L == [] :
+        error "can't take maximum of empty list"
+    else :
+        from a = L[0] for _::el = range L[1::len L] :
+            a < el :
+                el 
+            else :
+                continue 
+
+max(L list, F func) : 
+    L == [] :
+        error "can't take maximum of empty list"
+    else :
+        from a = L[0] for _::el = range L[1::len L] :
+            F(a) < F(el) :
+                el 
+            else :
+                continue 
+
+merge(J, K list) -> list :
+    J == [] and K == [] :
+        []
+    else :
+        first from L, j, k = [], 0, 0 for :
+            j >= len J :
+                break L + K[k::len K], 0, 0 
+            k >= len K :
+                break L + J[j::len J], 0, 0
+            J[j] < K[k] :
+                L & J[j], j + 1, k 
+            else :
+                L & K[k], j, k + 1
+
+min(L list) : 
+    L == [] :
+        error "can't take minimum of empty list"
+    else :
+        from a = L[0] for _::el = range L[1::len L] :
+            el < a :
+                el 
+            else :
+                continue 
+
+min(L list, F func) : 
+    L == [] :
+        error "can't take minimum of empty list"
+    else :
+        from a = L[0] for _::el = range L[1::len L] :
+            F(el) < F(a) :
+                el 
+            else :
+                continue 
+
+product(L list) :
+    L == [] :
+        error "can't take product of empty list"
+    else :
+        from a = L[0] for _::el = range L[1::len L] :
+            a * el
+
+repeat(n int, x ... any?) -> list :
+    from L = [] for _::i = range 0::n :
+        L + [x]
+
+reverse(L list) -> list :
+    from K = [] for _::i = range len(L)::0 :
+        K & L[i]
+
+sort(L list) -> list :
+    len L <= 1 :
+        L 
+    else :
+        merge(sort(L[0::midpoint]), sort(L[midpoint::len L]))
+given :
+    midpoint = len(L) div 2
+
+sum(L list) :
+    L == [] :
+        error "can't take sum of empty list"
+    else :
+        from a = L[0] for _::el = range L[1::len L] :
+            a + el
+
+transpose(ls ... list) -> list :
+    len(ls) == 0 :
+        []
+    not check ls :
+        error "lists must be the same length"
+    else :
+        from r = [] for _::i = range 0::(len ls[0]) :
+            r & from a = [] for _::j = range 0::(len ls) :
+                a & ls[j][i]
+
+private
+
+check(ls tuple) : // We want it to consist of lists of the same length.
+    from a = true for _::el = range ls[1::len ls] :
+        len(el) != len(ls[0]) : 
+            break false 
+        else :
+            continue
+
+findInsertion(L list, x any?) -> int : 
+    L == [] :
+        0 
+    L[len(L)-1] < x :
+        len(L) 
+    else :
+        first from low, high = 0, len(L) - 1 for :
+            high == low : 
+                break
+            x < pivot :
+                low, midpoint 
+            pivot < x and not (midpoint + 1 < len(L) and x < L[midpoint + 1]) :
+                midpoint, high 
+            else :
+                break midpoint + 1, 0
+        given :
+            midpoint = (low + high) div 2 
+            pivot = L[midpoint]
