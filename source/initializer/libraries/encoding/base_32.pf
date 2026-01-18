@@ -1,0 +1,29 @@
+import
+
+golang "encoding/base32"
+
+newtype
+
+Encoding = clone string :
+    len that == 32 
+
+const 
+
+HEX_ENCODING = Encoding("0123456789ABCDEFGHIJKLMNOPQRSTUV")
+STD_ENCODING = Encoding("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567")
+
+def 
+
+encode(encoding Encoding, text string) -> string : golang {
+    enc := base32.NewEncoding(string(encoding))
+    return enc.EncodeToString([]byte(text))
+}
+
+decode(encoding Encoding, text string) -> string/error : golang {
+    enc := base32.NewEncoding(string(encoding))
+    bytes, err := enc.DecodeString(text)
+    if err != nil {
+        return err
+    }
+    return string(bytes)
+}

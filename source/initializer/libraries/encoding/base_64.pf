@@ -1,0 +1,39 @@
+import
+
+golang "encoding/base64"
+
+newtype
+
+Encoding = struct(padding bool, key string) :
+    len key == 64 
+
+const 
+
+STD_ENCODING = Encoding(true, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+URL_ENCODING = Encoding(true, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+RAW_STD_ENCODING = Encoding(false, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+RAW_URL_ENCODING = Encoding(false, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+
+def 
+
+encode(encoding Encoding, text string) -> string : golang {
+    pad := base64.NoPadding
+    if encoding.Padding {
+        pad = base64.StdPadding
+    }
+    enc := base64.NewEncoding(encoding.Key).WithPadding(pad)
+    return enc.EncodeToString([]byte(text))
+}
+
+decode(encoding Encoding, text string) -> string/error : golang {
+    pad := base64.NoPadding
+    if encoding.Padding {
+        pad = base64.StdPadding
+    }
+    enc := base64.NewEncoding(encoding.Key).WithPadding(pad)
+    bytes, err := enc.DecodeString(text)
+    if err != nil {
+        return err
+    }
+    return string(bytes)
+}
