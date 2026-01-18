@@ -10,10 +10,10 @@ Os = clone snippet
 cmd 
 
 get (x ref) from (command Os) :
-    x = goGet(parse command)
+    x = goGet(string command)
 
 post to (command Os) :
-    goPost(parse command)
+    goPost(string command)
 
 private
 
@@ -31,11 +31,16 @@ goPost(command string) -> ok/error : golang {
     return struct{}{}
 }
 
-def private
+def 
 
-parse(command Os) :
-    from a = "" for _::el = range command :
-        a + string(el)
+string(command Os) :
+    from a = "" for i::el = range command :
+        i mod 2 == 0 :
+            a + el 
+        else :
+            a + literal(el)
+
+private
 
 goGet(command string) -> string/error : golang {
     bits, err1 := shlex.Split(command)
