@@ -42,11 +42,9 @@ var BUILTINS = map[string]functionAndReturnType{
 	"float_of_string":           {(*Compiler).btFloatOfString, AltType(values.ERROR, values.FLOAT)},
 	"get_from_input":            {(*Compiler).btGetFromInput, AltType(values.SUCCESSFUL_VALUE)},
 	"get_from_masked_input":     {(*Compiler).btGetFromMaskedInput, AltType(values.SUCCESSFUL_VALUE)},
-	"get_json_from_pf_inline":   {(*Compiler).btgetJsonFromPfInline, AltType(values.ERROR, values.STRING)},
-	"get_json_from_pf_pretty":   {(*Compiler).btgetJsonFromPfPretty, AltType(values.ERROR, values.STRING)},
-	"get_pf_from_json":          {(*Compiler).btGetPfFromJson, AltType()}, // Types need to be added by the caller.           
-	"get_pf_from_json_as":		 {(*Compiler).btGetPfFromJsonAs, AltType()}, // Types need to be added by the caller.           
-	"get_pf_from_json_like":     {(*Compiler).btGetPfFromJsonLike, AltType()}, // Types need to be added by the caller.           
+	"get_pf_from_json":          {(*Compiler).btGetPfFromJson, AltType()},     // Types need to be added by the caller.
+	"get_pf_from_json_as":       {(*Compiler).btGetPfFromJsonAs, AltType()},   // Types need to be added by the caller.
+	"get_pf_from_json_like":     {(*Compiler).btGetPfFromJsonLike, AltType()}, // Types need to be added by the caller.
 	"get_sql_as":                {(*Compiler).btGetFromSQLAs, AltType(values.SUCCESSFUL_VALUE, values.ERROR)},
 	"get_sql_like":              {(*Compiler).btGetFromSQLLike, AltType(values.SUCCESSFUL_VALUE, values.ERROR)},
 	"get_type_info":             {(*Compiler).btGetTypeInformation, AltType(values.LIST)},
@@ -232,23 +230,15 @@ func (cp *Compiler) btGetFromMaskedInput(tok *token.Token, dest uint32, args []u
 }
 
 func (cp *Compiler) btGetPfFromJson(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Jsde, dest, args[0], values.C_OK, cp.ReserveToken(tok))
+	cp.Reserve(values.TYPE, cp.getAbstractType("ok"), tok)
+	cp.Emit(vm.Json, dest, args[0], cp.That(), 0, cp.ReserveToken(tok))
 }
-
 func (cp *Compiler) btGetPfFromJsonAs(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Jsde, dest, args[0], args[2], cp.ReserveToken(tok))
+	cp.Emit(vm.Json, dest, args[0], args[2], 0, cp.ReserveToken(tok))
 }
 
 func (cp *Compiler) btGetPfFromJsonLike(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Jsde, dest, args[0], args[2], cp.ReserveToken(tok))
-}
-
-func (cp *Compiler) btgetJsonFromPfInline(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Jsen, dest, args[0], values.C_FALSE, cp.ReserveToken(tok))
-}
-
-func (cp *Compiler) btgetJsonFromPfPretty(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Jsen, dest, args[0], values.C_TRUE, cp.ReserveToken(tok))
+	cp.Emit(vm.Json, dest, args[0], args[2], 1, cp.ReserveToken(tok))
 }
 
 func (cp *Compiler) btGetFromSQLAs(tok *token.Token, dest uint32, args []uint32) {

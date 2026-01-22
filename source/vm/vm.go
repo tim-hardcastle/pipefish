@@ -1156,6 +1156,7 @@ loop:
 			case Jmp:
 				loc = args[0]
 				continue
+			case Json:
 			case Jsr:
 				vm.callstack = append(vm.callstack, loc)
 				loc = args[0]

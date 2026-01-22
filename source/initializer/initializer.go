@@ -527,7 +527,7 @@ func (iz *Initializer) populateInterfaceTypes() {
 			for _, fn := range funcsToAdd[ty] {
 				conflictingFunction := iz.Add(fn.op.Literal, fn)
 				if conflictingFunction != nil && conflictingFunction != fn {
-					iz.throw("init/overload/b", &fn.op, fn.op.Literal, conflictingFunction.op)
+					iz.throw("init/overload/b", &fn.op, fn.op.Literal, &conflictingFunction.op)
 				}
 			}
 		}
