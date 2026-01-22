@@ -554,6 +554,13 @@ func TestRecursion(t *testing.T) {
 	}
 	test_helper.RunTest(t, "recursion_test.pf", tests, test_helper.TestValues)
 }
+func TestRecursion2(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo [1, 2, 3, 4]`, `10`},
+		{`chunk "f(((o))o)"`, `['f', [[['o']], 'o']]`},
+	}
+	test_helper.RunTest(t, "recursion_test_2.pf", tests, test_helper.TestValues)
+}
 func TestReflection(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`reflect.isStruct Varchar{8}`, `false`},

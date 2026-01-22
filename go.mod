@@ -1,8 +1,6 @@
 module github.com/tim-hardcastle/pipefish
 
-go 1.24.0
-
-toolchain go1.24.10
+go 1.25
 
 require golang.org/x/sys v0.38.0 // indirect
 
@@ -58,8 +56,10 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/zerolog v1.28.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
+	github.com/wundergraph/astjson v1.0.0 // indirect
+	github.com/wundergraph/go-arena v0.0.0-20251008210416-55cb97e6f68f // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	gitlab.com/nyarla/go-crypt v0.0.0-20160106005555-d9a5dc2b789b // indirect

@@ -173,6 +173,8 @@ var OPERANDS = map[Opcode]opDescriptor{
 	IxSn: {"inxS", operands{dst, mem, mem}},
 	IxXx: {"ixXx", operands{dst, mem, mem, tok}},
 	Jmp:  {"jmp", operands{loc}},
+	Jsde: {"jsde", operands{dst, mem, mem, tok}},
+	Jsen: {"jsen", operands{dst, mem, mem, tok}},
 	Jsr:  {"jsr", operands{loc}},
 	KeyM: {"keyM", operands{dst, mem}},
 	KeyZ: {"keyZ", operands{dst, mem}},
@@ -349,6 +351,8 @@ const (
 	IxZl
 	IxZn
 	Jmp
+	Jsde
+	Jsen
 	Jsr
 	KeyM
 	KeyZ

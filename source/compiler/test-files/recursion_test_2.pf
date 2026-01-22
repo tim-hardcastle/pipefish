@@ -1,0 +1,24 @@
+def
+
+foo(L list) -> int : 
+    L == [] :
+        0
+    else :
+        L[0] + bar(L[1::len L])
+
+bar(L list) -> int :
+    foo(L)
+
+chunk(str string) :
+    first rc([], str) 
+
+rc(L list, str string) -> list, string :  
+    str == "" :
+        L, ""                    
+    str[0] == ')' :   
+        L, str[1::len str]                  
+    str[0] == '(' :          
+        rc(L + [(rc [], str[1::len str])[0]], 
+        .. (rc [], str[1::len str])[1]) 
+    else :
+        rc(L + [str[0]], str[1::len str]) 

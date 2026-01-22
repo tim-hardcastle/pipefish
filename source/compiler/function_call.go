@@ -517,8 +517,15 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 					cp.Emit(vm.Asgm, b.outLoc, DUMMY)
 					return cp.rtnTypesToTypeScheme(branch.Node.CallInfo.Compiler.MakeAbstractSigFromStringSig(branch.Node.CallInfo.ReturnTypes)), true
 				}
+				// Maybe we're compiling mutually recursive functions and we haven't compiled the
+				// one we're calling.
 				if fNo >= uint32(len(resolvingCompiler.Fns)) && cp == resolvingCompiler {
 					cp.cmP("Undefined function. We're doing recursion!", b.tok)
+					if dps, ok := cp.RecurringFunctions[fNo]; ok {
+						cp.RecurringFunctions[fNo] = dps.Add(uint32(len(cp.Fns)))
+					} else {
+						cp.RecurringFunctions[fNo] = dtypes.Set[uint32]{}.Add(uint32(len(cp.Fns)))
+					}
 					cp.Emit(vm.Rpsh, b.lowMem, cp.MemTop())
 					cp.RecursionStore = append(cp.RecursionStore, BkRecursion{fNo, cp.CodeTop()}) // So we can come back and doctor all the dummy variables.
 					cp.cmP("Emitting call opcode with dummy operands.", b.tok)
@@ -527,7 +534,20 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 					cp.Emit(vm.Asgm, b.outLoc, DUMMY) // We don't know where the function's output will be yet.
 					return cp.rtnTypesToTypeScheme(branch.Node.CallInfo.Compiler.MakeAbstractSigFromStringSig(branch.Node.CallInfo.ReturnTypes)), true
 				}
+				// So this exists.
 				F := resolvingCompiler.Fns[fNo]
+				// Perhaps we're compiling mutually recursive functions and we *have* compiled the one we're calling.
+				// In that case we can nearly treat this like a normal function call except that we have to push any
+				// data that needs saving.
+				if dps, ok := cp.RecurringFunctions[uint32(len(cp.Fns))]; ok && dps.Contains(fNo) {
+					cp.Emit(vm.Rpsh, b.lowMem, cp.MemTop())
+					cp.cmP("Emitting call opcode.", b.tok)
+					resolvingCompiler.emitCallOpcode(fNo, b.valLocs)
+					cp.Emit(vm.Rpop)
+					cp.Emit(vm.Asgm, b.outLoc, F.OutReg) // Because the different implementations of the function will have their own out register.
+					return F.RtnTypes, false
+				} 
+				
 				if (b.access == REPL || b.libcall) && F.Private {
 					cp.cmP("REPL trying to access private function. Returning error.", b.tok)
 					cp.Throw("comp/private", b.tok)

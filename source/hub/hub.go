@@ -521,7 +521,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			fname = filepath.Join(dir, fname)
 		}
 		h.lastRun = []string{fname, sname}
-		h.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.\n")
+		h.WritePretty("\nStarting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.\n")
 		h.StartAndMakeCurrent(username, sname, fname)
 		h.tryMain()
 	case "serialize":
@@ -848,13 +848,6 @@ func init() {
 }
 
 func (hub *Hub) StartAndMakeCurrent(username, serviceName, scriptFilepath string) bool {
-	if hub.administered {
-		err := database.UpdateService(hub.Db, username, serviceName)
-		if err != nil {
-			hub.WriteError("u/ " + err.Error())
-			return false
-		}
-	}
 	hub.setServiceName(serviceName)
 	hub.createService(serviceName, scriptFilepath)
 	return true

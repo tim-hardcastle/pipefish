@@ -1139,6 +1139,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		// shake out. E.g. suppose we have a type 'Money = struct(dollars, cents int)' and we wish to implement '+'. We will of course do it using '+' for ints.
 		// This will not be recursion, but before we get that far we won't be able to tell whether it is or not.
 		iz.cp.RecursionStore = []compiler.BkRecursion{} // The compiler will put all the places it needs to backtrack for recursion here.
+		iz.cp.RecurringFunctions = map[uint32]dtypes.Set[uint32]{}
 		fCount := uint32(len(iz.cp.Fns))                // We can give the function data in the parser the right numbers for the group of functions in the parser before compiling them, since we know what order they come in.
 		for _, dec := range groupOfDeclarations {
 			if dec.decType == functionDeclaration || dec.decType == commandDeclaration {
