@@ -6,80 +6,6 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-func TestEof(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`troz 42`, `42`},
-		{`zort 42`, `42`},
-	}
-	test_helper.RunTest(t, "eof_test.pf", tests, test_helper.TestValues)
-}
-func TestLiterals(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`"foo"`, `"foo"`},
-		{"`foo`", `"foo"`},
-		{`'q'`, `'q'`},
-		{`true`, `true`},
-		{`false`, `false`},
-		{`42.0`, `42`},
-		{`42`, `42`},
-		{`0b101010`, `42`},
-		{`0o52`, `42`},
-		{`0x2A`, `42`},
-		{`NULL`, `NULL`},
-		{`OK`, `OK`},
-	}
-	test_helper.RunTest(t, "", tests, test_helper.TestValues)
-}
-func TestHardwiredOps(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`5.0 == 2.0`, `false`},
-		{`5.0 != 2.0`, `true`},
-		{`5 == 2`, `false`},
-		{`5 != 2`, `true`},
-		{`true != false`, `true`},
-		{`"foo" == "foo"`, `true`},
-		{`int == int`, `true`},
-		{`struct == struct`, `true`},
-		{`[1, 2, 3] == [1, 2, 3]`, `true`},
-		{`[1, 2, 4] == [1, 2, 3]`, `false`},
-		{`[1, 2, 3, 4] == [1, 2, 3]`, `false`},
-		{`[1, 2, 3] == [1, 2, 3, 4]`, `false`},
-		{`set(1, 2, 3) == set(1, 2, 3)`, `true`},
-		{`set(1, 2, 4) == set(1, 2, 3)`, `false`},
-		{`set(1, 2, 3, 4) == set(1, 2, 3)`, `false`},
-		{`set(1, 2, 3) == set(1, 2, 3, 4)`, `false`},
-		{`1::2 == 1::2`, `true`},
-		{`1::2 == 2::2`, `false`},
-		{`1::2 == 1::1`, `false`},
-		{`map(1::2, 3::4) == map(1::2, 3::4)`, `true`},
-		{`map(1::2, 3::4) == map(1::2, 4::4)`, `false`},
-		{`map(1::2, 3::4) == map(1::2, 3::5)`, `false`},
-		{`map(1::2, 3::4) == map(1::2, 3::4, 5::6)`, `false`},
-		{`map(1::2, 3::4, 5::6) == map(1::2, 3::4)`, `false`},
-		{`not true`, `false`},
-		{`not false`, `true`},
-		{`false and false`, `false`},
-		{`true and false`, `false`},
-		{`false and true`, `false`},
-		{`true and true`, `true`},
-		{`false or false`, `false`},
-		{`true or false`, `true`},
-		{`false or true`, `true`},
-		{`true or true`, `true`},
-		{`1, (2, 3)`, `(1, 2, 3)`},
-	}
-	test_helper.RunTest(t, "", tests, test_helper.TestValues)
-}
-
-func TestConditionals(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`true : 5; else : 6`, `5`},
-		{`false : 5; else : 6`, `6`},
-		{`1 == 1 : 5; else : 6`, `5`},
-		{`1 == 2 : 5; else : 6`, `6`},
-	}
-	test_helper.RunTest(t, "", tests, test_helper.TestValues)
-}
 func TestBuiltins(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`5.0 + 2.0`, `7`},
@@ -152,253 +78,23 @@ func TestBuiltins(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
-
-func TestTuples(t *testing.T) {
+func TestCast(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`(1, 2), 3`, `(1, 2, 3)`},
-		{`1, (2, 3)`, `(1, 2, 3)`},
-		{`(1, 2), (3, 4)`, `(1, 2, 3, 4)`},
-		{`()`, `()`},
-		{`type tuple "foo", "bar"`, `tuple`},
-		{`len tuple "foo", "bar"`, `2`},
-		{`1 in tuple(1, 2)`, `true`},
-		{`string(X)`, `"(2, 3)"`},
-		{`len tuple 1, X`, `3`},
-		{`len tuple X, 1`, `3`},
-		{`len tuple W, Z`, `8`},
-		{`foo 1, X`, `3`},
-		{`foo X, 1`, `3`},
-		{`foo W, Z`, `8`},
+		{`cast "foo", string`, `"foo"`},
+		{`cast Uid(8), int`, `8`},
+		{`cast 8, Uid`, `Uid(8)`},
+		{`cast 0, Color`, `RED`},
+		{`cast ["John", 22], Person`, `Person with (name::"John", age::22)`},
+		{`cast "foo", enum`, `vm/cast/concrete`},
+		{`cast "foo", Person`, `vm/cast`},
+		{`cast -1, Color`, `vm/cast/enum`},
+		{`cast 99, Color`, `vm/cast/enum`},
+		{`cast ["John", 22, true], Person`, `vm/cast/fields`},
+		{`cast ["John", "22"], Person`, `vm/cast/types`},
+		{`float "foo"`, `vm/string/float`},
+		{`int "foo"`, `vm/string/int`},
 	}
-	test_helper.RunTest(t, "tuples_test.pf", tests, test_helper.TestValues)
-}
-
-func TestIndexing(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`DARK_BLUE[shade]`, `DARK`},
-		{`myColor[shade]`, `LIGHT`},
-		{`DARK_BLUE[KEY]`, `DARK`},
-		{`myColor[KEY]`, `LIGHT`},
-		{`DARK_BLUE[key]`, `DARK`},
-		{`myColor[key]`, `LIGHT`},
-		{`"Angela"[3]`, `'e'`},
-		{`"Angela"[2::5]`, `"gel"`},
-		{`myWord[2::5]`, `"gel"`},
-		{`myList[2]`, `[5, 6]`},
-		{`myList[myNumber]`, `[5, 6]`},
-		{`myList[0::2]`, `[[1, 2], [3, 4]]`},
-		{`myList[myIntPair]`, `[[1, 2], [3, 4]]`},
-		{`("a", "b", "c", "d")[2]`, `"c"`},
-		{`("a", "b", "c", "d")[myIntPair]`, `("a", "b")`},
-		{`"Angela"[myIntPair]`, `"An"`},
-		{`myWord[myIntPair]`, `"An"`},
-		{`myPair[0]`, `"foo"`},
-		{`myMap["a"]`, `[1, 2]`},
-		{`foo myMap, myIndex`, `[1, 2]`},
-		{`foo myList, myNumber`, `[5, 6]`},
-		{`foo myColor, key`, `LIGHT`},
-		{`foo myPair, myOtherNumber`, `"bar"`},
-		{`foo myWord, myNumber`, `'g'`},
-		{`"Angela"[3]`, `'e'`},
-		{`myTuple[myIntPair]`, `(1, 2)`},
-		{`myTuple[myNumber]`, `3`},
-		{`mySnippet[myNumber]`, `" troz "`},
-		{`myWord[myNumber]`, `'g'`},
-		{`goo myTuple, myIntPair`, `(1, 2)`},
-		{`goo myTuple, myNumber`, `3`},
-		{`foo mySnippet, myNumber`, `" troz "`},
-		{`foo myWord, myIntPair`, `"An"`},
-	}
-	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
-}
-func TestFunctionSyntaxCalls(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo "bing"`, `"foo bing"`},
-		{`"bing" zort`, `"bing zort"`},
-		{`"bing" troz "bong"`, `"bing troz bong"`},
-		{`moo "bing" goo`, `"moo bing goo"`},
-		{`flerp "bing" blerp "bong"`, `"flerp bing blerp bong"`},
-		{`qux`, `"qux"`},
-		{`foo p 7`, `"foo p"`},
-		{`foo q 7`, `"foo q"`},
-	}
-	test_helper.RunTest(t, "function_call_test.pf", tests, test_helper.TestValues)
-}
-func TestVariablesAndConsts(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`A`, `42`},
-		{`getB`, `99`},
-		{`changeZ`, `OK`},
-		{`v`, `true`},
-		{`w`, `42`},
-		{`y = NULL`, "OK"},
-	}
-	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
-}
-func TestVariableAccessErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`B`, `comp/ident/private`},
-		{`A = 43`, `comp/assign/const`},
-		{`z`, `comp/ident/private`},
-		{`secretB`, `comp/private`},
-		{`secretZ`, `comp/private`},
-	}
-	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestUserDefinedTypes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Tone with (shade::LIGHT, color::RED)`, `Tone with (shade::LIGHT, color::RED)`},
-		{`Color(4)`, `BLUE`},
-		{`DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
-		{`type DARK_BLUE`, `Tone`},
-		{`type RED`, `Color`},
-		{`keys DARK_BLUE`, `[shade, color]`},
-		{`DARK_BLUE[shade]`, `DARK`},
-		{`DARK_BLUE[color]`, `BLUE`},
-		{`GREEN == GREEN`, `true`},
-		{`GREEN == ORANGE`, `false`},
-		{`GREEN != GREEN`, `false`},
-		{`GREEN != ORANGE`, `true`},
-		{`PURPLE in MyType`, `true`},
-		{`Tone/Shade/Color`, `MyType`},
-		{`Tone(LIGHT, GREEN)`, `Tone with (shade::LIGHT, color::GREEN)`},
-		{`Tone(LIGHT, GREEN) == DARK_BLUE`, `false`},
-		{`Tone(LIGHT, GREEN) != DARK_BLUE`, `true`},
-		{`troz DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
-		{`foo 3, 5`, `8`},
-	}
-	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
-}
-func TestStructs(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`doug`, `Person with (name::"Douglas", age::42)`},
-		{`tom in Cat`, `true`},
-		{`doug with age::43`, `Person with (name::"Douglas", age::43)`},
-		{`myCat[myField]`, `"Felix"`},
-	}
-	test_helper.RunTest(t, "struct_test.pf", tests, test_helper.TestValues)
-}
-func TestWith(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
-		{`john with age::23`, `Person with (name::"John", age::23)`},
-		{`myList with diffList`, `["x", "y", "c", "d"]`},
-		{`myMap with "a"::99`, `map("a"::99, "b"::2, "c"::3, "d"::4)`},
-		{`myMap with "z"::42`, `map("a"::1, "b"::2, "c"::3, "d"::4, "z"::42)`},
-		{`myMap with diffMap`, `map("a"::99, "b"::99, "c"::3, "d"::4)`},
-		{`otherMap with ["a", 1]::99`, `map("a"::[0, 99], "b"::[2, 3])`},
-		{`myMap with "a"::99, "z"::42`, `map("a"::99, "b"::2, "c"::3, "d"::4, "z"::42)`},
-		{`myMap without "a"`, `map("b"::2, "c"::3, "d"::4)`},
-		{`myMap without "a", "b"`, `map("c"::3, "d"::4)`},
-	}
-	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
-}
-func TestTypeAccessErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Pair 1, 2`, `comp/private`},
-		{`Suit`, `comp/private/type`},
-		{`HEARTS`, `comp/ident/private`},
-		{`one`, `comp/ident/private`},
-	}
-	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
-}
-func TestOverloading(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo 42`, `"int"`},
-		{`foo "zort"`, `"string"`},
-		{`foo 42, true`, `"any?, bool"`},
-		{`foo 42.0, true`, `"any?, bool"`},
-		{`foo true, true`, `"bool, bool"`},
-	}
-	test_helper.RunTest(t, "overloading_test.pf", tests, test_helper.TestValues)
-}
-func TestPiping(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`["fee", "fie", "fo", "fum"] -> len`, `4`},
-		{`["fee", "fie", "fo", "fum"] >> len`, `[3, 3, 2, 3]`},
-		{`["fee", "fie", "fo", "fum"] -> that + ["foo"]`, `["fee", "fie", "fo", "fum", "foo"]`},
-		{`["fee", "fie", "fo", "fum"] >> that + "!"`, `["fee!", "fie!", "fo!", "fum!"]`},
-		{`[1, 2, 3, 4] ?> that mod 2 == 0`, `[2, 4]`},
-		{`ks >> MP[that]`, `["fee", "fie", "fo", "fum"]`},
-		{`foo ks`, `["fee", "fie", "fo", "fum"]`},
-	}
-	test_helper.RunTest(t, "piping_test.pf", tests, test_helper.TestValues)
-}
-func TestForLoops(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`fib 8`, `21`},
-		{`collatzA 42`, `1`},
-		{`collatzB 42`, `1`},
-		{`evens Color`, `[RED, YELLOW, BLUE]`},
-		{`evens "Angela"`, `['A', 'g', 'l']`},
-		{`evens myList`, `[PURPLE, GREEN, ORANGE]`},
-		{`find GREEN, Color`, `3`},
-		{`find GREEN, myList`, `2`},
-		{`find GREEN, myMap`, `"c"`},
-		{`allKeys myList`, `[0, 1, 2, 3, 4, 5]`},
-		{`allKeys "Angela"`, `[0, 1, 2, 3, 4, 5]`},
-		{`allValues myList`, `[PURPLE, BLUE, GREEN, YELLOW, ORANGE, RED]`},
-		{`showRange 3, 8`, `[0::3, 1::4, 2::5, 3::6, 4::7]`},
-		{`showRangeKeys 3, 8`, `[0, 1, 2, 3, 4]`},
-		{`showRangeValues 3, 8`, `[3, 4, 5, 6, 7]`},
-		{`showRange 8, 3`, `[0::7, 1::6, 2::5, 3::4, 4::3]`},
-		{`showRangeKeys 8, 3`, `[0, 1, 2, 3, 4]`},
-		{`showRangeValues 8, 3 `, `[7, 6, 5, 4, 3]`},
-		{`x`, `10`},
-	}
-	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
-}
-func TestInnerFunctionsAndVariables(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo 42`, `42`},
-		{`zort 3, 5`, `(25, 15)`},
-		{`troz 2`, `2200`},
-	}
-	test_helper.RunTest(t, "inner_test.pf", tests, test_helper.TestValues)
-}
-func TestRecursion(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`fac 5`, `120`},
-		{`power 3, 4`, `81`},
-		{`inFac 5`, `120`},
-	}
-	test_helper.RunTest(t, "recursion_test.pf", tests, test_helper.TestValues)
-}
-func TestImports(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`qux.square 5`, `25`},
-		{`type qux.Color`, `type`},
-		{`qux.RED`, `qux.RED`},
-		{`type qux.RED`, `qux.Color`},
-		{`qux.RED in qux.Color`, `true`},
-		{`qux.Color(4)`, `qux.BLUE`},
-		{`qux.Person "John", 22`, `qux.Person with (name::"John", age::22)`},
-		{`qux.Tone LIGHT, BLUE`, `qux.Tone with (shade::qux.LIGHT, color::qux.BLUE)`},
-		{`troz.sumOfSquares 3, 4`, `25`},
-	}
-	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
-}
-
-func TestExternals(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`zort.square 5`, `25`},
-		{`type zort.Color`, `type`},
-		{`zort.RED`, `zort.RED`},
-		{`type zort.RED`, `zort.Color`},
-		{`zort.RED in zort.Color`, `true`},
-		{`zort.Color(4)`, `zort.BLUE`},
-		{`zort.Person "John", 22`, `zort.Person with (name::"John", age::22)`},
-		{`zort.Tone LIGHT, BLUE`, `zort.Tone with (shade::zort.LIGHT, color::zort.BLUE)`},
-		{`zort.Qux 5`, `zort.Qux(5)`},
-	}
-	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
-}
-
-func TestRef(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`x ++`, `OK`},
-	}
-	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
 }
 func TestClones(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -427,28 +123,67 @@ func TestClones(t *testing.T) {
 	}
 	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
 }
-func TestSnippet(t *testing.T) {
+func TestConditionals(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`(qux 5)[0]`, `"foo "`},
-		{`(qux 5)[1]`, `10`},
-		{`(qux 5)[2]`, `" bar"`},
+		{`true : 5; else : 6`, `5`},
+		{`false : 5; else : 6`, `6`},
+		{`1 == 1 : 5; else : 6`, `5`},
+		{`1 == 2 : 5; else : 6`, `6`},
 	}
-	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
-func TestInterface(t *testing.T) {
+func TestCorners(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`BLERP in Addable`, `true`},
-		{`Fnug(5) in Addable`, `true`},
-		{`ZORT in Foobarable`, `true`},
-		{`true in Addable`, `false`},
-		{`Fnug(5) in Foobarable`, `false`},
-		{`Grunt(1, Derp(5))`, `Grunt with (flerp::1, glerp::Derp with (blerp::5))`},
-		{`Derp(5) in Zort`, `true`},
-		{`Derp(5) in Spoitable`, `true`},
-		{`xuq Derp(5)`, `Derp with (blerp::5)`},
-		{`respoit Derp(5)`, `Derp with (blerp::5)`},
+		{`boo x`, `(1, 2, 3)`},
+		{`foo 1, 2`, `3`},
+		{`moo 1, 2`, `3`},
 	}
-	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
+}
+func TestEof(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`troz 42`, `42`},
+		{`zort 42`, `42`},
+	}
+	test_helper.RunTest(t, "eof_test.pf", tests, test_helper.TestValues)
+}
+func TestExternals(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`zort.square 5`, `25`},
+		{`type zort.Color`, `type`},
+		{`zort.RED`, `zort.RED`},
+		{`type zort.RED`, `zort.Color`},
+		{`zort.RED in zort.Color`, `true`},
+		{`zort.Color(4)`, `zort.BLUE`},
+		{`zort.Person "John", 22`, `zort.Person with (name::"John", age::22)`},
+		{`zort.Tone LIGHT, BLUE`, `zort.Tone with (shade::zort.LIGHT, color::zort.BLUE)`},
+		{`zort.Qux 5`, `zort.Qux(5)`},
+	}
+	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
+}
+func TestForLoops(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`fib 8`, `21`},
+		{`collatzA 42`, `1`},
+		{`collatzB 42`, `1`},
+		{`evens Color`, `[RED, YELLOW, BLUE]`},
+		{`evens "Angela"`, `['A', 'g', 'l']`},
+		{`evens myList`, `[PURPLE, GREEN, ORANGE]`},
+		{`find GREEN, Color`, `3`},
+		{`find GREEN, myList`, `2`},
+		{`find GREEN, myMap`, `"c"`},
+		{`allKeys myList`, `[0, 1, 2, 3, 4, 5]`},
+		{`allKeys "Angela"`, `[0, 1, 2, 3, 4, 5]`},
+		{`allValues myList`, `[PURPLE, BLUE, GREEN, YELLOW, ORANGE, RED]`},
+		{`showRange 3, 8`, `[0::3, 1::4, 2::5, 3::6, 4::7]`},
+		{`showRangeKeys 3, 8`, `[0, 1, 2, 3, 4]`},
+		{`showRangeValues 3, 8`, `[3, 4, 5, 6, 7]`},
+		{`showRange 8, 3`, `[0::7, 1::6, 2::5, 3::4, 4::3]`},
+		{`showRangeKeys 8, 3`, `[0, 1, 2, 3, 4]`},
+		{`showRangeValues 8, 3 `, `[7, 6, 5, 4, 3]`},
+		{`x`, `10`},
+	}
+	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
 }
 func TestFunctionSharing(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -460,58 +195,18 @@ func TestFunctionSharing(t *testing.T) {
 	}
 	test_helper.RunTest(t, "function_sharing_test.pf", tests, test_helper.TestValues)
 }
-func TestImperative(t *testing.T) {
+func TestFunctionSyntaxCalls(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`zort false`, `7`},
-		{`zort true`, `6`},
-		{`qux false`, `5`},
-		{`qux true`, `6`},
+		{`foo "bing"`, `"foo bing"`},
+		{`"bing" zort`, `"bing zort"`},
+		{`"bing" troz "bong"`, `"bing troz bong"`},
+		{`moo "bing" goo`, `"moo bing goo"`},
+		{`flerp "bing" blerp "bong"`, `"flerp bing blerp bong"`},
+		{`qux`, `"qux"`},
+		{`foo p 7`, `"foo p"`},
+		{`foo q 7`, `"foo q"`},
 	}
-	test_helper.RunTest(t, "imperative_test.pf", tests, test_helper.TestOutput)
-}
-func TestRuntimeTypecheck(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`EvenNumber 2`, `EvenNumber(2)`},
-		{`EvenNumber 3`, `vm/typecheck/fail`},
-		{`Person "Doug", 42`, `Person with (name::"Doug", age::42)`},
-		{`Person "", 42`, `vm/typecheck/fail`},
-		{`Person "Doug", -99`, `vm/typecheck/fail`},
-	}
-	test_helper.RunTest(t, "runtime_typecheck_test.pf", tests, test_helper.TestValues)
-}
-func TestParameterizedTypes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Z{12}`, `Z{12}`},
-		{`Z{5} == Z{12}`, `false`},
-		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
-		{`Vec{3}[1, 2, 3] + Vec{3}[4, 5, 6]`, `Vec{3}[5, 7, 9]`},
-		{`Money{USD} == Money{EURO}`, `false`},
-		{`list{int}[1, 2]`, `list{int}[1, 2]`},
-		{`list{int}[1, 2] + list{int}[3, 4]`, `list{int}[1, 2, 3, 4]`},
-		{`Z{5}(4) in Z{5}`, `true`},
-		{`Z{5}(4) in Z{12}`, `false`},
-		{`clones{int}`, `clones{int}`},
-	}
-	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
-}
-func TestTypeInstances(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Z{3}(2) in Z{3}`, `true`},
-		{`Z{5}(2) in Z{5}`, `true`},
-		{`Z{7}(2) in Z{7}`, `true`},
-		{`Z{12}(2) in Z{12}`, `true`},
-	}
-	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
-}
-func TestReflection(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`reflect.isStruct Varchar{8}`, `false`},
-		{`reflect.isClone Varchar{8}`, `true`},
-		{`reflect.parent Varchar{8}`, `string`},
-		{`reflect.parameterTypes Varchar{8}`, `[int]`},
-		{`reflect.parameterValues Varchar{8}`, `[8]`},
-	}
-	test_helper.RunTest(t, "reflect_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "function_call_test.pf", tests, test_helper.TestValues)
 }
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
@@ -550,7 +245,158 @@ func TestGocode(t *testing.T) {
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
 	test_helper.Teardown("gocode_test.pf")
 }
-
+func TestHardwiredOps(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`5.0 == 2.0`, `false`},
+		{`5.0 != 2.0`, `true`},
+		{`5 == 2`, `false`},
+		{`5 != 2`, `true`},
+		{`true != false`, `true`},
+		{`"foo" == "foo"`, `true`},
+		{`int == int`, `true`},
+		{`struct == struct`, `true`},
+		{`[1, 2, 3] == [1, 2, 3]`, `true`},
+		{`[1, 2, 4] == [1, 2, 3]`, `false`},
+		{`[1, 2, 3, 4] == [1, 2, 3]`, `false`},
+		{`[1, 2, 3] == [1, 2, 3, 4]`, `false`},
+		{`set(1, 2, 3) == set(1, 2, 3)`, `true`},
+		{`set(1, 2, 4) == set(1, 2, 3)`, `false`},
+		{`set(1, 2, 3, 4) == set(1, 2, 3)`, `false`},
+		{`set(1, 2, 3) == set(1, 2, 3, 4)`, `false`},
+		{`1::2 == 1::2`, `true`},
+		{`1::2 == 2::2`, `false`},
+		{`1::2 == 1::1`, `false`},
+		{`map(1::2, 3::4) == map(1::2, 3::4)`, `true`},
+		{`map(1::2, 3::4) == map(1::2, 4::4)`, `false`},
+		{`map(1::2, 3::4) == map(1::2, 3::5)`, `false`},
+		{`map(1::2, 3::4) == map(1::2, 3::4, 5::6)`, `false`},
+		{`map(1::2, 3::4, 5::6) == map(1::2, 3::4)`, `false`},
+		{`not true`, `false`},
+		{`not false`, `true`},
+		{`false and false`, `false`},
+		{`true and false`, `false`},
+		{`false and true`, `false`},
+		{`true and true`, `true`},
+		{`false or false`, `false`},
+		{`true or false`, `true`},
+		{`false or true`, `true`},
+		{`true or true`, `true`},
+		{`1, (2, 3)`, `(1, 2, 3)`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+}
+func TestImperative(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`zort false`, `7`},
+		{`zort true`, `6`},
+		{`qux false`, `5`},
+		{`qux true`, `6`},
+	}
+	test_helper.RunTest(t, "imperative_test.pf", tests, test_helper.TestOutput)
+}
+func TestIndexing(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`DARK_BLUE[shade]`, `DARK`},
+		{`myColor[shade]`, `LIGHT`},
+		{`DARK_BLUE[KEY]`, `DARK`},
+		{`myColor[KEY]`, `LIGHT`},
+		{`DARK_BLUE[key]`, `DARK`},
+		{`myColor[key]`, `LIGHT`},
+		{`"Angela"[3]`, `'e'`},
+		{`"Angela"[2::5]`, `"gel"`},
+		{`myWord[2::5]`, `"gel"`},
+		{`myList[2]`, `[5, 6]`},
+		{`myList[myNumber]`, `[5, 6]`},
+		{`myList[0::2]`, `[[1, 2], [3, 4]]`},
+		{`myList[myIntPair]`, `[[1, 2], [3, 4]]`},
+		{`("a", "b", "c", "d")[2]`, `"c"`},
+		{`("a", "b", "c", "d")[myIntPair]`, `("a", "b")`},
+		{`"Angela"[myIntPair]`, `"An"`},
+		{`myWord[myIntPair]`, `"An"`},
+		{`myPair[0]`, `"foo"`},
+		{`myMap["a"]`, `[1, 2]`},
+		{`foo myMap, myIndex`, `[1, 2]`},
+		{`foo myList, myNumber`, `[5, 6]`},
+		{`foo myColor, key`, `LIGHT`},
+		{`foo myPair, myOtherNumber`, `"bar"`},
+		{`foo myWord, myNumber`, `'g'`},
+		{`"Angela"[3]`, `'e'`},
+		{`myTuple[myIntPair]`, `(1, 2)`},
+		{`myTuple[myNumber]`, `3`},
+		{`mySnippet[myNumber]`, `" troz "`},
+		{`myWord[myNumber]`, `'g'`},
+		{`goo myTuple, myIntPair`, `(1, 2)`},
+		{`goo myTuple, myNumber`, `3`},
+		{`foo mySnippet, myNumber`, `" troz "`},
+		{`foo myWord, myIntPair`, `"An"`},
+	}
+	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
+}
+func TestInnerFunctionsAndVariables(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo 42`, `42`},
+		{`zort 3, 5`, `(25, 15)`},
+		{`troz 2`, `2200`},
+	}
+	test_helper.RunTest(t, "inner_test.pf", tests, test_helper.TestValues)
+}
+func TestInterface(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`BLERP in Addable`, `true`},
+		{`Fnug(5) in Addable`, `true`},
+		{`ZORT in Foobarable`, `true`},
+		{`true in Addable`, `false`},
+		{`Fnug(5) in Foobarable`, `false`},
+		{`Grunt(1, Derp(5))`, `Grunt with (flerp::1, glerp::Derp with (blerp::5))`},
+		{`Derp(5) in Zort`, `true`},
+		{`Derp(5) in Spoitable`, `true`},
+		{`xuq Derp(5)`, `Derp with (blerp::5)`},
+		{`respoit Derp(5)`, `Derp with (blerp::5)`},
+	}
+	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
+}
+func TestImports(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`qux.square 5`, `25`},
+		{`type qux.Color`, `type`},
+		{`qux.RED`, `qux.RED`},
+		{`type qux.RED`, `qux.Color`},
+		{`qux.RED in qux.Color`, `true`},
+		{`qux.Color(4)`, `qux.BLUE`},
+		{`qux.Person "John", 22`, `qux.Person with (name::"John", age::22)`},
+		{`qux.Tone LIGHT, BLUE`, `qux.Tone with (shade::qux.LIGHT, color::qux.BLUE)`},
+		{`troz.sumOfSquares 3, 4`, `25`},
+	}
+	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
+}
+func TestJson(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`decode "25"`, `25`},
+		{`decode "42.9"`, `42.9`},
+		{"decode FOO", `"\"foo\""`},
+		{`decode "false"`, `false`},
+		{`decode "true"`, `true`},
+		{`decode "null"`, `NULL`},
+	}
+	test_helper.RunTest(t, "json_test.pf", tests, test_helper.TestValues)
+}
+func TestLiterals(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`"foo"`, `"foo"`},
+		{"`foo`", `"foo"`},
+		{`'q'`, `'q'`},
+		{`true`, `true`},
+		{`false`, `false`},
+		{`42.0`, `42`},
+		{`42`, `42`},
+		{`0b101010`, `42`},
+		{`0o52`, `42`},
+		{`0x2A`, `42`},
+		{`NULL`, `NULL`},
+		{`OK`, `OK`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+}
 func TestLogging(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 8`, test_helper.Foo8Result},
@@ -560,24 +406,95 @@ func TestLogging(t *testing.T) {
 	}
 	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestOutput)
 }
-
-func TestCast(t *testing.T) {
+func TestOverloading(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`cast "foo", string`, `"foo"`},
-		{`cast Uid(8), int`, `8`},
-		{`cast 8, Uid`, `Uid(8)`},
-		{`cast 0, Color`, `RED`},
-		{`cast ["John", 22], Person`, `Person with (name::"John", age::22)`},
-		{`cast "foo", enum`, `vm/cast/concrete`},
-		{`cast "foo", Person`, `vm/cast`},
-		{`cast -1, Color`, `vm/cast/enum`},
-		{`cast 99, Color`, `vm/cast/enum`},
-		{`cast ["John", 22, true], Person`, `vm/cast/fields`},
-		{`cast ["John", "22"], Person`, `vm/cast/types`},
-		{`float "foo"`, `vm/string/float`},
-		{`int "foo"`, `vm/string/int`},
+		{`foo 42`, `"int"`},
+		{`foo "zort"`, `"string"`},
+		{`foo 42, true`, `"any?, bool"`},
+		{`foo 42.0, true`, `"any?, bool"`},
+		{`foo true, true`, `"bool, bool"`},
 	}
-	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "overloading_test.pf", tests, test_helper.TestValues)
+}
+func TestParameterizedTypes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Z{12}`, `Z{12}`},
+		{`Z{5} == Z{12}`, `false`},
+		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
+		{`Vec{3}[1, 2, 3] + Vec{3}[4, 5, 6]`, `Vec{3}[5, 7, 9]`},
+		{`Money{USD} == Money{EURO}`, `false`},
+		{`list{int}[1, 2]`, `list{int}[1, 2]`},
+		{`list{int}[1, 2] + list{int}[3, 4]`, `list{int}[1, 2, 3, 4]`},
+		{`Z{5}(4) in Z{5}`, `true`},
+		{`Z{5}(4) in Z{12}`, `false`},
+		{`clones{int}`, `clones{int}`},
+	}
+	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
+}
+func TestPiping(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`["fee", "fie", "fo", "fum"] -> len`, `4`},
+		{`["fee", "fie", "fo", "fum"] >> len`, `[3, 3, 2, 3]`},
+		{`["fee", "fie", "fo", "fum"] -> that + ["foo"]`, `["fee", "fie", "fo", "fum", "foo"]`},
+		{`["fee", "fie", "fo", "fum"] >> that + "!"`, `["fee!", "fie!", "fo!", "fum!"]`},
+		{`[1, 2, 3, 4] ?> that mod 2 == 0`, `[2, 4]`},
+		{`ks >> MP[that]`, `["fee", "fie", "fo", "fum"]`},
+		{`foo ks`, `["fee", "fie", "fo", "fum"]`},
+	}
+	test_helper.RunTest(t, "piping_test.pf", tests, test_helper.TestValues)
+}
+
+func TestRecursion(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`fac 5`, `120`},
+		{`power 3, 4`, `81`},
+		{`inFac 5`, `120`},
+	}
+	test_helper.RunTest(t, "recursion_test.pf", tests, test_helper.TestValues)
+}
+func TestRef(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`x ++`, `OK`},
+	}
+	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestValues)
+}
+func TestReflection(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`reflect.isStruct Varchar{8}`, `false`},
+		{`reflect.isClone Varchar{8}`, `true`},
+		{`reflect.parent Varchar{8}`, `string`},
+		{`reflect.parameterTypes Varchar{8}`, `[int]`},
+		{`reflect.parameterValues Varchar{8}`, `[8]`},
+	}
+	test_helper.RunTest(t, "reflect_test.pf", tests, test_helper.TestValues)
+}
+func TestRuntimeTypecheck(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`EvenNumber 2`, `EvenNumber(2)`},
+		{`EvenNumber 3`, `vm/typecheck/fail`},
+		{`Person "Doug", 42`, `Person with (name::"Doug", age::42)`},
+		{`Person "", 42`, `vm/typecheck/fail`},
+		{`Person "Doug", -99`, `vm/typecheck/fail`},
+	}
+	test_helper.RunTest(t, "runtime_typecheck_test.pf", tests, test_helper.TestValues)
+}
+
+func TestSnippet(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`(qux 5)[0]`, `"foo "`},
+		{`(qux 5)[1]`, `10`},
+		{`(qux 5)[2]`, `" bar"`},
+	}
+	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
+}
+func TestStructs(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`doug`, `Person with (name::"Douglas", age::42)`},
+		{`tom in Cat`, `true`},
+		{`doug with age::43`, `Person with (name::"Douglas", age::43)`},
+		{`myCat[myField]`, `"Felix"`},
+	}
+	test_helper.RunTest(t, "struct_test.pf", tests, test_helper.TestValues)
 }
 func TestTry(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -586,6 +503,67 @@ func TestTry(t *testing.T) {
 	}
 	test_helper.RunTest(t, "try_test.pf", tests, test_helper.TestOutput)
 }
+func TestTuples(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`(1, 2), 3`, `(1, 2, 3)`},
+		{`1, (2, 3)`, `(1, 2, 3)`},
+		{`(1, 2), (3, 4)`, `(1, 2, 3, 4)`},
+		{`()`, `()`},
+		{`type tuple "foo", "bar"`, `tuple`},
+		{`len tuple "foo", "bar"`, `2`},
+		{`1 in tuple(1, 2)`, `true`},
+		{`string(X)`, `"(2, 3)"`},
+		{`len tuple 1, X`, `3`},
+		{`len tuple X, 1`, `3`},
+		{`len tuple W, Z`, `8`},
+		{`foo 1, X`, `3`},
+		{`foo X, 1`, `3`},
+		{`foo W, Z`, `8`},
+	}
+	test_helper.RunTest(t, "tuples_test.pf", tests, test_helper.TestValues)
+}
+func TestTypeAccessErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Pair 1, 2`, `comp/private`},
+		{`Suit`, `comp/private/type`},
+		{`HEARTS`, `comp/ident/private`},
+		{`one`, `comp/ident/private`},
+	}
+	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestTypeInstances(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Z{3}(2) in Z{3}`, `true`},
+		{`Z{5}(2) in Z{5}`, `true`},
+		{`Z{7}(2) in Z{7}`, `true`},
+		{`Z{12}(2) in Z{12}`, `true`},
+	}
+	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
+}
+func TestUserDefinedTypes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Tone with (shade::LIGHT, color::RED)`, `Tone with (shade::LIGHT, color::RED)`},
+		{`Color(4)`, `BLUE`},
+		{`DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+		{`type DARK_BLUE`, `Tone`},
+		{`type RED`, `Color`},
+		{`keys DARK_BLUE`, `[shade, color]`},
+		{`DARK_BLUE[shade]`, `DARK`},
+		{`DARK_BLUE[color]`, `BLUE`},
+		{`GREEN == GREEN`, `true`},
+		{`GREEN == ORANGE`, `false`},
+		{`GREEN != GREEN`, `false`},
+		{`GREEN != ORANGE`, `true`},
+		{`PURPLE in MyType`, `true`},
+		{`Tone/Shade/Color`, `MyType`},
+		{`Tone(LIGHT, GREEN)`, `Tone with (shade::LIGHT, color::GREEN)`},
+		{`Tone(LIGHT, GREEN) == DARK_BLUE`, `false`},
+		{`Tone(LIGHT, GREEN) != DARK_BLUE`, `true`},
+		{`troz DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+		{`foo 3, 5`, `8`},
+	}
+	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
+}
 func TestValid(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 3`, `4`},
@@ -593,13 +571,42 @@ func TestValid(t *testing.T) {
 	}
 	test_helper.RunTest(t, "valid_test.pf", tests, test_helper.TestValues)
 }
-func TestCorners(t *testing.T) {
+func TestVariableAccessErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`boo x`, `(1, 2, 3)`},
-		{`foo 1, 2`, `3`},
-		{`moo 1, 2`, `3`},
+		{`B`, `comp/ident/private`},
+		{`A = 43`, `comp/assign/const`},
+		{`z`, `comp/ident/private`},
+		{`secretB`, `comp/private`},
+		{`secretZ`, `comp/private`},
 	}
-	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestCompilerErrors)
+}
+
+func TestVariablesAndConsts(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`A`, `42`},
+		{`getB`, `99`},
+		{`changeZ`, `OK`},
+		{`v`, `true`},
+		{`w`, `42`},
+		{`y = NULL`, "OK"},
+	}
+	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
+}
+func TestWith(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
+		{`john with age::23`, `Person with (name::"John", age::23)`},
+		{`myList with diffList`, `["x", "y", "c", "d"]`},
+		{`myMap with "a"::99`, `map("a"::99, "b"::2, "c"::3, "d"::4)`},
+		{`myMap with "z"::42`, `map("a"::1, "b"::2, "c"::3, "d"::4, "z"::42)`},
+		{`myMap with diffMap`, `map("a"::99, "b"::99, "c"::3, "d"::4)`},
+		{`otherMap with ["a", 1]::99`, `map("a"::[0, 99], "b"::[2, 3])`},
+		{`myMap with "a"::99, "z"::42`, `map("a"::99, "b"::2, "c"::3, "d"::4, "z"::42)`},
+		{`myMap without "a"`, `map("b"::2, "c"::3, "d"::4)`},
+		{`myMap without "a", "b"`, `map("c"::3, "d"::4)`},
+	}
+	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
 }
 func TestWrappers(t *testing.T) {
 	// no t.Parallel()

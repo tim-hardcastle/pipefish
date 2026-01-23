@@ -233,6 +233,7 @@ func (cp *Compiler) btGetPfFromJson(tok *token.Token, dest uint32, args []uint32
 	cp.Reserve(values.TYPE, cp.getAbstractType("ok"), tok)
 	cp.Emit(vm.Json, dest, args[0], cp.That(), 0, cp.ReserveToken(tok))
 }
+
 func (cp *Compiler) btGetPfFromJsonAs(tok *token.Token, dest uint32, args []uint32) {
 	cp.Emit(vm.Json, dest, args[0], args[2], 0, cp.ReserveToken(tok))
 }

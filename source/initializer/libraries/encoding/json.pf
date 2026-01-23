@@ -1,0 +1,112 @@
+import
+
+"strings"
+
+newtype
+
+Json = clone snippet 
+
+def 
+
+string(J Json) -> string :
+    from a = "" for i::el = range J :
+        i mod 2 == 0 :
+            a + el 
+        else :
+            a + encode(el)
+
+def
+
+// We pass this off to the VM for speed and convenience.
+decode(j string) : builtin "get_pf_from_json"
+decode(j string) as (T type) : builtin "get_pf_from_json_as"
+decode(j string) like (T type) : builtin "get_pf_from_json_like"
+
+encode(x any) :
+    error "can't encode `" + literal(x) + "` as JSON"
+
+encode(x clones{string}) -> string :
+    literal(cast x, string)
+
+encode(x clones{int}) -> string :
+    literal(cast x, int)
+
+encode(x clones{float}) -> string :
+    literal(cast x, float)
+
+encode(x bool) -> string :
+    x :
+        "true"
+    else :
+        "false"
+
+encode(x null) -> string :
+    "null"
+
+encode(x enum/label) -> string :
+    "\"" + string(x) + "\""
+
+encode(x struct/clones{map}) -> string :
+    "{" + strings.join(kv(x), ", ") + "}"
+
+encode(x clones{list}) -> string :
+    "[" + strings.join(((cast x, list) >> encode), ", ") + "]"
+
+prettyEncode(x any) :
+    prettyEncodeR(x, "")
+
+private
+
+prettyEncodeR(x any, pad string) :
+    error "can't encode `" + literal(x) + "` as JSON"
+
+prettyEncodeR(x clones{string}, pad string) -> string :
+    literal(cast x, string)
+
+prettyEncodeR(x clones{int}, pad string) -> string :
+    literal(cast x, int)
+
+prettyEncodeR(x clones{float}, pad string) -> string :
+    literal(cast x, float)
+
+prettyEncodeR(x bool, pad string) -> string :
+    x :
+        "true"
+    else :
+        "false"
+
+prettyEncodeR(x null, pad string) -> string :
+    "null"
+
+prettyEncodeR(x enum/label, pad string) -> string :
+    "\"" + string(x) + "\""
+
+prettyEncodeR(x struct/clones{map}, pad string) -> string :
+    "{\n" + strings.join(prettyKv(x, pad+"    "), ",\n") + "\n" + pad + "}"
+
+prettyEncodeR(x clones{list}, pad string) -> string :
+    "[\n" + strings.join(((cast x, list) >> pad + "    " + prettyEncodeR that, pad + "    "), ",\n") + "\n" + pad + "]"
+
+kv(x clones{map}) -> list :
+    from L = [] for k::v = range x :
+        type k == string:
+            L & encode(k) + ": " + encode(v)
+        else :
+            error "key value must be string"
+
+kv(x struct) -> list :
+    from L = [] for _::k = range keys(x) :
+        L & encode(k) + ": " + encode(x[k])
+
+prettyKv(x clones{map}, pad) -> list :
+    from L = [] for k::v = range x :
+        type k == string:
+            L & pad + "\"" + k + "\": " + prettyEncodeR(v, pad)
+        else :
+            error "key value must be string"
+
+prettyKv(x struct, pad string) -> list :
+    from L = [] for _::k = range keys(x) :
+        L & pad + "\"" + k + "\": " + prettyEncodeR(x[k], pad)
+
+

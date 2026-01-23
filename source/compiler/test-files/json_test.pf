@@ -1,0 +1,8 @@
+import
+
+NULL::"encoding/json"
+
+const
+
+FOO = `"foo"`
+

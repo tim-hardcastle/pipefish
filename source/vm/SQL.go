@@ -43,7 +43,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 	defer rows.Close()
 	// It could be of type map{K, V type}
 	if info, ok := vm.ConcreteTypeInfo[typeNumber].(CloneType); ok &&
-		text.Head(info.Name, "map{") && len(info.TypeArguments) == 2 &&
+		info.Parent == values.MAP && len(info.TypeArguments) == 2 &&
 		info.TypeArguments[0].T == values.TYPE && info.TypeArguments[1].T == values.TYPE {
 		abType := info.TypeArguments[0].V.(values.AbstractType)
 		if abType.Len() != 1 {
@@ -99,7 +99,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 	}
 	// The outer structure could be a parameterized list.
 	if info, ok := vm.ConcreteTypeInfo[typeNumber].(CloneType); ok &&
-		text.Head(info.Name, "list{") && len(info.TypeArguments) == 1 &&
+		info.Parent == values.LIST && len(info.TypeArguments) == 1 &&
 		info.TypeArguments[0].T == values.TYPE {
 		abType := info.TypeArguments[0].V.(values.AbstractType)
 		if abType.Len() != 1 {
@@ -131,7 +131,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 	}
 	// Or a set.
 	if info, ok := vm.ConcreteTypeInfo[typeNumber].(CloneType); ok &&
-		text.Head(info.Name, "set{") && len(info.TypeArguments) == 1 &&
+		info.Parent == values.SET && len(info.TypeArguments) == 1 &&
 		info.TypeArguments[0].T == values.TYPE {
 		abType := info.TypeArguments[0].V.(values.AbstractType)
 		if abType.Len() != 1 {

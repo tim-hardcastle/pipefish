@@ -1157,6 +1157,7 @@ loop:
 				loc = args[0]
 				continue
 			case Json:
+				vm.Mem[args[0]] = vm.jsonToPf(vm.Mem[args[1]].V.(string), vm.Mem[args[2]].V.(values.AbstractType), args[3] == 0, args[4])
 			case Jsr:
 				vm.callstack = append(vm.callstack, loc)
 				loc = args[0]
