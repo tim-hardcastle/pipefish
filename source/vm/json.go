@@ -25,6 +25,7 @@ func (vm *Vm) jsonToPf(j string, ty values.AbstractType, as bool, tok uint32) va
 func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, tok uint32) values.Value {
 	var canNull bool
 	var pfType values.ValueType
+	result := vm.makeError("vm/json/convert", tok)
 	switch ty.Len() {
 	case 1 :
 		pfType = ty.Types[0]
@@ -52,26 +53,22 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 				pfType = values.STRING
 			}
 		if pfType == values.STRING || isClone && cloneInfo.Parent == values.STRING {
-			return values.Value{pfType, string(goValue.GetStringBytes())}
+			result = values.Value{pfType, string(goValue.GetStringBytes())}
 		}
 	case astjson.TypeNumber :
-		if i, err := goValue.Int(); err == nil {
-			if pfType == values.SUCCESSFUL_VALUE {
+		i, err := goValue.Int()
+		if pfType == values.SUCCESSFUL_VALUE {
+			if err == nil {
 				pfType = values.INT
-			}
-			if pfType == values.INT || isClone && cloneInfo.Parent == values.INT {
-				return values.Value{pfType, i}
-			}
-			return vm.makeError("vm/json/int", tok)
-		}
-		if i, err := goValue.Float64(); err == nil {
-			if pfType == values.SUCCESSFUL_VALUE {
+			} else {
 				pfType = values.FLOAT
 			}
-			if pfType == values.FLOAT || isClone && cloneInfo.Parent == values.FLOAT {
-				return values.Value{pfType, i}
-			}
-			return vm.makeError("vm/json/float", tok)
+		}
+		if err == nil && (pfType == values.INT || isClone && cloneInfo.Parent == values.INT) {
+			result = values.Value{pfType, i}
+		}
+		if pfType == values.FLOAT || isClone && cloneInfo.Parent == values.FLOAT {
+			result = values.Value{pfType, goValue.GetFloat64()}
 		}
 	case astjson.TypeFalse :
 		if pfType == values.BOOL || pfType == values.SUCCESSFUL_VALUE {
@@ -85,12 +82,18 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 		return vm.makeError("vm/json/bool/b", tok)
 	case astjson.TypeArray :
 		if pfType == values.SUCCESSFUL_VALUE {
-				pfType = values.LIST
-			}
+			pfType = values.LIST
+		}
 		if pfType == values.LIST || isClone && cloneInfo.Parent == values.LIST {
 			arr := goValue.GetArray()
 			vec := vector.Empty
 			insideType := values.MakeAbstractType(values.SUCCESSFUL_VALUE)
+			if isClone && len(cloneInfo.TypeArguments) == 1 && cloneInfo.TypeArguments[0].T == values.TYPE {
+				insideType = cloneInfo.TypeArguments[0].V.(values.AbstractType)
+				if !as {
+					pfType = values.LIST
+				}
+			}
 			for _, goElement := range arr {
 				pfElement := vm.goToPf(goElement, insideType, as, tok)
 				if pfElement.T == values.ERROR {
@@ -98,9 +101,8 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 				}
 				vec = vec.Conj(pfElement)
 			}
-			return values.Value{pfType, vec}
+			result = values.Value{pfType, vec}
 		}
-		return vm.makeError("vm/json/list", tok)
 	case astjson.TypeObject :
 		if pfType == values.SUCCESSFUL_VALUE {
 			pfType = values.MAP
@@ -110,8 +112,25 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 			mp := &values.Map{}
 			err := values.Value{}
 			insideType := values.MakeAbstractType(values.SUCCESSFUL_VALUE)
+			stringlikeType := values.STRING
+			if isClone && len(cloneInfo.TypeArguments) == 2 && 
+			cloneInfo.TypeArguments[0].T == values.TYPE && cloneInfo.TypeArguments[1].T == values.TYPE {
+				keyType := cloneInfo.TypeArguments[0].V.(values.AbstractType)
+				if keyType.Len() != 1 {
+					return vm.makeError("vm/json/key/concrete", tok)
+				}
+				stringlikeType = keyType.Types[0]
+				keyInfo := vm.ConcreteTypeInfo[stringlikeType]
+				if !(stringlikeType == values.STRING || keyInfo.IsClone() && keyInfo.(CloneType).Parent == values.STRING) {
+					return vm.makeError("vm/json/key/string", tok)
+				}
+				insideType = cloneInfo.TypeArguments[1].V.(values.AbstractType)
+				if !as {
+					pfType = values.MAP
+				}
+			}
 			obj.Visit(func(k []byte, v *astjson.Value) {
-				pfKey := values.Value{values.STRING, string(k)}
+				pfKey := values.Value{stringlikeType, string(k)}
 				pfValue := vm.goToPf(v, insideType, as, tok)
 				if pfValue.T == values.ERROR {
 					err = pfValue
@@ -123,7 +142,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 			if err.T == values.ERROR {
 				return err
 			}
-			return values.Value{pfType, mp}
+			result = values.Value{pfType, mp}
 		}
 		if structInfo, ok := info.(StructType); ok {
 			obj := goValue.GetObject()
@@ -146,9 +165,8 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 			if err.T == values.ERROR {
 				return err
 			}
-			return values.Value{pfType, vals}
+			result = values.Value{pfType, vals}
 		}
-		return vm.makeError("vm/json/object", tok)
 	}
-	panic("This should never happen.")
+	return result
 }

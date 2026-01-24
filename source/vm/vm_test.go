@@ -382,6 +382,8 @@ func TestJson(t *testing.T) {
 		{`decode "null"`, `NULL`},
 		{`decode JOHN as Person`, `Person with (name::"John", age::22)`},
 		{`decode FRED as Person`, `Person with (name::"Fred", age::NULL)`},
+		{`decode PEOPLE like list{Person}`, `[Person with (name::"John", age::22), Person with (name::"Fred", age::NULL)]`},
+		{`decode PEOPLE as list{Person}`, `list{Person}[Person with (name::"John", age::22), Person with (name::"Fred", age::NULL)]`},
 	}
 	test_helper.RunTest(t, "json_test.pf", tests, test_helper.TestValues)
 }
