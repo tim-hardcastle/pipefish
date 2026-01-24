@@ -17,6 +17,11 @@ func (vm *Vm) jsonToPf(j string, ty values.AbstractType, as bool, tok uint32) va
 
 // Oh hooray, another recursive function for turning Go values into Pipefish! Is this the third or
 // the fourth?
+//
+// It's all fairly straightforward except that we need to special-case the generic `list` and `map`
+// types, because we need to pass in the parameterizing type to the recursive `goToPf` call, and
+// then having done that we *don't* need to call their validation logic, since that will have
+// been taken care of when the elements were converted.
 func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, tok uint32) values.Value {
 	var canNull bool
 	var pfType values.ValueType
@@ -47,7 +52,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 				pfType = values.STRING
 			}
 		if pfType == values.STRING || isClone && cloneInfo.Parent == values.STRING {
-			return values.Value{pfType, goValue.String()}
+			return values.Value{pfType, string(goValue.GetStringBytes())}
 		}
 	case astjson.TypeNumber :
 		if i, err := goValue.Int(); err == nil {
@@ -98,8 +103,8 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 		return vm.makeError("vm/json/list", tok)
 	case astjson.TypeObject :
 		if pfType == values.SUCCESSFUL_VALUE {
-				pfType = values.MAP
-			}
+			pfType = values.MAP
+		}
 		if pfType == values.MAP || isClone && cloneInfo.Parent == values.MAP {
 			obj := goValue.GetObject()
 			mp := &values.Map{}
@@ -110,6 +115,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 				pfValue := vm.goToPf(v, insideType, as, tok)
 				if pfValue.T == values.ERROR {
 					err = pfValue
+					return
 				} else {
 					mp = mp.Set(pfKey, pfValue)
 				}
@@ -118,6 +124,29 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 				return err
 			}
 			return values.Value{pfType, mp}
+		}
+		if structInfo, ok := info.(StructType); ok {
+			obj := goValue.GetObject()
+			vals := []values.Value{}
+			err := values.Value{}
+			fieldNumber := 0
+			obj.Visit(func(k []byte, v *astjson.Value) {
+				if string(k) != vm.Labels[structInfo.LabelNumbers[fieldNumber]] {
+					err = vm.makeError("vm/json/field", tok)
+					return
+				}
+				pfValue := vm.goToPf(v, structInfo.AbstractStructFields[fieldNumber], as, tok)
+				if pfValue.T == values.ERROR {
+					err = pfValue
+				} else {
+					vals = append(vals, pfValue)
+				}
+				fieldNumber++
+			})
+			if err.T == values.ERROR {
+				return err
+			}
+			return values.Value{pfType, vals}
 		}
 		return vm.makeError("vm/json/object", tok)
 	}

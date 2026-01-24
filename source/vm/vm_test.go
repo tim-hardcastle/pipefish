@@ -373,10 +373,15 @@ func TestJson(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`decode "25"`, `25`},
 		{`decode "42.9"`, `42.9`},
-		{"decode FOO", `"\"foo\""`},
+		{`decode FOO`, `"foo"`},
 		{`decode "false"`, `false`},
 		{`decode "true"`, `true`},
 		{`decode "null"`, `NULL`},
+		{`decode "[1, 2, 3]"`, `[1, 2, 3]`},
+		{`(decode MAP) == map("a"::1, "b"::2)`, `true`},
+		{`decode "null"`, `NULL`},
+		{`decode JOHN as Person`, `Person with (name::"John", age::22)`},
+		{`decode FRED as Person`, `Person with (name::"Fred", age::NULL)`},
 	}
 	test_helper.RunTest(t, "json_test.pf", tests, test_helper.TestValues)
 }
