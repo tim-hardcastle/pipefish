@@ -400,14 +400,17 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		}
 	}
 	// Now we can make a constructor function for each of the type operators using the helper
-	// function below. How this works is that for a parameterized type `Foo{<params>)(<sig>)` 
-	// we make a constructor `Foo(+t type, <original sig>)` which is what the compiler will 
+	// function below. How this works is that for a parameterized type `Foo{<params>}(<sig>)` 
+	// we make a constructor `Foo{}(+t type, <original sig>)` which is what the compiler will 
 	// use to generate the function call.
+
+	// In the compiler, in the `CompileNode` method, we will then magically convert ASTs of the 
+	// form `Foo{args}(otherargs)` to an AST `Foo{}(Foo{args}, otherargs)` before compling it.
+
 	for typeOperator, operatorInfo := range operatorSpecificInfo {
 		iz.makeParameterizedTypeConstructor(typeOperator, operatorInfo, values.UNDEFINED_TYPE)
 		// For map and set clones we need the `... pair` and `... any` constructors too.
-		// So we do the same again, making constructors which take the type as the first 
-		// operator.
+		// So we do the same again, overloading the function.
 		if operatorInfo.parent == values.MAP || operatorInfo.parent == values.SET {
 			iz.makeParameterizedTypeConstructor(typeOperator, operatorInfo, operatorInfo.parent)
 		}
@@ -415,25 +418,23 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 }
 
 func (iz Initializer) makeParameterizedTypeConstructor(typeOperator string, operatorInfo typeOperatorInfo, ty values.ValueType) {
-	 // We mangle the names, since (a) we need different names for map or set constructors, and
-	 // (b) it would be valid to define an unparameterized type of the same name --- e.g. all
-	 // the base types of generic types.
-	name := typeOperator
+	 // We mangle the names, since it would be valid to define an unparameterized type of the 
+	 // same name --- e.g. all the base types of generic types.
+	name := typeOperator + "{}"
+	tag := name // The builtin tag will tell `seekFunctionCall` which opcode to emit.
 	// We start with the sig having just the one secret parameter in it that passes the type.
 	sig := parser.AstSig{parser.NameTypeAstPair{"+t", &parser.TypeWithName{*operatorInfo.definedAt[0], "type"}}}
 	switch ty {
 	case values.MAP:
-		name += "{M}"
+		tag = "&m_" + name
 		sig = append(sig, parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, &parser.TypeWithName{token.Token{}, "pair"}}})
 	case values.SET:
-		name += "{S}"
 		sig = append(sig, parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, parser.ANY_NULLABLE_TYPE_AST}})
+		tag = "&s_" + name
 	default:
-		name += "{}"
 		sig = append(sig, operatorInfo.constructorSig...)
 	}
-	// Naming the extra variable `+t` prevents conflicts since this is not a valid identifier.
-	fnNo := iz.addToBuiltins(sig, name, operatorInfo.returnTypes, operatorInfo.private, operatorInfo.definedAt[0])
+	fnNo := iz.addToBuiltins(sig, tag, operatorInfo.returnTypes, operatorInfo.private, operatorInfo.definedAt[0])
 	newOp := *operatorInfo.definedAt[0]
 	newOp.Literal = name
 	fn := &parsedFunction{
@@ -443,7 +444,7 @@ func (iz Initializer) makeParameterizedTypeConstructor(typeOperator string, oper
 		op:        newOp,
 		pos:       prefix,
 		sig:       sig,
-		body:      &parser.BuiltInExpression{Name: name},
+		body:      &parser.BuiltInExpression{Name: tag},
 		callInfo:  &compiler.CallInfo{iz.cp, fnNo, nil},
 	}
 	iz.cp.P.Functions.Add(name)

@@ -137,7 +137,7 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node parser.Callab
 	cp.cmP("Returned from initial call into generateNewArgument", b.tok)
 	cp.Put(vm.Asgm, b.outLoc)
 	if returnTypes.isOnly(values.ERROR) && node.GetToken().Literal != "error" {
-		if text.Tail(b.tok.Literal, "{}") {
+		if text.Tail(b.tok.Literal, "{}") { 
 			cp.Throw("comp/types/a", b.tok, b.tok.Literal, (b.types[1:]).describeWithPotentialInfix(cp.Vm, b.tok.Literal))
 			return FAIL
 		} else {
@@ -635,9 +635,20 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 				if text.Tail(builtinTag, "{}") {
 					typeOperator := builtinTag[:len(builtinTag)-2]
 					tokenOrdinal := cp.ReserveToken(b.tok)
-					if cp.P.ParTypes[typeOperator].IsClone {
+					// It could be one of the special constructors of parameterized clones 
+					// of sets or maps from varargs, in which case we convert it first.
+					switch {
+					case text.Head(typeOperator, "&m_") :
+						cp.Put(vm.CvTT, b.valLocs[1:]...)
+						cp.Put(vm.Mkmp, cp.That(), tokenOrdinal)
+						cp.Emit(vm.CasP, b.outLoc, tokenOrdinal, b.valLocs[0], cp.That())
+					case text.Head(typeOperator, "&s_") :
+						cp.Put(vm.CvTT, b.valLocs[1:]...)
+						cp.Put(vm.Mkst, cp.That(), tokenOrdinal)
+						cp.Emit(vm.CasP, b.outLoc, tokenOrdinal, b.valLocs[0], cp.That())
+					case cp.P.ParTypes[typeOperator].IsClone :
 						cp.Emit(vm.CasP, b.outLoc, tokenOrdinal, b.valLocs[0], b.valLocs[1])
-					} else {
+					default:
 						args := append([]uint32{b.outLoc, tokenOrdinal}, b.valLocs...)
 						cp.cmP("Emitting parameterized struct constructor.", b.tok)
 						cp.Emit(vm.StrP, args...)

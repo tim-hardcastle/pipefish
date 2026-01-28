@@ -1158,9 +1158,9 @@ NodeTypeSwitch:
 				return FAIL
 			}
 		} else {
+			// This is where we do the magic that turns `Z{foo}(bar)` into `Z{Z{foo}, bar}`.
 			typeNode := &parser.TypeExpression{Token: node.Token, Operator: node.Operator, TypeArgs: node.TypeArgs}
 			argsWithType := append([]parser.Node{typeNode}, node.Args...)
-
 			node.Token.Literal = node.Token.Literal + "{}" // TODO --- this is heinous. Anything looking at a PrefixExpression should be looking at the operator, not the token literal.
 			constructor := &parser.PrefixExpression{node.Token, node.Operator + "{}", argsWithType}
 			result = cp.CompileNode(constructor, ctxt)

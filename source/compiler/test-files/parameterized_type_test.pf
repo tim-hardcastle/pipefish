@@ -57,3 +57,14 @@ def
 
 string(x Money{c Currency}) :
     string(c) + " " + string(x[large]) + "." + string(x[small])
+
+newtype
+
+Zort = clone{i int} map
+
+make Zort{0}
+
+Troz = clone{i int} set
+
+make Troz{0}
+

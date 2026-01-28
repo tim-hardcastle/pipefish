@@ -527,6 +527,8 @@ func TestMiscellaneousCompilerErrors(t *testing.T) {
 func TestParameterizedTypes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
+		{`Zort{0}(0::0)`, `Zort{0}(0::0)`},
+		{`Troz{0}(0)`, `Troz{0}(0)`},
 	}
 	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
 }
