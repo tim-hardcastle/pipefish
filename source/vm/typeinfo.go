@@ -183,11 +183,9 @@ func (EnumType) IsClonedBy() values.AbstractType {
 // Contains the information necessary to perform the runtime checks on type constructors
 // on structs and clones.
 type TypeCheck struct {
-	CallAddress  uint32
-	ParamsLoc    uint32
-	InLoc        uint32
-	ResultLoc    uint32
-	Params       []values.Value
+	CallAddress  uint32 // The address we `jsr`` to to perform the typecheck.
+	InLoc        uint32 // The location of the first argument of the constructor.
+	ResultLoc    uint32 // Where we put the error/ok.
 	TokNumberLoc uint32 // Contains a location which contains an integer which is an index of the tokens in the vm.
 }
 

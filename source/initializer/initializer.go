@@ -104,7 +104,9 @@ type parameterizedTypeInstance struct {
 
 type typeOperatorInfo struct {
 	constructorSig parser.AstSig // The signature of the constructor, before we prepend the secret-sauce `+t type` parameter.
+	private        bool
 	isClone        bool
+	parent         values.ValueType // Will be UNDEFINED_TYPE if the parent is a struct.
 	returnTypes    compiler.AlternateType
 	definedAt      []*token.Token
 }
@@ -289,7 +291,14 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		twas[ty.String()] = ty
 	}
 	maps.Copy(twas, iz.P.ParTypeInstances)
-	typeOperators := make(map[string]typeOperatorInfo)
+
+	// So now we want to iterate over the instances of the type. As we do so, we 
+	// collect information which pertains to each type operator, rather than to
+	// each instance, which we store in the map below to be processed in a further
+	// loop. (In particular, we have to do it this rather clumsy way because we need
+	// to collect all the instances as return types of the constructors, and this is
+	// where we find out what the instances actually are.)
+	operatorSpecificInfo := make(map[string]typeOperatorInfo)
 	for _, ty := range twas {
 		// The parser doesn't know the types and values of enums, 'cos of being a
 		// parser. So we kludge them in here.
@@ -316,7 +325,6 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		if _, ok := iz.cp.TypeMap[parTypeInfo.Supertype]; !ok {
 			iz.cp.TypeMap[parTypeInfo.Supertype] = values.AbstractType{}
 		}
-
 		private := parTypeInfo.IsPrivate
 		isClone := !(parTypeInfo.ParentType == "struct")
 		newEnv := compiler.NewEnvironment()
@@ -356,14 +364,14 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		iz.cp.TypeMap[ultratype] = iz.cp.TypeMap[ultratype].Insert(typeNo)
 		iz.cp.P.Typenames = iz.cp.P.Typenames.Add(ty.Token.Literal)
 		var opInfo typeOperatorInfo
-		if opInfo, ok = typeOperators[ty.Name]; ok {
+		if opInfo, ok = operatorSpecificInfo[ty.Name]; ok {
 			opInfo.returnTypes = opInfo.returnTypes.Union(altType(typeNo))
 			opInfo.definedAt = append(opInfo.definedAt, &ty.Token)
-			typeOperators[ty.Name] = opInfo
+			operatorSpecificInfo[ty.Name] = opInfo
 			// TODO --- Check for matching sigs, being a clone.
 		} else {
-			opInfo = typeOperatorInfo{sig, isClone, altType(values.ERROR, typeNo), []*token.Token{&ty.Token}}
-			typeOperators[ty.Name] = opInfo
+			opInfo = typeOperatorInfo{sig, private, isClone, parentTypeNo, altType(values.ERROR, typeNo), []*token.Token{&ty.Token}}
+			operatorSpecificInfo[ty.Name] = opInfo
 		}
 		iz.parameterizedInstanceMap[newTypeName] = parameterizedTypeInstance{ty, newEnv, parTypeInfo.Typecheck, sig, vals}
 		iz.cp.TypeMap[parTypeInfo.Supertype] = iz.cp.TypeMap[parTypeInfo.Supertype].Insert(typeNo)
@@ -379,7 +387,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 				fn := &parsedFunction{
 					decType:   functionDeclaration,
 					decNumber: DUMMY,
-					private:   false, // TODO --- why don't you know this?
+					private:   private,
 					op:        newOp,
 					pos:       prefix,
 					sig:       sig,
@@ -391,26 +399,55 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 			}
 		}
 	}
-	// Now we can make a constructor function for each of the type operators.
-	for typeOperator, operatorInfo := range typeOperators {
-		name := typeOperator + "{}"
-		sig := append(parser.AstSig{parser.NameTypeAstPair{"+t", &parser.TypeWithName{*operatorInfo.definedAt[0], "type"}}}, operatorInfo.constructorSig...)
-		fnNo := iz.addToBuiltins(sig, name, operatorInfo.returnTypes, false, operatorInfo.definedAt[0])
-		newOp := *operatorInfo.definedAt[0]
-		newOp.Literal = name
-		fn := &parsedFunction{
-			decType:   functionDeclaration,
-			decNumber: DUMMY,
-			private:   false, // TODO --- why don't you know this?
-			op:        newOp,
-			pos:       prefix,
-			sig:       sig,
-			body:      &parser.BuiltInExpression{Name: name},
-			callInfo:  &compiler.CallInfo{iz.cp, fnNo, nil},
+	// Now we can make a constructor function for each of the type operators using the helper
+	// function below. How this works is that for a parameterized type `Foo{<params>)(<sig>)` 
+	// we make a constructor `Foo(+t type, <original sig>)` which is what the compiler will 
+	// use to generate the function call.
+	for typeOperator, operatorInfo := range operatorSpecificInfo {
+		iz.makeParameterizedTypeConstructor(typeOperator, operatorInfo, values.UNDEFINED_TYPE)
+		// For map and set clones we need the `... pair` and `... any` constructors too.
+		// So we do the same again, making constructors which take the type as the first 
+		// operator.
+		if operatorInfo.parent == values.MAP || operatorInfo.parent == values.SET {
+			iz.makeParameterizedTypeConstructor(typeOperator, operatorInfo, operatorInfo.parent)
 		}
-		iz.cp.P.Functions.Add(name)
-		iz.Add(name, fn)
 	}
+}
+
+func (iz Initializer) makeParameterizedTypeConstructor(typeOperator string, operatorInfo typeOperatorInfo, ty values.ValueType) {
+	 // We mangle the names, since (a) we need different names for map or set constructors, and
+	 // (b) it would be valid to define an unparameterized type of the same name --- e.g. all
+	 // the base types of generic types.
+	name := typeOperator
+	// We start with the sig having just the one secret parameter in it that passes the type.
+	sig := parser.AstSig{parser.NameTypeAstPair{"+t", &parser.TypeWithName{*operatorInfo.definedAt[0], "type"}}}
+	switch ty {
+	case values.MAP:
+		name += "{M}"
+		sig = append(sig, parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, &parser.TypeWithName{token.Token{}, "pair"}}})
+	case values.SET:
+		name += "{S}"
+		sig = append(sig, parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, parser.ANY_NULLABLE_TYPE_AST}})
+	default:
+		name += "{}"
+		sig = append(sig, operatorInfo.constructorSig...)
+	}
+	// Naming the extra variable `+t` prevents conflicts since this is not a valid identifier.
+	fnNo := iz.addToBuiltins(sig, name, operatorInfo.returnTypes, operatorInfo.private, operatorInfo.definedAt[0])
+	newOp := *operatorInfo.definedAt[0]
+	newOp.Literal = name
+	fn := &parsedFunction{
+		decType:   functionDeclaration,
+		decNumber: DUMMY,
+		private:   operatorInfo.private,
+		op:        newOp,
+		pos:       prefix,
+		sig:       sig,
+		body:      &parser.BuiltInExpression{Name: name},
+		callInfo:  &compiler.CallInfo{iz.cp, fnNo, nil},
+	}
+	iz.cp.P.Functions.Add(name)
+	iz.Add(name, fn)
 }
 
 func (iz *Initializer) finishMakingAliasTypes() {

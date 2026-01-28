@@ -26,6 +26,9 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 	var canNull bool
 	var pfType values.ValueType
 	result := vm.makeError("vm/json/convert", tok)
+	var isGeneric bool
+	var typecheck *TypeCheck 
+	vals := []values.Value{} // The fields of the struct or the value put into the clone constructor.
 	switch ty.Len() {
 	case 1 :
 		pfType = ty.Types[0]
@@ -42,6 +45,9 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 	}
 	info := vm.ConcreteTypeInfo[pfType]
 	cloneInfo, isClone := info.(CloneType)
+	if isClone {
+		typecheck = cloneInfo.TypeCheck
+	}
 	switch goValue.Type() {
 	case astjson.TypeNull :
 		if canNull {
@@ -54,6 +60,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 			}
 		if pfType == values.STRING || isClone && cloneInfo.Parent == values.STRING {
 			result = values.Value{pfType, string(goValue.GetStringBytes())}
+			vals = []values.Value{result}
 		}
 	case astjson.TypeNumber :
 		i, err := goValue.Int()
@@ -90,6 +97,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 			insideType := values.MakeAbstractType(values.SUCCESSFUL_VALUE)
 			if isClone && len(cloneInfo.TypeArguments) == 1 && cloneInfo.TypeArguments[0].T == values.TYPE {
 				insideType = cloneInfo.TypeArguments[0].V.(values.AbstractType)
+				isGeneric = true
 				if !as {
 					pfType = values.LIST
 				}
@@ -125,6 +133,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 					return vm.makeError("vm/json/key/string", tok)
 				}
 				insideType = cloneInfo.TypeArguments[1].V.(values.AbstractType)
+				isGeneric = true
 				if !as {
 					pfType = values.MAP
 				}
@@ -146,7 +155,6 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 		}
 		if structInfo, ok := info.(StructType); ok {
 			obj := goValue.GetObject()
-			vals := []values.Value{}
 			err := values.Value{}
 			fieldNumber := 0
 			obj.Visit(func(k []byte, v *astjson.Value) {
@@ -166,6 +174,17 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 				return err
 			}
 			result = values.Value{pfType, vals}
+			typecheck = structInfo.TypeCheck
+		}
+	}
+	if typecheck != nil && !isGeneric { // If it's generic then we already fixed the type by passing it to `goToPf` when we did recursion.
+		vm.Mem[typecheck.TokNumberLoc] = values.Value{values.INT, int(tok)}
+		for i, v := range vals {
+			vm.Mem[typecheck.InLoc+uint32(i)] = v
+		} 
+		vm.Run(typecheck.ResultLoc)
+		if vm.Mem[typecheck.ResultLoc].T == values.ERROR {
+			result = vm.Mem[typecheck.ResultLoc]
 		}
 	}
 	return result

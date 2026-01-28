@@ -6,7 +6,7 @@ newtype
 
 Person = struct(name string, age int?)
 
-make list{Person}
+make list{Person}, map{string, Person}
 
 const
 
@@ -14,4 +14,8 @@ FOO = `"foo"`
 MAP = `{"a": 1, "b": 2}`
 JOHN = `{"name": "John", "age": 22}`
 FRED = `{"name": "Fred", "age": null}`
+BAD_PERSON_A = `{name: "", age: 99}`
+BAD_PERSON_B = `{name: "Harry", age: -5}`
 PEOPLE = `[{"name": "John", "age": 22}, {"name": "Fred", "age": null}]`
+PEOPLE_MAP = `{"john": {"name": "John", "age": 22}, "fred": {"name": "Fred", "age": null}}`
+

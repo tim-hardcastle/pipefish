@@ -663,7 +663,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 					if typeCheck == nil {
 						return AltType(typeNumber), false
 					}
-					cp.Emit(vm.Asgm, typeCheck.ResultLoc, b.outLoc)
+					cp.Emit(vm.Asgm, typeCheck.ResultLoc, b.outLoc) // TODO --- why?
 					for i, loc := range b.valLocs {
 						cp.Emit(vm.Asgm, typeCheck.InLoc+uint32(i), loc)
 					}
