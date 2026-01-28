@@ -2004,7 +2004,7 @@ func (vm *Vm) mapsAreEqual(v, w values.Value) bool {
 	}
 	sl := mapV.AsSlice()
 	for _, pair := range sl {
-		if val, ok := mapW.Get(pair.Key); !ok || pair.Val != val {
+		if val, ok := mapW.Get(pair.Key); !ok || !vm.equals(pair.Val, val) {
 			return false
 		}
 	}

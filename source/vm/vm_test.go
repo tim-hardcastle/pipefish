@@ -371,8 +371,6 @@ func TestImports(t *testing.T) {
 }
 func TestJson(t *testing.T) {
 	tests := []test_helper.TestItem{
-		//{`decode PEOPLE_MAP as map{string, Person} == map{string, Person}("fred"::(Person with (name::"Fred", age::NULL)), "john"::(Person with (name::"John", age::22)))`, `true`},
-		//{`decode PEOPLE_MAP like map{string, Person} == map("fred"::(Person with (name::"Fred", age::NULL)), "john"::(Person with (name::"John", age::22)))`, `true`},
 		{`decode "25"`, `25`},
 		{`decode "42.9"`, `42.9`},
 		{`decode FOO`, `"foo"`},
@@ -386,6 +384,8 @@ func TestJson(t *testing.T) {
 		{`decode FRED as Person`, `Person with (name::"Fred", age::NULL)`},
 		{`decode PEOPLE like list{Person}`, `[Person with (name::"John", age::22), Person with (name::"Fred", age::NULL)]`},
 		{`decode PEOPLE as list{Person}`, `list{Person}[Person with (name::"John", age::22), Person with (name::"Fred", age::NULL)]`},
+		{`decode PEOPLE_MAP as map{string, Person} == map{string, Person}("fred"::(Person with (name::"Fred", age::NULL)), "john"::(Person with (name::"John", age::22)))`, `true`},
+		{`decode PEOPLE_MAP like map{string, Person} == map("fred"::(Person with (name::"Fred", age::NULL)), "john"::(Person with (name::"John", age::22)))`, `true`},
 	}
 	test_helper.RunTest(t, "json_test.pf", tests, test_helper.TestValues)
 }
