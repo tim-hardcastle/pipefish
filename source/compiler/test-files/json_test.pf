@@ -4,7 +4,8 @@ NULL::"encoding/json"
 
 newtype
 
-Person = struct(name string, age int?)
+Person = struct(name string, age int?) :
+    (age in null) or (age >= 0)
 
 make list{Person}, map{string, Person}
 

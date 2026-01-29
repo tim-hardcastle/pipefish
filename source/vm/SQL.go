@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"context"
 	"database/sql"
 	"reflect"
 	"strconv"
@@ -31,7 +32,7 @@ func (vm *Vm) evalPostSQL(db *sql.DB, query string, pfArgs []values.Value, tok u
 	return values.Value{values.SUCCESSFUL_VALUE, nil}
 }
 
-func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, pfArgs []values.Value, likeFlag uint32, tok uint32) values.Value {
+func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, pfArgs []values.Value, likeFlag uint32, tok uint32, ctx context.Context) values.Value {
 	goArgs, pfErr := vm.pfValuesToGoPtrValues(pfArgs, tok)
 	if pfErr.T == values.ERROR {
 		return pfErr
@@ -110,13 +111,13 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 		if pfErr.T == values.ERROR {
 			return pfErr
 		}
-		klugeType := innerType // TODO --- yuck.
+		kludgeType := innerType // TODO --- yuck.
 		if text.Head(vm.ConcreteTypeInfo[innerType].GetName(DEFAULT), "pair{") && likeFlag == 1 {
-			klugeType = values.PAIR
+			kludgeType = values.PAIR
 		}
 		vec := vector.Empty
 		for rows.Next() {
-			val := vm.getPfRow(rows, pointerList, klugeType, tok)
+			val := vm.getPfRow(rows, pointerList, kludgeType, tok, ctx)
 			if val.T == values.ERROR {
 				return val
 			}
@@ -142,13 +143,13 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 		if pfErr.T == values.ERROR {
 			return pfErr
 		}
-		klugeType := innerType // TODO --- yuck.
+		kludgeType := innerType // TODO --- yuck.
 		if text.Head(vm.ConcreteTypeInfo[innerType].GetName(DEFAULT), "pair{") && likeFlag == 1 {
-			klugeType = values.PAIR
+			kludgeType = values.PAIR
 		}
 		setVal := values.Set{}
 		for rows.Next() {
-			val := vm.getPfRow(rows, pointerList, klugeType, tok)
+			val := vm.getPfRow(rows, pointerList, kludgeType, tok, ctx)
 			if val.T == values.ERROR {
 				return val
 			}
@@ -175,14 +176,14 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 	if text.Head(vm.ConcreteTypeInfo[typeNumber].GetName(DEFAULT), "pair{") && likeFlag == 1 {
 		klugeType = values.PAIR
 	}
-	val := vm.getPfRow(rows, pointerList, klugeType, tok)
+	val := vm.getPfRow(rows, pointerList, klugeType, tok, ctx)
 	if rows.Next() {
 		return vm.makeError("vm/sql/many", tok)
 	}
 	return val
 }
 
-func (vm *Vm) getPfRow(rows *sql.Rows, pointerList []any, typeNumber values.ValueType, tok uint32) values.Value {
+func (vm *Vm) getPfRow(rows *sql.Rows, pointerList []any, typeNumber values.ValueType, tok uint32, ctx context.Context) values.Value {
 	if err := rows.Scan(pointerList...); err != nil {
 		return vm.makeError("vm/sql/scan/a", tok, err.Error())
 	}
@@ -211,7 +212,31 @@ func (vm *Vm) getPfRow(rows *sql.Rows, pointerList []any, typeNumber values.Valu
 	if NON_CONTAINERS.Contains(typeNumber) {
 		return fields[0]
 	}
+	typecheck := vm.getTypecheck(typeNumber)
+	if typecheck != nil { 
+		vm.Mem[typecheck.TokNumberLoc] = values.Value{values.INT, int(tok)}
+		for i, v := range fields {
+			vm.Mem[typecheck.InLoc+uint32(i)] = v
+		} 
+		vm.Mem[typecheck.ResultLoc] = values.Value{values.SUCCESSFUL_VALUE, nil}
+		vm.run(typecheck.CallAddress, ctx)
+		if vm.Mem[typecheck.ResultLoc].T == values.ERROR {
+			return vm.Mem[typecheck.ResultLoc]
+		}
+	}
+
 	return values.Value{typeNumber, fields}
+}
+
+func (vm *Vm) getTypecheck(typeNumber values.ValueType) *TypeCheck {
+	info := vm.ConcreteTypeInfo[typeNumber]
+	if info, ok := info.(StructType); ok {
+		return info.TypeCheck
+	}
+	if info, ok := info.(CloneType); ok {
+		return info.TypeCheck
+	}
+	return nil
 }
 
 var NON_CONTAINERS = dtypes.MakeFromSlice([]values.ValueType{values.STRING, values.INT, values.BOOL})
@@ -330,7 +355,7 @@ func (vm *Vm) getPointers(abType values.AbstractType, rows *sql.Rows, tok uint32
 
 // We want a struct type to be turned into the sig of an appropriate table. The entry point must
 // be a struct type because the table needs names for the columns; and for the same reason the
-// fields of the struct must be either base types, clones of base types, their ullable twins, or
+// fields of the struct must be either base types, clones of base types, their nullable twins, or
 // structs but *not* their nulllable twins because what would that even mean?
 //
 // We then join the results together and put parentheses around them before returning.

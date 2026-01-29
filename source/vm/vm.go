@@ -267,7 +267,7 @@ loop:
 						buf.WriteString(strconv.Itoa(1 + i/2))
 					}
 				}
-				result := vm.evalGetSQL(sqlObj, cType, buf.String(), vals, args[5], args[6])
+				result := vm.evalGetSQL(sqlObj, cType, buf.String(), vals, args[5], args[6], ctx)
 				vm.Mem[args[1]] = result
 				if result.T == values.ERROR {
 					vm.Mem[args[0]] = result
@@ -579,6 +579,9 @@ loop:
 						errorInfo := vm.TypeCheckErrors[args[3]]
 						vm.Mem[args[0]] = vm.makeError("vm/typecheck/fail", tokNumber,
 							errorInfo.Condition, errorInfo.Type, errorInfo.Tok, errorInfo.Value)
+						if len(vm.callstack) == stackHeight {
+							return
+						}
 						loc = vm.callstack[len(vm.callstack)-1]
 						vm.callstack = vm.callstack[0 : len(vm.callstack)-1]
 					}
@@ -590,6 +593,9 @@ loop:
 					vm.Mem[args[0]] = vm.makeError("vm/typecheck/bool", tokNumber,
 						errorInfo.Condition, errorInfo.Type, errorInfo.Tok,
 						vm.DescribeType(vm.Mem[args[1]].T, LITERAL), vm.Mem[args[1]], errorInfo.Tok)
+					if len(vm.callstack) == stackHeight {
+						return
+					}
 					loc = vm.callstack[len(vm.callstack)-1]
 					vm.callstack = vm.callstack[0 : len(vm.callstack)-1]
 				}
@@ -1157,7 +1163,7 @@ loop:
 				loc = args[0]
 				continue
 			case Json:
-				vm.Mem[args[0]] = vm.jsonToPf(vm.Mem[args[1]].V.(string), vm.Mem[args[2]].V.(values.AbstractType), args[3] == 0, args[4])
+				vm.Mem[args[0]] = vm.jsonToPf(vm.Mem[args[1]].V.(string), vm.Mem[args[2]].V.(values.AbstractType), args[3] == 0, args[4], ctx)
 			case Jsr:
 				vm.callstack = append(vm.callstack, loc)
 				loc = args[0]
@@ -1820,7 +1826,19 @@ loop:
 						break Switch
 					}
 				}
-				vm.Mem[args[0]] = values.Value{typ, outVals}
+				// It may need validation.
+				typecheck := vm.ConcreteTypeInfo[typ].(StructType).TypeCheck
+				if typecheck == nil {
+					vm.Mem[args[0]] = values.Value{typ, outVals}
+				} else {
+					vm.Mem[typecheck.TokNumberLoc] = values.Value{values.INT, int(tok)}
+					for i, v := range outVals {
+						vm.Mem[typecheck.InLoc+uint32(i)] = v
+					} 
+					vm.Mem[typecheck.ResultLoc] = values.Value{typ, outVals}
+					vm.run(typecheck.CallAddress, ctx)
+					vm.Mem[args[0]] = vm.Mem[typecheck.ResultLoc]
+				}
 			case WthZ:
 				typ := vm.Mem[args[1]].T
 				outVals := make([]values.Value, len(vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers))

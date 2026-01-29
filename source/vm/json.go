@@ -1,18 +1,20 @@
 package vm
 
 import (
+	"context"
+
 	"github.com/tim-hardcastle/pipefish/source/values"
 	"github.com/wundergraph/astjson"
 	"src.elv.sh/pkg/persistent/vector"
 )
 
 // For speed and convenience, we hardwire translating JSON into Pipefish values.
-func (vm *Vm) jsonToPf(j string, ty values.AbstractType, as bool, tok uint32) values.Value {
+func (vm *Vm) jsonToPf(j string, ty values.AbstractType, as bool, tok uint32, ctx context.Context) values.Value {
 	goVal, err := astjson.Parse(j)
 	if err != nil {
 		return vm.makeError("vm/parse/json", tok, err.Error())
 	}
-	return vm.goToPf(goVal, ty, as, tok)
+	return vm.goToPf(goVal, ty, as, tok, ctx)
 }
 
 // Oh hooray, another recursive function for turning Go values into Pipefish! Is this the third or
@@ -22,7 +24,7 @@ func (vm *Vm) jsonToPf(j string, ty values.AbstractType, as bool, tok uint32) va
 // types, because we need to pass in the parameterizing type to the recursive `goToPf` call, and
 // then having done that we *don't* need to call their validation logic, since that will have
 // been taken care of when the elements were converted.
-func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, tok uint32) values.Value {
+func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, tok uint32, ctx context.Context) values.Value {
 	var canNull bool
 	var pfType values.ValueType
 	result := vm.makeError("vm/json/convert", tok)
@@ -103,7 +105,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 				}
 			}
 			for _, goElement := range arr {
-				pfElement := vm.goToPf(goElement, insideType, as, tok)
+				pfElement := vm.goToPf(goElement, insideType, as, tok, ctx)
 				if pfElement.T == values.ERROR {
 					return pfElement
 				}
@@ -140,7 +142,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 			}
 			obj.Visit(func(k []byte, v *astjson.Value) {
 				pfKey := values.Value{stringlikeType, string(k)}
-				pfValue := vm.goToPf(v, insideType, as, tok)
+				pfValue := vm.goToPf(v, insideType, as, tok, ctx)
 				if pfValue.T == values.ERROR {
 					err = pfValue
 					return
@@ -162,7 +164,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 					err = vm.makeError("vm/json/field", tok)
 					return
 				}
-				pfValue := vm.goToPf(v, structInfo.AbstractStructFields[fieldNumber], as, tok)
+				pfValue := vm.goToPf(v, structInfo.AbstractStructFields[fieldNumber], as, tok, ctx)
 				if pfValue.T == values.ERROR {
 					err = pfValue
 				} else {
@@ -182,7 +184,8 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 		for i, v := range vals {
 			vm.Mem[typecheck.InLoc+uint32(i)] = v
 		} 
-		vm.Run(typecheck.ResultLoc)
+		vm.Mem[typecheck.ResultLoc] = values.Value{values.SUCCESSFUL_VALUE, nil}
+		vm.run(typecheck.CallAddress, ctx)
 		if vm.Mem[typecheck.ResultLoc].T == values.ERROR {
 			result = vm.Mem[typecheck.ResultLoc]
 		}
