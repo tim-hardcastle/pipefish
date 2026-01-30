@@ -1,0 +1,57 @@
+import
+
+golang "io"
+golang "net/http"
+golang "strings"
+
+newtype
+
+Http = struct(url, contentType string?)
+Response = struct(body string)
+
+def 
+
+Http(url string) :
+    Http(url, NULL)
+
+cmd
+
+post to (h Http, s snippet) :
+    goPost h[url], h[contentType], parseSnippetForHttp s
+
+post to (h Http, a any) :
+    goPost h[url], h[contentType], string(a)
+
+get (x ref) from (h Http) :
+    x = goGet h[url]
+
+private 
+
+goPost (url, contentType, s string) : golang {
+    _, err := http.Post(url, contentType, strings.NewReader(s))
+    if err == nil {
+        return struct{}{}
+    } else {
+        return err
+    }
+}
+
+def private
+
+goGet (url string) -> Response/error : golang {
+    r, err := http.Get(url)
+    if err == nil {
+        body, err2 := io.ReadAll(r.Body)
+        r.Body.Close()
+        if err2 == nil {
+            return Response{string(body)}
+        }
+        return err2
+    } else {
+        return err
+    }
+}
+
+parseSnippetForHttp (s snippet) -> string :
+    from a = "" for _::el = range s :
+        a + string el

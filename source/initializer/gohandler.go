@@ -221,12 +221,13 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 				userDefinedTypes.Add(text.WithoutDots(name))
 			}
 		}
-		for _, v := range function.callInfo.ReturnTypes {
-			if _, ok := v.VarType.(*parser.TypeInfix); ok {
-				continue
-			}
-			if !iz.cp.IsBuiltin(v.VarType.String()) {
-				userDefinedTypes.Add(v.VarType.String())
+		for _, pair := range function.callInfo.ReturnTypes {
+			abType := iz.cp.GetAbstractTypeFromAstType(pair.VarType)
+			for _, conc := range abType.Types {
+				if _, ok := iz.cp.Vm.ConcreteTypeInfo[conc].(vm.BuiltinType); ok {
+					continue
+				}
+				userDefinedTypes.Add(iz.cp.Vm.ConcreteTypeInfo[conc].GetName(vm.DEFAULT))
 			}
 		}
 	}
@@ -299,9 +300,9 @@ func (iz *Initializer) transitivelyCloseTypes(userDefinedTypes dtypes.Set[string
 	for ; len(structsToCheck) > 0; {
 		newStructsToCheck := make(dtypes.Set[string])
 		for structName := range structsToCheck {
-			for _, fieldType := range iz.cp.TypeInfoNow(structName).(vm.StructType).AbstractStructFields {
+			for i, fieldType := range iz.cp.TypeInfoNow(structName).(vm.StructType).AbstractStructFields {
 				if fieldType.Len() != 1 {
-					iz.throw("golang/concrete/b", INTEROP_TOKEN, iz.cp.Vm.DescribeAbstractType(fieldType, vm.LITERAL))
+					iz.throw("golang/concrete/b", INTEROP_TOKEN, iz.cp.Vm.DescribeAbstractType(fieldType, vm.LITERAL), structName, i)
 					structsToCheck = newStructsToCheck
 					continue
 				}

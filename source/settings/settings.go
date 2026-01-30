@@ -26,7 +26,7 @@ var ThingsToIgnore = (dtypes.MakeFromSlice(MandatoryImports)).
 
 var StandardLibraries = dtypes.MakeFromSlice([]string{"encoding/csv", "encoding/base_32", 
     "encoding/base_64", "encoding/json", "files", "fmt", "html", "lists", "math", "math/big", 
-	"math/cmplx", "math/rand", "net/mail", "net/smtp", "net/url", "os/exec", "path", 
+	"math/cmplx", "math/rand", "net/http", "net/mail", "net/smtp", "net/url", "os/exec", "path", 
 	"path/filepath", "reflect", "regexp", "sql", "strings", "terminal", "time", "unicode"})
 
 const (
