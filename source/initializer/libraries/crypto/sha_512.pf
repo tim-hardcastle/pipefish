@@ -1,0 +1,11 @@
+import 
+
+golang "crypto/sha512"
+golang "fmt"
+
+def 
+
+hash (s string) -> string : golang {
+    r := sha512.Sum512([]byte(s))
+    return fmt.Sprintf("%x", r)
+}
