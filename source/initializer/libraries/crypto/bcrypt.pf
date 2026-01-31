@@ -1,0 +1,25 @@
+import
+
+golang "golang.org/x/crypto/bcrypt"
+
+const 
+
+DEFAULT_COST = 10
+
+def
+
+hash(s string) -> string/error : 
+    goHash(s, DEFAULT_COST)
+
+hash(s string, cost int) -> string/error : 
+     goHash(s, cost)
+
+private
+
+goHash(s string, cost int) -> string/error : golang {
+    r, e := bcrypt.GenerateFromPassword([]byte(s), cost)
+    if e == nil {
+        return string(r)
+    }
+    return e 
+}
