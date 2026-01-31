@@ -1,0 +1,51 @@
+import 
+
+golang "crypto/aes"
+golang "crypto/cipher"
+golang "crypto/rand"
+golang "encoding/base64"
+golang "io"
+
+newtype 
+
+AesEncode = struct(key, plaintext string)
+
+cmd
+
+get (ciphertext ref) from (a AesEncode) :
+    ciphertext = goEncode a
+
+def 
+
+decode (key, ciphertext string) -> string/error : golang {
+    data, err := base64.StdEncoding.DecodeString(ciphertext)
+    if err != nil {
+        return err
+    }
+    block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return err
+	}
+    gcm, _ := cipher.NewGCM(block)
+	nonceSize := gcm.NonceSize()
+	nonce, encrypted := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, encrypted, nil)
+    if err == nil {
+		return string(plaintext)
+	}
+    return err
+}
+
+private
+
+goEncode(a AesEncode) -> string/error : golang {
+    block, err := aes.NewCipher([]byte(a.Key))
+    if err != nil {
+        return err
+    }
+    gcm, _ := cipher.NewGCM(block)
+    nonce := make([]byte, gcm.NonceSize())
+	io.ReadFull(rand.Reader, nonce)
+    ciphertext := gcm.Seal(nonce, nonce, []byte(a.Plaintext), nil)
+	return base64.StdEncoding.EncodeToString(ciphertext)
+}
