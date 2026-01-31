@@ -10,7 +10,6 @@ require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/apache/arrow/go/v12 v12.0.1 // indirect
 	github.com/apache/thrift v0.17.0 // indirect
-	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/caddyserver/zerossl v0.1.3 // indirect
@@ -29,7 +28,6 @@ require (
 	github.com/google/pprof v0.0.0-20250607225305-033d6d78b36a // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/css v1.0.1 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
@@ -44,7 +42,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mholt/acmez/v3 v3.1.3 // indirect
-	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/miekg/dns v1.1.68 // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
@@ -56,9 +53,6 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/zerolog v1.28.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/stretchr/testify v1.11.1 // indirect
-	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
-	github.com/wundergraph/astjson v1.0.0 // indirect
 	github.com/wundergraph/go-arena v0.0.0-20251008210416-55cb97e6f68f // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
@@ -94,6 +88,8 @@ require (
 	github.com/microsoft/go-mssqldb v1.7.2
 	github.com/nakagami/firebirdsql v0.9.4
 	github.com/sijms/go-ora v1.3.2
+	github.com/wk8/go-ordered-map/v2 v2.1.8
+	github.com/wundergraph/astjson v1.0.0
 	golang.org/x/crypto v0.41.0
 	golang.org/x/term v0.37.0
 	modernc.org/sqlite v1.31.1
