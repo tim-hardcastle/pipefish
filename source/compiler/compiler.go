@@ -349,7 +349,7 @@ NodeTypeSwitch:
 		if node.Token.Namespace == "" {
 			argumentCompiler = cp.topRCompiler()
 		} else {
-			argumentCompiler = cp.getResolvingCompiler(node, ac)
+			argumentCompiler = cp.getResolvingCompiler(node.GetToken(), ac)
 		}
 		// If we're parsing the parameters of a namespaced function, then we are allowed a
 		// window through to its public global constants, which will be in the enumCompiler.
@@ -361,7 +361,7 @@ NodeTypeSwitch:
 			cp.GlobalConsts.Ext = argumentCompiler.GlobalConsts
 		}
 		// Here we get the compiler suitable to the namespace of the identifier.
-		resolvingCompiler := cp.getResolvingCompiler(node, ac)
+		resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 		var v *Variable
 		var ok bool
 		if resolvingCompiler != cp {
@@ -569,7 +569,7 @@ NodeTypeSwitch:
 			}
 			break NodeTypeSwitch
 		}
-		resolvingCompiler := cp.getResolvingCompiler(node, ac)
+		resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 		cp.pushRCompiler(resolvingCompiler)
 		result = resolvingCompiler.createFunctionCall(cp, node, ctxt.x(), node.GetToken().Namespace != "")
 		cp.popRCompiler()
@@ -956,7 +956,7 @@ NodeTypeSwitch:
 			cp.addToForData(cp.vmBreakWithValue(cp.That()))
 			break
 		}
-		resolvingCompiler := cp.getResolvingCompiler(node, ac)
+		resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 		if cp.P.ErrorsExist() {
 			break
 		}
@@ -1042,7 +1042,7 @@ NodeTypeSwitch:
 		cp.Reserve(values.STRING, node.Value, node.GetToken())
 		result = concResult(values.STRING, true)
 	case *parser.SuffixExpression:
-		resolvingCompiler := cp.getResolvingCompiler(node, ac)
+		resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 		if node.GetToken().Type == token.DOTDOTDOT {
 			if len(node.Args) != 1 {
 				cp.Throw("comp/splat/args", node.GetToken())
@@ -1105,7 +1105,7 @@ NodeTypeSwitch:
 		// `UNSATISFIED_CONDITIONAL` if it didn't.
 		result = cpResult{Types: AltType(values.UNSATISFIED_CONDITIONAL, values.SUCCESSFUL_VALUE)}
 	case *parser.TypeExpression:
-		resolvingCompiler := cp.getResolvingCompiler(node, ac)
+		resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 		if len(node.TypeArgs) == 0 {
 			abType := resolvingCompiler.GetAbstractTypeFromTypeName(node.Operator)
 			if (ac == REPL || resolvingCompiler != cp) && cp.IsPrivate(abType) {
@@ -1148,7 +1148,7 @@ NodeTypeSwitch:
 	case *parser.TypePrefixExpression: // TODO --- since this ends up as a PrefixExpression eventually, could it not start off as one?
 		if len(node.TypeArgs) == 0 {
 			constructor := &parser.PrefixExpression{node.Token, node.Operator, node.Args}
-			resolvingCompiler := cp.getResolvingCompiler(node, ac)
+			resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 			if abType := resolvingCompiler.GetAbstractTypeFromTypeName(node.Operator); abType.Len() != 1 {
 				cp.Throw("comp/type/concrete", node.GetToken())
 				return FAIL
@@ -1174,7 +1174,7 @@ NodeTypeSwitch:
 			// the compiler can do what the parser can't, and turn it into a normal suffix expression,
 			// which can then be compiled.
 			suffix := &parser.SuffixExpression{node.Token, ty.OperatorName, node.Args}
-			resolvingCompiler := cp.getResolvingCompiler(node, ac)
+			resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 			result = resolvingCompiler.CompileNode(suffix, ctxt)
 			if result.Failed {
 				return FAIL
@@ -1184,7 +1184,7 @@ NodeTypeSwitch:
 			return FAIL
 		}
 	case *parser.UnfixExpression:
-		resolvingCompiler := cp.getResolvingCompiler(node, ac)
+		resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 		result = resolvingCompiler.createFunctionCall(resolvingCompiler, node, ctxt.x(), len(node.Namespace) > 0)
 		if result.Failed {
 			return FAIL
@@ -1269,19 +1269,20 @@ func (cp *Compiler) checkInferredTypesAgainstContext(rtnTypes AlternateType, typ
 }
 
 // Function auxiliary to CompileNode that finds the appropriate compiler for a given namespace.
-func (cp *Compiler) getResolvingCompiler(node parser.Node, ac CpAccess) *Compiler {
+func (cp *Compiler) getResolvingCompiler(tok *token.Token, ac CpAccess) *Compiler {
+	
 	namespace := []string{}
-	if node.GetToken().Namespace == "" {
+	if tok.Namespace == "" {
 		return cp
 	} else {
-		namespace = strings.Split(node.GetToken().Namespace, ".")
+		namespace = strings.Split(tok.Namespace, ".")
 	}
 	resolvingCompiler := cp
 	for _, name := range namespace[:len(namespace)-1] {
 		// We checked that it exists during parsing.
 		resolvingCompiler, _ = resolvingCompiler.Modules[name]
 		if resolvingCompiler.P.Private && (ac == REPL || len(namespace) > 1) {
-			cp.Throw("comp/namespace/private", node.GetToken(), name)
+			cp.Throw("comp/namespace/private", tok, name)
 			return nil
 		}
 	}

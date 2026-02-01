@@ -10,6 +10,7 @@ import (
 // The base TypeNode interface
 type TypeNode interface {
 	String() string
+	GetToken() *token.Token
 	tn() // ust to distinguish members of the interface from everything else that's stringable.
 }
 
@@ -30,6 +31,10 @@ type TypeWithName struct {
 
 func (tl *TypeWithName) String() string {
 	return tl.OperatorName
+}
+
+func (tl *TypeWithName) GetToken() *token.Token {
+	return &tl.Token
 }
 
 func (tl *TypeWithName) tn() {
@@ -63,6 +68,10 @@ func (twp *TypeWithParameters) String() string {
 	}
 	out.WriteString("}")
 	return out.String()
+}
+
+func (twp *TypeWithParameters) GetToken() *token.Token {
+	return &twp.Token
 }
 
 func (twp *TypeWithParameters) tn() {
@@ -120,6 +129,10 @@ func (twa *TypeWithArguments) String() string {
 	return out.String()
 }
 
+func (twa *TypeWithArguments) GetToken() *token.Token {
+	return &twa.Token
+}
+
 func (twa *TypeWithArguments) tn() {
 }
 
@@ -138,6 +151,10 @@ func (ti *TypeInfix) String() string {
 	return out.String()
 }
 
+func (ti *TypeInfix) GetToken() *token.Token {
+	return &ti.Token
+}
+
 func (ti *TypeInfix) tn() {
 }
 
@@ -153,6 +170,10 @@ func (ts *TypeSuffix) String() string {
 	out.WriteString(ts.Left.String())
 	out.WriteString(ts.Operator)
 	return out.String()
+}
+
+func (ts *TypeSuffix) GetToken() *token.Token {
+	return &ts.Token
 }
 
 func (ts *TypeSuffix) tn() {
@@ -173,7 +194,11 @@ func (td *TypeDotDotDot) String() string {
 	return out.String()
 }
 
-func (tddd *TypeDotDotDot) tn() {
+func (td *TypeDotDotDot) GetToken() *token.Token {
+	return &td.Token
+}
+
+func (td *TypeDotDotDot) tn() {
 }
 
 var (
@@ -196,6 +221,10 @@ type TypeBling struct {
 
 func (tb *TypeBling) String() string {
 	return tb.Bling
+}
+
+func (tb *TypeBling) GetToken() *token.Token {
+	return &tb.Token
 }
 
 func (tb *TypeBling) tn() {

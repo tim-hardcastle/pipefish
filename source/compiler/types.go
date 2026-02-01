@@ -144,17 +144,18 @@ func (cp *Compiler) TypeExists(name string) bool {
 }
 
 func (cp *Compiler) GetAbstractTypeFromAstType(typeNode parser.TypeNode) values.AbstractType {
+	rp := cp.getResolvingCompiler(typeNode.GetToken(), DEF)
 	if typeNode == nil { // This can mark an absence of return types.
 		return values.AbstractType{}
 	}
 	switch typeNode := typeNode.(type) {
 	case *parser.TypeWithName:
-		return cp.GetAbstractTypeFromTypeName(typeNode.OperatorName)
+		return rp.GetAbstractTypeFromTypeName(typeNode.OperatorName)
 	case *parser.TypeWithArguments:
-		return cp.GetAbstractTypeFromTypeName(typeNode.String())
+		return rp.GetAbstractTypeFromTypeName(typeNode.String())
 	case *parser.TypeInfix:
-		LHS := cp.GetAbstractTypeFromAstType(typeNode.Left)
-		RHS := cp.GetAbstractTypeFromAstType(typeNode.Right)
+		LHS := rp.GetAbstractTypeFromAstType(typeNode.Left)
+		RHS := rp.GetAbstractTypeFromAstType(typeNode.Right)
 		if typeNode.Operator == "/" {
 			return LHS.Union(RHS)
 		}
@@ -162,7 +163,7 @@ func (cp *Compiler) GetAbstractTypeFromAstType(typeNode parser.TypeNode) values.
 			return LHS.Intersect(RHS)
 		}
 	case *parser.TypeSuffix:
-		LHS := cp.GetAbstractTypeFromAstType(typeNode.Left)
+		LHS := rp.GetAbstractTypeFromAstType(typeNode.Left)
 		if typeNode.Operator == "?" {
 			return LHS.Insert(values.NULL)
 		}
@@ -172,14 +173,14 @@ func (cp *Compiler) GetAbstractTypeFromAstType(typeNode parser.TypeNode) values.
 	case *parser.TypeBling:
 		return values.AbstractType{[]values.ValueType{values.BLING}}
 	case *parser.TypeDotDotDot:
-		return cp.GetAbstractTypeFromAstType(typeNode.Right)
+		return rp.GetAbstractTypeFromAstType(typeNode.Right)
 	case *parser.TypeWithParameters:
-		return cp.GetAbstractTypeFromTypeName(typeNode.Blank().String())
+		return rp.GetAbstractTypeFromTypeName(typeNode.Blank().String())
 	case *parser.TypeExpression:
 		if typeNode.TypeArgs == nil {
-			return cp.GetAbstractTypeFromTypeName(typeNode.Operator)
+			return rp.GetAbstractTypeFromTypeName(typeNode.Operator)
 		} else {
-			return cp.P.ParTypes[typeNode.Operator].PossibleReturnTypes
+			return rp.P.ParTypes[typeNode.Operator].PossibleReturnTypes
 		}
 	}
 	panic("Can't compile type node " + typeNode.String() + " with type " + reflect.TypeOf(typeNode).String())
