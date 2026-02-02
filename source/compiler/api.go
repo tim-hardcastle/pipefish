@@ -15,10 +15,11 @@ func (cp *Compiler) Api(name string, fonts *values.Map, width int) string {
 	result := ""
 	if name != "" || cp.DocString != "" {
 		title := "# " + name
-		result = "\n" + markdowner.Render([]string{title}) + "\n"
+		result = "\n" + markdowner.Render([]string{title})
 	}
-	result = result + markdowner.Render([]string{cp.DocString})
 	if cp.DocString != "" {
+		result = result + "\n"
+		result = result + markdowner.Render([]string{cp.DocString})
 		result = result + "\n"
 	}
 	for i, items := range cp.ApiDescription {
