@@ -224,7 +224,7 @@ func (iz *Initializer) SerializeApi() string {
 					}
 				}
 				buf.WriteString(" | ")
-				buf.WriteString(iz.serializeTypescheme(iz.cp.Fns[fn.callInfo.Number].RtnTypes))
+				buf.WriteString(iz.serializeTypescheme(fn.callInfo.Compiler.Fns[fn.callInfo.Number].RtnTypes))
 				buf.WriteString("\n")
 			}
 		}

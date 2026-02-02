@@ -173,7 +173,7 @@ ftoi(z Float) -> int : golang {
     return int(r)
 }
 
-atof(s string) -> big.Float/error : golang {
+atof(s string) -> Float/error : golang {
     var (
         ok bool
     )
@@ -232,7 +232,7 @@ Int(i int) -> Int : golang {
 }
 
 ~~ Constructs an `Int` from a `string`.
-Int(s string) -> big.Int/error :
+Int(s string) -> Int/error :
     atoi s
 
 ~~ Constructs an `Int` from a `Float`.
@@ -477,7 +477,7 @@ goExp(x, y, m Int) -> Int : golang {
     return z
 }
 
-atoi(s string) -> big.Int/error : golang {
+atoi(s string) -> Int/error : golang {
     var (
         ok bool
     )
@@ -516,7 +516,7 @@ Rat(z Float) -> Rat :
     ftor z
 
 ~~ Constructs a `Rat` from a `string`.
-Rat(s string) -> big.Rat/error :
+Rat(s string) -> Rat/error :
     ator s
 
 Rat(x float) -> Rat :
@@ -675,7 +675,7 @@ littleitoR(x int) -> Rat : golang {
     return z
 }
 
-ator(s string) -> big.Float/error : golang {
+ator(s string) -> Rat/error : golang {
     var (
         ok bool
     )
