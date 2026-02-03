@@ -216,22 +216,26 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 	userDefinedTypes := make(types)
 	for _, function := range iz.goBucket.functions[source] {
 		for _, v := range function.sig {
-			if _, ok := v.VarType.(*parser.TypeInfix); ok {
+			name := text.WithoutDots(v.VarType.String())
+			// Note: casting the type info to `BuiltinType`` won't have the same effect,
+			// since it will include $_ types.
+			if iz.cp.IsBuiltin(name) || name == "any" || name == "any?" {
 				continue
 			}
-			name := text.WithoutDots(v.VarType.String())
 			abType := iz.cp.GetAbstractTypeFromAstType(v.VarType)
-			if !iz.cp.IsBuiltin(name) && name != "any" && name != "any?" {
-				for _, conc := range abType.Types {
-					if _, ok := iz.cp.Vm.ConcreteTypeInfo[conc].(vm.BuiltinType); ok {
-						continue
-					}
-					userDefinedTypes.Add(conc)
+			for _, conc := range abType.Types {
+				if _, ok := iz.cp.Vm.ConcreteTypeInfo[conc].(vm.BuiltinType); ok {
+					continue
 				}
+				userDefinedTypes.Add(conc)
 			}
 		}
 		for _, pair := range function.callInfo.ReturnTypes {
 			abType := iz.cp.GetAbstractTypeFromAstType(pair.VarType)
+			name := text.WithoutDots(pair.VarType.String())
+			if iz.cp.IsBuiltin(name) || name == "any" || name == "any?" {
+				continue
+			}
 			for _, conc := range abType.Types {
 				if _, ok := iz.cp.Vm.ConcreteTypeInfo[conc].(vm.BuiltinType); ok {
 					continue
