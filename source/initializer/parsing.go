@@ -55,8 +55,8 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 	if filepath.Base(scriptFilepath) == "hub.hub" {
 		iz.cmI("Adding hub.pf files and themes.pf to hub namespace.")
 		iz.addToNameSpaceByFilename([]string{filepath.Join(settings.PipefishHomeDirectory, "source/hub/hub.pf"),
-										     filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf"),
-											 filepath.Join(filepath.Dir(scriptFilepath), "hub.pf")})
+			filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf"),
+			filepath.Join(filepath.Dir(scriptFilepath), "hub.pf")})
 	}
 	iz.cmI("Making new relexer with filepath '" + scriptFilepath + "'")
 	iz.P.TokenizedCode = lexer.NewRelexer(scriptFilepath, sourcecode)
@@ -670,7 +670,7 @@ func (iz *Initializer) createEnums() {
 // We create the types that wrap around Go types.
 func (iz *Initializer) createGotypes() {
 	for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
-		dec := tc.(*tokenizedGoTypeDeclaration)
+		dec := tc.(*tokenizedWrapperDeclaration)
 		var typeNo values.ValueType
 		info, typeExists := iz.getDeclaration(decGOTYPE, &dec.op, DUMMY)
 		if typeExists {
@@ -789,9 +789,9 @@ func (iz *Initializer) addCloneType(name, typeToClone string, private bool, decT
 		iz.setDeclaration(decCLONE, decTok, DUMMY, typeNo)
 		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.CloneType{Name: name, Path: iz.P.NamespacePath, Parent: parentTypeNo,
 			Private: private, IsMI: settings.MandatoryImportSet().Contains(decTok.Source)})
-		if parentTypeNo == values.LIST || parentTypeNo == values.STRING || 
-		   parentTypeNo == values.SET || parentTypeNo == values.MAP || 
-		   parentTypeNo == values.SNIPPET {
+		if parentTypeNo == values.LIST || parentTypeNo == values.STRING ||
+			parentTypeNo == values.SET || parentTypeNo == values.MAP ||
+			parentTypeNo == values.SNIPPET {
 			iz.cp.Common.IsRangeable = iz.cp.Common.IsRangeable.Union(altType(typeNo))
 		}
 	}

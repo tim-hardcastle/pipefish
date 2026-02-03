@@ -259,20 +259,20 @@ func (tc *tokenizedInterfaceDeclaration) api() (string, string, bool) {
 	return tc.op.Literal, tc.docString, true
 }
 
-type tokenizedGoTypeDeclaration struct {
+type tokenizedWrapperDeclaration struct {
 	private   bool          // Whether it's declared private.
 	op        token.Token   // The type operator.
 	goType    []token.Token // The type being aliased.
 	docString string        // Documents what it does.
 }
 
-func (tc *tokenizedGoTypeDeclaration) getDeclarationType() declarationType {
+func (tc *tokenizedWrapperDeclaration) getDeclarationType() declarationType {
 	return goTypeDeclaration
 }
 
-func (tc *tokenizedGoTypeDeclaration) indexToken() token.Token { return tc.op }
+func (tc *tokenizedWrapperDeclaration) indexToken() token.Token { return tc.op }
 
-func (tc *tokenizedGoTypeDeclaration) api() (string, string, bool) {
+func (tc *tokenizedWrapperDeclaration) api() (string, string, bool) {
 	if tc.private || settings.MandatoryImportSet().Contains(tc.op.Source) {
 		return "", "", false
 	}
@@ -666,9 +666,9 @@ func (iz *Initializer) chunkGoType(opTok token.Token, private bool, docString st
 	if len(toks) == 0 {
 		iz.throw("init/wrapper", &iz.P.CurToken)
 		iz.finishChunk()
-		return &tokenizedGoTypeDeclaration{}, false
+		return &tokenizedWrapperDeclaration{}, false
 	}
-	return &tokenizedGoTypeDeclaration{private, opTok, toks, docString}, false
+	return &tokenizedWrapperDeclaration{private, opTok, toks, docString}, false
 }
 
 // Starts after the word 'interface', ends on NEWLINE or EOF.

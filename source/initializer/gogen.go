@@ -22,7 +22,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/token"
@@ -30,9 +29,11 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/vm"
 )
 
-func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedTypes dtypes.Set[string]) {
-	for name := range userDefinedTypes {
-		switch typeInfo := iz.cp.TypeInfoNow(name).(type) {
+func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedTypes types) {
+	for ty := range userDefinedTypes {
+		typeInfo := iz.cp.Vm.ConcreteTypeInfo[ty]
+		name := typeInfo.GetName(vm.DEFAULT)
+		switch typeInfo := typeInfo.(type) {
 		case vm.CloneType:
 			goType := cloneConv[typeInfo.Parent]
 			fmt.Fprint(sb, "type ", name, " ", goType, "\n\n")
@@ -60,9 +61,10 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 	// 	    "Dragon": func(t uint32, v any) any {return Dragon{v.([]any)[0], V.([]any)[1], V.([]any)[2]}},
 	// }
 	fmt.Fprint(sb, "var PIPEFISH_FUNCTION_CONVERTER = map[string](func(t uint32, v any) any){\n")
-	for name := range userDefinedTypes {
+	for ty := range userDefinedTypes {
+		typeInfo := iz.cp.Vm.ConcreteTypeInfo[ty]
+		name := typeInfo.GetName(vm.DEFAULT)
 		fmt.Fprint(sb, "    \"", name, "\": func(t uint32, v any) any {return ")
-		typeInfo := iz.cp.TypeInfoNow(name)
 		if !typeInfo.IsGoType() {
 			fmt.Fprint(sb, name)
 		}
@@ -89,8 +91,9 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 	// is that then we'd have to import the `reflect` package into everything.
 	fmt.Fprint(sb, "var PIPEFISH_VALUE_CONVERTER = map[string]any{\n")
 
-	for name := range userDefinedTypes {
-		typeInfo := iz.cp.TypeInfoNow(name)
+	for ty := range userDefinedTypes {
+		typeInfo := iz.cp.Vm.ConcreteTypeInfo[ty]
+		name := typeInfo.GetName(vm.DEFAULT)
 		if typeInfo, ok := typeInfo.(vm.WrapperType); ok {
 			fmt.Fprint(sb, "    \"", name, "\": (*", typeInfo.Gotype, ")(nil),\n")
 		} else {

@@ -16,6 +16,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/token"
+	"github.com/tim-hardcastle/pipefish/source/values"
 	"github.com/tim-hardcastle/pipefish/source/vm"
 )
 
@@ -49,7 +50,7 @@ type goBucket struct {
 	imports   map[string][]string
 	functions map[string][]*parsedFunction
 	pureGo    map[string][]string
-	types     map[string][]string
+	types     map[string][]values.ValueType
 }
 
 type wrappedType struct {
@@ -63,7 +64,7 @@ func (iz *Initializer) newGoBucket() {
 		imports:   make(map[string][]string),
 		functions: make(map[string][]*parsedFunction),
 		pureGo:    make(map[string][]string),
-		types:     make(map[string][]string),
+		types:     make(map[string][]values.ValueType),
 	}
 	iz.goBucket = &gb
 }
@@ -86,10 +87,10 @@ func (iz *Initializer) compileGo() {
 
 	// And the Go types declared by `wrapper` in the `newtype` section.
 	for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
-		wrapper := tc.(*tokenizedGoTypeDeclaration)
+		wrapper := tc.(*tokenizedWrapperDeclaration)
 		iz.goBucket.sources.Add(wrapper.op.Source)
 		iz.goBucket.types[wrapper.op.Source] = append(iz.goBucket.types[wrapper.op.Source],
-			wrapper.op.Literal)
+			iz.cp.ConcreteTypeNow(wrapper.op.Literal))
 	}
 
 	for j := functionDeclaration; j <= commandDeclaration; j++ {
@@ -192,6 +193,8 @@ var BUILTIN_VALUE_CONVERTER = map[string]any{
 	"string": (*string)(nil),
 }
 
+type types = dtypes.Set[values.ValueType]
+
 // This makes a new .so file, opens it, and returns the plugins.
 // Most of the code generation is in the `gogen.go` file in this same `service` package.
 func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugin {
@@ -210,15 +213,21 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 	}
 	// We extract all the types we're going to need to declare.
 	// TODO --- do we need guards here on the types?
-	userDefinedTypes := make(dtypes.Set[string])
+	userDefinedTypes := make(types)
 	for _, function := range iz.goBucket.functions[source] {
 		for _, v := range function.sig {
 			if _, ok := v.VarType.(*parser.TypeInfix); ok {
 				continue
 			}
 			name := text.WithoutDots(v.VarType.String())
+			abType := iz.cp.GetAbstractTypeFromAstType(v.VarType)
 			if !iz.cp.IsBuiltin(name) && name != "any" && name != "any?" {
-				userDefinedTypes.Add(text.WithoutDots(name))
+				for _, conc := range abType.Types {
+					if _, ok := iz.cp.Vm.ConcreteTypeInfo[conc].(vm.BuiltinType); ok {
+						continue
+					}
+					userDefinedTypes.Add(conc)
+				}
 			}
 		}
 		for _, pair := range function.callInfo.ReturnTypes {
@@ -227,7 +236,7 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 				if _, ok := iz.cp.Vm.ConcreteTypeInfo[conc].(vm.BuiltinType); ok {
 					continue
 				}
-				userDefinedTypes.Add(iz.cp.Vm.ConcreteTypeInfo[conc].GetName(vm.DEFAULT))
+				userDefinedTypes.Add(conc)
 			}
 		}
 	}
@@ -279,7 +288,7 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 		iz.throw("golang/open/a", sourceToken, err.Error())
 		return nil
 	}
-	// We do this here and not earlier with defer because a .go file that doesn't compile should 
+	// We do this here and not earlier with defer because a .go file that doesn't compile should
 	// be visible for debugging.
 	os.Remove(goFile)
 	timeMap[source] = newTime
@@ -290,32 +299,31 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 // This makes sure that if  we're generating declarations for a struct type,
 // we're also generating declarations for the types of its fields if need be, and so on recursively. We do
 // a traditional non-recursive breadth-first search.
-func (iz *Initializer) transitivelyCloseTypes(userDefinedTypes dtypes.Set[string]) {
-	structsToCheck := dtypes.Set[string]{}
-	for name := range userDefinedTypes {
-		if iz.cp.IsStruct(name) {
-			structsToCheck.Add(name)
+func (iz *Initializer) transitivelyCloseTypes(userDefinedTypes types) {
+	structsToCheck := types{}
+	for ty := range userDefinedTypes {
+		if iz.cp.Vm.ConcreteTypeInfo[ty].IsStruct() {
+			structsToCheck.Add(ty)
 		}
 	}
-	for ; len(structsToCheck) > 0; {
-		newStructsToCheck := make(dtypes.Set[string])
-		for structName := range structsToCheck {
-			for i, fieldType := range iz.cp.TypeInfoNow(structName).(vm.StructType).AbstractStructFields {
+	for len(structsToCheck) > 0 {
+		newStructsToCheck := make(types)
+		for ty := range structsToCheck {
+			structInfo := iz.cp.Vm.ConcreteTypeInfo[ty].(vm.StructType)
+			for i, fieldType := range structInfo.AbstractStructFields {
 				if fieldType.Len() != 1 {
-					iz.throw("golang/concrete/b", INTEROP_TOKEN, iz.cp.Vm.DescribeAbstractType(fieldType, vm.LITERAL), structName, i)
+					iz.throw("golang/concrete/b", INTEROP_TOKEN, iz.cp.Vm.DescribeAbstractType(fieldType, vm.LITERAL), structInfo.Name, i)
 					structsToCheck = newStructsToCheck
 					continue
 				}
-				typeOfField := iz.cp.GetTypeNameFromNumber(fieldType.Types[0])
-				switch fieldData := iz.cp.TypeInfoNow(typeOfField).(type) {
-				case vm.CloneType:
-					userDefinedTypes.Add(fieldData.GetName(vm.DEFAULT))
-				case vm.EnumType:
-					userDefinedTypes.Add(fieldData.GetName(vm.DEFAULT))
+				typeOfField := fieldType.Types[0]
+				switch iz.cp.Vm.ConcreteTypeInfo[typeOfField].(type) {
+				case vm.CloneType, vm.EnumType:
+					userDefinedTypes.Add(typeOfField)
 				case vm.StructType:
-					if !userDefinedTypes.Contains(fieldData.Name) {
-						newStructsToCheck.Add(fieldData.Name)
-						userDefinedTypes.Add(fieldData.Name)
+					if !userDefinedTypes.Contains(typeOfField) {
+						newStructsToCheck.Add(typeOfField)
+						userDefinedTypes.Add(typeOfField)
 					}
 				}
 			}
