@@ -233,6 +233,7 @@ func (iz *Initializer) parseImports(startAt int) []*tokenizedExternalOrImportDec
 			return []*tokenizedExternalOrImportDeclaration{}
 		}
 		iz.cp.Modules[name] = newCp
+		newCp.P.Namespace = name
 		iz.P.NamespaceBranch[name] = &parser.ParserData{newCp.P, path}
 		newCp.P.Private = dec.private
 	}
@@ -325,7 +326,7 @@ func (iz *Initializer) addExternalOnSameHub(path, name string) {
 	hubService := iz.Common.serviceCompilers[name]
 	ev := func(line string) values.Value {
 		exVal := hubService.Do(line)
-		serialize := hubService.Vm.Literal(exVal)
+		serialize := hubService.Vm.Literal(exVal, 0)
 		return iz.cp.Do(serialize)
 	}
 	pr := func() bool {
@@ -360,6 +361,7 @@ func (iz *Initializer) addAnyExternalService(handlerForService vm.ExternalCallHa
 	newIz := NewInitializer(iz.Common)
 	iz.initializers[name] = newIz
 	newCp := newIz.ParseEverythingFromSourcecode(iz.cp.Vm, iz.P.Common, iz.cp.Common, path, sourcecode, name+"."+iz.P.NamespacePath)
+	newCp.P.Namespace = name
 	iz.P.NamespaceBranch[name] = &parser.ParserData{newCp.P, path}
 	newCp.P.Private = iz.tokenizedCode[externalDeclaration][externalServiceOrdinal].(*tokenizedExternalOrImportDeclaration).private
 	iz.cp.Modules[name] = newCp

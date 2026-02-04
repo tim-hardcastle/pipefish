@@ -24,6 +24,7 @@ var TestFolder embed.FS
 
 type Compiler struct {
 	// Permanent state, i.e. it is unchanged after initialization.
+	Number                   uint32                             // The number of the compiler in order of compilation.
 	Vm                       *vm.Vm                             // The vm we're compiling to.
 	P                        *parser.Parser                     // The parser the compiler's using to parse with..
 	GlobalConsts             *Environment                       // The global constants of the module.
@@ -58,6 +59,7 @@ type Compiler struct {
 // Initializes a compiler.
 func NewCompiler(p *parser.Parser, ccb *CommonCompilerBindle) *Compiler {
 	newC := &Compiler{
+		Number:                   ccb.CompilerCount,
 		P:                        p,
 		GlobalConsts:             NewEnvironment(),
 		GlobalVars:               NewEnvironment(),
@@ -76,6 +78,7 @@ func NewCompiler(p *parser.Parser, ccb *CommonCompilerBindle) *Compiler {
 		newC.GeneratedAbstractTypes.Add("clones{" + name + "}")
 	}
 	newC.pushRCompiler(newC)
+	ccb.CompilerCount++
 	return newC
 }
 
@@ -87,6 +90,7 @@ type CommonCompilerBindle struct {
 	CodeGeneratingTypes      dtypes.Set[values.ValueType]
 	LabelIsPrivate           []bool
 	Types                    TypeSys
+	CompilerCount            uint32
 }
 
 func NewCommonCompilerBindle() *CommonCompilerBindle {
@@ -498,7 +502,7 @@ NodeTypeSwitch:
 					labelName := cp.Vm.Labels[indexNumber]
 					fieldNumber := structInfo.Resolve(indexNumber)
 					if fieldNumber == -1 {
-						cp.Throw("comp/index/struct/a", node.GetToken(), labelName, cp.Vm.DescribeType(structT, vm.LITERAL))
+						cp.Throw("comp/index/struct/a", node.GetToken(), labelName, cp.Vm.DescribeType(structT, vm.LITERAL, 0))
 						return FAIL
 					}
 					cp.Put(vm.IxZn, container, uint32(fieldNumber))
@@ -2757,7 +2761,7 @@ func (cp *Compiler) emitCallOpcode(funcNumber uint32, valLocs []uint32) {
 
 func (cp *Compiler) Reserve(t values.ValueType, v any, tok *token.Token) uint32 {
 	if t < values.ValueType(len(cp.Vm.ConcreteTypeInfo)) {
-		cp.Cm("Reserving m"+strconv.Itoa(len(cp.Vm.Mem))+" with initial type "+cp.Vm.DescribeType(t, vm.LITERAL)+".", tok) // E.g. the members of enums get created before their type. TODO --- is there a reason for this?
+		cp.Cm("Reserving m"+strconv.Itoa(len(cp.Vm.Mem))+" with initial type "+cp.Vm.DescribeType(t, vm.LITERAL, 0)+".", tok) // E.g. the members of enums get created before their type. TODO --- is there a reason for this?
 	} else {
 		cp.Cm("Reserving m"+strconv.Itoa(len(cp.Vm.Mem))+" for initial type not yet named.", tok)
 	}

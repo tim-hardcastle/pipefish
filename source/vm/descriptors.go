@@ -38,17 +38,17 @@ func (vm *Vm) DescribeOperandValues(addr uint32) string {
 	result := ""
 	for i, operandType := range operandTypes {
 		if operandType == mem {
-			result = result + text.BULLET + "m" + strconv.Itoa(int(operands[i])) + " = " + vm.DescribeTypeAndValue(vm.Mem[operands[i]], LITERAL) + "\n"
+			result = result + text.BULLET + "m" + strconv.Itoa(int(operands[i])) + " = " + vm.DescribeTypeAndValue(vm.Mem[operands[i]], LITERAL, 0) + "\n"
 		}
 	}
 	return text.PURPLE + result + text.RESET
 }
 
-func (vm *Vm) DescribeTypeAndValue(v values.Value, flavor descriptionFlavor) string {
-	return vm.DescribeType(v.T, flavor) + "::" + vm.toString(v, flavor)
+func (vm *Vm) DescribeTypeAndValue(v values.Value, flavor descriptionFlavor, cpNumber uint32) string {
+	return vm.DescribeType(v.T, flavor, cpNumber) + "::" + vm.toString(v, flavor, cpNumber)
 }
 
-func (vm *Vm) DescribeType(t values.ValueType, flavor descriptionFlavor) string {
+func (vm *Vm) DescribeType(t values.ValueType, flavor descriptionFlavor, cpNumber uint32) string {
 	return vm.ConcreteTypeInfo[t].GetName(flavor)
 }
 
@@ -61,26 +61,31 @@ const (
 
 // TODO --- LITERAL should produce an error on being fed something unserializable.
 // Add an EXPLICIT option for LITERAL with fallback to STRING.
-func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
+func (vm *Vm) toString(v values.Value, flavor descriptionFlavor, cpNumber uint32) string {
 	typeInfo := vm.ConcreteTypeInfo[v.T]
+	var buf strings.Builder
+	if _, ok := typeInfo.(BuiltinType); !ok && flavor == LITERAL {
+		ns, ok := vm.NamespaceInfo[cpNumber][v.T]
+		if ok {
+			buf.WriteString(ns)
+		} else {
+			// Throw error.
+			return "Unserializable value."
+		}
+	}
 	if typeInfo.IsStruct() {
-		var buf strings.Builder
-		buf.WriteString(typeInfo.GetName(flavor))
+		buf.WriteString(typeInfo.GetName(DEFAULT))
 		buf.WriteString(" with (")
 		var sep string
 		vals := v.V.([]values.Value)
 		for i, lb := range typeInfo.(StructType).LabelNumbers { // We iterate by the label and not by the value so that we can have hidden fields in the structs, as we do for efficiency when making a compilable snippet.
-			fmt.Fprintf(&buf, "%s%s::%s", sep, vm.Labels[lb], vm.StringifyValue(vals[i], flavor))
+			fmt.Fprintf(&buf, "%s%s::%s", sep, vm.Labels[lb], vm.StringifyValue(vals[i], flavor, cpNumber))
 			sep = ", "
 		}
 		buf.WriteByte(')')
 		return buf.String()
 	}
 	if typeInfo.IsEnum() {
-		var buf strings.Builder
-		if flavor == LITERAL {
-			buf.WriteString(typeInfo.(EnumType).Path)
-		}
 		buf.WriteString(typeInfo.(EnumType).ElementNames[v.V.(int)])
 		return buf.String()
 
@@ -88,11 +93,11 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 	if typeInfo.IsClone() {
 		if typeInfo.(CloneType).Parent == values.MAP {
 			var buf strings.Builder
-			buf.WriteString(typeInfo.GetName(flavor))
+			buf.WriteString(typeInfo.GetName(DEFAULT))
 			buf.WriteByte('(')
 			var sep string
 			(v.V.(*values.Map)).Range(func(k, v values.Value) {
-				fmt.Fprintf(&buf, "%s%v::%v", sep, vm.StringifyValue(k, flavor), vm.StringifyValue(v, flavor))
+				fmt.Fprintf(&buf, "%s%v::%v", sep, vm.StringifyValue(k, flavor, cpNumber), vm.StringifyValue(v, flavor, cpNumber))
 				sep = ", "
 			})
 			buf.WriteByte(')')
@@ -100,11 +105,11 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		}
 		if typeInfo.(CloneType).Parent == values.SET {
 			var buf strings.Builder
-			buf.WriteString(typeInfo.GetName(flavor))
+			buf.WriteString(typeInfo.GetName(DEFAULT))
 			buf.WriteByte('(')
 			var sep string
 			v.V.(values.Set).Range(func(k values.Value) {
-				fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(k, flavor))
+				fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(k, flavor, cpNumber))
 				sep = ", "
 			})
 			buf.WriteByte(')')
@@ -112,22 +117,21 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		}
 		if typeInfo.(CloneType).Parent == values.SNIPPET {
 			var buf strings.Builder
-			buf.WriteString(typeInfo.GetName(flavor))
+			buf.WriteString(typeInfo.GetName(DEFAULT))
 			buf.WriteByte('(')
 			var sep string
 			for _, k := range v.V.(values.Snippet).Data {
-				fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(k, LITERAL))
+				fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(k, LITERAL, 0))
 				sep = ", "
 			}
 			buf.WriteByte(')')
 			return buf.String()
 		}
-		var buf strings.Builder
-		buf.WriteString(typeInfo.GetName(flavor))
+		buf.WriteString(typeInfo.GetName(DEFAULT))
 		if typeInfo.(CloneType).Parent != values.LIST {
 			buf.WriteByte('(')
 		}
-		buf.WriteString(vm.StringifyValue(values.Value{typeInfo.(CloneType).Parent, v.V}, flavor))
+		buf.WriteString(vm.StringifyValue(values.Value{typeInfo.(CloneType).Parent, v.V}, flavor, cpNumber))
 		if typeInfo.(CloneType).Parent != values.LIST {
 			buf.WriteByte(')')
 		}
@@ -181,7 +185,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		var sep string
 		for i := 0; i < v.V.(vector.Vector).Len(); i++ {
 			el, _ := v.V.(vector.Vector).Index(i)
-			fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(el.(values.Value), flavor))
+			fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(el.(values.Value), flavor, cpNumber))
 			sep = ", "
 		}
 		buf.WriteByte(']')
@@ -191,7 +195,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		buf.WriteString("map(")
 		var sep string
 		(v.V.(*values.Map)).Range(func(k, v values.Value) {
-			fmt.Fprintf(&buf, "%s%v::%v", sep, vm.StringifyValue(k, flavor), vm.StringifyValue(v, flavor))
+			fmt.Fprintf(&buf, "%s%v::%v", sep, vm.StringifyValue(k, flavor, cpNumber), vm.StringifyValue(v, flavor, cpNumber))
 			sep = ", "
 		})
 		buf.WriteByte(')')
@@ -200,7 +204,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		return "NULL"
 	case values.PAIR:
 		vals := v.V.([]values.Value)
-		return vm.StringifyValue(vals[0], flavor) + "::" + vm.StringifyValue(vals[1], flavor)
+		return vm.StringifyValue(vals[0], flavor, cpNumber) + "::" + vm.StringifyValue(vals[1], flavor, cpNumber)
 	case values.RUNE:
 		if flavor == DEFAULT {
 			return fmt.Sprintf("%c", v.V.(rune))
@@ -213,7 +217,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		buf.WriteString("set(")
 		var sep string
 		v.V.(values.Set).Range(func(k values.Value) {
-			fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(k, flavor))
+			fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(k, flavor, cpNumber))
 			sep = ", "
 		})
 		buf.WriteByte(')')
@@ -223,7 +227,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		buf.WriteString("snippet(")
 		var sep string
 		for _, k := range v.V.(values.Snippet).Data {
-			fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(k, LITERAL))
+			fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(k, LITERAL, 0))
 			sep = ", "
 		}
 		buf.WriteByte(')')
@@ -251,7 +255,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 	case values.TUPLE:
 		result := make([]string, len(v.V.([]values.Value)))
 		for i, v := range v.V.([]values.Value) {
-			result[i] = vm.StringifyValue(v, flavor)
+			result[i] = vm.StringifyValue(v, flavor, cpNumber)
 		}
 		prefix := "("
 		if len(result) == 1 {
@@ -259,7 +263,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 		}
 		return prefix + strings.Join(result, ", ") + ")"
 	case values.TYPE:
-		return vm.DescribeAbstractType(v.V.(values.AbstractType), flavor)
+		return vm.DescribeAbstractType(v.V.(values.AbstractType), flavor, cpNumber)
 	case values.UNDEFINED_TYPE:
 		return "UNDEFINED VALUE!"
 	case values.UNSATISFIED_CONDITIONAL:
@@ -273,14 +277,14 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor) string {
 	panic("can't describe value")
 }
 
-func (vm *Vm) DescribeAbstractType(aT values.AbstractType, flavor descriptionFlavor) string {
+func (vm *Vm) DescribeAbstractType(aT values.AbstractType, flavor descriptionFlavor, cpNumber uint32) string {
 	result := []string{}
 	T := aT
 	if len(aT.Types) == 0 {
 		return "empty"
 	}
 	if len(aT.Types) == 1 {
-		return vm.DescribeType(aT.Types[0], flavor)
+		return vm.DescribeType(aT.Types[0], flavor, cpNumber)
 	}
 	// First we greedily remove the abstract types.
 	for {
@@ -311,7 +315,7 @@ func (vm *Vm) DescribeAbstractType(aT values.AbstractType, flavor descriptionFla
 		if t == values.NULL {
 			nullFlag = true
 		} else {
-			result = append(result, vm.DescribeType(t, flavor))
+			result = append(result, vm.DescribeType(t, flavor, cpNumber))
 		}
 	}
 	// Deal with null
@@ -326,19 +330,19 @@ func (vm *Vm) DescribeAbstractType(aT values.AbstractType, flavor descriptionFla
 }
 
 func (vm *Vm) DefaultDescription(v values.Value) string {
-	return vm.toString(v, DEFAULT)
+	return vm.toString(v, DEFAULT, DUMMY)
 }
 
-func (vm *Vm) Literal(v values.Value) string {
-	return vm.toString(v, LITERAL)
+func (vm *Vm) Literal(v values.Value, cpNumber uint32) string {
+	return vm.toString(v, LITERAL, cpNumber)
 }
 
-func (vm *Vm) StringifyValue(v values.Value, flavor descriptionFlavor) string {
+func (vm *Vm) StringifyValue(v values.Value, flavor descriptionFlavor, cpNumber uint32) string {
 	if flavor == LITERAL {
-		return vm.toString(v, LITERAL)
+		return vm.toString(v, LITERAL, cpNumber)
 	}
 	if v.T == values.TUPLE || v.T == values.SUCCESSFUL_VALUE || v.T == values.ERROR {
-		return vm.toString(v, flavor)
+		return vm.toString(v, flavor, cpNumber)
 	}
 	vm.Mem[vm.StringifyLoReg] = v
 	vm.run(vm.StringifyCallTo, context.Background()) // TODO --- does this matter?
@@ -379,9 +383,9 @@ func (vm *Vm) DumpStore(store values.Map, password string) string {
 	var plaintext strings.Builder
 	plaintext.WriteString("PLAINTEXT\n")
 	for _, pair := range store.AsSlice() {
-		plaintext.WriteString(vm.toString(pair.Key, LITERAL))
+		plaintext.WriteString(vm.toString(pair.Key, LITERAL, 0))
 		plaintext.WriteString("::")
-		plaintext.WriteString(vm.toString(pair.Val, LITERAL))
+		plaintext.WriteString(vm.toString(pair.Val, LITERAL, 0))
 		plaintext.WriteString("\n")
 	}
 	if password == "" {

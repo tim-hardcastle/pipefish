@@ -91,7 +91,7 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 				sep := ""
 				for i := 1; i < len(args); i = i + 2 {
 					out.WriteString(sep)
-					out.WriteString(text.Emph(args[i].(string)) + " = " + text.Emph(vm.Literal(args[i+1].(values.Value))))
+					out.WriteString(text.Emph(args[i].(string)) + " = " + text.Emph(vm.Literal(args[i+1].(values.Value), 0)))
 					sep = ", "
 				}
 			}
@@ -142,11 +142,10 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 				out.WriteString("function ")
 				out.WriteString(text.Emph(args[0].(string)))
 				out.WriteString(" returned ")
-				out.WriteString(vm.Literal(args[1].(values.Value)))
+				out.WriteString(vm.Literal(args[1].(values.Value), 0))
 				out.WriteString(".\n")
 			}
 		}
-
 	}
 	return out.String()
 }

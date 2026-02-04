@@ -112,12 +112,16 @@ type typeOperatorInfo struct {
 }
 
 // Initializes a compiler given the filepath and sourcecode.
-func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompilerBindle, scriptFilepath, sourcecode string, mc *vm.Vm, namespacePath string) *compiler.Compiler {
+func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompilerBindle, scriptFilepath, sourcecode string, vm *vm.Vm, namespacePath string) *compiler.Compiler {
 	p := parser.New(Common, scriptFilepath, sourcecode, namespacePath)
 	cp := compiler.NewCompiler(p, ccb)
 	cp.ScriptFilepath = scriptFilepath
-	cp.Vm = mc
+	cp.Vm = vm
 	cp.TupleType = cp.Reserve(values.TYPE, values.AbstractType{[]values.ValueType{values.TUPLE}}, &token.Token{Source: "Builtin constant"})
+	vm.NamespaceInfo = append(vm.NamespaceInfo, make(map[values.ValueType]string))
+	for i := values.TUPLE; i < values.FIRST_DEFINED_TYPE; i++ {
+		vm.NamespaceInfo[cp.Number][i] = ""
+	}
 	return cp
 }
 
@@ -206,6 +210,9 @@ func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*co
 		iz.cp.P.Common.IsBroken = true
 		return result
 	}
+
+	iz.cmI("Making namespace map.")
+	iz.makeNamespaceMap()
 
 	iz.cmI("Compiling Go.")
 	iz.compileGoModules()
@@ -889,6 +896,23 @@ func (iz *Initializer) addParameterizedTypesToVm() {
 	}
 }
 
+// When we convert a value to a literal, we need to give it an appropriate namespace based on
+// which namespace we were in when we called `literal`.
+// When we start off, we have a list of maps, where the list is indexed by the `Number` of the 
+// compiler, and the map is from type numbers to namespaces.
+func (iz *Initializer) makeNamespaceMap() {
+	for _, dependencyIz := range iz.initializers {
+		dependencyIz.makeNamespaceMap()
+		for typeNo, path := range iz.cp.Vm.NamespaceInfo[dependencyIz.cp.Number] {
+			existingPath, ok := iz.cp.Vm.NamespaceInfo[iz.cp.Number][typeNo]
+			newPath := dependencyIz.cp.P.Namespace + "." + path
+			if !ok || len(newPath) < len(existingPath) {
+				iz.cp.Vm.NamespaceInfo[iz.cp.Number][typeNo] = newPath
+			}
+		}
+	}
+}
+
 func (iz *Initializer) tweakValue(v values.Value) values.Value {
 	if v.T == values.TYPE {
 		v.V = iz.cp.GetAbstractTypeFromAstType(v.V.(parser.TypeNode))
@@ -935,7 +959,7 @@ func (iz *Initializer) checkTypesForConsistency() {
 		if !iz.cp.Vm.ConcreteTypeInfo[typeNumber].IsPrivate() {
 			for _, ty := range iz.cp.Vm.ConcreteTypeInfo[typeNumber].(vm.StructType).AbstractStructFields {
 				if iz.cp.IsPrivate(ty) {
-					iz.throw("init/private/struct", &token.Token{}, iz.cp.Vm.ConcreteTypeInfo[typeNumber], iz.cp.Vm.DescribeAbstractType(ty, vm.LITERAL))
+					iz.throw("init/private/struct", &token.Token{}, iz.cp.Vm.ConcreteTypeInfo[typeNumber], iz.cp.Vm.DescribeAbstractType(ty, vm.LITERAL, 0))
 				}
 			}
 		}
@@ -1623,6 +1647,7 @@ func (iz *Initializer) addType(name, supertype string, typeNo values.ValueType) 
 	iz.localConcreteTypes = iz.localConcreteTypes.Add(typeNo)
 	iz.cp.TypeMap[name] = values.MakeAbstractType(typeNo)
 	iz.cp.P.Typenames = iz.cp.P.Typenames.Add(name)
+	iz.cp.Vm.NamespaceInfo[iz.cp.Number][typeNo] = ""
 	types := []string{}
 	if supertype != "wrapper" {
 		types = []string{supertype}

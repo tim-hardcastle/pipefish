@@ -332,7 +332,7 @@ func (cp *Compiler) btListWith(tok *token.Token, dest uint32, args []uint32) {
 }
 
 func (cp *Compiler) btLiteral(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Litx, dest, args[0])
+	cp.Emit(vm.Litx, dest, args[0], cp.Number)
 }
 
 func (cp *Compiler) btLtFloats(tok *token.Token, dest uint32, args []uint32) {

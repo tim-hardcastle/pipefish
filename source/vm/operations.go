@@ -183,7 +183,7 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Lens: {"lens", operands{dst, mem}},
 	LenS: {"lenS", operands{dst, mem}},
 	LenT: {"lenT", operands{dst, mem}},
-	Litx: {"litx", operands{dst, mem}},
+	Litx: {"litx", operands{dst, mem, mem, tok}},
 	List: {"list", operands{dst, mem}},
 	LnSn: {"lnSn", operands{dst, mem}},
 	Logn: {"logn", operands{}},

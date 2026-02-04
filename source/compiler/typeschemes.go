@@ -241,7 +241,7 @@ func (t SimpleType) compare(u TypeScheme) int {
 }
 
 func (t SimpleType) describe(mc *vm.Vm) string {
-	return mc.DescribeType(values.ValueType(t), vm.LITERAL)
+	return mc.DescribeType(values.ValueType(t), vm.LITERAL, 0)
 }
 
 func (t SimpleType) IsPrivate(mc *vm.Vm) bool {

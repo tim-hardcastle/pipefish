@@ -241,7 +241,7 @@ func isPTI(ty vm.TypeInformation) bool {
 }
 
 func (iz *Initializer) serializeAbstractType(ty values.AbstractType) string {
-	return strings.ReplaceAll(iz.cp.Vm.DescribeAbstractType(ty, vm.LITERAL), "/", " ")
+	return strings.ReplaceAll(iz.cp.Vm.DescribeAbstractType(ty, vm.LITERAL, iz.cp.Number), "/", " ")
 }
 
 func (iz *Initializer) IsMandatoryImport(aT values.AbstractTypeInfo) bool {

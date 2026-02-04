@@ -63,9 +63,9 @@ func MakeSimpleOutHandler(out io.Writer, vm *Vm) *SimpleOutHandler {
 
 func (oH *SimpleOutHandler) Out(v values.Value) {
 	if oH.vm.Mem[oH.vm.UsefulValues.OutputAs].V.(int) == 0 {
-		oH.output.Write([]byte(oH.vm.Literal(v)))
+		oH.output.Write([]byte(oH.vm.Literal(v, 0)))
 	} else {
-		oH.output.Write([]byte(oH.vm.StringifyValue(v, DEFAULT)))
+		oH.output.Write([]byte(oH.vm.StringifyValue(v, DEFAULT, DUMMY)))
 	}
 	oH.output.Write([]byte{'\n'})
 }
@@ -84,7 +84,7 @@ func MakeLiteralOutHandler(out io.Writer, vm *Vm) *LiteralOutHandler {
 }
 
 func (oH *LiteralOutHandler) Out(v values.Value) {
-	oH.output.Write([]byte(oH.vm.Literal(v)))
+	oH.output.Write([]byte(oH.vm.Literal(v, 0)))
 	oH.output.Write([]byte{'\n'})
 }
 
@@ -104,7 +104,7 @@ type CapturingOutHandler struct {
 }
 
 func (oH *CapturingOutHandler) Out(v values.Value) {
-	oH.capture.Write([]byte(oH.handler.vm.Literal(v)))
+	oH.capture.Write([]byte(oH.handler.vm.Literal(v, 0)))
 }
 
 func (oH *CapturingOutHandler) Write(s string) {

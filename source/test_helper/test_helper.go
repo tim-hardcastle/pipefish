@@ -82,7 +82,7 @@ func TestValues(cp *compiler.Compiler, s string) (string, error) {
 	if v.T == values.ERROR {
 		return v.V.(*err.Error).ErrorId, nil
 	}
-	return cp.Vm.Literal(v), nil
+	return cp.Vm.Literal(v, 0), nil
 }
 
 func TestHighlighter(cp *compiler.Compiler, s string) (string, error) {
@@ -112,7 +112,7 @@ func TestCompilerErrors(cp *compiler.Compiler, s string) (string, error) {
 	}
 	v := cp.Do(s)
 	if !cp.ErrorsExist() {
-		return "", errors.New("unexpected successful evaluation returned " + text.Emph(cp.Vm.Literal(v)))
+		return "", errors.New("unexpected successful evaluation returned " + text.Emph(cp.Vm.Literal(v, 0)))
 	} else {
 		return cp.P.Common.Errors[0].ErrorId, nil
 	}

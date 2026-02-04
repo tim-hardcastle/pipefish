@@ -408,7 +408,7 @@ func (sv *Service) GetErrors() []*Error {
 
 // Converts a `Value` to a string using Pipefish's `literal` function.
 func (sv *Service) ToLiteral(v Value) string {
-	return sv.cp.Vm.Literal(v)
+	return sv.cp.Vm.Literal(v, 0)
 }
 
 // Converts a `Value` to a string using Pipefish's `string` function.
@@ -465,7 +465,7 @@ func (sv *Service) TypeToTypeName(t Type) (string, error) {
 	if int(t) >= len(sv.cp.Vm.ConcreteTypeInfo) {
 		return "", errors.New("type does not exist")
 	}
-	s := sv.cp.Vm.DescribeType(t, vm.DEFAULT)
+	s := sv.cp.Vm.DescribeType(t, vm.DEFAULT, 0)
 	return s, nil
 }
 

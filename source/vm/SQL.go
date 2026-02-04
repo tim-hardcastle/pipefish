@@ -88,7 +88,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 				valVal = values.Value{secondType, valVals}
 			}
 			if _, ok := mp.Get(keyVal); ok {
-				return vm.makeError("sql/map/exists", tok, vm.toString(keyVal, LITERAL))
+				return vm.makeError("sql/map/exists", tok, vm.toString(keyVal, LITERAL, 0))
 			}
 			mp = mp.Set(keyVal, valVal)
 		}
@@ -291,7 +291,7 @@ func (vm *Vm) getPointers(abType values.AbstractType, rows *sql.Rows, tok uint32
 		}
 		fallthrough
 	default:
-		return nil, vm.makeError("vm/sql/abstract/a", tok, vm.DescribeAbstractType(abType, LITERAL))
+		return nil, vm.makeError("vm/sql/abstract/a", tok, vm.DescribeAbstractType(abType, LITERAL, 0))
 	}
 	info := vm.ConcreteTypeInfo[concreteType]
 	// We special-case the built-in parameterized 'pair' type.
@@ -350,7 +350,7 @@ func (vm *Vm) getPointers(abType values.AbstractType, rows *sql.Rows, tok uint32
 		var i int
 		return []any{&i}, values.OK
 	}
-	return nil, vm.makeError("vm/sql/type/c", tok, vm.DescribeAbstractType(abType, LITERAL))
+	return nil, vm.makeError("vm/sql/type/c", tok, vm.DescribeAbstractType(abType, LITERAL, 0))
 }
 
 // We want a struct type to be turned into the sig of an appropriate table. The entry point must
@@ -361,7 +361,7 @@ func (vm *Vm) getPointers(abType values.AbstractType, rows *sql.Rows, tok uint32
 // We then join the results together and put parentheses around them before returning.
 func (vm *Vm) getTableSigFromStructType(concreteType values.ValueType, tok uint32) (string, values.Value) { // As usual in this part of the program, the value is an ERROR or OK.
 	if !vm.ConcreteTypeInfo[concreteType].IsStruct() {
-		return "", vm.makeError("vm/sql/sig", tok, vm.DescribeType(concreteType, LITERAL))
+		return "", vm.makeError("vm/sql/sig", tok, vm.DescribeType(concreteType, LITERAL, 0))
 	}
 	sig, err := vm.getSQLSigFromStructType(concreteType, tok)
 	if err.T == values.ERROR {
@@ -410,7 +410,7 @@ func (vm *Vm) getSQLType(abType values.AbstractType, tok uint32) (string, values
 		}
 		fallthrough
 	default:
-		return "", vm.makeError("vm/sql/abstract/b", tok, vm.DescribeAbstractType(abType, LITERAL))
+		return "", vm.makeError("vm/sql/abstract/b", tok, vm.DescribeAbstractType(abType, LITERAL, 0))
 	}
 	info := vm.ConcreteTypeInfo[concreteType]
 	// We special-case the varchars.
@@ -445,7 +445,7 @@ func (vm *Vm) getSQLType(abType values.AbstractType, tok uint32) (string, values
 		plainSQLType = "INTEGER"
 	}
 	if plainSQLType == "" {
-		return "", vm.makeError("sql/sig", tok, vm.DescribeAbstractType(abType, LITERAL))
+		return "", vm.makeError("sql/sig", tok, vm.DescribeAbstractType(abType, LITERAL, 0))
 	}
 	if !nulled {
 		return plainSQLType + " NOT NULL", values.OK
@@ -473,7 +473,7 @@ func (vm *Vm) pfValueToGoPtrValues(v values.Value, tok uint32) ([]any, values.Va
 		case values.TUPLE:
 			return vm.pfValuesToGoPtrValues(v.V.([]values.Value), tok)
 		default:
-			return nil, vm.makeError("vm/sql/type/a", tok, vm.DescribeType(v.T, LITERAL))
+			return nil, vm.makeError("vm/sql/type/a", tok, vm.DescribeType(v.T, LITERAL, 0))
 		}
 	case CloneType:
 		switch typeInfo.Parent {
@@ -500,7 +500,7 @@ func (vm *Vm) pfValueToGoPtrValues(v values.Value, tok uint32) ([]any, values.Va
 	case StructType:
 		return vm.pfValuesToGoPtrValues(v.V.([]values.Value), tok)
 	}
-	return nil, vm.makeError("vm/sql/type/b", tok, vm.DescribeType(v.T, LITERAL))
+	return nil, vm.makeError("vm/sql/type/b", tok, vm.DescribeType(v.T, LITERAL, 0))
 }
 
 // This calls the preceding function on a list of Pipefish values such as the payload of a tuple

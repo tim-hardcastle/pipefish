@@ -36,12 +36,21 @@ type Vm struct {
 
 	// Permanent state: things established at compile time.
 
-	ConcreteTypeInfo           []TypeInformation
-	Labels                     []string // Array from the number of a field label to its name.
+	// These are things the ordinal of which can be an operand.
 	Tokens                     []*token.Token
 	LambdaFactories            []*LambdaFactory
 	SnippetFactories           []*SnippetFactory
 	GoFns                      []GoFn
+
+	// As sometimes can this; it is indexed by the numbers of concrete types.
+	ConcreteTypeInfo           []TypeInformation
+
+	// This contains the information necessary to attach a suitable namespace to the literal
+	// of a value; it is indexed first by the number of the compiler and second by the number of
+	// the type.
+	NamespaceInfo              []map[values.ValueType]string
+
+	Labels                     []string // Array from the number of a field label to its name.
 	TypeCheckErrors            []*TypeCheckError
 	Tracking                   []TrackingData // Data needed by the 'trak' opcode to produce the live tracking data.
 	InHandle                   InHandler
@@ -147,9 +156,12 @@ var nativeTypeNames = []string{"UNDEFINED VALUE", "INT ARRAY", "THUNK", "CREATED
 
 func BlankVm() *Vm {
 	vm := &Vm{Mem: make([]values.Value, len(CONSTANTS)),
-		logging: true, InHandle: &StandardInHandler{"→ "},
+		logging: true,
+		InHandle: &StandardInHandler{"→ "},
 		GoToPipefishTypes: map[reflect.Type]values.ValueType{},
-		GoConverter:       [](func(t uint32, v any) any){},
+		GoConverter: [](func(t uint32, v any) any){},
+		NamespaceInfo: []map[values.ValueType]string{},
+		FieldLabelsInMem : make(map[string]uint32),
 	}
 	vm.OutHandle = &SimpleOutHandler{os.Stdout, vm}
 	copy(vm.Mem, CONSTANTS)
@@ -158,7 +170,6 @@ func BlankVm() *Vm {
 	}
 	vm.UsefulTypes.UnwrappedError = DUMMY
 	vm.Mem = append(vm.Mem, values.Value{values.SUCCESSFUL_VALUE, nil}) // TODO --- why?
-	vm.FieldLabelsInMem = make(map[string]uint32)
 	return vm
 }
 
@@ -230,7 +241,7 @@ loop:
 				// 6: the token
 				rType := vm.Mem[args[2]].V.(values.AbstractType)
 				if rType.Len() != 1 {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/c", args[5], vm.DescribeAbstractType(vm.Mem[args[2]].V.(values.AbstractType), LITERAL))
+					vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/c", args[5], vm.DescribeAbstractType(vm.Mem[args[2]].V.(values.AbstractType), LITERAL, 0))
 					break Switch
 				}
 				cType := rType.Types[0]
@@ -303,7 +314,7 @@ loop:
 					} else {
 						if v.T == values.TYPE {
 							if v.V.(values.AbstractType).Len() != 1 {
-								vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/d", args[3], vm.DescribeAbstractType(v.V.(values.AbstractType), LITERAL))
+								vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/d", args[3], vm.DescribeAbstractType(v.V.(values.AbstractType), LITERAL, 0))
 								break Switch
 							}
 							cType := v.V.(values.AbstractType).Types[0]
@@ -592,7 +603,7 @@ loop:
 					errorInfo := vm.TypeCheckErrors[args[3]]
 					vm.Mem[args[0]] = vm.makeError("vm/typecheck/bool", tokNumber,
 						errorInfo.Condition, errorInfo.Type, errorInfo.Tok,
-						vm.DescribeType(vm.Mem[args[1]].T, LITERAL), vm.Mem[args[1]], errorInfo.Tok)
+						vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0), vm.Mem[args[1]], errorInfo.Tok)
 					if len(vm.callstack) == stackHeight {
 						return
 					}
@@ -793,7 +804,7 @@ loop:
 					buf.WriteString("(")
 				}
 				for i, loc := range argLocs {
-					serializedValue := vm.Literal(vm.Mem[loc])
+					serializedValue := vm.Literal(vm.Mem[loc], 0)
 					if operatorType == INFIX && vm.Mem[loc].T == values.BLING && serializedValue == name { // Then we need to attach the namespace to the operator.
 						buf.WriteString(remainingNamespace)
 					}
@@ -841,7 +852,7 @@ loop:
 					el := vm.Mem[v]
 					goVal, ok := vm.pipefishToGo(el)
 					if !ok {
-						newError := err.CreateErr("vm/pipefish/type", vm.Mem[args[1]].V.(*err.Error).Token, vm.DescribeType(el.T, LITERAL))
+						newError := err.CreateErr("vm/pipefish/type", vm.Mem[args[1]].V.(*err.Error).Token, vm.DescribeType(el.T, LITERAL, 0))
 						newError.Values = []values.Value{el}
 						vm.Mem[args[0]] = values.Value{values.ERROR, newError}
 						break Switch
@@ -1014,11 +1025,11 @@ loop:
 					}
 					ix := vm.Mem[args[2]].V.([]values.Value)
 					if ix[0].T != values.INT {
-						vm.Mem[args[0]] = vm.makeError("vm/index/a", args[3], vm.DescribeType(ix[0].T, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/index/a", args[3], vm.DescribeType(ix[0].T, LITERAL, 0))
 						break Switch
 					}
 					if ix[1].T != values.INT {
-						vm.Mem[args[0]] = vm.makeError("vm/index/b", args[3], vm.DescribeType(ix[1].T, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/index/b", args[3], vm.DescribeType(ix[1].T, LITERAL, 0))
 						break Switch
 					}
 					if ix[0].V.(int) < 0 {
@@ -1085,7 +1096,7 @@ loop:
 						break
 					}
 					if indexType != values.INT {
-						vm.Mem[args[0]] = vm.makeError("vm/index/i", args[3], vm.DescribeType(vm.Mem[args[1]].T, LITERAL), vm.DescribeType(vm.Mem[args[2]].T, LITERAL), args[1], args[2])
+						vm.Mem[args[0]] = vm.makeError("vm/index/i", args[3], vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0), vm.DescribeType(vm.Mem[args[2]].T, LITERAL, 0), args[1], args[2])
 						break
 					}
 					ty := container.T
@@ -1145,7 +1156,7 @@ loop:
 						}
 						break Switch
 					default:
-						vm.Mem[args[0]] = vm.makeError("vm/index/q", args[3], vm.DescribeType(vm.Mem[args[1]].T, LITERAL), vm.DescribeType(vm.Mem[args[2]].T, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/index/q", args[3], vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0), vm.DescribeType(vm.Mem[args[2]].T, LITERAL, 0))
 						break Switch
 					}
 				}
@@ -1153,7 +1164,7 @@ loop:
 				typeInfo := vm.ConcreteTypeInfo[vm.Mem[args[1]].T].(StructType)
 				ix := typeInfo.Resolve(vm.Mem[args[2]].V.(int))
 				if ix == -1 {
-					vm.Mem[args[0]] = vm.makeError("vm/index/u", args[3], vm.DescribeType(vm.Mem[args[1]].T, LITERAL), vm.DefaultDescription(vm.Mem[args[2]]))
+					vm.Mem[args[0]] = vm.makeError("vm/index/u", args[3], vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0), vm.DefaultDescription(vm.Mem[args[2]]))
 					continue
 				}
 				vm.Mem[args[0]] = vm.Mem[args[1]].V.([]values.Value)[ix]
@@ -1205,7 +1216,7 @@ loop:
 				}
 				vm.Mem[args[0]] = values.Value{values.LIST, list}
 			case Litx:
-				vm.Mem[args[0]] = values.Value{values.STRING, vm.Literal(vm.Mem[args[1]])}
+				vm.Mem[args[0]] = values.Value{values.STRING, vm.Literal(vm.Mem[args[1]], args[2])}
 			case LnSn:
 				vm.Mem[args[0]] = values.Value{values.INT, len(vm.Mem[args[1]].V.(values.Snippet).Data)}
 			case Logn:
@@ -1242,14 +1253,14 @@ loop:
 				result := &values.Map{}
 				for _, p := range vm.Mem[args[1]].V.([]values.Value) {
 					if p.T != values.PAIR {
-						vm.Mem[args[0]] = vm.makeError("vm/map/pair", args[2], p, vm.DescribeType(p.T, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/map/pair", args[2], p, vm.DescribeType(p.T, LITERAL, 0))
 						break Switch
 					}
 					k := p.V.([]values.Value)[0]
 					v := p.V.([]values.Value)[1]
 					if !((values.NULL <= k.T && k.T < values.PAIR) || vm.ConcreteTypeInfo[k.T].IsEnum() || // TODO, we can just have a simple filter and/or a method of the interface.
 						vm.ConcreteTypeInfo[k.T].IsStruct()) { // Or hand it off to the Set method to return an error.
-						vm.Mem[args[0]] = vm.makeError("vm/map/key", args[2], k, vm.DescribeType(k.T, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/map/key", args[2], k, vm.DescribeType(k.T, LITERAL, 0))
 						break Switch
 					}
 					result = result.Set(k, v)
@@ -1312,7 +1323,7 @@ loop:
 				vm.PostHappened = true
 			case Outt:
 				if vm.Mem[vm.UsefulValues.OutputAs].V.(int) == 0 {
-					fmt.Println(vm.Literal(vm.Mem[args[0]]))
+					fmt.Println(vm.Literal(vm.Mem[args[0]], 0))
 				} else {
 					fmt.Println(vm.DefaultDescription(vm.Mem[args[0]]))
 				}
@@ -1455,11 +1466,11 @@ loop:
 				vec := vm.Mem[args[1]].V.(vector.Vector)
 				ix := vm.Mem[args[2]].V.([]values.Value)
 				if ix[0].T != values.INT {
-					vm.Mem[args[0]] = vm.makeError("vm/slice/list/a", args[3], vm.DescribeType(ix[0].T, LITERAL), args[1], args[2])
+					vm.Mem[args[0]] = vm.makeError("vm/slice/list/a", args[3], vm.DescribeType(ix[0].T, LITERAL, 0), args[1], args[2])
 					break Switch
 				}
 				if ix[1].T != values.INT {
-					vm.Mem[args[0]] = vm.makeError("vm/slice/list/b", args[3], vm.DescribeType(ix[1].T, LITERAL), args[1], args[2])
+					vm.Mem[args[0]] = vm.makeError("vm/slice/list/b", args[3], vm.DescribeType(ix[1].T, LITERAL, 0), args[1], args[2])
 					break Switch
 				}
 				if ix[0].V.(int) < 0 {
@@ -1479,11 +1490,11 @@ loop:
 				str := vm.Mem[args[1]].V.(string)
 				ix := vm.Mem[args[2]].V.([]values.Value)
 				if ix[0].T != values.INT {
-					vm.Mem[args[0]] = vm.makeError("vm/slice/string/a", args[3], vm.DescribeType(ix[0].T, LITERAL), args[1], args[2])
+					vm.Mem[args[0]] = vm.makeError("vm/slice/string/a", args[3], vm.DescribeType(ix[0].T, LITERAL, 0), args[1], args[2])
 					break Switch
 				}
 				if ix[1].T != values.INT {
-					vm.Mem[args[0]] = vm.makeError("vm/slice/string/b", args[3], vm.DescribeType(ix[1].T, LITERAL), args[1], args[2])
+					vm.Mem[args[0]] = vm.makeError("vm/slice/string/b", args[3], vm.DescribeType(ix[1].T, LITERAL, 0), args[1], args[2])
 					break Switch
 				}
 				if ix[0].V.(int) < 0 {
@@ -1503,11 +1514,11 @@ loop:
 				tup := vm.Mem[args[1]].V.([]values.Value)
 				ix := vm.Mem[args[2]].V.([]values.Value)
 				if ix[0].T != values.INT {
-					vm.Mem[args[0]] = vm.makeError("vm/slice/tuple/a", args[3], vm.DescribeType(ix[0].T, LITERAL), args[1], args[2])
+					vm.Mem[args[0]] = vm.makeError("vm/slice/tuple/a", args[3], vm.DescribeType(ix[0].T, LITERAL, 0), args[1], args[2])
 					break Switch
 				}
 				if ix[1].T != values.INT {
-					vm.Mem[args[0]] = vm.makeError("vm/slice/tuple/b", args[3], vm.DescribeType(ix[1].T, LITERAL), args[1], args[2])
+					vm.Mem[args[0]] = vm.makeError("vm/slice/tuple/b", args[3], vm.DescribeType(ix[1].T, LITERAL, 0), args[1], args[2])
 					break Switch
 				}
 				if ix[0].V.(int) < 0 {
@@ -1563,7 +1574,7 @@ loop:
 				result := vector.Empty
 				ty := vm.Mem[args[1]].V.(values.AbstractType)
 				conc := (ty.Len() == 1)
-				name := vm.DescribeAbstractType(ty, LITERAL)
+				name := vm.DescribeAbstractType(ty, LITERAL, 0)
 				operator := ""
 				ix := strings.IndexRune(name, '{')
 				if ix == -1 {
@@ -1708,7 +1719,7 @@ loop:
 					errWithMessage := err.CreateErr(wrappedErr.ErrorId, wrappedErr.Token, wrappedErr.Args...)
 					vm.Mem[args[0]] = values.Value{vm.UsefulTypes.UnwrappedError, []values.Value{{values.STRING, errWithMessage.ErrorId}, {values.STRING, errWithMessage.Message}}}
 				} else {
-					vm.Mem[args[0]] = vm.makeError("vm/unwrap", args[2], vm.DescribeType(vm.Mem[args[1]].T, LITERAL))
+					vm.Mem[args[0]] = vm.makeError("vm/unwrap", args[2], vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0))
 				}
 			case Vlid:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].T != values.ERROR}
@@ -1777,12 +1788,12 @@ loop:
 			case WthT:
 				typL := vm.Mem[args[1]].V.(values.AbstractType)
 				if typL.Len() != 1 {
-					vm.Mem[args[0]] = vm.makeError("vm/with/type/a", args[2], vm.DescribeAbstractType(typL, LITERAL))
+					vm.Mem[args[0]] = vm.makeError("vm/with/type/a", args[2], vm.DescribeAbstractType(typL, LITERAL, 0))
 					break Switch
 				}
 				typ := typL.Types[0]
 				if !vm.ConcreteTypeInfo[typ].IsStruct() {
-					vm.Mem[args[0]] = vm.makeError("vm/with/type/b", args[2], vm.DescribeType(typ, LITERAL))
+					vm.Mem[args[0]] = vm.makeError("vm/with/type/b", args[2], vm.DescribeType(typ, LITERAL, 0))
 					break Switch
 				}
 				typeInfo := vm.ConcreteTypeInfo[typ].(StructType)
@@ -1795,12 +1806,12 @@ loop:
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					if key.T != values.LABEL {
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/d", args[2], vm.DescribeType(pair.T, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/with/type/d", args[2], vm.DescribeType(pair.T, LITERAL, 0))
 						break Switch
 					}
 					keyNumber := typeInfo.Resolve(key.V.(int))
 					if keyNumber == -1 {
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/e", args[2], vm.DefaultDescription(key), vm.DescribeType(typ, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/with/type/e", args[2], vm.DefaultDescription(key), vm.DescribeType(typ, LITERAL, 0))
 						break Switch
 					}
 					if outVals[keyNumber].T != values.UNDEFINED_TYPE {
@@ -1822,7 +1833,7 @@ loop:
 					}
 					if !vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i].Contains(v.T) {
 						labName := vm.Labels[vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers[i]]
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/h", args[2], vm.DescribeType(v.T, LITERAL), labName, vm.DescribeType(typ, LITERAL), vm.DescribeAbstractType(vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i], LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/with/type/h", args[2], vm.DescribeType(v.T, LITERAL, 0), labName, vm.DescribeType(typ, LITERAL, 0), vm.DescribeAbstractType(vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i], LITERAL, 0))
 						break Switch
 					}
 				}
@@ -1881,7 +1892,7 @@ loop:
 						break
 					}
 					if key.T < values.NULL || key.T == values.FUNC { // Check that the key is orderable.
-						vm.Mem[args[0]] = vm.makeError("vm/without", args[2], vm.DescribeType(key.T, LITERAL))
+						vm.Mem[args[0]] = vm.makeError("vm/without", args[2], vm.DescribeType(key.T, LITERAL, 0))
 						break Switch
 					}
 					mp = (*mp).Delete(key)
@@ -2056,7 +2067,7 @@ func (vm *Vm) with(container values.Value, keys []values.Value, val values.Value
 	case values.LIST:
 		vec := container.V.(vector.Vector)
 		if key.T != values.INT {
-			return vm.makeError("vm/with/a", errTok, vm.DescribeType(key.T, LITERAL))
+			return vm.makeError("vm/with/a", errTok, vm.DescribeType(key.T, LITERAL, 0))
 		}
 		keyNumber := key.V.(int)
 		if keyNumber < 0 || keyNumber >= vec.Len() {
@@ -2072,7 +2083,7 @@ func (vm *Vm) with(container values.Value, keys []values.Value, val values.Value
 	case values.MAP:
 		mp := container.V.(*values.Map)
 		if ((key.T < values.NULL) || (key.T >= values.FUNC && key.T < values.LABEL)) && !vm.ConcreteTypeInfo[key.T].IsEnum() { // Check that the key is orderable.
-			return vm.makeError("vm/with/c", errTok, vm.DescribeType(key.T, LITERAL))
+			return vm.makeError("vm/with/c", errTok, vm.DescribeType(key.T, LITERAL, 0))
 		}
 		if len(keys) == 1 {
 			mp = mp.Set(key, val)
@@ -2087,18 +2098,18 @@ func (vm *Vm) with(container values.Value, keys []values.Value, val values.Value
 		copy(fields, container.V.([]values.Value))
 		typeInfo := vm.ConcreteTypeInfo[container.T].(StructType)
 		if key.T != values.LABEL {
-			return vm.makeError("vm/with/d", errTok, vm.DescribeType(key.T, LITERAL))
+			return vm.makeError("vm/with/d", errTok, vm.DescribeType(key.T, LITERAL, 0))
 		}
 		fieldNumber := typeInfo.Resolve(key.V.(int))
 		if fieldNumber == -1 {
-			return vm.makeError("vm/with/e", errTok, vm.DefaultDescription(key), vm.DescribeType(container.T, LITERAL))
+			return vm.makeError("vm/with/e", errTok, vm.DefaultDescription(key), vm.DescribeType(container.T, LITERAL, 0))
 		}
 		if len(keys) > 1 {
 			val = vm.with(fields[fieldNumber], keys[1:], val, errTok)
 		}
 		if !vm.ConcreteTypeInfo[container.T].(StructType).AbstractStructFields[fieldNumber].Contains(val.T) {
 			labName := vm.Labels[key.V.(int)]
-			return vm.makeError("vm/with/f", errTok, vm.DescribeType(val.T, LITERAL), labName, vm.DescribeType(container.T, LITERAL), vm.DescribeAbstractType(vm.ConcreteTypeInfo[container.T].(StructType).AbstractStructFields[fieldNumber], LITERAL))
+			return vm.makeError("vm/with/f", errTok, vm.DescribeType(val.T, LITERAL, 0), labName, vm.DescribeType(container.T, LITERAL, 0), vm.DescribeAbstractType(vm.ConcreteTypeInfo[container.T].(StructType).AbstractStructFields[fieldNumber], LITERAL, 0))
 		}
 		fields[fieldNumber] = val
 		return clone

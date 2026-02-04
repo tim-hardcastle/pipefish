@@ -50,6 +50,7 @@ type Parser struct {
 
 	ExternalParsers map[string]*Parser     // A map from the name of the external service to the parser of the service. This should be the same as the one in the vm.
 	NamespaceBranch map[string]*ParserData // Map from the namespaces immediately available to this parser to the parsers they access.
+	Namespace       string                 // The namespace it's in.
 	NamespacePath   string                 // The chain of namespaces that got us to this parser, as a string.
 	Private         bool                   // Indicates if it's the parser of a private library/external/whatevs.
 

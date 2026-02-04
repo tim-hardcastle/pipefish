@@ -316,7 +316,7 @@ func (iz *Initializer) transitivelyCloseTypes(userDefinedTypes types) {
 			structInfo := iz.cp.Vm.ConcreteTypeInfo[ty].(vm.StructType)
 			for i, fieldType := range structInfo.AbstractStructFields {
 				if fieldType.Len() != 1 {
-					iz.throw("golang/concrete/b", INTEROP_TOKEN, iz.cp.Vm.DescribeAbstractType(fieldType, vm.LITERAL), structInfo.Name, i)
+					iz.throw("golang/concrete/b", INTEROP_TOKEN, iz.cp.Vm.DescribeAbstractType(fieldType, vm.LITERAL, 0), structInfo.Name, i)
 					structsToCheck = newStructsToCheck
 					continue
 				}
