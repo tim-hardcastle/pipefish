@@ -41,6 +41,7 @@ type Vm struct {
 	LambdaFactories            []*LambdaFactory
 	SnippetFactories           []*SnippetFactory
 	GoFns                      []GoFn
+	Evaluators                 []func(string)values.Value // One per compiler, to implement `eval`.
 
 	// As sometimes can this; it is indexed by the numbers of concrete types.
 	ConcreteTypeInfo           []TypeInformation
@@ -781,6 +782,8 @@ loop:
 				} else {
 					vm.Mem[args[0]] = values.Value{values.BOOL, vm.equals(vm.Mem[args[1]], vm.Mem[args[2]])}
 				}
+			case Eval:
+				vm.Mem[args[0]] = vm.Evaluators[args[2]](vm.Mem[args[1]].V.(string))
 			case Extn:
 				externalOrdinal := args[1]
 				operatorType := args[2]

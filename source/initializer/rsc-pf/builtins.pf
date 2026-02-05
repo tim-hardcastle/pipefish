@@ -53,6 +53,7 @@ def
 cast(x any?, y type) -> any : builtin "cast"
 codepoint(x rune) -> int : builtin "codepoint"   
 error(x string) -> error : builtin "make_error"
+eval(x string) : builtin "eval"
 float(x clones{float}) -> float : builtin "cast_to_float"
 float(x int) -> float : builtin "float_of_int"
 float(x string) -> float : builtin "float_of_string"

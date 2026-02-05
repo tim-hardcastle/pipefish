@@ -117,6 +117,7 @@ func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompiler
 	cp := compiler.NewCompiler(p, ccb)
 	cp.ScriptFilepath = scriptFilepath
 	cp.Vm = vm
+	vm.Evaluators = append(vm.Evaluators, func(s string)values.Value{return cp.Do(s)})
 	cp.TupleType = cp.Reserve(values.TYPE, values.AbstractType{[]values.ValueType{values.TUPLE}}, &token.Token{Source: "Builtin constant"})
 	vm.NamespaceInfo = append(vm.NamespaceInfo, make(map[values.ValueType]string))
 	for i := values.TUPLE; i < values.FIRST_DEFINED_TYPE; i++ {

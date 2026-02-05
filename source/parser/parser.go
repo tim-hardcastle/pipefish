@@ -183,7 +183,7 @@ func (p *Parser) ParseExpression(precedence int) Node {
 	switch p.CurToken.Type {
 
 	// These just need a rhs.
-	case token.EVAL, token.GLOBAL, token.XCALL:
+	case token.GLOBAL, token.XCALL:
 		leftExp = p.parsePrefixExpression()
 
 	// Remaining prefix-position token types are in alphabetical order.

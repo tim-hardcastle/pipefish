@@ -37,6 +37,7 @@ var BUILTINS = map[string]functionAndReturnType{
 	"divide_integers":           {(*Compiler).btDivideIntegers, AltType(values.ERROR, values.INT)},
 	"divide_integer_by_float":   {(*Compiler).btDivideIntegerByFloat, AltType(values.ERROR, values.FLOAT)},
 	"divide_integers_to_float":  {(*Compiler).btDivideIntegersToFloat, AltType(values.ERROR, values.FLOAT)},
+	"eval":						 {(*Compiler).btEval, AltType()},
 	"first_in_tuple":            {(*Compiler).btFirstInTuple, AltType()}, // Types need to be added by the caller.
 	"float_of_int":              {(*Compiler).btFloatOfInt, AltType(values.FLOAT)},
 	"float_of_string":           {(*Compiler).btFloatOfString, AltType(values.ERROR, values.FLOAT)},
@@ -207,6 +208,10 @@ func (cp *Compiler) btDivideIntegersToFloat(tok *token.Token, dest uint32, args 
 	cp.Emit(vm.Diif, dest, args[0], args[2], cp.ReserveToken(tok))
 }
 
+func (cp *Compiler) btEval(tok *token.Token, dest uint32, args []uint32) {
+	cp.Emit(vm.Eval, dest, args[0], cp.Number)
+}
+
 func (cp *Compiler) btFirstInTuple(tok *token.Token, dest uint32, args []uint32) {
 	cp.Emit(vm.Tplf, dest, args[0], cp.ReserveToken(tok))
 }
@@ -332,7 +337,7 @@ func (cp *Compiler) btListWith(tok *token.Token, dest uint32, args []uint32) {
 }
 
 func (cp *Compiler) btLiteral(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Litx, dest, args[0], cp.Number)
+	cp.Emit(vm.Litx, dest, args[0], cp.Number, cp.ReserveToken(tok))
 }
 
 func (cp *Compiler) btLtFloats(tok *token.Token, dest uint32, args []uint32) {

@@ -7,7 +7,6 @@ const (
 	BREAK    = "break"
 	CONTINUE = "continue"
 	ELSE     = "else"
-	EVAL     = "eval"
 	FOR      = "for"
 	GIVEN    = "given"
 	GLOBAL   = "global"
@@ -98,7 +97,6 @@ var keywords = map[string]TokenType{
 	"break":    BREAK,
 	"continue": CONTINUE,
 	"else":     ELSE,
-	"eval":     EVAL,
 	"for":      FOR,
 	"given":    GIVEN,
 	"golang":   GOLANG,
