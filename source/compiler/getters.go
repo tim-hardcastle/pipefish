@@ -14,6 +14,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/lexer"
 	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/text"
+	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
 	"github.com/tim-hardcastle/pipefish/source/vm"
 	"src.elv.sh/pkg/persistent/vector"
@@ -33,6 +34,17 @@ func (cp *Compiler) GetConcreteType(name string) (values.ValueType, bool) {
 		return values.UNDEFINED_TYPE, false
 	}
 	return abstractType.Types[0], true
+}
+
+func (cp *Compiler) ConcreteTypeWithNamespaceNow(name string) values.ValueType {
+	rp := cp
+	ix := strings.LastIndex(name, ".")
+	if ix != -1 {
+		ns := name[0:ix+1]
+		rp = cp.getResolvingCompiler(&token.Token{Namespace: ns}, DEF)
+		name = name[ix+1:]
+	}
+	return rp.ConcreteTypeNow(name)
 }
 
 func (cp *Compiler) ConcreteTypeNow(name string) values.ValueType {

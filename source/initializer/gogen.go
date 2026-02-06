@@ -63,10 +63,11 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 	fmt.Fprint(sb, "var PIPEFISH_FUNCTION_CONVERTER = map[string](func(t uint32, v any) any){\n")
 	for ty := range userDefinedTypes {
 		typeInfo := iz.cp.Vm.ConcreteTypeInfo[ty]
-		name := typeInfo.GetName(vm.DEFAULT)
-		fmt.Fprint(sb, "    \"", name, "\": func(t uint32, v any) any {return ")
-		if !typeInfo.IsGoType() {
-			fmt.Fprint(sb, name)
+		pfName := iz.cp.Vm.DescribeType(ty, vm.LITERAL, iz.cp.Number)
+		goName := typeInfo.GetName(vm.DEFAULT)
+		fmt.Fprint(sb, "    \"", pfName, "\": func(t uint32, v any) any {return ")
+		if !typeInfo.IsWrapperType() {
+			fmt.Fprint(sb, goName)
 		}
 		switch typeInfo := typeInfo.(type) {
 		case vm.CloneType:
@@ -93,11 +94,12 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 
 	for ty := range userDefinedTypes {
 		typeInfo := iz.cp.Vm.ConcreteTypeInfo[ty]
-		name := typeInfo.GetName(vm.DEFAULT)
+		pfName := iz.cp.Vm.DescribeType(ty, vm.LITERAL, iz.cp.Number)
+		goName := typeInfo.GetName(vm.DEFAULT)
 		if typeInfo, ok := typeInfo.(vm.WrapperType); ok {
-			fmt.Fprint(sb, "    \"", name, "\": (*", typeInfo.Gotype, ")(nil),\n")
+			fmt.Fprint(sb, "    \"", pfName, "\": (*", typeInfo.Gotype, ")(nil),\n")
 		} else {
-			fmt.Fprint(sb, "    \"", name, "\": (*", name, ")(nil),\n")
+			fmt.Fprint(sb, "    \"", pfName, "\": (*", goName, ")(nil),\n")
 		}
 	}
 	fmt.Fprint(sb, "}\n\n")
@@ -170,17 +172,18 @@ func (iz *Initializer) printSig(sb *strings.Builder, sig parser.AstSig, tok toke
 }
 
 func (iz *Initializer) getGoTypeFromTypeAst(pfTypeAst parser.TypeNode) (string, bool) {
-	pfType := ""
 	dots := ""
-	switch pf := pfTypeAst.(type) {
-	case *parser.TypeDotDotDot:
+	typeWithoutDots := pfTypeAst
+	if pf, ok := pfTypeAst.(*parser.TypeDotDotDot); ok {
+		typeWithoutDots = pf.Right
 		dots = "..."
-		pfType = pf.Right.String()
-	case *parser.TypeWithName:
-		pfType = pf.OperatorName
-	case *parser.TypeInfix:
-		pfType = "any"
 	}
+	abType := iz.cp.GetAbstractTypeFromAstType(typeWithoutDots)
+	if len(abType.Types) != 1 {
+		return dots + "any", true
+	}
+	typeNo := abType.Types[0]
+	pfType := iz.cp.Vm.ConcreteTypeInfo[typeNo].GetName(vm.DEFAULT)
 	goType, ok := goTypes[pfType]
 	if ok {
 		if goType == "!" {
@@ -188,12 +191,8 @@ func (iz *Initializer) getGoTypeFromTypeAst(pfTypeAst parser.TypeNode) (string, 
 		}
 		return dots + goType, true
 	}
-	typeNo, ok := iz.cp.GetConcreteType(pfType)
-	if !ok {
-		return "", false
-	}
 	typeInfo := iz.cp.Vm.ConcreteTypeInfo[typeNo]
-	if typeInfo.IsGoType() {
+	if typeInfo.IsWrapperType() {
 		return dots + "any", true
 	}
 	return dots + pfType, true

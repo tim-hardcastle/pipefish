@@ -194,8 +194,6 @@ goPow(x, y Complex) -> Complex : golang {
 }
 
 golang { 
-    // Since in this example we're only implementing one wrapped type, the switch statements 
-    // aren't really necessary, but they indicate what you would do if there was more than one.
     func Equals(x, y any) bool {
         switch x := x.(type) {
         case complex128:

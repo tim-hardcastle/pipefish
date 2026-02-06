@@ -146,7 +146,7 @@ func (iz *Initializer) compileGo() {
 			functionConverter[k] = v
 		}
 		for typeName, constructor := range functionConverter {
-			typeNumber := iz.cp.ConcreteTypeNow(typeName)
+			typeNumber := iz.cp.ConcreteTypeWithNamespaceNow(typeName)
 			newGoConverter[typeNumber] = constructor
 		}
 		iz.cp.Vm.GoConverter = newGoConverter
@@ -156,7 +156,7 @@ func (iz *Initializer) compileGo() {
 			valueConverter[k] = v
 		}
 		for typeName, goValue := range valueConverter {
-			iz.cp.Vm.GoToPipefishTypes[reflect.TypeOf(goValue).Elem()] = iz.cp.ConcreteTypeNow(typeName)
+			iz.cp.Vm.GoToPipefishTypes[reflect.TypeOf(goValue).Elem()] = iz.cp.ConcreteTypeWithNamespaceNow(typeName)
 		}
 		//We attach the compiled functions to the (pointers to) the functions, which are
 		// also pointed to by the function table and by the list of common functions

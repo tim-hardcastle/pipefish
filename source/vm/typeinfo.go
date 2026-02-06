@@ -22,7 +22,7 @@ type TypeInformation interface {
 	IsStruct() bool
 	isSnippet() bool
 	IsClone() bool
-	IsGoType() bool
+	IsWrapperType() bool
 	IsPrivate() bool
 	IsMandatoryImport() bool
 	IsClonedBy() values.AbstractType
@@ -62,7 +62,7 @@ func (t WrapperType) IsClone() bool {
 	return false
 }
 
-func (t WrapperType) IsGoType() bool {
+func (t WrapperType) IsWrapperType() bool {
 	return true
 }
 
@@ -103,7 +103,7 @@ func (t BuiltinType) IsClone() bool {
 	return false
 }
 
-func (t BuiltinType) IsGoType() bool {
+func (t BuiltinType) IsWrapperType() bool {
 	return false
 }
 
@@ -164,7 +164,7 @@ func (t EnumType) IsClone() bool {
 	return false
 }
 
-func (t EnumType) IsGoType() bool {
+func (t EnumType) IsWrapperType() bool {
 	return false
 }
 
@@ -230,7 +230,7 @@ func (t CloneType) IsClone() bool {
 	return true
 }
 
-func (t CloneType) IsGoType() bool {
+func (t CloneType) IsWrapperType() bool {
 	return false
 }
 
@@ -292,7 +292,7 @@ func (t StructType) IsClone() bool {
 	return false
 }
 
-func (t StructType) IsGoType() bool {
+func (t StructType) IsWrapperType() bool {
 	return false
 }
 

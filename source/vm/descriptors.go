@@ -49,7 +49,15 @@ func (vm *Vm) DescribeTypeAndValue(v values.Value, flavor descriptionFlavor, cpN
 }
 
 func (vm *Vm) DescribeType(t values.ValueType, flavor descriptionFlavor, cpNumber uint32) string {
-	return vm.ConcreteTypeInfo[t].GetName(flavor)
+	plainName := vm.ConcreteTypeInfo[t].GetName(DEFAULT)
+	if len(vm.NamespaceInfo) <= int(cpNumber) { // A kludge because we may be describing types while compiling and before we have the info.
+		return plainName
+	}
+	namespace, ok := vm.NamespaceInfo[cpNumber][t]
+	if !ok {
+		return "Unserializable type"
+	}
+	return namespace + plainName
 }
 
 type descriptionFlavor int
@@ -137,7 +145,7 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 		}
 		return buf.String()
 	}
-	if typeInfo.IsGoType() {
+	if typeInfo.IsWrapperType() {
 		if vm.GoLiteral == nil {
 			return "can't serialize value"
 		}
