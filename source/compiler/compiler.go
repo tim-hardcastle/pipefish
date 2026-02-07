@@ -1274,7 +1274,6 @@ func (cp *Compiler) checkInferredTypesAgainstContext(rtnTypes AlternateType, typ
 
 // Function auxiliary to CompileNode that finds the appropriate compiler for a given namespace.
 func (cp *Compiler) getResolvingCompiler(tok *token.Token, ac CpAccess) *Compiler {
-	
 	namespace := []string{}
 	if tok.Namespace == "" {
 		return cp

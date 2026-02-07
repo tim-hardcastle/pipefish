@@ -57,10 +57,10 @@ func (p *Parser) ParseTypeFromCurTok(prec typePrecedence) TypeNode {
 	// Infixes
 	for prec <= p.peekTypePrecedence() && p.PeekToken.Type == token.IDENT &&
 		(p.PeekToken.Literal == "/" || p.PeekToken.Literal == "&") {
-		infix := p.PeekToken.Literal
+		infixTok := p.PeekToken
 		newPrec := p.peekTypePrecedence()
 		p.NextToken()
-		leftExp = &TypeInfix{tok, infix, leftExp, p.ParseType(newPrec)}
+		leftExp = &TypeInfix{infixTok, infixTok.Literal, leftExp, p.ParseType(newPrec)}
 	}
 	// Suffixes
 	for p.PeekToken.Type == token.IDENT &&

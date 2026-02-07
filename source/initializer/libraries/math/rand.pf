@@ -12,9 +12,6 @@ Seed = struct()
 Shuffle = struct(elements)
 Zipf = struct(s, v float, imax int)
 
-
-Color = enum RED, GREEN, BLUE
-
 cmd
 
 put (i int) into (seed Seed) :

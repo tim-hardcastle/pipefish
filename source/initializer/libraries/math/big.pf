@@ -3,7 +3,6 @@ import
 golang "math/big"
 golang "errors"
 golang "strconv"
-golang "crypto/rand"
 
 ///////////////// Floats
 
@@ -194,35 +193,6 @@ ftoa(z Float) -> string : golang {
 newtype 
 
 Int = wrapper *big.Int 
-
-cmd
-
-get (x ref) from RandomInt(max Int) :
-    x = goRandomInt max
-
-get (x ref) from RandomInt(max string) :
-    x = goRandomInt Int(max)
-
-get (x ref) from RandomPrime(bits int) :
-    x = goRandomPrime(bits)
-
-def private
-
-goRandomInt(max Int) -> Int/error : golang {
-    x, e := rand.Int(rand.Reader, max.(*big.Int))
-    if e == nil {
-        return x
-    }
-    return e
-}
-
-goRandomPrime(bits int) -> Int/error : golang {
-    x, e := rand.Prime(rand.Reader, bits)
-    if e == nil {
-        return x
-    }
-    return e
-}
 
 def
 
