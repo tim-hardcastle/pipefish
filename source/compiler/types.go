@@ -145,9 +145,6 @@ func (cp *Compiler) TypeExists(name string) bool {
 
 func (cp *Compiler) GetAbstractTypeFromAstType(typeNode parser.TypeNode) values.AbstractType {
 	rp := cp.getResolvingCompiler(typeNode.GetToken(), DEF)
-	if typeNode == nil { // This can mark an absence of return types.
-		return values.AbstractType{}
-	}
 	switch typeNode := typeNode.(type) {
 	case *parser.TypeWithName:
 		return rp.GetAbstractTypeFromTypeName(typeNode.OperatorName)
