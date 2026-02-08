@@ -2,7 +2,6 @@ package parser
 
 import (
 	"reflect"
-	"strings"
 
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/token"
@@ -10,14 +9,10 @@ import (
 )
 
 // Auxiliary functions that extract data from data.
-func (p *Parser) CanParse(tok token.Token, pos IdentifierPosition) (bool, *Parser) {
-	resolvingParser := p
-	if tok.Namespace != "" {
-		namespaceAsList := strings.Split(tok.Namespace[:len(tok.Namespace)-1], ".")
-		resolvingParser = p.getParserFromNamespace(namespaceAsList)
-		if resolvingParser == nil {
-			return false, nil
-		}
+func (p *Parser) CanParse(tok token.Token, pos IdentifierPosition) (bool, *Parser) {	
+	resolvingParser := p.getParserFromNamespace(tok)
+	if resolvingParser == nil {
+		return false, nil
 	}
 	_, ok := resolvingParser.BlingTree[BlingData{tok.Literal, pos}]
 	return ok, resolvingParser

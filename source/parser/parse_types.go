@@ -31,8 +31,10 @@ func (p *Parser) IsTypePrefix(s string) bool {
 }
 
 func (p *Parser) ParseType(prec typePrecedence) TypeNode {
+	rp := p.getParserFromNamespace(p.PeekToken)
 	if !((p.PeekToken.Type == token.DOTDOTDOT) ||
-		(p.PeekToken.Type == token.IDENT && p.IsTypePrefix(p.PeekToken.Literal))) {
+		(p.PeekToken.Type == token.IDENT && rp.IsTypePrefix(p.PeekToken.Literal))) {
+		p.Throw("parse/type/exists", &p.PeekToken)
 		return nil
 	}
 	p.NextToken()

@@ -2635,6 +2635,15 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"parse/type/exists": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "type " + emph(tok.Namespace + tok.Literal) + " doesn't exist"
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "You seem to be trying to use " + emph(tok.Namespace + tok.Literal) + "as a type but you haven't defined it as one."
+		},
+	},
+
 	"sigs/expect": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "found " + text.DescribeTok(tok) + " in function declaration, expected `:` or `->`"

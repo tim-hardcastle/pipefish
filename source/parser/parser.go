@@ -375,23 +375,13 @@ func (p *Parser) ParseExpression(precedence int) Node {
 				p.Throw("parse/before/b", &p.CurToken, &p.PeekToken)
 				return nil
 			}
-			maybeType := p.PeekToken.Literal
-			if rp.IsTypePrefix(maybeType) {
-				tok := p.PeekToken
-				typeAst := p.ParseType(T_LOWEST)
-				// TODO --- the namespace needs to be represented in the type
-				ty := typeAst
-				if ty, ok := ty.(*TypeDotDotDot); ok && ty.Right == nil {
-					leftExp = &SuffixExpression{
-						Token:    p.CurToken,
-						Operator: p.CurToken.Literal,
-						Args:     p.RecursivelyListify(leftExp),
-					}
-				} else {
-					leftExp = &TypeSuffixExpression{tok, typeAst, p.RecursivelyListify(leftExp)}
-				}
+			p.NextToken()
+			maybeTypeToken := p.CurToken
+			if rp.IsTypePrefix(maybeTypeToken.Literal) && p.isPositionallyFunctional() {
+				tok := p.CurToken
+				typeAst := p.ParseTypeFromCurTok(T_LOWEST)
+				leftExp = &TypeSuffixExpression{tok, typeAst, p.RecursivelyListify(leftExp)}
 			} else {
-				p.NextToken()
 				leftExp = p.parseSuffixExpression(leftExp)
 			}
 		}
@@ -945,7 +935,11 @@ func (p *Parser) RecursivelyListify(start Node) []Node {
 	return []Node{start}
 }
 
-func (p *Parser) getParserFromNamespace(namespace []string) *Parser {
+func (p *Parser) getParserFromNamespace(tok token.Token) *Parser {
+	if tok.Namespace == "" {
+		return p
+	}
+	namespace := strings.Split(tok.Namespace[:len(tok.Namespace)-1], ".")
 	lP := p
 	for _, name := range namespace {
 		s, ok := lP.NamespaceBranch[name]
