@@ -1,0 +1,49 @@
+import 
+
+golang "crypto/rand"
+golang "math/big"
+
+"math/big"
+
+newtype 
+
+RandomInt = struct(max string/big.Int)
+RandomPrime = struct(bits int)
+RandomText = struct()
+
+cmd
+
+get (x ref) from (r RandomInt) :
+    r[max] in big.Int :
+        x = goRandomInt r[max]
+    else :
+        x = goRandomInt big.Int r[max]
+
+get (x ref) from (r RandomPrime) :
+    x = goRandomPrime(r[bits])
+
+get (x ref) from (r RandomText) :
+    x = goRandomText()
+
+def private
+
+goRandomInt(max big.Int) -> big.Int/error : golang {
+    x, e := rand.Int(rand.Reader, max.(*big.Int))
+    if e == nil {
+        return x
+    }
+    return e
+}
+
+goRandomPrime(bits int) -> big.Int/error : golang {
+    x, e := rand.Prime(rand.Reader, bits)
+    if e == nil {
+        return x
+    }
+    return e
+}
+
+goRandomText() -> string : golang {
+    return rand.Text()
+}
+
