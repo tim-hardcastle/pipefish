@@ -14,6 +14,7 @@ GenerateKey = struct(bits int)
 PublicKey = struct(modulus big.Int, exponent int)
 PrivateKey = struct(publicKey PublicKey, exponent, primeA, primeB big.Int)
 EncryptOaep = struct(publicKey PublicKey, plaintext, oaepLabel string)
+EncryptPkcs = struct(publicKey PublicKey, plaintext string)
 
 def 
 
@@ -25,11 +26,13 @@ cmd
 get (x ref) from (gk GenerateKey) :
     x = goGetPrivateKey(gk[bits])
 
-get (x ref) from (o EncryptOaep) :
-    x = goOAEP(o)
+get (x ref) from (e EncryptOaep) :
+    x = goOAEP(e)
+
+get (x ref) from (e EncryptPkcs) :
+    x = goPkcs(e)
 
 def 
-
 
 decryptOaep(k PrivateKey, ciphertext string) -> string/error :
     goDecryptOaep(k, ciphertext, "")
@@ -64,6 +67,35 @@ goOAEP(o EncryptOaep) -> string/error : golang {
 		convertPublicKey(o.PublicKey),
 		[]byte(o.Plaintext),
 		[]byte(o.OaepLabel),
+	)
+    if err == nil {
+        return base64.StdEncoding.EncodeToString(ciphertext)
+    }
+    return err
+}
+
+decryptPkcs(k PrivateKey, ciphertext string) -> string/error : golang {
+    data, err := base64.StdEncoding.DecodeString(ciphertext)
+	if err != nil {
+		return err
+	}
+    goPk := convertPrivateKey(k)
+	plaintext, err := rsa.DecryptPKCS1v15(
+		nil,
+		goPk,
+		data,
+	)
+	if err != nil {
+		return err
+	}
+	return string(plaintext)
+}
+
+goPkcs(o EncryptPkcs) -> string/error : golang {
+    ciphertext, err := rsa.EncryptPKCS1v15(
+		rand.Reader,
+		convertPublicKey(o.PublicKey),
+		[]byte(o.Plaintext),
 	)
     if err == nil {
         return base64.StdEncoding.EncodeToString(ciphertext)
