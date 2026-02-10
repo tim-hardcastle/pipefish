@@ -1,0 +1,30 @@
+import 
+
+golang "strconv"
+
+def 
+
+formatFloat(f float64, fmt rune, prec int) -> string : golang {
+    return strconv.FormatFloat(f, byte(fmt), prec, 64)
+}
+
+formatInt(i int, base int) -> string : golang {
+    return strconv.FormatInt(int64(i), base)
+}
+
+parseInt(s string) :
+    goParseInt s, 0
+
+parseInt(s string, base int) :
+    goParseInt s, base
+
+// TODO --- once we can overload to Go calls we can have less wrapping here.
+
+goParseInt(s string, base int) -> int/error : golang {
+    r, e := strconv.ParseInt(s, base, 64)
+    if e == nil {
+        return int(r)
+    }
+    return e
+}
+
