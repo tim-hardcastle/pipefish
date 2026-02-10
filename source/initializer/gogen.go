@@ -125,7 +125,11 @@ func (iz *Initializer) convertFieldTypeFromPfToGo(aT values.AbstractType) string
 		return "any"
 	}
 	typeNumber := aT.Types[0]
-	typeName := iz.cp.Vm.ConcreteTypeInfo[typeNumber].GetName(vm.DEFAULT)
+	info := iz.cp.Vm.ConcreteTypeInfo[typeNumber]
+	if info, ok := info.(vm.WrapperType); ok {
+		return info.Gotype
+	}
+	typeName := info.GetName(vm.DEFAULT)
 	goType, ok := getGoType(typeName)
 	if !ok {
 		iz.throw("golang/type/c", INTEROP_TOKEN, typeName)

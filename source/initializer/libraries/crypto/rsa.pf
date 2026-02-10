@@ -1,0 +1,91 @@
+import 
+
+golang "crypto/rsa"
+golang "math/big"
+golang "crypto/rand"
+golang "encoding/base64"
+golang "crypto/sha256"
+
+"math/big"
+
+newtype 
+
+GenerateKey = struct(bits int)
+PublicKey = struct(modulus big.Int, exponent int)
+PrivateKey = struct(publicKey PublicKey, exponent, primeA, primeB big.Int)
+EncryptOaep = struct(publicKey PublicKey, plaintext, oaepLabel string)
+
+def 
+
+EncryptOaep(key PublicKey, plaintext string) :
+    EncryptOaep(key, plaintext, "")
+
+cmd 
+
+get (x ref) from (gk GenerateKey) :
+    x = goGetPrivateKey(gk[bits])
+
+get (x ref) from (o EncryptOaep) :
+    x = goOAEP(o)
+
+def 
+
+
+decryptOaep(k PrivateKey, ciphertext string) -> string/error :
+    goDecryptOaep(k, ciphertext, "")
+
+// TODO --- just making this the Go function produces weird errors and I don't know why.
+decryptOaep(k PrivateKey, ciphertext string, oaepLabel string) -> string/error :
+    goDecryptOaep(k, ciphertext, oaepLabel)
+    
+goDecryptOaep(k PrivateKey, ciphertext string, oaepLabel string) -> string/error : golang {
+    data, err := base64.StdEncoding.DecodeString(ciphertext)
+	if err != nil {
+		return err
+	}
+    goPk := convertPrivateKey(k)
+	plaintext, err := rsa.DecryptOAEP(
+		sha256.New(),
+		nil,
+		goPk,
+		data,
+		[]byte(oaepLabel),
+	)
+	if err != nil {
+		return err
+	}
+	return string(plaintext)
+}
+
+goOAEP(o EncryptOaep) -> string/error : golang {
+    ciphertext, err := rsa.EncryptOAEP(
+		sha256.New(),
+		rand.Reader,
+		convertPublicKey(o.PublicKey),
+		[]byte(o.Plaintext),
+		[]byte(o.OaepLabel),
+	)
+    if err == nil {
+        return base64.StdEncoding.EncodeToString(ciphertext)
+    }
+    return err
+}
+
+goGetPrivateKey(bits int) -> PrivateKey/error : golang {
+    pk, err := rsa.GenerateKey(rand.Reader, bits)
+    if err != nil {
+        return err
+    }
+    return PrivateKey{PublicKey{pk.N, pk.E}, pk.D, pk.Primes[0], pk.Primes[1]}
+}
+
+golang {
+    func convertPublicKey(k PublicKey) *rsa.PublicKey {
+        return &rsa.PublicKey{k.Modulus, k.Exponent}
+    }
+
+    func convertPrivateKey(k PrivateKey) *rsa.PrivateKey {
+        return &rsa.PrivateKey{rsa.PublicKey{k.PublicKey.Modulus, k.PublicKey.Exponent}, 
+        k.Exponent, []*big.Int{k.PrimeA, k.PrimeB}, rsa.PrecomputedValues{}}
+    }
+}
