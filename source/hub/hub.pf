@@ -1,6 +1,6 @@
 import
 
-NULL::"sql"
+NULL::"database/sql"
 NULL::"terminal"
 golang "io"
 

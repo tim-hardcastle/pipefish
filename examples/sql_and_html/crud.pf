@@ -2,7 +2,7 @@
 
 import private
 
-NULL::"sql"           // A standard library. `NULL` means we're importing the library without a namespace.
+NULL::"database/sql"  // A standard library. `NULL` means we're importing the library without a namespace.
 NULL::"files"         // The standard `files` library.
 NULL::"htmlFormat.pf" // In this folder. Renders Pipefish values as HTML.
 
