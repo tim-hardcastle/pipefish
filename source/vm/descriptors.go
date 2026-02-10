@@ -4,6 +4,7 @@ package vm
 
 import (
 	"context"
+	"math"
 
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/text"
@@ -170,7 +171,11 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 		}
 		return text.Pretty(text.RT_ERROR+ob.Message+text.DescribePos(ob.Token)+".", 0, 80)
 	case values.FLOAT:
-		return strconv.FormatFloat(v.V.(float64), 'g', -1, 64)
+		f := v.V.(float64)
+		if f == math.Trunc(f) {
+			return strconv.FormatFloat(f, 'f', 1, 64)
+		}
+		return strconv.FormatFloat(f, 'g', -1, 64)
 	case values.FUNC:
 		return "lambda function"
 	case values.INT:

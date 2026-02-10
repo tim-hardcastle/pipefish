@@ -1,6 +1,7 @@
 import
 
 golang "math/cmplx"
+golang "math"
 golang "strconv"
 
 newtype 
@@ -206,11 +207,19 @@ golang {
     func Literal(x any) string {
         switch x := x.(type) {
         case complex128:
-            return "Complex(" + strconv.FormatFloat(real(x), 'g', -1, 64) + ", " +
-                strconv.FormatFloat(imag(x), 'g', -1, 64) + ")"
+            return "Complex(" + niceFmt(real(x)) + ", " +
+                niceFmt(imag(x)) + ")"
         default:
             return "can't serialize value"
         } 
     }
 }
 
+golang {
+    func niceFmt(f float64) string {
+        if f == math.Trunc(f) {
+			return strconv.FormatFloat(f, 'f', 1, 64)
+		}
+		return strconv.FormatFloat(f, 'g', -1, 64)
+    }
+}
