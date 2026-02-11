@@ -42,7 +42,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword",
-				"match": "\\b(and|false|global|golang|not|or|true)\\b"
+				"match": "\\b(and|false|global|golang|not|or|range|true|unwrap|valid)\\b"
 			}]
 		},
 		"control": {
