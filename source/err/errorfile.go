@@ -3250,7 +3250,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"vm/index/q": {
 		Message: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("out of range: can't index value of type %v by %v", emph(args[0]), emph(args[1]))
+			return fmt.Sprintf("can't index value of type %v by %v", emph(args[0]), emph(args[1]))
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return fmt.Sprintf("Pipefish just can't make sense of that at all.")
