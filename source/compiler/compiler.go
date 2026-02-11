@@ -1111,7 +1111,7 @@ NodeTypeSwitch:
 	case *parser.TypeExpression:
 		resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 		if len(node.TypeArgs) == 0 {
-			abType := resolvingCompiler.GetAbstractTypeFromTypeName(node.Operator)
+			abType := resolvingCompiler.GetAbstractTypeFromTypeName(node.Operator, node.Token)
 			if (ac == REPL || resolvingCompiler != cp) && cp.IsPrivate(abType) {
 				cp.Throw("comp/private/type", node.GetToken())
 				return FAIL
@@ -1153,7 +1153,7 @@ NodeTypeSwitch:
 		if len(node.TypeArgs) == 0 {
 			constructor := &parser.PrefixExpression{node.Token, node.Operator, node.Args}
 			resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
-			if abType := resolvingCompiler.GetAbstractTypeFromTypeName(node.Operator); abType.Len() != 1 {
+			if abType := resolvingCompiler.GetAbstractTypeFromTypeName(node.Operator, node.Token); abType.Len() != 1 {
 				cp.Throw("comp/type/concrete", node.GetToken())
 				return FAIL
 			}

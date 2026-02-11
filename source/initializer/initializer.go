@@ -611,11 +611,11 @@ func (iz *Initializer) addAbstractTypesToVm() {
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 	for _, typeName := range keys {
-		if text.Head(typeName, "clones{") && len(iz.cp.GetAbstractTypeFromTypeName(typeName).Types) == 1 {
+		if text.Head(typeName, "clones{") && len(iz.cp.GetAbstractTypeFromTypeName(typeName, token.Token{}).Types) == 1 {
 			continue
 		}
 		iz.addTypeToVm(values.AbstractTypeInfo{Name: typeName, Path: iz.P.NamespacePath,
-			AT: iz.cp.GetAbstractTypeFromTypeName(typeName), IsMI: iz.unserializableTypes.Contains(typeName)})
+			AT: iz.cp.GetAbstractTypeFromTypeName(typeName, token.Token{}), IsMI: iz.unserializableTypes.Contains(typeName)})
 	}
 	for _, v := range compiler.ClonableTypes { // Clonable types are clones of themselves.
 		selfInfo := iz.cp.Vm.ConcreteTypeInfo[v].(vm.BuiltinType)
@@ -970,7 +970,7 @@ func (iz *Initializer) checkTypesForConsistency() {
 		if dec.private {
 			continue
 		}
-		abType := iz.cp.GetAbstractTypeFromTypeName(dec.op.Literal)
+		abType := iz.cp.GetAbstractTypeFromTypeName(dec.op.Literal, dec.op)
 		for _, w := range abType.Types {
 			if iz.cp.Vm.ConcreteTypeInfo[w].IsPrivate() {
 				iz.throw("init/private/abstract", ixPtr(dec), dec.op.Literal)
@@ -1124,9 +1124,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	loggingOptionsType, _ := iz.cp.GetConcreteType("$_Logging")
 	outputOptionsType, _ := iz.cp.GetConcreteType("$_OutputAs")
 	outputStructType, _ := iz.cp.GetConcreteType("Output")
-	terminalStructType, _ := iz.cp.GetConcreteType("Terminal")
-	fileStructType, _ := iz.cp.GetConcreteType("File")
-	logToTypes := altType(outputStructType, terminalStructType, fileStructType)
+	logToTypes := altType(outputStructType)
 	dir, _ := os.Getwd()
 	cliArgs := vector.Empty
 	if len(os.Args) >= 2 {
@@ -1143,7 +1141,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 
 	serviceVariables := map[string]serviceVariableData{
 		"$_logging":         {loggingOptionsType, 1, altType(loggingOptionsType)},
-		"$_logTo":           {terminalStructType, []values.Value{}, logToTypes},
+		"$_logTo":           {outputStructType, []values.Value{}, logToTypes},
 		"$_logTime":         {values.BOOL, false, altType(values.BOOL)},
 		"$_outputAs":        {outputOptionsType, 1, altType(outputOptionsType)},
 		"$_cliDirectory":    {values.STRING, dir, altType(values.STRING)},

@@ -4,9 +4,9 @@ Z = clone{i int} int :
     0 <= that
     that < i
 
-make Z{12}
+make Z{12}, Z{7}
 
-Qux = struct(zort Z{7})
+// Qux = struct(zort Z{7})
 
 def
 

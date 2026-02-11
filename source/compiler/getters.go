@@ -21,7 +21,7 @@ import (
 )
 
 func (cp *Compiler) getAbstractType(name string) values.AbstractType {
-	return cp.GetAbstractTypeFromTypeName(name)
+	return cp.GetAbstractTypeFromTypeName(name, token.Token{})
 }
 
 func (cp *Compiler) GetTypeNameFromNumber(typeNumber values.ValueType) string {

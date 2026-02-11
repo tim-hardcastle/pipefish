@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/tim-hardcastle/pipefish/source/parser"
+	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
 
@@ -147,9 +148,9 @@ func (cp *Compiler) GetAbstractTypeFromAstType(typeNode parser.TypeNode) values.
 	rp := cp.getResolvingCompiler(typeNode.GetToken(), DEF)
 	switch typeNode := typeNode.(type) {
 	case *parser.TypeWithName:
-		return rp.GetAbstractTypeFromTypeName(typeNode.OperatorName)
+		return rp.GetAbstractTypeFromTypeName(typeNode.OperatorName, typeNode.Token)
 	case *parser.TypeWithArguments:
-		return rp.GetAbstractTypeFromTypeName(typeNode.String())
+		return rp.GetAbstractTypeFromTypeName(typeNode.String(), typeNode.Token)
 	case *parser.TypeInfix:
 		LHS := rp.GetAbstractTypeFromAstType(typeNode.Left)
 		RHS := rp.GetAbstractTypeFromAstType(typeNode.Right)
@@ -172,10 +173,10 @@ func (cp *Compiler) GetAbstractTypeFromAstType(typeNode parser.TypeNode) values.
 	case *parser.TypeDotDotDot:
 		return rp.GetAbstractTypeFromAstType(typeNode.Right)
 	case *parser.TypeWithParameters:
-		return rp.GetAbstractTypeFromTypeName(typeNode.Blank().String())
+		return rp.GetAbstractTypeFromTypeName(typeNode.Blank().String(), typeNode.Token)
 	case *parser.TypeExpression:
 		if typeNode.TypeArgs == nil {
-			return rp.GetAbstractTypeFromTypeName(typeNode.Operator)
+			return rp.GetAbstractTypeFromTypeName(typeNode.Operator, typeNode.Token)
 		} else {
 			return rp.P.ParTypes[typeNode.Operator].PossibleReturnTypes
 		}
@@ -183,12 +184,17 @@ func (cp *Compiler) GetAbstractTypeFromAstType(typeNode parser.TypeNode) values.
 	panic("Can't compile type node " + typeNode.String() + " with type " + reflect.TypeOf(typeNode).String())
 }
 
-func (cp *Compiler) GetAbstractTypeFromTypeName(name string) values.AbstractType {
+func (cp *Compiler) GetAbstractTypeFromTypeName(name string, tok token.Token) values.AbstractType {
 	// Check if it's a shared type: 'int', 'struct', 'clones{list}', 'any?' etc.
 	if result, ok := cp.Common.Types[name]; ok {
 		return result
 	}
 	// ... or the result should just be in the parser's own type map.
-	result := cp.TypeMap[name]
-	return result
+	if result, ok := cp.TypeMap[name]; ok {
+		return result
+	}
+	if name != "" {
+		cp.Throw("comp/type/known", &tok, name)
+	}
+	return values.AbstractType{}
 }

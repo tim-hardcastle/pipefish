@@ -989,6 +989,16 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"comp/type/known": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "unknown type " + emph(args[0])
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "You are using " + emph(args[0]) + " in such a way that Pipefish thinks " + 
+			"you're trying to use it as a type; but you haven't declared it as one."
+		},
+	},
+
 	"comp/types/a": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "function " + emph(args[0]) + " cannot accept arguments of type " + args[1].(string)

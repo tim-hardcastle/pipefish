@@ -1170,7 +1170,7 @@ func (iz *Initializer) createAbstractTypes() {
 				iz.throw("init/type/known", &typeTok)
 				break
 			}
-			iz.cp.TypeMap[newTypename] = iz.cp.TypeMap[newTypename].Union(iz.cp.GetAbstractTypeFromTypeName(tname))
+			iz.cp.TypeMap[newTypename] = iz.cp.TypeMap[newTypename].Union(iz.cp.GetAbstractTypeFromTypeName(tname, dec.op))
 		}
 		_, typeExists := iz.getDeclaration(decABSTRACT, ixPtr(dec), DUMMY)
 		if !typeExists {
