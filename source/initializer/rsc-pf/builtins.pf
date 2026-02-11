@@ -5,7 +5,7 @@ newtype
 Error = struct(errorCode string, errorText string)
 
 $_OutputAs = enum $_LITERAL, $_STRING 
-$_Logging = enum LOG_NONE, LOG_SELECTED, LOG_ALL
+$_Logging = enum $_LOG_NONE, $_LOG_SELECTED, $_LOG_ALL
 
 def
 
