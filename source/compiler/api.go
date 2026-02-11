@@ -38,7 +38,8 @@ func (cp *Compiler) Api(name string, fonts *values.Map, width int) string {
 		result = result + "\n"
 	}
 	if !hasContents {
-		return ("API is empty.\n")
+		result = result + "\nNothing has been declared.\n\n"
+		return result
 	}
 	result = result + "\n"
 	return result
