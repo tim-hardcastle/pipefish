@@ -1,0 +1,32 @@
+import
+
+golang "github.com/tim-hardcastle/pipefish/source/text"
+
+newtype 
+
+MdFormat = struct(leftMargin string, width int) :
+    width > 0
+
+def 
+
+render(fmt MdFormat, s string) -> string :
+    goRender(fmt[leftMargin], fmt[width], s)
+
+render(fmt MdFormat, S snippet) -> string :
+    goRender(fmt[leftMargin], fmt[width], stringify S)
+
+render(s string) -> string :
+    goRender("", 92, s)
+
+render(S snippet) -> string :
+    goRender("", 92, stringify S)
+
+private
+
+stringify(S snippet) -> string : 
+    from a = "" for _::el = range S :
+        a + string el
+
+goRender(leftMargin string, width int, raw string) -> string : golang {
+    return text.NewMarkdown(leftMargin, width, func(s string) string {return s}).Render([]string{raw})
+}
