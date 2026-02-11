@@ -149,6 +149,7 @@ func (l *lexer) getTokens() []token.Token {
 				return []token.Token{l.Throw("lex/cont/a")}
 			}
 		} else {
+			l.runes.Next()
 			return []token.Token{l.Throw("lex/dot")}
 		}
 	}

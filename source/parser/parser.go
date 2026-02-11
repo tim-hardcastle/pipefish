@@ -519,6 +519,9 @@ func (p *Parser) parseFloatLiteral() Node {
 
 func (p *Parser) parseForAsInfix(left Node) *ForExpression {
 	expression := p.parseForExpression()
+	if expression == nil {
+		return nil
+	}
 	expression.BoundVariables = left
 	return expression
 }
@@ -536,6 +539,9 @@ func (p *Parser) parseForExpression() *ForExpression {
 	}
 
 	pieces := p.ParseExpression(GIVEN)
+	if pieces == nil {
+		return nil
+	}
 	if pieces.GetToken().Type == token.COLON {
 		expression.Body = pieces.(*LazyInfixExpression).Right
 		header := pieces.(*LazyInfixExpression).Left
@@ -564,6 +570,9 @@ func (p *Parser) parseFromExpression() Node {
 	fromToken := p.CurToken
 	p.NextToken()
 	expression := p.ParseExpression(FUNC)
+	if expression == nil {
+		return nil
+	}
 	var givenBlock Node
 	if expression.GetToken().Type == token.GIVEN {
 		givenBlock = expression.(*InfixExpression).Args[2]
