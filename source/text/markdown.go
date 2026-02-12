@@ -147,14 +147,16 @@ line:
 				switch r[ix] {
 				case '\n':
 					ix++
-					if r[ix] == '\n' {
-						word = word + "\n\n"
+					if word == "" {
 						for r[ix] == '\n' {
 							ix++
 						}
+						fmt.Fprint(sb, RESET, "\n", md.leftMargin, sidebar,  "\n", md.leftMargin, sidebar, font)
+						ox = leftMarginWidth + len(sidebar)
 					} else {
 						word = word + " "
 					}
+					break slurp
 				case 0:
 					word = word + " "
 					ix++

@@ -521,7 +521,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			fname = filepath.Join(dir, fname)
 		}
 		h.lastRun = []string{fname, sname}
-		h.WritePretty("\nStarting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.\n")
+		h.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.\n")
 		h.StartAndMakeCurrent(username, sname, fname)
 		h.tryMain()
 	case "serialize":
