@@ -160,7 +160,6 @@ func (p *Parser) IsEnumElement(name string) bool {
 // Finds whether an identifier is in the right place to be a function, or whether it's being used
 // as though it's a variable or constant.
 func (p *Parser) isPositionallyFunctional() bool {
-	// println("Testing IPF with", p.CurToken.Literal, p.PeekToken.Literal)
 	if assignmentTokens.Contains(p.PeekToken.Type) {
 		return false
 	}
@@ -171,7 +170,8 @@ func (p *Parser) isPositionallyFunctional() bool {
 		p.PeekToken.Type == token.MAPPING || p.PeekToken.Type == token.FILTER ||
 		p.PeekToken.Type == token.COLON || p.PeekToken.Type == token.MAGIC_COLON ||
 		p.PeekToken.Type == token.COMMA || p.PeekToken.Type == token.RBRACK ||
-		p.PeekToken.Type == token.RBRACE {
+		p.PeekToken.Type == token.RBRACE || p.PeekToken.Type == token.AND ||
+		p.PeekToken.Type == token.OR {
 		return false
 	}
 	if p.CurToken.Literal == "type" && p.IsTypePrefix(p.PeekToken.Literal) {
@@ -217,7 +217,8 @@ func (p *Parser) typeIsFunctional() bool {
 		p.PeekToken.Type == token.MAPPING || p.PeekToken.Type == token.FILTER ||
 		p.PeekToken.Type == token.COLON || p.PeekToken.Type == token.MAGIC_COLON ||
 		p.PeekToken.Type == token.COMMA || p.PeekToken.Type == token.RBRACK ||
-		p.PeekToken.Type == token.RBRACE || p.PeekToken.Literal == "?" {
+		p.PeekToken.Type == token.RBRACE || p.PeekToken.Literal == "?"  ||
+		p.PeekToken.Type == token.AND || p.PeekToken.Type == token.OR {
 		return false
 	}
 	if p.PeekToken.Type == token.EMDASH || p.PeekToken.Type == token.LBRACK {

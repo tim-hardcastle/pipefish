@@ -252,7 +252,7 @@ func (p *Parser) ParseExpression(precedence int) Node {
 			if resolvingParser == nil {
 				return nil
 			}
-			if resolvingParser.IsTypePrefix(p.CurToken.Literal) && !(p.CurToken.Literal == "func") { // TODO --- really it should nly happen for clones and structs.
+			if resolvingParser.IsTypePrefix(p.CurToken.Literal) && !(p.CurToken.Literal == "func") { // TODO --- really it should only happen for clones and structs.
 				tok := p.CurToken
 				operator := tok.Literal
 				var typeArgs []Node
