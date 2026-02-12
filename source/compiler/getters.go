@@ -68,16 +68,6 @@ func (cp *Compiler) GetTypeInformation(name string) (vm.TypeInformation, bool) {
 	return cp.Vm.ConcreteTypeInfo[concreteType], true
 }
 
-func (cp *Compiler) IsBuiltin(name string) bool {
-	typeInfo, ok := cp.GetTypeInformation(name)
-	if !ok {
-		return false
-	} else {
-		_, ok := typeInfo.(vm.BuiltinType)
-		return ok
-	}
-}
-
 func (cp *Compiler) IsStruct(name string) bool {
 	typeInfo, ok := cp.GetTypeInformation(name)
 	if !ok {

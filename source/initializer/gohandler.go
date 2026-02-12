@@ -196,7 +196,7 @@ var BUILTIN_VALUE_CONVERTER = map[string]any{
 type types = dtypes.Set[values.ValueType]
 
 // This makes a new .so file, opens it, and returns the plugins.
-// Most of the code generation is in the `gogen.go` file in this same `service` package.
+// Most of the code generation is in the `gogen.go` file in this same `initializer` package.
 func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugin {
 	sourceToken := &token.Token{Source: source}
 	iz.cmG("Making golang from source '"+source+"'\n\n", source)
@@ -219,7 +219,7 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 			name := text.WithoutDots(v.VarType.String())
 			// Note: casting the type info to `BuiltinType`` won't have the same effect,
 			// since it will include $_ types.
-			if iz.cp.IsBuiltin(name) || name == "any" || name == "any?" {
+			if name == "any" || name == "any?" {
 				continue
 			}
 			abType := iz.cp.GetAbstractTypeFromAstType(v.VarType)
@@ -233,7 +233,7 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 		for _, pair := range function.callInfo.ReturnTypes {
 			abType := iz.cp.GetAbstractTypeFromAstType(pair.VarType)
 			name := text.WithoutDots(pair.VarType.String())
-			if iz.cp.IsBuiltin(name) || name == "any" || name == "any?" {
+			if name == "any" || name == "any?" {
 				continue
 			}
 			for _, conc := range abType.Types {
