@@ -41,11 +41,11 @@ The following properties seem generally desirable in a language. It should be:
 
 **Composable**. It should be easy to use these different features together.
 
-**Local**. It should be easy to understand the meaning and purpose of a piece of code by reading as little as possible of the rest of the code. 
+[**Local**](https://htmx.org/essays/locality-of-behaviour). It should be easy to understand the meaning and purpose of a piece of code by reading as little as possible of the rest of the code.
 
-**Consistent**. Knowing how some of the language works, it should be easy to guess how a feature you haven't learned yet will work. 
+**Consistent**. Knowing how some of the language works, it should be easy to guess how a feature you haven't learned yet will work.
 
-**Intolerant**. A language should not default to covering for your false assumptions. Failure should be immediate and noisy. 
+**Intolerant**. A language should not default to covering for your false assumptions. Failure should be immediate and noisy.
 
 **Capable of enough abstraction** (i.e. the ability to treat different things as the same to the extent that they actually are). What is “enough” and how it is to be achieved varies from case to case.
 
@@ -63,6 +63,6 @@ It achieves abstraction by multiple dispatch (with reflection and first-class ty
 
 The functional core/imperative shell style that Pipefish enforces for reasons given in section 1 gives us great locality of code. It also allows a more familiar style of language than many FPLs.
 
-In particular, where issues of syntax, semantics, style or nomenclature seemed minor, I have copied from Go. (The reasons for the choice of Go in particular are laid out in [another document](https://github.com/tim-hardcastle/pipefish/blob/main/docs/the-whys-of-pipefish.md#why-go).) This makes it easier to use Pipefish as part of the Go ecosystem and vice-versa. It also allows me to reuse the work Google has put in on consistency, e.g. in the naming of library functions, the order of their parameters, etc. 
+In particular, where issues of syntax, semantics, style or nomenclature seemed minor, I have copied from Go. (The reasons for the choice of Go in particular are laid out in [another document](https://github.com/tim-hardcastle/pipefish/blob/main/docs/the-whys-of-pipefish.md#why-go).) This makes it easier to use Pipefish as part of the Go ecosystem and vice-versa. It also allows me to reuse the work Google has put in on consistency, e.g. in the naming of library functions, the order of their parameters, etc.
 
 The fact that Pipefish is a REPL-oriented language gives us many ways to make things easy for the user. For example, it enables progressive disclosure of error messages, so that the user can be presented with a concise, readable summary of what went wrong and can then ask for further information at need. It would unbalance this page to describe all that a REPL-oriented language can do for you, so for this we refer you to the section of the wiki on [Developing in Pipefish](https://github.com/tim-hardcastle/pipefish/wiki/Developing-in-Pipefish).
