@@ -9,10 +9,11 @@ type RuneSupplier struct {
 	pos         int 
 	lineNo      int
 	lineStart   int
+	source      string
 }
 
-func NewRuneSupplier(code []rune) *RuneSupplier {
-	return &RuneSupplier{code: code, lineNo: 1}
+func NewRuneSupplier(code []rune, source string) *RuneSupplier {
+	return &RuneSupplier{code: code, lineNo: 1, source: source}
 }
 
 func (rs *RuneSupplier) CurrentRune() rune {

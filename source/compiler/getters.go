@@ -237,7 +237,7 @@ var (
 func (cp *Compiler) Highlight(code []rune, fonts *values.Map) string {
 	var out bytes.Buffer
 	brackets := []rune{}
-	runes := lexer.NewRuneSupplier(code)
+	runes := lexer.NewRuneSupplier(code, "Highlighter")
 	for runes.CurrentRune() != '\n' && runes.CurrentRune() != 0 {
 		switch {
 		// First we deal with the brackets, which have their own rules.

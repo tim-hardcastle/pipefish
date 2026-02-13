@@ -31,7 +31,7 @@ func NewLexer(source, input string) *lexer {
 	stack := dtypes.NewStack[string]()
 	stack.Push("")
 	l := &lexer{reader: r,
-		runes:           NewRuneSupplier([]rune(input)),
+		runes:           NewRuneSupplier([]rune(input), source),
 		whitespaceStack: *stack,
 		Ers:             []*err.Error{},
 		source:          source,
@@ -430,9 +430,14 @@ func (l *lexer) readSnippet() (string, int) {
 					return result, -1
 				}
 			}
-			if strings.HasPrefix(stackTop, currentWhitespace) || currentWhitespace == "\n" || currentWhitespace == "\r" || currentWhitespace == string(rune(0)) { // Then we've unindented. Dobby is free!
-				if currentWhitespace == "\n" || currentWhitespace == "\r" || currentWhitespace == string(rune(0)) {
+			if strings.HasPrefix(stackTop, currentWhitespace) || currentWhitespace == string(rune(0)) { // Then we've unindented. Dobby is free!
+				if currentWhitespace == string(rune(0)) {
 					currentWhitespace = ""
+				}
+				if currentWhitespace == "" && l.runes.CurrentRune() == '\n' && l.runes.PeekRune() == '\n' {
+					result = result + "\n"
+					l.runes.Next()
+					continue
 				}
 				outdent := l.whitespaceStack.Find(currentWhitespace)
 				l.whitespaceStack.Take(outdent)
