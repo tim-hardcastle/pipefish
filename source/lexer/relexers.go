@@ -25,6 +25,7 @@ func makeChain(ts tokensSupplier) *monotokenizer {
 		&removeColonAndLoggingAfterGiven{},
 		&removeNewlineAfter{},
 		&removeNewlineBefore{},
+		&removeTrailingCommas{},
 	)
 }
 
@@ -122,3 +123,29 @@ func (r *removeNewlineBefore) getTokens() []token.Token {
 	r.acc.next()
 	return result
 }
+
+// Another relexer for removing non-syntactic whitespace.
+type removeTrailingCommas struct {
+	acc *tokenAccessor
+}
+
+func (r *removeTrailingCommas) chain(ts tokensSupplier) {
+	r.acc = newAccessor(ts)
+}
+
+var REMOVE_COMMA_BEFORE = dtypes.From[token.TokenType](
+	token.EOF, token.END, token.RBRACK, token.RPAREN,
+)
+
+func (r *removeTrailingCommas) getTokens() []token.Token {
+	if r.acc.tok(0).Type == token.COMMA {
+		peekType := r.acc.tok(1).Type
+		if REMOVE_COMMA_BEFORE.Contains(peekType) {
+			r.acc.next()
+		}
+	}
+	result := []token.Token{r.acc.tok(0)}
+	r.acc.next()
+	return result
+}
+
