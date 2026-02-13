@@ -134,7 +134,7 @@ func (r *removeTrailingCommas) chain(ts tokensSupplier) {
 }
 
 var REMOVE_COMMA_BEFORE = dtypes.From[token.TokenType](
-	token.EOF, token.END, token.RBRACK, token.RPAREN,
+	token.END, token.RBRACK, token.RPAREN,
 )
 
 func (r *removeTrailingCommas) getTokens() []token.Token {
