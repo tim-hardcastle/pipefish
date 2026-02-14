@@ -78,9 +78,7 @@ type Vm struct {
 // needed by the runtime, so a struct gives us quick access to what we do need.
 type UsefulTypes struct {
 	UnwrappedError values.ValueType
-	File           values.ValueType
-	Terminal       values.ValueType
-	Output         values.ValueType
+	LogTo          values.ValueType
 }
 
 // Similarly we need to know where some values are kept, if they have special effects
@@ -381,13 +379,15 @@ loop:
 					}
 					trackingString := vm.TrackingToString([]TrackingData{newData})
 					switch vm.Mem[staticData.LogToLoc].T {
-					case vm.UsefulTypes.Terminal:
-						print(text.Pretty(trackingString, 0, 90))
-					case vm.UsefulTypes.Output:
-						vm.OutHandle.Write(text.Pretty(trackingString, 0, 90))
-					case vm.UsefulTypes.File:
+					case vm.UsefulTypes.LogTo:
+						if vm.Mem[staticData.LogToLoc].V.(int) == 0 {
+							print(text.Pretty(trackingString, 0, 90))
+						} else {
+							vm.OutHandle.Write(text.Pretty(trackingString, 0, 90))
+						}
+					case values.STRING:
 						// TODO --- this is obviously very wasteful. Make $_logTo into a constant?
-						filename := vm.Mem[staticData.LogToLoc].V.([]values.Value)[0].V.(string)
+						filename := vm.Mem[staticData.LogToLoc].V.(string)
 						path := filename
 						if filepath.IsLocal(path) {
 							path = filepath.Join(filepath.Dir(staticData.Tok.Source), path)
@@ -405,6 +405,8 @@ loop:
 							}
 						}
 						f.WriteString(trackingString)
+						default :
+							println("Ooops", vm.DescribeTypeAndValue(vm.Mem[staticData.LogToLoc], LITERAL, 0))
 					}
 				}
 			case Call:

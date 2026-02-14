@@ -117,7 +117,7 @@ func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompiler
 	cp := compiler.NewCompiler(p, ccb)
 	cp.ScriptFilepath = scriptFilepath
 	cp.Vm = vm
-	vm.Evaluators = append(vm.Evaluators, func(s string)values.Value{return cp.Do(s)})
+	vm.Evaluators = append(vm.Evaluators, func(s string) values.Value { return cp.Do(s) })
 	cp.TupleType = cp.Reserve(values.TYPE, values.AbstractType{[]values.ValueType{values.TUPLE}}, &token.Token{Source: "Builtin constant"})
 	vm.NamespaceInfo = append(vm.NamespaceInfo, make(map[values.ValueType]string))
 	for i := values.TUPLE; i < values.FIRST_DEFINED_TYPE; i++ {
@@ -300,7 +300,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 	}
 	maps.Copy(twas, iz.P.ParTypeInstances)
 
-	// So now we want to iterate over the instances of the type. As we do so, we 
+	// So now we want to iterate over the instances of the type. As we do so, we
 	// collect information which pertains to each type operator, rather than to
 	// each instance, which we store in the map below to be processed in a further
 	// loop. (In particular, we have to do it this rather clumsy way because we need
@@ -408,11 +408,11 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		}
 	}
 	// Now we can make a constructor function for each of the type operators using the helper
-	// function below. How this works is that for a parameterized type `Foo{<params>}(<sig>)` 
-	// we make a constructor `Foo{}(+t type, <original sig>)` which is what the compiler will 
+	// function below. How this works is that for a parameterized type `Foo{<params>}(<sig>)`
+	// we make a constructor `Foo{}(+t type, <original sig>)` which is what the compiler will
 	// use to generate the function call.
 
-	// In the compiler, in the `CompileNode` method, we will then magically convert ASTs of the 
+	// In the compiler, in the `CompileNode` method, we will then magically convert ASTs of the
 	// form `Foo{args}(otherargs)` to an AST `Foo{}(Foo{args}, otherargs)` before compling it.
 
 	for typeOperator, operatorInfo := range operatorSpecificInfo {
@@ -426,8 +426,8 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 }
 
 func (iz Initializer) makeParameterizedTypeConstructor(typeOperator string, operatorInfo typeOperatorInfo, ty values.ValueType) {
-	 // We mangle the names, since it would be valid to define an unparameterized type of the 
-	 // same name --- e.g. all the base types of generic types.
+	// We mangle the names, since it would be valid to define an unparameterized type of the
+	// same name --- e.g. all the base types of generic types.
 	name := typeOperator + "{}"
 	tag := name // The builtin tag will tell `seekFunctionCall` which opcode to emit.
 	// We start with the sig having just the one secret parameter in it that passes the type.
@@ -899,7 +899,7 @@ func (iz *Initializer) addParameterizedTypesToVm() {
 
 // When we convert a value to a literal, we need to give it an appropriate namespace based on
 // which namespace we were in when we called `literal`.
-// When we start off, we have a list of maps, where the list is indexed by the `Number` of the 
+// When we start off, we have a list of maps, where the list is indexed by the `Number` of the
 // compiler, and the map is from type numbers to namespaces.
 func (iz *Initializer) makeNamespaceMap() {
 	for _, dependencyIz := range iz.initializers {
@@ -1122,9 +1122,9 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	iz.cmI("Initializing service variables.")
 	// $We need a few bits and pieeces to assemble the types and content of the variables.
 	loggingOptionsType, _ := iz.cp.GetConcreteType("$_Logging")
+	logToType, _ := iz.cp.GetConcreteType("$_LogTo")
 	outputOptionsType, _ := iz.cp.GetConcreteType("$_OutputAs")
-	outputStructType, _ := iz.cp.GetConcreteType("Output")
-	logToTypes := altType(outputStructType)
+	logToTypes := altType(values.STRING, logToType)
 	dir, _ := os.Getwd()
 	cliArgs := vector.Empty
 	if len(os.Args) >= 2 {
@@ -1141,7 +1141,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 
 	serviceVariables := map[string]serviceVariableData{
 		"$_logging":         {loggingOptionsType, 1, altType(loggingOptionsType)},
-		"$_logTo":           {outputStructType, []values.Value{}, logToTypes},
+		"$_logTo":           {logToType, 0, logToTypes},
 		"$_logTime":         {values.BOOL, false, altType(values.BOOL)},
 		"$_outputAs":        {outputOptionsType, 1, altType(outputOptionsType)},
 		"$_cliDirectory":    {values.STRING, dir, altType(values.STRING)},
@@ -1201,7 +1201,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		// This will not be recursion, but before we get that far we won't be able to tell whether it is or not.
 		iz.cp.RecursionStore = []compiler.BkRecursion{} // The compiler will put all the places it needs to backtrack for recursion here.
 		iz.cp.RecurringFunctions = map[uint32]dtypes.Set[uint32]{}
-		fCount := uint32(len(iz.cp.Fns))                // We can give the function data in the parser the right numbers for the group of functions in the parser before compiling them, since we know what order they come in.
+		fCount := uint32(len(iz.cp.Fns)) // We can give the function data in the parser the right numbers for the group of functions in the parser before compiling them, since we know what order they come in.
 		for _, dec := range groupOfDeclarations {
 			if dec.decType == functionDeclaration || dec.decType == commandDeclaration {
 				iz.parsedCode[dec.decType][dec.decNumber].(*parsedFunction).callInfo.Number = fCount
@@ -1773,7 +1773,7 @@ const (
 	decALIAS
 	decFUNCTION
 	decPARAMETERIZED
-	decGOTYPE
+	decWRAPPER
 )
 
 type labelInfo struct {

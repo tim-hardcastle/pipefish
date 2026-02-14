@@ -1,6 +1,6 @@
 var
 
-$_logTo = Output()
+$_logTo = $_OUTPUT
 
 def
 

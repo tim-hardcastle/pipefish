@@ -117,7 +117,7 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 	}
 
 	iz.cmI("Creating go types.")
-	iz.createGotypes()
+	iz.createWrapperTypes()
 	if iz.errorsExist() {
 		return
 	}
@@ -666,15 +666,18 @@ func (iz *Initializer) createEnums() {
 		}
 		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.EnumType{Name: name, Path: iz.P.NamespacePath, ElementNames: elementNameList,
 			ElementValues: values.Value{values.LIST, vec}, Private: dec.private, IsMI: settings.MandatoryImportSet().Contains(dec.op.Source)})
+		if dec.op.Literal == "$_LogTo" {
+			iz.cp.Vm.UsefulTypes.LogTo = typeNo
+		}
 	}
 }
 
 // We create the types that wrap around Go types.
-func (iz *Initializer) createGotypes() {
+func (iz *Initializer) createWrapperTypes() {
 	for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
 		dec := tc.(*tokenizedWrapperDeclaration)
 		var typeNo values.ValueType
-		info, typeExists := iz.getDeclaration(decGOTYPE, &dec.op, DUMMY)
+		info, typeExists := iz.getDeclaration(decWRAPPER, &dec.op, DUMMY)
 		if typeExists {
 			typeNo = info.(values.ValueType)
 			typeInfo := iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.WrapperType)
@@ -682,7 +685,7 @@ func (iz *Initializer) createGotypes() {
 			iz.cp.Vm.ConcreteTypeInfo[typeNo] = typeInfo
 		} else {
 			typeNo = values.ValueType(len(iz.cp.Vm.ConcreteTypeInfo))
-			iz.setDeclaration(decGOTYPE, &dec.op, DUMMY, typeNo)
+			iz.setDeclaration(decWRAPPER, &dec.op, DUMMY, typeNo)
 		}
 		iz.addType(dec.op.Literal, "wrapper", typeNo)
 		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.WrapperType{Name: dec.op.Literal, Path: iz.P.NamespacePath, Private: dec.private, Gotype: token.Stringify(dec.goType)})
@@ -963,16 +966,8 @@ func (iz *Initializer) createStructNames() {
 		}
 		typeNo := iz.addStructType(dec.op.Literal, dec.private, ixPtr(dec))
 		iz.structDeclarationNumberToTypeNumber[i] = typeNo
-		// The VM needs fast access to a few special types.
-		switch dec.op.Literal {
-		case "Error":
+		if dec.op.Literal == "Error" {
 			iz.cp.Vm.UsefulTypes.UnwrappedError = typeNo
-		case "File":
-			iz.cp.Vm.UsefulTypes.File = typeNo
-		case "Terminal":
-			iz.cp.Vm.UsefulTypes.Terminal = typeNo
-		case "Output":
-			iz.cp.Vm.UsefulTypes.Output = typeNo
 		}
 	}
 }
