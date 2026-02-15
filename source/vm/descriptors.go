@@ -169,7 +169,8 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 		if ob.ErrorId != "vm/user" {
 			ob = err.CreateErr(ob.ErrorId, ob.Token, ob.Args...)
 		}
-		return text.Pretty(text.RT_ERROR+ob.Message+text.DescribePos(ob.Token)+".", 0, 80)
+		return text.NewMarkdown("", 92, func(s string)string{return s}).Render(
+			[]string{text.RT_ERROR+ob.Message+text.DescribePos(ob.Token)+"."})
 	case values.FLOAT:
 		f := v.V.(float64)
 		if f == math.Trunc(f) {

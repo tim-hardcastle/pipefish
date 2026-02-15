@@ -49,7 +49,7 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 		args := td.Args
 		switch td.Flavor {
 		case TR_CONDITION:
-			out.WriteString("At ")
+			out.WriteString("- At ")
 			if logTime {
 				out.WriteString(time.Format("15:04:05"))
 				out.WriteString(", at ")
@@ -60,7 +60,7 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 			out.WriteString(text.Emph(args[0].(string)))
 			out.WriteString(". ")
 		case TR_ELSE:
-			out.WriteString("At ")
+			out.WriteString("- At ")
 			if logTime {
 				out.WriteString(time.Format("15:04:05"))
 				out.WriteString(", at ")
@@ -75,19 +75,18 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 			}
 		case TR_FNCALL:
 			if logTime {
-				out.WriteString("At ")
+				out.WriteString("- At ")
 				out.WriteString(time.Format("15:04:05"))
 				out.WriteString(", w")
 			} else {
-				out.WriteString("W")
+				out.WriteString("- W")
 			}
 			out.WriteString("e called function ")
 			out.WriteString(text.Emph(args[0].(string)))
-			out.WriteString(" - defined at line ")
+			out.WriteString(" (defined at line ")
 			out.WriteString(strconv.Itoa(td.Tok.Line))
-			out.WriteString(" ")
 			if len(args) > 1 {
-				out.WriteString("- with ")
+				out.WriteString(") with ")
 				sep := ""
 				for i := 1; i < len(args); i = i + 2 {
 					out.WriteString(sep)
@@ -98,11 +97,11 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 			out.WriteString(".\n")
 		case TR_LITERAL:
 			if logTime {
-				out.WriteString("At ")
+				out.WriteString("- At ")
 				out.WriteString(time.Format("15:04:05"))
 				out.WriteString(", l")
 			} else {
-				out.WriteString("L")
+				out.WriteString("- L")
 			}
 			out.WriteString("og at line ")
 			out.WriteString(strconv.Itoa(td.Tok.Line))
@@ -111,11 +110,11 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 			out.WriteString("\n")
 		case TR_RESULT:
 			if logTime {
-				out.WriteString("At ")
+				out.WriteString("- At ")
 				out.WriteString(time.Format("15:04:05"))
 				out.WriteString(", t")
 			} else {
-				out.WriteString("T")
+				out.WriteString("- T")
 			}
 			if args[0].(values.Value).V.(bool) {
 				out.WriteString("he condition succeeded.\n")
@@ -127,7 +126,7 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 				if vm.trackingIs(i-1, TR_ELSE) {
 					out.WriteString(", so at ")
 				} else {
-					out.WriteString("At ")
+					out.WriteString("- At ")
 				}
 				if logTime {
 					out.WriteString(time.Format("15:04:05"))

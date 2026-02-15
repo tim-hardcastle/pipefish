@@ -153,25 +153,25 @@ func TestExternalOrImportChunking(iz *initializer.Initializer, s string) string 
 	return initializer.SummaryString(ty)
 }
 
-var Foo8Result = "We called function `foo` - defined at line 13 - with `i` = `8`.\n" +
-	"At line 14 we evaluated the condition `i mod 2 == 0`. \n" +
-	"The condition succeeded.\n" +
-	"At line 15 function `foo` returned \"even\".\n"
+var Foo8Result = "\n  ▪ We called function foo (defined at line 13) with i = 8. \n" +
+	"  ▪ At line 14 we evaluated the condition i mod 2 == 0. \n" +
+	"  ▪ The condition succeeded. \n" +
+	"  ▪ At line 15 function foo returned \"even\". "
 
-var Foo13Result = "We called function `foo` - defined at line 13 - with `i` = `13`.\n" +
-	"At line 14 we evaluated the condition `i mod 2 == 0`. \n" +
-	"The condition failed.\n" +
-	"At line 16 we took the `else` branch.\n" +
-	"At line 17 function `foo` returned \"odd\".\n"
+var Foo13Result = "\n  ▪ We called function foo (defined at line 13) with i = 13. \n" +
+	"  ▪ At line 14 we evaluated the condition i mod 2 == 0. \n" +
+	"  ▪ The condition failed. \n" +
+	"  ▪ At line 16 we took the else branch. \n" +
+	"  ▪ At line 17 function foo returned \"odd\". "
 
-var Qux8Result = "Log at line 7 : We're here.\n" +
-	"Log at line 8 : We test to see if i (8) is even, which is true.\n" +
-	"Log at line 9 : We return \"even\", because 8 is even.\n"
+var Qux8Result = "\n  ▪ Log at line 7 : We're here. \n" +
+	"  ▪ Log at line 8 : We test to see if i (8) is even, which is true. \n" +
+	"  ▪ Log at line 9 : We return \"even\", because 8 is even. "
 
-var Qux13Result = "Log at line 7 : We're here.\n" +
-	"Log at line 8 : We test to see if i (13) is even, which is false.\n" +
-	"Log at line 10 : Guess we're taking the 'else' branch.\n" +
-	"Log at line 11 : And we return \"odd\".\n"
+var Qux13Result = "\n  ▪ Log at line 7 : We're here. \n" +
+	"  ▪ Log at line 8 : We test to see if i (13) is even, which is false. \n" +
+	"  ▪ Log at line 10 : Guess we're taking the 'else' branch. \n" +
+	"  ▪ Log at line 11 : And we return \"odd\". "
 
 func Teardown(nameOfTestFile string) {
 	currentDirectory, _ := os.Getwd()

@@ -381,9 +381,9 @@ loop:
 					switch vm.Mem[staticData.LogToLoc].T {
 					case vm.UsefulTypes.LogTo:
 						if vm.Mem[staticData.LogToLoc].V.(int) == 0 {
-							print(text.Pretty(trackingString, 0, 90))
+							print(text.NewMarkdown("", 92, func(s string)string{return s}).Render([]string{trackingString}))
 						} else {
-							vm.OutHandle.Write(text.Pretty(trackingString, 0, 90))
+							vm.OutHandle.Write(text.NewMarkdown("", 92, func(s string)string{return s}).Render([]string{trackingString}))
 						}
 					case values.STRING:
 						// TODO --- this is obviously very wasteful. Make $_logTo into a constant?
