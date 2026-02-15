@@ -1956,6 +1956,8 @@ func (vm Vm) equals(v, w values.Value) bool {
 		return vm.setsAreEqual(v, w)
 	case values.STRING:
 		return v.V.(string) == w.V.(string)
+	case values.SUCCESSFUL_VALUE:
+		return true
 	case values.TUPLE:
 		vVals := v.V.([]values.Value)
 		wVals := w.V.([]values.Value)
