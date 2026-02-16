@@ -381,7 +381,7 @@ loop:
 					switch vm.Mem[staticData.LogToLoc].T {
 					case vm.UsefulTypes.LogTo:
 						if vm.Mem[staticData.LogToLoc].V.(int) == 0 {
-							print(text.NewMarkdown("", 92, func(s string)string{return s}).Render([]string{trackingString}))
+							println(text.NewMarkdown("", 92, func(s string)string{return s}).Render([]string{trackingString}))
 						} else {
 							vm.OutHandle.Write(text.NewMarkdown("", 92, func(s string)string{return s}).Render([]string{trackingString}))
 						}
@@ -1808,6 +1808,10 @@ loop:
 					if !ok {
 						break
 					}
+					if pair.T != values.PAIR {
+						vm.Mem[args[0]] = vm.makeError("vm/with/pair", args[2])
+						break Switch
+					}
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					if key.T != values.LABEL {
@@ -1954,6 +1958,21 @@ func (vm Vm) equals(v, w values.Value) bool {
 		return v.V.(rune) == w.V.(rune)
 	case values.SET:
 		return vm.setsAreEqual(v, w)
+	case values.SNIPPET:
+		vVals := v.V.(values.Snippet)
+		wVals := w.V.(values.Snippet)
+		if len(vVals.Data) != len(wVals.Data) {
+			return false
+		}
+		for i, val := range vVals.Data {
+			if val.T != wVals.Data[i].T {
+				return false
+			}
+			if !vm.equals(val, wVals.Data[i]) {
+				return false
+			}
+		}
+		return true
 	case values.STRING:
 		return v.V.(string) == w.V.(string)
 	case values.SUCCESSFUL_VALUE:
@@ -1965,6 +1984,9 @@ func (vm Vm) equals(v, w values.Value) bool {
 			return false
 		}
 		for i, val := range vVals {
+			if val.T != wVals[i].T {
+				return false
+			}
 			if !vm.equals(val, wVals[i]) {
 				return false
 			}
