@@ -1952,8 +1952,10 @@ func (vm Vm) equals(v, w values.Value) bool {
 	case values.NULL:
 		return true
 	case values.PAIR:
-		return vm.equals(v.V.([]values.Value)[0], w.V.([]values.Value)[0]) &&
-			vm.equals(v.V.([]values.Value)[1], w.V.([]values.Value)[1])
+		return v.V.([]values.Value)[0].T == w.V.([]values.Value)[0].T && 
+		       v.V.([]values.Value)[1].T == w.V.([]values.Value)[1].T && 
+		       vm.equals(v.V.([]values.Value)[0], w.V.([]values.Value)[0]) &&
+			   vm.equals(v.V.([]values.Value)[1], w.V.([]values.Value)[1])
 	case values.RUNE:
 		return v.V.(rune) == w.V.(rune)
 	case values.SET:
