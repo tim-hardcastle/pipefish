@@ -1618,13 +1618,15 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 
 	// Typechecking happens here:
 
+	
+
 	if hasBoundVariables {
 		cp.Cm("Typechecking bound variable result and putting it into bound variables.", tok)
-		cp.EmitTypeChecks(boundResultLoc, boundVariableTypes, newEnv, boundCpSig, ctxt.Access, tok, typeCheckFlavor(FOR_LOOP_BOUND_VARIABLE), ctxt.x())
+		cp.EmitTypeChecks(boundResultLoc, boundVariableTypes, newEnv, boundCpSig, ctxt.Access, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS, ctxt.x())
 	}
 	if flavor == TRIPARTITE {
 		cp.Cm("Typechecking index variable result and putting it into index variables.", tok)
-		cp.EmitTypeChecks(indexResultLoc, indexVariableTypes, newEnv, indexCpSig, ctxt.Access, tok, typeCheckFlavor(FOR_LOOP_INDEX_VARIABLE), ctxt.x())
+		cp.EmitTypeChecks(indexResultLoc, indexVariableTypes, newEnv, indexCpSig, ctxt.Access, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS, ctxt.x())
 	}
 	// The conditional for ending the loop, according to the flavor of the loop.
 	if flavor == TRIPARTITE || flavor == WHILE {
@@ -2346,8 +2348,7 @@ type typeCheckFlavor int
 const (
 	CHECK_RETURN_TYPES typeCheckFlavor = iota
 	CHECK_GIVEN_ASSIGNMENTS
-	CHECK_BOUND_VARIABLE_ASSIGNMENTS
-	CHECK_INITIALIZATION_ASSIGNMENTS
+	CHECK_LOOP_VARIABLE_ASSIGNMENTS
 	CHECK_LAMBDA_PARAMETERS
 	CHECK_LOCAL_CMD_ASSIGNMENTS // Note that in the case of multiple assignment, just one global
 	CHECK_GLOBAL_ASSIGNMENTS    // variable on the left makes it global.
@@ -2372,7 +2373,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 	insert := (flavor != CHECK_RETURN_TYPES)
 	// The earlyReturnOnFailure variable does what it sounds like. In the case when we are typechecking the arguments of a lambda or an assignment involving a global
 	// variable, we have to be able to early-return the error.
-	earlyReturnOnFailure := (flavor == CHECK_GLOBAL_ASSIGNMENTS || flavor == CHECK_LAMBDA_PARAMETERS)
+	earlyReturnOnFailure := (flavor == CHECK_GLOBAL_ASSIGNMENTS || flavor == CHECK_LAMBDA_PARAMETERS || flavor == CHECK_LOOP_VARIABLE_ASSIGNMENTS)
 	// And so this is the early return address that we're going to return to the caller if necessary, which can discharge it with a ComeFrom.
 	errorCheck := BkEarlyReturn(DUMMY)
 	errorCode := ""
