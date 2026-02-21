@@ -2398,12 +2398,11 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 		return errorCheck
 	}
 	if types.Contains(values.ERROR) {
+		cp.Cm("Checking for errror.", tok)
 		cp.Emit(vm.Qtyp, loc, uint32(values.ERROR), cp.CodeTop()+3)
 		cp.Emit(vm.Asgm, errorLocation, loc)
 		inputIsError = cp.vmGoTo()
 	}
-	checkSingleType := bkGoto(DUMMY)
-	checkParameterizedType := bkGoto(DUMMY)
 	if len(singles) == 0 && len(sig) == 1 {
 		cp.Throw("comp/typecheck/values/a", tok)
 		return errorCheck
@@ -2425,11 +2424,11 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 			}
 		}
 	}
-	cp.VmComeFrom(checkSingleType, checkParameterizedType)
 	isTuple := bkIf(DUMMY)
 	if len(tuples) == 0 {
 		successfulSingleCheck = cp.vmGoTo()
 	} else {
+		cp.Cm("Checking for tuple", tok)
 		isTuple = cp.vmIf(vm.Qtyp, loc, uint32(values.TUPLE))
 		lengths := lengths(tuples)
 		goodLengths := 0
@@ -2453,6 +2452,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 		}
 
 		if goodLengths != len(lengths) {
+			cp.Cm("Checking tuple lengths", tok)
 			if lastIsTuple {
 				lengthCheck = cp.vmIf(vm.QlnT, loc, uint32(len(lengths)))
 			} else {
@@ -2482,6 +2482,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 				elementLoc = cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
 			}
 			cp.Emit(vm.IxTn, elementLoc, loc, uint32(i))
+			cp.Cm("Emitting type check for " + sig[i].VarType.describe(cp.Vm), tok)
 			typeCheck := cp.emitTypeComparisonFromAltType(sig[i].VarType, elementLoc, tok)
 			typeChecks = append(typeChecks, typeCheck)
 		}
@@ -2504,9 +2505,6 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 	}
 
 	cp.VmComeFrom(lengthCheck, inputIsError) // This is where we jump to if we fail any of the runtime tests.
-	if len(tuples) == 0 {
-		cp.VmComeFrom(checkSingleType, checkParameterizedType) // TODO --- find out what this code is for, it smells.
-	}
 	for _, tc := range typeChecks {
 		cp.VmComeFrom(tc)
 	}
@@ -2517,6 +2515,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 	// return a tuple containing an error should just return the error.
 	switch {
 	case earlyReturnOnFailure:
+		cp.Cm("Making early return on failue", tok)
 		errorCheck = cp.vmEarlyReturn(errorLocation)
 	case insert:
 		for i := 0; i < len(sig); i++ {
