@@ -385,20 +385,6 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 	return typesFromGoingAcross.Union(typesFromGoingDown), overrideFromGoingAcross || overrideFromGoingDown
 }
 
-// The reason why this and the following two functions exist is that we need to be able to emit restrictions on what values we
-// can assign to things, but these restrictions may be given by the user as 'int', 'struct' or whatever, or they can have been inferred
-// for a variable, and so be an AlternateType. At this point maybe we could translate everything to an AlternateType except that the
-// extra burden of this conversion and the subsequent check for whether it is a built-in abstract type is  more than my conscience could
-// reasonably bear. Hence a mass of pernickety little interfaces and functions try to conceal the fact that, again, I have like three-and-
-// a-half ways to represent types, in the parser, in the compiler, and in the VM.
-func (cp *Compiler) emitTypeComparison(typeRepresentation any, mem uint32, tok *token.Token) bkGoto {
-	switch typeRepresentation := typeRepresentation.(type) {
-	case AlternateType:
-		return cp.emitTypeComparisonFromAltType(typeRepresentation, mem, tok)
-	}
-	panic("Now this was not meant to happen.")
-}
-
 func (cp *Compiler) emitTypeComparisonFromAltType(typeAsAlt AlternateType, mem uint32, tok *token.Token) bkGoto { // TODO --- more of this.
 	cp.Cm("Emitting type comparison from alternate type "+text.Emph(typeAsAlt.describe(cp.Vm)), tok)
 	if len(typeAsAlt) == 1 {

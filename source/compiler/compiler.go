@@ -245,7 +245,7 @@ NodeTypeSwitch:
 			v, ok := env.GetVar(pair.VarName)
 			if ok {
 				cp.Cm("Inferring the type of a variable "+text.Emph(pair.VarName)+" already defined ", &node.Token)
-				if sig.GetVarType(i) != parser.INFERRED_TYPE_AST { // Then as we can't change the type of an existing variable, we must check that we're defining it the same way.
+				if sig[i].VarType != parser.INFERRED_TYPE_AST { // Then as we can't change the type of an existing variable, we must check that we're defining it the same way.
 					if !Equals(v.Types, cp.GetAlternateTypeFromTypeAst(sig[i].VarType)) {
 						cp.Throw("comp/assign/type/b", node.GetToken(), pair.VarName)
 						return FAIL
@@ -2363,10 +2363,10 @@ const (
 // equivalent is to fill the parameters up with an error value generated from the token.
 // If the sig is of an assignment in a command or a given block, then this is in fact all that needs to be done. If it's a
 // lambda, then the rest of the code in the lambda can then return an error if passed one.
-func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environment, sig signature, ac CpAccess, tok *token.Token, flavor typeCheckFlavor, ctxt Context) BkEarlyReturn {
+func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environment, sig alternateSig, ac CpAccess, tok *token.Token, flavor typeCheckFlavor, ctxt Context) BkEarlyReturn {
 	cp.Cm("Emitting type checks.", tok)
-	cp.Cm("Sig names are "+text.Emph(getVarNames(sig))+".", tok)
-	if sig.Len() == 0 { // We have a function without specified return types
+	cp.Cm("Sig is "+sig.Describe(cp.Vm)+".", tok)
+	if len(sig) == 0 { // We have a function without specified return types
 		return BkEarlyReturn(DUMMY)
 	}
 	// The insert variable says whether we're just doing a typecheck against the sig or whether we're inserting values into variables.
@@ -2379,7 +2379,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 	errorCode := ""
 	switch flavor {
 	case CHECK_LAMBDA_PARAMETERS:
-		errorCode = "vm/typech"
+		errorCode = "vm/typecheck"
 	case CHECK_RETURN_TYPES:
 		errorCode = "vm/typecheck/return"
 	default:
@@ -2392,8 +2392,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 	jumpToEnd := bkGoto(DUMMY)
 	typeChecks := []bkGoto{}
 	singles, tuples := types.splitSinglesAndTuples()
-	acceptedSingles := AlternateType{}
-	lastIsTuple := sig.Len() > 0 && cp.getTypes(sig, sig.Len()-1).containsOnlyTuples()
+	lastIsTuple := len(sig) > 0 && sig[len(sig)-1].VarType.containsOnlyTuples()
 	if types.isOnly(values.ERROR) {
 		cp.Throw("comp/typecheck/error", tok)
 		return errorCheck
@@ -2403,26 +2402,14 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 		cp.Emit(vm.Asgm, errorLocation, loc)
 		inputIsError = cp.vmGoTo()
 	}
-	if sig.Len() > 0 {
-		acceptedSingles = singles.intersect(cp.getTypes(sig, 0))
-	}
 	checkSingleType := bkGoto(DUMMY)
 	checkParameterizedType := bkGoto(DUMMY)
-	if len(singles) == 0 && sig.Len() == 1 {
+	if len(singles) == 0 && len(sig) == 1 {
 		cp.Throw("comp/typecheck/values/a", tok)
 		return errorCheck
 	}
-	if tye, ok := sig.GetVarType(0).(*parser.TypeExpression); ok && tye.TypeArgs != nil {
-		cp.CompileNode(tye, ctxt)
-		typeLoc := cp.That()
-		cp.Emit(vm.Qtyl, loc, typeLoc, DUMMY)
-		checkParameterizedType = bkGoto(cp.CodeTop() - 1)
-	}
-	if _, ok := sig.GetVarType(0).(*parser.TypeExpression); ok && len(acceptedSingles) != len(singles) {
-		checkSingleType = cp.emitTypeComparison(sig.GetVarType(0), loc, tok)
-	}
 	if insert {
-		vData, _ := env.GetVar(sig.GetVarName(0)) // It is assumed that we've already made it exist.
+		vData, _ := env.GetVar(sig[0].VarName) // It is assumed that we've already made it exist.
 		if vData.Access == REFERENCE_VARIABLE {
 			if lastIsTuple {
 				cp.Put(vm.Cv1T, loc)
@@ -2449,12 +2436,12 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 		badLengths := 0
 		for ln := range lengths {
 			if ln == -1 { // If the tuple can be any length then this is good only if the 0dx type of the sig is a tuple.
-				if lastIsTuple && sig.Len() == 1 {
+				if lastIsTuple && len(sig) == 1 {
 					goodLengths++
 				}
 				continue
 			}
-			if ln == sig.Len() || lastIsTuple && ln >= sig.Len()-1 {
+			if ln == len(sig) || lastIsTuple && ln >= len(sig)-1 {
 				goodLengths++
 			} else {
 				badLengths++
@@ -2472,17 +2459,17 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 				lengthCheck = cp.vmIf(vm.QleT, loc, uint32(len(lengths)))
 			}
 		}
-		lookTo := sig.Len()
+		lookTo := len(sig)
 		if lastIsTuple {
 			lookTo := lookTo - 1
-			vr, _ := env.GetVar(sig.GetVarName(sig.Len() - 1))
+			vr, _ := env.GetVar(sig[len(sig) - 1].VarName)
 			cp.Emit(vm.SlTn, vr.MLoc, loc, uint32(lookTo)) // Gets the end of the slice. We can put anything in a tuple.
 		}
 		elementLoc := uint32(DUMMY)
 		// Now let's typecheck the other things.
-		for i := 0; i < sig.Len(); i++ {
+		for i := 0; i < len(sig); i++ {
 			typesToCheck := typesAtIndex(types, i)
-			sigTypes := cp.getTypes(sig, i)
+			sigTypes := sig[i].VarType
 			overlap := typesToCheck.intersect(sigTypes)
 			if len(overlap) == 0 || overlap.isOnly(values.ERROR) {
 				cp.Throw("comp/typecheck/type", tok)
@@ -2495,7 +2482,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 				elementLoc = cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
 			}
 			cp.Emit(vm.IxTn, elementLoc, loc, uint32(i))
-			typeCheck := cp.emitTypeComparison(sig.GetVarType(i), elementLoc, tok)
+			typeCheck := cp.emitTypeComparisonFromAltType(sig[i].VarType, elementLoc, tok)
 			typeChecks = append(typeChecks, typeCheck)
 		}
 
@@ -2504,7 +2491,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 		// If however we are inserting things into the sig then we do that now.
 		if insert {
 			for i := 0; i < lookTo; i++ {
-				vr, _ := env.GetVar(sig.GetVarName(i))
+				vr, _ := env.GetVar(sig[i].VarName)
 				if vr.Access == REFERENCE_VARIABLE {
 					cp.Put(vm.IxTn, loc, uint32(i))
 					cp.Emit(vm.Aref, vr.MLoc, cp.That())
@@ -2532,10 +2519,10 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 	case earlyReturnOnFailure:
 		errorCheck = cp.vmEarlyReturn(errorLocation)
 	case insert:
-		for i := 0; i < sig.Len(); i++ {
-			vr, ok := env.GetVar(sig.GetVarName(i))
+		for i := 0; i < len(sig); i++ {
+			vr, ok := env.GetVar(sig[i].VarName)
 			if !ok {
-				cp.Throw("comp/typecheck/var", tok, sig.GetVarName(i))
+				cp.Throw("comp/typecheck/var", tok, sig[i].VarName)
 				return BkEarlyReturn(DUMMY)
 			}
 			cp.Emit(vm.Asgm, vr.MLoc, errorLocation)
@@ -2586,27 +2573,7 @@ type XBindle struct {
 	Position               uint32
 }
 
-// This and the following exist because the compiler can infer a wider range of types for e.g. a variable than
-// the parser has words for.
-type signature interface {
-	GetVarName(i int) string
-	GetVarType(i int) any
-	Len() int
-}
-
 type alternateSig []NameAlternateTypePair
-
-func (cs alternateSig) GetVarName(i int) string {
-	return cs[i].GetName()
-}
-
-func (cs alternateSig) GetVarType(i int) any {
-	return cs[i].GetType()
-}
-
-func (cs alternateSig) Len() int {
-	return len(cs)
-}
 
 // The maximum value of a `uint32`. Used as a dummy/sentinel value when `0` is not appropriate.
 const DUMMY = 4294967295

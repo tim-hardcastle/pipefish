@@ -11,14 +11,6 @@ type NameTypeAstPair struct {
 	VarType TypeNode
 }
 
-func (ntp NameTypeAstPair) GetName() string {
-	return ntp.VarName
-}
-
-func (ntp NameTypeAstPair) GetType() any {
-	return ntp.VarType
-}
-
 type AstSig []NameTypeAstPair
 
 // Sigs where the type is represented as an AbstractType.
@@ -26,14 +18,6 @@ type AstSig []NameTypeAstPair
 type NameAbstractTypePair struct {
 	VarName string
 	VarType values.AbstractType
-}
-
-func (natp NameAbstractTypePair) GetName() string {
-	return natp.VarName
-}
-
-func (natp NameAbstractTypePair) GetType() any {
-	return natp.VarType
 }
 
 func (m NameAbstractTypePair) IsBling() bool {
@@ -57,18 +41,6 @@ func (p AbstractSig) String() string {
 		sep = ", "
 	}
 	return result + ")"
-}
-
-func (s AstSig) Len() int {
-	return len(s)
-}
-
-func (s AstSig) GetVarType(i int) any {
-	return s[i].GetType()
-}
-
-func (s AstSig) GetVarName(i int) string {
-	return s[i].VarName
 }
 
 func (ns AstSig) String() (result string) {

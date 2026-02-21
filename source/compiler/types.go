@@ -121,7 +121,7 @@ func (ts TypeSys) String() string {
 }
 
 func (cp *Compiler) MakeAbstractSigFromStringSig(sig parser.AstSig) parser.AbstractSig {
-	result := make(parser.AbstractSig, sig.Len())
+	result := make(parser.AbstractSig, len(sig))
 	for i, pair := range sig {
 		typename := pair.VarType
 		typeToUse := typename

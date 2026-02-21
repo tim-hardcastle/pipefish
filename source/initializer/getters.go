@@ -12,10 +12,10 @@ import (
 func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction, tok *token.Token) values.AbstractType {
 	result := values.MakeAbstractType()
 	// Check that the sigs are the right length, the return sig being optional.
-	if sigToMatch.sig.Len() != len(fnToTry.sig) {
+	if len(sigToMatch.sig) != len(fnToTry.sig) {
 		return result
 	}
-	if sigToMatch.rtnSig.Len() != 0 && sigToMatch.rtnSig.Len() != len(fnToTry.callInfo.ReturnTypes) {
+	if len(sigToMatch.rtnSig) != 0 && len(sigToMatch.rtnSig) != len(fnToTry.callInfo.ReturnTypes) {
 		return result
 	}
 	abSig := fnToTry.callInfo.Compiler.MakeAbstractSigFromStringSig(fnToTry.sig)
@@ -29,13 +29,13 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 	// (e.g. list{T}) in the return types.
 	var paramType *parser.TypeWithParameters
 	for i := 0; i < len(sigToMatch.sig); i++ {
-		if maybeSelf, ok := sigToMatch.sig.GetVarType(i).(*parser.TypeWithName); ok && maybeSelf.OperatorName == "self" {
+		if maybeSelf, ok := sigToMatch.sig[i].VarType.(*parser.TypeWithName); ok && maybeSelf.OperatorName == "self" {
 			if foundSelf {
 				result = result.Intersect(abSig[i].VarType)
 				if len(result.Types) == 0 {
 					break
 				}
-				if twp, ok := fnToTry.sig.GetVarType(i).(*parser.TypeWithParameters); ok {
+				if twp, ok := fnToTry.sig[i].VarType.(*parser.TypeWithParameters); ok {
 					if paramType == nil || !Equals(paramType, twp) {
 						return values.MakeAbstractType()
 					}
@@ -43,13 +43,13 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 			} else {
 				foundSelf = true
 				result = abSig[i].VarType
-				if twp, ok := fnToTry.sig.GetVarType(i).(*parser.TypeWithParameters); ok {
+				if twp, ok := fnToTry.sig[i].VarType.(*parser.TypeWithParameters); ok {
 					paramType = twp
 				}
 			}
 		} else {
-			if !iz.cp.GetAbstractTypeFromAstType(sigToMatch.sig.GetVarType(i).(parser.TypeNode)).IsSubtypeOf(abSig[i].VarType) ||
-				parser.IsAstBling(sigToMatch.sig.GetVarType(i).(parser.TypeNode)) && sigToMatch.sig.GetVarName(i) != abSig[i].VarName {
+			if !iz.cp.GetAbstractTypeFromAstType(sigToMatch.sig[i].VarType.(parser.TypeNode)).IsSubtypeOf(abSig[i].VarType) ||
+				parser.IsAstBling(sigToMatch.sig[i].VarType.(parser.TypeNode)) && sigToMatch.sig[i].VarName != abSig[i].VarName {
 				return values.MakeAbstractType()
 			}
 		}
@@ -58,7 +58,7 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 		iz.throw("init/interface/self", tok)
 		return values.MakeAbstractType()
 	}
-	for i := 0; i < sigToMatch.rtnSig.Len(); i++ {
+	for i := 0; i < len(sigToMatch.rtnSig); i++ {
 		if t, ok := sigToMatch.rtnSig[i].VarType.(*parser.TypeWithName); ok && t.OperatorName == "self" {
 			result = result.Intersect(abRets[i].VarType)
 			if paramType == nil && result.Len() != 1 {

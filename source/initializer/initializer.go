@@ -747,7 +747,7 @@ func (iz *Initializer) addSigToTree(tree *compiler.FnTreeNode, fn *parsedFunctio
 			currentTypeName = nameSig[pos].VarType.String() //
 		} //
 		if currentTypeName == "bling" { //
-			bling = nameSig.GetVarName(pos) //
+			bling = nameSig[pos].VarName //
 		} //
 		isVararg := len(currentTypeName) >= 3 && currentTypeName[:3] == "..."
 		if isVararg {

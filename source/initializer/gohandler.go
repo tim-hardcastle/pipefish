@@ -167,7 +167,7 @@ func (iz *Initializer) compileGo() {
 			function.body.(*parser.GolangExpression).GoFunction = reflect.ValueOf(goFunction)
 			for i, pair := range function.sig {
 				if _, ok := pair.VarType.(*parser.TypeDotDotDot); ok {
-					if i < function.sig.Len()-1 {
+					if i < len(function.sig)-1 {
 						iz.throw("golang/variadic", &function.op)
 					}
 				}

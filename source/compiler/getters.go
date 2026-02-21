@@ -5,7 +5,6 @@ package compiler
 import (
 	"bytes"
 	"os"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -145,23 +144,6 @@ func (cp *Compiler) rtnTypesToTypeScheme(rtnSig parser.AbstractSig) AlternateTyp
 	return AlternateType{tup}
 }
 
-// Either we already have an AlternateType, and can return it, or we have a type in the form of a string and
-// can transform it into one.
-func (cp *Compiler) getTypes(s signature, i int) AlternateType {
-	typeRep := s.GetVarType(i)
-	if typeRep == nil {
-		return AltType()
-	}
-	switch typeRep := typeRep.(type) {
-	case parser.TypeNode:
-		return cp.GetAlternateTypeFromTypeAst(typeRep)
-	case AlternateType:
-		return typeRep
-	default:
-		panic("Found unexpected type " + reflect.TypeOf(typeRep).String())
-	}
-}
-
 type NameAlternateTypePair struct {
 	VarName string
 	VarType AlternateType
@@ -173,14 +155,6 @@ func (ntp NameAlternateTypePair) GetName() string {
 
 func (ntp NameAlternateTypePair) GetType() any {
 	return ntp.VarType
-}
-
-func getVarNames(sig signature) string {
-	names := []string{}
-	for i := 0; i < sig.Len(); i++ {
-		names = append(names, sig.GetVarName(i))
-	}
-	return strings.Join(names, ", ")
 }
 
 func (cp *Compiler) GetAlternateTypeFromTypeAst(typeNode parser.TypeNode) AlternateType {

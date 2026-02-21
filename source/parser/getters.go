@@ -273,7 +273,7 @@ func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
 			if !ok {
 				return nil, false
 			}
-			for i := left.Len() - 1; i >= 0 && left[i].VarType == dflt; i-- {
+			for i := len(left) - 1; i >= 0 && left[i].VarType == dflt; i-- {
 				left[i].VarType = right[0].VarType
 			} 
 			return append(left, right...), true
@@ -286,7 +286,7 @@ func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
 				return nil, false 
 			}
 			if reparsedArg[0].VarName == "" {
-				result[result.Len()-1].VarType = reparsedArg[0].VarType
+				result[len(result)-1].VarType = reparsedArg[0].VarType
 				reparsedArg = reparsedArg[1:]
 			}
 			result = append(result, reparsedArg...)
