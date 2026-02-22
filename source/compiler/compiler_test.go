@@ -88,6 +88,7 @@ func TestBooleanCompilerErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
 func TestBuiltins(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`5.0 + 2.0`, `7.0`},

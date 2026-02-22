@@ -2395,8 +2395,8 @@ func (cp *Compiler) EmitTypeChecks(
 	errorLocation := cp.ReserveError(errorCode, tok)
 	lengthCheck := bkIf(DUMMY)
 	inputIsError := bkGoto(DUMMY)
-	successfulSingleCheck := bkGoto(DUMMY)
-	jumpToEnd := bkGoto(DUMMY)
+	jumpFromSingleCheckToEnd := bkGoto(DUMMY)
+	jumpFromTupleCheckToEnd := bkGoto(DUMMY)
 	typeChecks := []bkGoto{}
 	singles, tuples := types.splitSinglesAndTuples()
 	lastIsTuple := len(sig) > 0 && sig[len(sig)-1].VarType.containsOnlyTuples()
@@ -2441,7 +2441,9 @@ func (cp *Compiler) EmitTypeChecks(
 		// We would by this point have thrown an error if the sig length wasn't 1, so we can just
 		// do the typecheck.
 		cp.Cm("No tuples, sig has length 1, emitting typecheck", tok)
-		successfulSingleCheck = cp.vmGoTo()
+		typeCheck := cp.emitTypeComparisonFromAltType(sig[0].VarType, loc, tok)
+		typeChecks = append(typeChecks, typeCheck)
+		jumpFromSingleCheckToEnd = cp.vmGoTo()
 	} else {
 		cp.Cm("Checking for tuple", tok)
 		isTuple = cp.vmIf(vm.Qtyp, loc, uint32(values.TUPLE))
@@ -2514,7 +2516,7 @@ func (cp *Compiler) EmitTypeChecks(
 				}
 			}
 		}
-		jumpToEnd = cp.vmGoTo()
+		jumpFromTupleCheckToEnd = cp.vmGoTo()
 	}
 
 	cp.VmComeFrom(lengthCheck, inputIsError) // This is where we jump to if we fail any of the runtime tests.
@@ -2539,7 +2541,7 @@ func (cp *Compiler) EmitTypeChecks(
 	default:
 		cp.Emit(vm.Asgm, loc, errorLocation)
 	}
-	cp.VmComeFrom(successfulSingleCheck, jumpToEnd, isTuple)
+	cp.VmComeFrom(jumpFromSingleCheckToEnd, jumpFromTupleCheckToEnd, isTuple)
 	return errorCheck
 }
 
