@@ -297,7 +297,7 @@ NodeTypeSwitch:
 			}
 		}
 		cp.Cm("Typechecking and inserting result into variables.", node.GetToken())
-		typeCheckFailed := cp.EmitTypeChecks(rhsResult, types, env, newSig, ac, node.GetToken(), flavor, ctxt.x())
+		typeCheckFailed := cp.EmitTypeChecks(rhsResult, types, env, newSig, node.GetToken(), flavor)
 		cp.Put(vm.Asgm, values.C_OK)
 		cp.VmComeFrom(rhsIsError, typeCheckFailed)
 		break NodeTypeSwitch
@@ -1622,11 +1622,11 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 
 	if hasBoundVariables {
 		cp.Cm("Typechecking bound variable result and putting it into bound variables.", tok)
-		cp.EmitTypeChecks(boundResultLoc, boundVariableTypes, newEnv, boundCpSig, ctxt.Access, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS, ctxt.x())
+		cp.EmitTypeChecks(boundResultLoc, boundVariableTypes, newEnv, boundCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
 	}
 	if flavor == TRIPARTITE {
 		cp.Cm("Typechecking index variable result and putting it into index variables.", tok)
-		cp.EmitTypeChecks(indexResultLoc, indexVariableTypes, newEnv, indexCpSig, ctxt.Access, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS, ctxt.x())
+		cp.EmitTypeChecks(indexResultLoc, indexVariableTypes, newEnv, indexCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
 	}
 	// The conditional for ending the loop, according to the flavor of the loop.
 	if flavor == TRIPARTITE || flavor == WHILE {
@@ -1871,7 +1871,7 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *parser
 	cp.ResolveMemPush(cp.That() - 1)
 	if fnNode.NameRets != nil {
 		cp.Cm("Typechecking returns from lambda.", fnNode.GetToken())
-		cp.EmitTypeChecks(LF.Model.ResultLocation, bodyCpResult.Types, env, cp.AstSigToAltSig(rTypes), LAMBDA, tok, CHECK_RETURN_TYPES, ctxt.x())
+		cp.EmitTypeChecks(LF.Model.ResultLocation, bodyCpResult.Types, env, cp.AstSigToAltSig(rTypes), tok, CHECK_RETURN_TYPES)
 	}
 	cp.Emit(vm.Ret)
 	cp.popLambdaStart()
@@ -2041,7 +2041,7 @@ func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt
 	// we want the variables to be declared, otherwise this will cause an error storm when
 	// trying to compile the main body.
 	cp.Cm("Typechecking and inserting result into local variables.", node.GetToken())
-	cp.EmitTypeChecks(resultLocation, result.Types, ctxt.Env, cp.AstSigToAltSig(sig), ctxt.Access, node.GetToken(), CHECK_GIVEN_ASSIGNMENTS, ctxt.x())
+	cp.EmitTypeChecks(resultLocation, result.Types, ctxt.Env, cp.AstSigToAltSig(sig), node.GetToken(), CHECK_GIVEN_ASSIGNMENTS)
 	if thisExists {
 		ctxt.Env.Data["this"] = *oldThis
 	} else {
@@ -2363,8 +2363,15 @@ const (
 // equivalent is to fill the parameters up with an error value generated from the token.
 // If the sig is of an assignment in a command or a given block, then this is in fact all that needs to be done. If it's a
 // lambda, then the rest of the code in the lambda can then return an error if passed one.
-func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environment, sig alternateSig, ac CpAccess, tok *token.Token, flavor typeCheckFlavor, ctxt Context) BkEarlyReturn {
-	cp.Cm("Emitting type checks.", tok)
+func (cp *Compiler) EmitTypeChecks(
+		loc uint32, // The address of the thing to be typechecked, which may be a tuple.
+	    types AlternateType, // The type it needs to match.
+		env *Environment, // The environment of the `residualSig` (below).
+		sig alternateSig, // The sig to insert values into.
+		tok *token.Token, // A token for emitting errors with.
+		flavor typeCheckFlavor, // Says exactly what sort of thing we're tyechecking.
+	) BkEarlyReturn {
+	cp.CmR("Emitting type checks.", tok)
 	cp.Cm("Sig is "+sig.Describe(cp.Vm)+".", tok)
 	if len(sig) == 0 { // We have a function without specified return types
 		return BkEarlyReturn(DUMMY)
@@ -2408,6 +2415,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 		return errorCheck
 	}
 	if insert {
+		cp.Cm("Inserting into variable", tok)
 		vData, _ := env.GetVar(sig[0].VarName) // It is assumed that we've already made it exist.
 		if vData.Access == REFERENCE_VARIABLE {
 			if lastIsTuple {
@@ -2426,6 +2434,7 @@ func (cp *Compiler) EmitTypeChecks(loc uint32, types AlternateType, env *Environ
 	}
 	isTuple := bkIf(DUMMY)
 	if len(tuples) == 0 {
+		println("No tuples, emitting goto", tok)
 		successfulSingleCheck = cp.vmGoTo()
 	} else {
 		cp.Cm("Checking for tuple", tok)
