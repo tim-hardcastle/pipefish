@@ -2414,6 +2414,10 @@ func (cp *Compiler) EmitTypeChecks(
 		cp.Throw("comp/typecheck/values/a", tok)
 		return errorCheck
 	}
+	if len(tuples) == 0 && len(sig) != 1 {
+		cp.Throw("comp/typecheck/values/b", tok)
+		return errorCheck
+	}
 	if insert {
 		cp.Cm("Inserting into variable", tok)
 		vData, _ := env.GetVar(sig[0].VarName) // It is assumed that we've already made it exist.
@@ -2434,7 +2438,9 @@ func (cp *Compiler) EmitTypeChecks(
 	}
 	isTuple := bkIf(DUMMY)
 	if len(tuples) == 0 {
-		println("No tuples, emitting goto", tok)
+		// We would by this point have thrown an error if the sig length wasn't 1, so we can just
+		// do the typecheck.
+		cp.Cm("No tuples, sig has length 1, emitting typecheck", tok)
 		successfulSingleCheck = cp.vmGoTo()
 	} else {
 		cp.Cm("Checking for tuple", tok)
@@ -2468,11 +2474,9 @@ func (cp *Compiler) EmitTypeChecks(
 				lengthCheck = cp.vmIf(vm.QleT, loc, uint32(len(lengths)))
 			}
 		}
-		lookTo := len(sig)
 		if lastIsTuple {
-			lookTo := lookTo - 1
 			vr, _ := env.GetVar(sig[len(sig) - 1].VarName)
-			cp.Emit(vm.SlTn, vr.MLoc, loc, uint32(lookTo)) // Gets the end of the slice. We can put anything in a tuple.
+			cp.Emit(vm.SlTn, vr.MLoc, loc, uint32(len(sig)-1)) // Gets the end of the slice. We can put anything in a tuple.
 		}
 		elementLoc := uint32(DUMMY)
 		// Now let's typecheck the other things.
@@ -2496,11 +2500,11 @@ func (cp *Compiler) EmitTypeChecks(
 			typeChecks = append(typeChecks, typeCheck)
 		}
 
-		// At this point if we're not inserting into the sig but just checking, then our work is done --- the original location we were passed, if it
-		// contained an unacceptable type, now contains a type error, and if it didn't, it doesn't.
-		// If however we are inserting things into the sig then we do that now.
+		// So at this point an error has been found/generated and put in the loc. If we're 
+		// typechecking local variable/given assignments, we can and must now insert the error
+		// into each of the variables.
 		if insert {
-			for i := 0; i < lookTo; i++ {
+			for i := 0; i < len(sig); i++ {
 				vr, _ := env.GetVar(sig[i].VarName)
 				if vr.Access == REFERENCE_VARIABLE {
 					cp.Put(vm.IxTn, loc, uint32(i))
@@ -2517,16 +2521,13 @@ func (cp *Compiler) EmitTypeChecks(
 	for _, tc := range typeChecks {
 		cp.VmComeFrom(tc)
 	}
-
-	// If we're putting things into a signature, then on error we want those things to contain the error, unless
-	// it contains a global variable or we're typechecking a function, in which case we need an early return.
-	// If we're just typechecking it, then we want to replace it with an error --- that is, a function trying to
-	// return a tuple containing an error should just return the error.
 	switch {
 	case earlyReturnOnFailure:
-		cp.Cm("Making early return on failue", tok)
+		cp.Cm("Making early return on failure", tok)
+		// This is what we're going to return from the function; it can then be used by the caller to make
+		// an early return from a function or for loop.
 		errorCheck = cp.vmEarlyReturn(errorLocation)
-	case insert:
+	case flavor == CHECK_LOCAL_CMD_ASSIGNMENTS || flavor == CHECK_GIVEN_ASSIGNMENTS:
 		for i := 0; i < len(sig); i++ {
 			vr, ok := env.GetVar(sig[i].VarName)
 			if !ok {
