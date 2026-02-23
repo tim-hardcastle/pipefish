@@ -1613,21 +1613,25 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		cp.VmComeFrom(jumpOverGiven)
 	}
 
+	boundInitCheck := BkEarlyReturn(DUMMY)
+    indexInitCheck := BkEarlyReturn(DUMMY)
+	boundUpdateCheck := BkEarlyReturn(DUMMY)
+    indexUpdateCheck := BkEarlyReturn(DUMMY)
 	conditionalFails := BkEarlyReturn(DUMMY)
-	startOfForLoop := cp.CodeTop()
 
-	// Typechecking happens here:
-
-	
-
+	// We typecheck the initial values.
 	if hasBoundVariables {
 		cp.Cm("Typechecking bound variable result and putting it into bound variables.", tok)
-		cp.EmitTypeChecks(boundResultLoc, boundVariableTypes, newEnv, boundCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
+		boundInitCheck = cp.EmitTypeChecks(boundResultLoc, boundVariableTypes, newEnv, boundCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
 	}
 	if flavor == TRIPARTITE {
 		cp.Cm("Typechecking index variable result and putting it into index variables.", tok)
-		cp.EmitTypeChecks(indexResultLoc, indexVariableTypes, newEnv, indexCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
+		indexInitCheck = cp.EmitTypeChecks(indexResultLoc, indexVariableTypes, newEnv, indexCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
 	}
+
+
+	startOfForLoop := cp.CodeTop()
+
 	// The conditional for ending the loop, according to the flavor of the loop.
 	if flavor == TRIPARTITE || flavor == WHILE {
 		cp.Cm("Compiling conditional.", tok)
@@ -1674,6 +1678,15 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		}
 		cp.Emit(vm.Asgm, indexResultLoc, cp.That())
 	}
+	// We typecheck the updated values.
+	if hasBoundVariables {
+		cp.Cm("Typechecking bound variable result and putting it into bound variables.", tok)
+		boundUpdateCheck = cp.EmitTypeChecks(boundResultLoc, boundVariableTypes, newEnv, boundCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
+	}
+	if flavor == TRIPARTITE {
+		cp.Cm("Typechecking index variable result and putting it into index variables.", tok)
+		indexUpdateCheck = cp.EmitTypeChecks(indexResultLoc, indexVariableTypes, newEnv, indexCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
+	}
 	// And we jump to the start of the loop.
 	cp.Cm("Jumping to start of loop again.", tok)
 	cp.Emit(vm.Jmp, startOfForLoop)
@@ -1682,7 +1695,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	cp.resolveBreaksWithoutValue()
 	cp.Put(vm.Asgm, boundResultLoc)
 	cp.resolveBreaksWithValue()
-	cp.VmComeFrom(conditionalFails, rangeOver)
+	cp.VmComeFrom(conditionalFails, rangeOver, boundInitCheck, indexInitCheck, boundUpdateCheck, indexUpdateCheck)
 	bodyCpResult.Foldable = false
 	return bodyCpResult
 }
