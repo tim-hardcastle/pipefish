@@ -2440,9 +2440,26 @@ func (cp *Compiler) EmitTypeChecks(
 	if len(tuples) == 0 {
 		// We would by this point have thrown an error if the sig length wasn't 1, so we can just
 		// do the typecheck.
-		cp.Cm("No tuples, sig has length 1, emitting typecheck", tok)
-		typeCheck := cp.emitTypeComparisonFromAltType(sig[0].VarType, loc, tok)
-		typeChecks = append(typeChecks, typeCheck)
+		sigTypes := sig[0].VarType
+		overlap := singles.intersect(sigTypes)
+		if len(overlap) == 0 || overlap.isOnly(values.ERROR) {
+			cp.Throw("comp/typecheck/type", tok)
+			return errorCheck
+		}
+		if len(overlap) != len(singles) {
+			cp.Cm("No tuples, sig has length 1, emitting typecheck", tok)
+			// If the condition is not met, this jumps to where we `ComeFrom` the elements of `typechecks`.
+			typeCheck := cp.emitTypeComparisonFromAltType(sig[0].VarType, loc, tok)
+			typeChecks = append(typeChecks, typeCheck)
+		}
+		if insert {
+			vr, _ := env.GetVar(sig[0].VarName)
+			if vr.Access == REFERENCE_VARIABLE {
+				cp.Emit(vm.Aref, vr.MLoc, loc)
+			} else {
+				cp.Emit(vm.Asgm, vr.MLoc, loc)
+			}
+		}
 		jumpFromSingleCheckToEnd = cp.vmGoTo()
 	} else {
 		cp.Cm("Checking for tuple", tok)
@@ -2501,10 +2518,7 @@ func (cp *Compiler) EmitTypeChecks(
 			typeCheck := cp.emitTypeComparisonFromAltType(sig[i].VarType, elementLoc, tok)
 			typeChecks = append(typeChecks, typeCheck)
 		}
-
-		// So at this point an error has been found/generated and put in the loc. If we're 
-		// typechecking local variable/given assignments, we can and must now insert the error
-		// into each of the variables.
+		// If we're inserting the values from a tuple into the variables, this is where we do it.
 		if insert {
 			for i := 0; i < len(sig); i++ {
 				vr, _ := env.GetVar(sig[i].VarName)
