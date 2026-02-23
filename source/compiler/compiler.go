@@ -1629,7 +1629,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			boundVariableTypes,
 			newEnv, boundCpSig,
 			node.BoundVariables.(*parser.AssignmentExpression).Left.GetToken(),
-			CHECK_LOOP_BOUND_VARIABLE_ASSIGNMENTS,
+			CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION,
 		)
 	}
 	if flavor == TRIPARTITE {
@@ -1641,7 +1641,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			newEnv,
 			indexCpSig,
 			node.Initializer.(*parser.AssignmentExpression).Left.GetToken(),
-			CHECK_LOOP_INDEX_VARIABLE_ASSIGNMENTS,
+			CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION,
 		)
 	}
 
@@ -1691,7 +1691,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			newEnv,
 			boundCpSig,
 			node.BoundVariables.(*parser.AssignmentExpression).Left.GetToken(),
-			CHECK_LOOP_BOUND_VARIABLE_ASSIGNMENTS,
+			CHECK_LOOP_BOUND_VARIABLE_UPDATE,
 		)
 	}
 	// Any 'continue' statements we've emitted are in the compiler's forData.
@@ -1711,7 +1711,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			newEnv,
 			indexCpSig,
 			node.Initializer.(*parser.AssignmentExpression).Left.GetToken(),
-			CHECK_LOOP_INDEX_VARIABLE_ASSIGNMENTS,
+			CHECK_LOOP_INDEX_VARIABLE_UPDATE,
 		)
 	}
 
@@ -2409,20 +2409,47 @@ type typeCheckFlavor int
 const (
 	CHECK_RETURN_TYPES typeCheckFlavor = iota
 	CHECK_GIVEN_ASSIGNMENTS
-	CHECK_LOOP_BOUND_VARIABLE_ASSIGNMENTS
-	CHECK_LOOP_INDEX_VARIABLE_ASSIGNMENTS
+	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION
+	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION
+	CHECK_LOOP_BOUND_VARIABLE_UPDATE
+	CHECK_LOOP_INDEX_VARIABLE_UPDATE
 	CHECK_LAMBDA_PARAMETERS
 	CHECK_LOCAL_CMD_ASSIGNMENTS // Note that in the case of multiple assignment, just one global
 	CHECK_GLOBAL_ASSIGNMENTS    // variable on the left makes it global.
 )
 
-// We take (a location of) a single value or tuple, the type as an AlternateType, a signature, an environment, a token, and a
-// 'flavor' which says what exactly we're doing and in particular whether the sig contains names we should be inserting the tuple
-// elements into or is just a return type signature in which case there will be no names and we can leave them as they are.
-// We generate code which emits as much type-checking as is necessary given the fit of the signature to the AlternateType,
-// and which inserts the values of the tuple into the variables specified in the signature.
-// If the types cannot fit the sig we should of course emit a compile-time error. If they *may* not fit the sig, the runtime
-// equivalent is to fill the parameters up with an error value generated from the token.
+// Used to construct errors for the VM to return at runtime..
+var errorCodes = map[typeCheckFlavor]string{
+	CHECK_RETURN_TYPES: "return",
+	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION: "bound/init",
+	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION: "index/init",
+	CHECK_LOOP_BOUND_VARIABLE_UPDATE: "bound/update",
+	CHECK_LOOP_INDEX_VARIABLE_UPDATE: "index/update",
+	CHECK_LAMBDA_PARAMETERS: "lambda",
+}
+
+// When these encounter an error as a value, or when the typecheck fails and produces an error,
+// these flavors of typecheck return a `BkEarlyReturn` which can be used to return the error to wherever.
+var earlyReturners = dtypes.MakeFromSlice([]typeCheckFlavor{
+	CHECK_GLOBAL_ASSIGNMENTS,
+	CHECK_LAMBDA_PARAMETERS, 
+	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION,
+	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION, 
+	CHECK_LOOP_BOUND_VARIABLE_UPDATE,
+	CHECK_LOOP_INDEX_VARIABLE_UPDATE,
+})
+
+// We take (a location of) a single value or tuple, the expression that yielded it, the type as an 
+// AlternateType, a signature, an environment, a token, and a 'flavor' which says what exactly we're 
+// doing and in particular whether the sig contains names we should be inserting the tuple elements 
+// into or is just a return type signature in which case there will be no names and we can leave them 
+// as they are.
+// We generate code which emits as much type-checking as is necessary given the fit of the signature 
+// to the AlternateType, and which inserts the values of the tuple into the variables specified in 
+// the signature.
+// If the types cannot fit the sig we should of course emit a compile-time error. If they *may* not fit 
+// the sig, the runtime equivalent is to fill the parameters up with an error value generated from the 
+// token.
 // If the sig is of an assignment in a command or a given block, then this is in fact all that needs to be done. If it's a
 // lambda, then the rest of the code in the lambda can then return an error if passed one.
 func (cp *Compiler) EmitTypeChecks(
@@ -2443,24 +2470,14 @@ func (cp *Compiler) EmitTypeChecks(
 	insert := (flavor != CHECK_RETURN_TYPES)
 	// The earlyReturnOnFailure variable does what it sounds like. In the case when we are typechecking the arguments of a lambda or an assignment involving a global
 	// variable, we have to be able to early-return the error.
-	earlyReturnOnFailure := (flavor == CHECK_GLOBAL_ASSIGNMENTS || flavor == CHECK_LAMBDA_PARAMETERS ||
-		flavor == CHECK_LOOP_BOUND_VARIABLE_ASSIGNMENTS || flavor == CHECK_LOOP_INDEX_VARIABLE_ASSIGNMENTS)
+	earlyReturnOnFailure := earlyReturners.Contains(flavor)
 	// And so this is the early return address that we're going to return to the caller if necessary, which can discharge it with a ComeFrom.
 	errorCheck := BkEarlyReturn(DUMMY)
-	errorCode := ""
-	switch flavor {
-	case CHECK_LAMBDA_PARAMETERS:
-		errorCode = "vm/typecheck"
-	case CHECK_RETURN_TYPES:
-		errorCode = "vm/typecheck/return"
-	case CHECK_LOOP_BOUND_VARIABLE_ASSIGNMENTS:
-		errorCode = "vm/typecheck/bound"
-	case CHECK_LOOP_INDEX_VARIABLE_ASSIGNMENTS:
-		errorCode = "vm/typecheck/index"
-	default:
-		errorCode = "vm/typecheck/assign"
+	errorCode := "vm/typecheck/assign"
+	if code, ok := errorCodes[flavor]; ok {
+		errorCode = "vm/typecheck/" + code
 	}
-	errorLocation := cp.ReserveError(errorCode, typeToken)
+	errorLocation := cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken)
 	lengthCheck := bkIf(DUMMY)
 	inputIsError := bkGoto(DUMMY)
 	jumpFromSingleCheckToEnd := bkGoto(DUMMY)
@@ -2610,7 +2627,7 @@ func (cp *Compiler) EmitTypeChecks(
 		cp.Cm("Making early return on failure", typeToken)
 		// This is what we're going to return from the function; it can then be used by the caller to make
 		// an early return from a function or for loop.
-		errorCheck = cp.vmEarlyReturn(errorLocation)
+		errorCheck = cp.vmEarlyReturnWithUnthunk(errorLocation)
 	case flavor == CHECK_LOCAL_CMD_ASSIGNMENTS || flavor == CHECK_GIVEN_ASSIGNMENTS:
 		for i := 0; i < len(sig); i++ {
 			vr, ok := env.GetVar(sig[i].VarName)
@@ -2711,6 +2728,13 @@ type BkEarlyReturn int
 
 func (cp *Compiler) vmEarlyReturn(mLoc uint32) BkEarlyReturn {
 	cp.Emit(vm.Asgm, DUMMY, mLoc)
+	cp.Emit(vm.Jmp, DUMMY)
+	return BkEarlyReturn(cp.CodeTop() - 2)
+}
+
+func (cp *Compiler) vmEarlyReturnWithUnthunk(mLoc uint32) BkEarlyReturn {
+	cp.Put(vm.UntE, mLoc)
+	cp.Emit(vm.Asgm, DUMMY, cp.That())
 	cp.Emit(vm.Jmp, DUMMY)
 	return BkEarlyReturn(cp.CodeTop() - 2)
 }
