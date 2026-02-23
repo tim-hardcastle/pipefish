@@ -1667,6 +1667,10 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		return FAIL
 	}
 	cp.Emit(vm.Asgm, boundResultLoc, cp.That())
+	if hasBoundVariables {
+		cp.Cm("Typechecking bound variable result and putting it into bound variables.", tok)
+		boundUpdateCheck = cp.EmitTypeChecks(boundResultLoc, bodyCpResult.Types, newEnv, boundCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
+	}
 	// Any 'continue' statements we've emitted are in the compiler's forData.
 	cp.resolveContinues()
 	// And then the iterator, which again differs according to the flavor.
@@ -1676,17 +1680,10 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		if iteratorCpResult.Failed {
 			return FAIL
 		}
-		cp.Emit(vm.Asgm, indexResultLoc, cp.That())
-	}
-	// We typecheck the updated values.
-	if hasBoundVariables {
-		cp.Cm("Typechecking bound variable result and putting it into bound variables.", tok)
-		boundUpdateCheck = cp.EmitTypeChecks(boundResultLoc, boundVariableTypes, newEnv, boundCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
-	}
-	if flavor == TRIPARTITE {
 		cp.Cm("Typechecking index variable result and putting it into index variables.", tok)
-		indexUpdateCheck = cp.EmitTypeChecks(indexResultLoc, indexVariableTypes, newEnv, indexCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
+		indexUpdateCheck = cp.EmitTypeChecks(cp.That(), iteratorCpResult.Types, newEnv, indexCpSig, tok, CHECK_LOOP_VARIABLE_ASSIGNMENTS)
 	}
+
 	// And we jump to the start of the loop.
 	cp.Cm("Jumping to start of loop again.", tok)
 	cp.Emit(vm.Jmp, startOfForLoop)
