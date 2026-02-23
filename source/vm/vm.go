@@ -37,22 +37,22 @@ type Vm struct {
 	// Permanent state: things established at compile time.
 
 	// These are things the ordinal of which can be an operand.
-	Tokens                     []*token.Token
-	LambdaFactories            []*LambdaFactory
-	SnippetFactories           []*SnippetFactory
-	GoFns                      []GoFn
-	Evaluators                 []func(string)values.Value // One per compiler, to implement `eval`.
+	Tokens           []*token.Token
+	LambdaFactories  []*LambdaFactory
+	SnippetFactories []*SnippetFactory
+	GoFns            []GoFn
+	Evaluators       []func(string) values.Value // One per compiler, to implement `eval`.
 
 	// As sometimes can this; it is indexed by the numbers of concrete types.
-	ConcreteTypeInfo           []TypeInformation
+	ConcreteTypeInfo []TypeInformation
 
 	// This contains the information necessary to attach a suitable namespace to the literal
 	// of a value; it is indexed first by the number of the compiler and second by the number of
 	// the type.
-	NamespaceInfo              []map[values.ValueType]string
+	NamespaceInfo []map[values.ValueType]string
 
 	Labels                     []string // Array from the number of a field label to its name.
-	TypeCheckErrors            []*TypeCheckError
+	ValidationErrors           []*ValidationError
 	Tracking                   []TrackingData // Data needed by the 'trak' opcode to produce the live tracking data.
 	InHandle                   InHandler
 	OutHandle                  OutHandler
@@ -126,7 +126,7 @@ type SnippetFactory struct {
 }
 
 // For containing the data needed to manufacture a typechecking error at runtime.
-type TypeCheckError struct {
+type ValidationError struct {
 	Tok       *token.Token
 	Condition string
 	Type      string
@@ -155,12 +155,12 @@ var nativeTypeNames = []string{"UNDEFINED VALUE", "INT ARRAY", "THUNK", "CREATED
 
 func BlankVm() *Vm {
 	vm := &Vm{Mem: make([]values.Value, len(CONSTANTS)),
-		logging: true,
-		InHandle: &StandardInHandler{"→ "},
+		logging:           true,
+		InHandle:          &StandardInHandler{"→ "},
 		GoToPipefishTypes: map[reflect.Type]values.ValueType{},
-		GoConverter: [](func(t uint32, v any) any){},
-		NamespaceInfo: []map[values.ValueType]string{},
-		FieldLabelsInMem : make(map[string]uint32),
+		GoConverter:       [](func(t uint32, v any) any){},
+		NamespaceInfo:     []map[values.ValueType]string{},
+		FieldLabelsInMem:  make(map[string]uint32),
 	}
 	vm.OutHandle = &SimpleOutHandler{os.Stdout, vm}
 	copy(vm.Mem, CONSTANTS)
@@ -381,9 +381,9 @@ loop:
 					switch vm.Mem[staticData.LogToLoc].T {
 					case vm.UsefulTypes.LogTo:
 						if vm.Mem[staticData.LogToLoc].V.(int) == 0 {
-							println(text.NewMarkdown("", 92, func(s string)string{return s}).Render([]string{trackingString}))
+							println(text.NewMarkdown("", 92, func(s string) string { return s }).Render([]string{trackingString}))
 						} else {
-							vm.OutHandle.Write(text.NewMarkdown("", 92, func(s string)string{return s}).Render([]string{trackingString}))
+							vm.OutHandle.Write(text.NewMarkdown("", 92, func(s string) string { return s }).Render([]string{trackingString}))
 						}
 					case values.STRING:
 						// TODO --- this is obviously very wasteful. Make $_logTo into a constant?
@@ -405,8 +405,8 @@ loop:
 							}
 						}
 						f.WriteString(trackingString)
-						default :
-							println("Ooops", vm.DescribeTypeAndValue(vm.Mem[staticData.LogToLoc], LITERAL, 0))
+					default:
+						println("Ooops", vm.DescribeTypeAndValue(vm.Mem[staticData.LogToLoc], LITERAL, 0))
 					}
 				}
 			case Call:
@@ -590,7 +590,7 @@ loop:
 				case values.BOOL:
 					if !(vm.Mem[args[1]].V.(bool)) {
 						tokNumber := uint32(vm.Mem[args[2]].V.(int))
-						errorInfo := vm.TypeCheckErrors[args[3]]
+						errorInfo := vm.ValidationErrors[args[3]]
 						vm.Mem[args[0]] = vm.makeError("vm/typecheck/fail", tokNumber,
 							errorInfo.Condition, errorInfo.Type, errorInfo.Tok, errorInfo.Value)
 						if len(vm.callstack) == stackHeight {
@@ -603,7 +603,7 @@ loop:
 					vm.Mem[args[0]] = vm.Mem[args[1]]
 				default:
 					tokNumber := uint32(vm.Mem[args[2]].V.(int))
-					errorInfo := vm.TypeCheckErrors[args[3]]
+					errorInfo := vm.ValidationErrors[args[3]]
 					vm.Mem[args[0]] = vm.makeError("vm/typecheck/bool", tokNumber,
 						errorInfo.Condition, errorInfo.Type, errorInfo.Tok,
 						vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0), vm.Mem[args[1]], errorInfo.Tok)
@@ -1854,7 +1854,7 @@ loop:
 					vm.Mem[typecheck.TokNumberLoc] = values.Value{values.INT, int(tok)}
 					for i, v := range outVals {
 						vm.Mem[typecheck.InLoc+uint32(i)] = v
-					} 
+					}
 					vm.Mem[typecheck.ResultLoc] = values.Value{typ, outVals}
 					vm.run(typecheck.CallAddress, ctx)
 					vm.Mem[args[0]] = vm.Mem[typecheck.ResultLoc]
@@ -1952,10 +1952,10 @@ func (vm Vm) equals(v, w values.Value) bool {
 	case values.NULL:
 		return true
 	case values.PAIR:
-		return v.V.([]values.Value)[0].T == w.V.([]values.Value)[0].T && 
-		       v.V.([]values.Value)[1].T == w.V.([]values.Value)[1].T && 
-		       vm.equals(v.V.([]values.Value)[0], w.V.([]values.Value)[0]) &&
-			   vm.equals(v.V.([]values.Value)[1], w.V.([]values.Value)[1])
+		return v.V.([]values.Value)[0].T == w.V.([]values.Value)[0].T &&
+			v.V.([]values.Value)[1].T == w.V.([]values.Value)[1].T &&
+			vm.equals(v.V.([]values.Value)[0], w.V.([]values.Value)[0]) &&
+			vm.equals(v.V.([]values.Value)[1], w.V.([]values.Value)[1])
 	case values.RUNE:
 		return v.V.(rune) == w.V.(rune)
 	case values.SET:

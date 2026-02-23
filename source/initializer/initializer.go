@@ -1217,10 +1217,10 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 				if _, ok := iz.getDeclaration(decPARAMETERIZED, tok, DUMMY); ok {
 					continue loop
 				}
-				iz.compileTypecheck(dec.name, parsedCode.body, compiler.NewEnvironment())
+				iz.compileValidation(dec.name, parsedCode.body, compiler.NewEnvironment())
 				continue
 			case *parsedTypeInstance:
-				iz.compileTypecheck(dec.name, parsedCode.typeCheck, iz.parameterizedInstanceMap[dec.name].env)
+				iz.compileValidation(dec.name, parsedCode.typeCheck, iz.parameterizedInstanceMap[dec.name].env)
 				continue
 			case *parsedFunction:
 				switch parsedCode.decType {
@@ -1371,8 +1371,8 @@ func (iz *Initializer) getEnvAndAccessForConstOrVarDeclaration(dT declarationTyp
 	return envToAddTo, vAcc
 }
 
-// Method for compiling the runtime typechecks on structs and clones
-func (iz *Initializer) compileTypecheck(name string, node parser.Node, newEnv *compiler.Environment) bool {
+// Method for compiling the runtime validation on structs and clones
+func (iz *Initializer) compileValidation(name string, node parser.Node, newEnv *compiler.Environment) bool {
 	typeNumber, _ := iz.cp.GetConcreteType(name)
 	typeInfo := iz.cp.TypeInfoNow(name)
 	var inLoc uint32
@@ -1389,7 +1389,7 @@ func (iz *Initializer) compileTypecheck(name string, node parser.Node, newEnv *c
 			iz.cp.AddThatAsVariable(newEnv, name, compiler.VERY_LOCAL_VARIABLE, altType, node.GetToken())
 		}
 	}
-	iz.cmI("Compiling typecheck for '" + name + "'")
+	iz.cmI("Compiling validation for '" + name + "'")
 	callAddress := iz.cp.CodeTop()
 	info := iz.cp.Vm.ConcreteTypeInfo[typeNumber]
 	resultLoc := iz.cp.Reserve(values.UNDEFINED_TYPE, nil, node.GetToken())
@@ -1407,7 +1407,7 @@ func (iz *Initializer) compileTypecheck(name string, node parser.Node, newEnv *c
 			iz.throw("init/typecheck/bool", chunk.GetToken(), iz.cp.P.PrettyPrint(chunk), name)
 			return false
 		}
-		errNo := iz.cp.ReserveTypeCheckError(chunk, name, inLoc)
+		errNo := iz.cp.ReserveValidationError(chunk, name, inLoc)
 		iz.cp.Emit(vm.Chck, resultLoc, iz.cp.That(), tokNumberLoc, errNo) // This will do its own early return from the typecheck.
 	}
 	iz.cp.Emit(vm.Ret)
@@ -1599,7 +1599,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		iz.cp.ResolveMemPush(iz.cp.That() - 1)
 		// We check the return types.
 		if izFn.callInfo.ReturnTypes != nil && !(izFn.body.GetToken().Type == token.GOLANG) {
-			iz.cp.EmitTypeChecks(cpFn.OutReg, cpFn.RtnTypes, fnenv, iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes), &izFn.op, compiler.CHECK_RETURN_TYPES)
+			iz.cp.EmitTypeChecks(cpFn.OutReg, izFn.body, cpFn.RtnTypes, fnenv, iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes), &izFn.op, compiler.CHECK_RETURN_TYPES)
 		}
 		// Or, alternatively, if it's a command and it has reference variables then we may have
 		// inserted an error into them, in which case we need to return that instead of OK.
