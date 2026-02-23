@@ -1694,6 +1694,11 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	cp.resolveBreaksWithValue()
 	cp.VmComeFrom(conditionalFails, rangeOver, boundInitCheck, indexInitCheck, boundUpdateCheck, indexUpdateCheck)
 	bodyCpResult.Foldable = false
+	bodyCpResult.Types = bodyCpResult.Types.Union(boundVariableTypes)
+	if boundInitCheck != DUMMY || indexInitCheck != DUMMY || boundUpdateCheck != DUMMY || 
+	indexUpdateCheck != DUMMY {
+		bodyCpResult.Types = bodyCpResult.Types.Union(AltType(values.ERROR))
+	}
 	return bodyCpResult
 }
 
