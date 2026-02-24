@@ -29,6 +29,10 @@ func (ctxt printContext) in() printContext {
 	return ctxt
 }
 
+func (p *Parser) PrettyPrintInline(node Node) string {
+	return p.prettyPrint(node, inlineCtxt)
+}
+
 func (p *Parser) PrettyPrint(node Node) string {
 	return p.prettyPrint(node, printContext{"", ppOUTER, false})
 }

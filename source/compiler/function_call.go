@@ -241,8 +241,7 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 		}
 		cp.Vm.Mem[cp.That()].V.(*err.Error).Message = "no implementation of function `" + b.tok.Literal + "` exists for the given types"
 		cp.cmP("Unthunking error 'vm/types/a'.", b.tok) // Unthunking it populates the values.
-		cp.Emit(vm.UntE, cp.That())
-		cp.Emit(vm.Asgm, b.outLoc, cp.That())
+		cp.Emit(vm.UntE, b.outLoc, cp.That())
 		return AltType(values.ERROR), false
 	}
 	branch := b.treePosition.Branch[b.branchNo]
@@ -341,8 +340,7 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 				}
 				cp.Vm.Mem[cp.That()].V.(*err.Error).Message = "no implementation of function `" + b.tok.Literal + "` exists for the given types"
 				cp.cmP("Unthunking error 'vm/types/b'.", b.tok)
-				cp.Emit(vm.UntE, cp.That())
-				cp.Emit(vm.Asgm, b.outLoc, cp.That())
+				cp.Emit(vm.UntE, b.outLoc, cp.That())
 				return AltType(values.ERROR), false
 			}
 			cp.cmP("Going across branch consuming single value.", b.tok)
@@ -737,7 +735,6 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 	}
 	cp.Vm.Mem[cp.That()].V.(*err.Error).Message = "no implementation of function `" + b.tok.Literal + "` exists for the given types"
 	cp.cmP("Unthunking error 'vm/types/c'.", b.tok)
-	cp.Emit(vm.UntE, cp.That())
-	cp.Emit(vm.Asgm, b.outLoc, cp.That())
+	cp.Emit(vm.UntE, b.outLoc, cp.That())
 	return AltType(values.ERROR), false
 }

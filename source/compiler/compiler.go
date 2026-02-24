@@ -2439,6 +2439,16 @@ var earlyReturners = dtypes.MakeFromSlice([]typeCheckFlavor{
 	CHECK_LOOP_INDEX_VARIABLE_UPDATE,
 })
 
+// Things that should show the expression that was the source of the value in their error messages.
+var showExpression = dtypes.MakeFromSlice([]typeCheckFlavor{
+	CHECK_GIVEN_ASSIGNMENTS,
+	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION,
+	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION,
+	CHECK_LOOP_INDEX_VARIABLE_UPDATE,
+	CHECK_LOCAL_CMD_ASSIGNMENTS,
+	CHECK_GLOBAL_ASSIGNMENTS,
+})
+
 // We take (a location of) a single value or tuple, the expression that yielded it, the type as an 
 // AlternateType, a signature, an environment, a token, and a 'flavor' which says what exactly we're 
 // doing and in particular whether the sig contains names we should be inserting the tuple elements 
@@ -2477,7 +2487,12 @@ func (cp *Compiler) EmitTypeChecks(
 	if code, ok := errorCodes[flavor]; ok {
 		errorCode = "vm/typecheck/" + code
 	}
-	errorLocation := cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken)
+	var errorLocation uint32
+	if showExpression.Contains(flavor) {
+		errorLocation = cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken, cp.P.PrettyPrintInline(expression))
+	} else {
+		errorLocation = cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken)
+	}
 	lengthCheck := bkIf(DUMMY)
 	inputIsError := bkGoto(DUMMY)
 	jumpFromSingleCheckToEnd := bkGoto(DUMMY)
@@ -2733,8 +2748,7 @@ func (cp *Compiler) vmEarlyReturn(mLoc uint32) BkEarlyReturn {
 }
 
 func (cp *Compiler) vmEarlyReturnWithUnthunk(mLoc uint32) BkEarlyReturn {
-	cp.Put(vm.UntE, mLoc)
-	cp.Emit(vm.Asgm, DUMMY, cp.That())
+	cp.Emit(vm.UntE, DUMMY, mLoc)
 	cp.Emit(vm.Jmp, DUMMY)
 	return BkEarlyReturn(cp.CodeTop() - 2)
 }

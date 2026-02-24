@@ -1698,10 +1698,10 @@ loop:
 			case Typx:
 				vm.Mem[args[0]] = values.Value{values.TYPE, values.AbstractType{[]values.ValueType{vm.Mem[args[1]].T}}}
 			case UntE:
-				err := vm.Mem[args[0]].V.(*err.Error)
+				oldErr := vm.Mem[args[1]].V.(*err.Error)
 				newArgs := []any{}
 				newVals := []values.Value{}
-				for _, arg := range err.Args {
+				for _, arg := range oldErr.Args {
 					switch arg := arg.(type) {
 					case uint32:
 						newVals = append(newVals, vm.Mem[arg])
@@ -1709,8 +1709,8 @@ loop:
 						newArgs = append(newArgs, arg)
 					}
 				}
-				err.Args = newArgs
-				err.Values = newVals
+				vm.Mem[args[0]] = values.Value{values.ERROR, 
+					&err.Error{oldErr.ErrorId, oldErr.Message, newArgs, newVals, []*token.Token{}, oldErr.Token}}
 			case Untk:
 				if vm.Mem[args[0]].T == values.THUNK {
 					resultLoc := vm.Mem[args[0]].V.(values.ThunkValue).MLoc
