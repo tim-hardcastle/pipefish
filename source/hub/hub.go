@@ -223,7 +223,7 @@ func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external b
 			e = err.CreateErr(e.ErrorId, e.Token, e.Args...)
 		}
 		hub.WriteString("\n")
-		hub.WritePretty("[0] " + text.ERROR + e.Message + text.DescribePos(e.Token))
+		hub.WritePretty("[0] " + text.ERROR + e.Message + text.DescribePos(e.Token)+".")
 		hub.WriteString("\n\n")
 		hub.ers = []*pf.Error{e}
 		if len(e.Values) > 0 {

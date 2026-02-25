@@ -2487,12 +2487,13 @@ func (cp *Compiler) EmitTypeChecks(
 	if code, ok := errorCodes[flavor]; ok {
 		errorCode = "vm/typecheck/" + code
 	}
-	var errorLocation uint32
+	var thunkedErrorLocation uint32 // For generating errors at runtime.
 	if showExpression.Contains(flavor) {
-		errorLocation = cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken, cp.P.PrettyPrintInline(expression))
+		thunkedErrorLocation = cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken, cp.P.PrettyPrintInline(expression))
 	} else {
-		errorLocation = cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken)
+		thunkedErrorLocation = cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken)
 	}
+	errorLocation := cp.Reserve(values.UNDEFINED_TYPE, nil, typeToken) // This is where we put either errors unthunked from the previous location or errors which are among the parameters to be typechecked.
 	lengthCheck := bkIf(DUMMY)
 	inputIsError := bkGoto(DUMMY)
 	jumpFromSingleCheckToEnd := bkGoto(DUMMY)
@@ -2633,16 +2634,19 @@ func (cp *Compiler) EmitTypeChecks(
 		jumpFromTupleCheckToEnd = cp.vmGoTo()
 	}
 
-	cp.VmComeFrom(lengthCheck, inputIsError) // This is where we jump to if we fail any of the runtime tests.
+	// This is where we jump to if we fail any of the runtime tests.
 	for _, tc := range typeChecks {
 		cp.VmComeFrom(tc)
 	}
+	cp.VmComeFrom(lengthCheck)
+	cp.Emit(vm.UntE, errorLocation, thunkedErrorLocation)
+	cp.VmComeFrom(inputIsError) // Which mustn't be unthunked.
 	switch {
 	case earlyReturnOnFailure:
 		cp.Cm("Making early return on failure", typeToken)
 		// This is what we're going to return from the function; it can then be used by the caller to make
 		// an early return from a function or for loop.
-		errorCheck = cp.vmEarlyReturnWithUnthunk(errorLocation)
+		errorCheck = cp.vmEarlyReturn(errorLocation)
 	case flavor == CHECK_LOCAL_CMD_ASSIGNMENTS || flavor == CHECK_GIVEN_ASSIGNMENTS:
 		for i := 0; i < len(sig); i++ {
 			vr, ok := env.GetVar(sig[i].VarName)
@@ -2743,12 +2747,6 @@ type BkEarlyReturn int
 
 func (cp *Compiler) vmEarlyReturn(mLoc uint32) BkEarlyReturn {
 	cp.Emit(vm.Asgm, DUMMY, mLoc)
-	cp.Emit(vm.Jmp, DUMMY)
-	return BkEarlyReturn(cp.CodeTop() - 2)
-}
-
-func (cp *Compiler) vmEarlyReturnWithUnthunk(mLoc uint32) BkEarlyReturn {
-	cp.Emit(vm.UntE, DUMMY, mLoc)
 	cp.Emit(vm.Jmp, DUMMY)
 	return BkEarlyReturn(cp.CodeTop() - 2)
 }
