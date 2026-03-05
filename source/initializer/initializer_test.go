@@ -144,7 +144,7 @@ func TestRef(t *testing.T) {
 func TestRuntimeTypecheck(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`EvenNumber 2`, `EvenNumber(2)`},
-		{`EvenNumber 3`, `vm/typecheck/fail`},
+		{`EvenNumber 3`, `vm/validation/fail`},
 	}
 	test_helper.RunTest(t, "runtime_typecheck_test.pf", tests, test_helper.TestValues)
 }

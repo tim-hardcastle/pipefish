@@ -2489,9 +2489,9 @@ func (cp *Compiler) EmitTypeChecks(
 	}
 	var thunkedErrorLocation uint32 // For generating errors at runtime.
 	if showExpression.Contains(flavor) {
-		thunkedErrorLocation = cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken, cp.P.PrettyPrintInline(expression))
+		thunkedErrorLocation = cp.ReserveError(errorCode, expression.GetToken(), len(sig) > 1, sig.Describe(cp.Vm), typeToken, vm.DescribeTypeOfValueAtLocation(loc), cp.P.PrettyPrintInline(expression), loc)
 	} else {
-		thunkedErrorLocation = cp.ReserveError(errorCode, expression.GetToken(), loc, typeToken)
+		thunkedErrorLocation = cp.ReserveError(errorCode, expression.GetToken(), len(sig) > 1, sig.Describe(cp.Vm), typeToken, vm.DescribeTypeOfValueAtLocation(loc), loc)
 	}
 	errorLocation := cp.Reserve(values.UNDEFINED_TYPE, nil, typeToken) // This is where we put either errors unthunked from the previous location or errors which are among the parameters to be typechecked.
 	lengthCheck := bkIf(DUMMY)

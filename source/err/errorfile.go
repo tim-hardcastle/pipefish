@@ -994,8 +994,8 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "unknown type " + emph(args[0])
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "You are using " + emph(args[0]) + " in such a way that Pipefish thinks " + 
-			"you're trying to use it as a type; but you haven't declared it as one."
+			return "You are using " + emph(args[0]) + " in such a way that Pipefish thinks " +
+				"you're trying to use it as a type; but you haven't declared it as one."
 		},
 	},
 
@@ -2647,10 +2647,10 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/type/exists": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "type " + emph(tok.Namespace + tok.Literal) + " doesn't exist"
+			return "type " + emph(tok.Namespace+tok.Literal) + " doesn't exist"
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "You seem to be trying to use " + emph(tok.Namespace + tok.Literal) + "as a type but you haven't defined it as one."
+			return "You seem to be trying to use " + emph(tok.Namespace+tok.Literal) + "as a type but you haven't defined it as one."
 		},
 	},
 
@@ -2888,7 +2888,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "A cast changes the type of a value to the given type, which must therefore " +
-			       "be a concrete type, since a value can't have an abstract type."
+				"be a concrete type, since a value can't have an abstract type."
 		},
 	},
 
@@ -2898,7 +2898,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "When casting an integer to an enum type, the integer must be in a range " +
-			"from and including 0 to and excluding the length of the type."
+				"from and including 0 to and excluding the length of the type."
 		},
 	},
 
@@ -2908,7 +2908,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "When casting a list to a struct type, the length of the list must be " +
-			"the same as the number of fields of the struct type."
+				"the same as the number of fields of the struct type."
 		},
 	},
 
@@ -2918,7 +2918,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "When casting a list to a struct type, the  types of the list element must " +
-			"correspond to the types of the fields of the struct type."
+				"correspond to the types of the fields of the struct type."
 		},
 	},
 
@@ -3795,17 +3795,6 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"vm/typecheck/bool": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "runtime typecheck " + emph(args[0]) + " declared" +
-				text.DescribePos(args[2].(*token.Token)) + " returned a non-boolean value of type " +
-				emph(args[3]) + " when constructing value of type " + emph(args[1])
-		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "A runtime typecheck should return either a boolean value or an error."
-		},
-	},
-
 	"vm/typecheck": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed runtime typecheck of function argument"
@@ -3815,13 +3804,22 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"vm/typecheck/fail": {
+	"vm/typecheck/bound/update": {
+		// Arguments:
+		// 0 a bool, true if the number of bound variables is > 1.
+		// 1 the sig as a string.
+		// 2 the token of the `for` declaration.
+		// 3 the type of the erring value as a string.
 		Message: func(tok *token.Token, args ...any) string {
-			return "failed runtime typecheck declared" +
-				text.DescribePos(args[2].(*token.Token)) + " when constructing value of type " + emph(args[1])
+			plural := ""
+			if args[0].(bool) {
+				plural = "s"
+			}
+			return "type constraint" + plural + " " + emph(args[1]) + " on bound variable" + plural + " of `for` loop declared at " +
+			    "line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) 
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "You placed constraints on the types of this expression which you then violated."
+			return "You placed constraints on the call types of this function which you then violated."
 		},
 	},
 
@@ -3868,6 +3866,27 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "The `unwrap` function converts things of type `error` into type `Error`: " +
 				"it doesn't work on anything else."
+		},
+	},
+
+	"vm/validation/bool": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "runtime validation " + emph(args[0]) + " declared" +
+				text.DescribePos(args[2].(*token.Token)) + " returned a non-boolean value of type " +
+				emph(args[3]) + " when constructing value of type " + emph(args[1])
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "Runtime validation should return either a boolean value or an error."
+		},
+	},
+
+	"vm/validation/fail": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "failed type validation declared" +
+				text.DescribePos(args[2].(*token.Token)) + " when constructing value of type " + emph(args[1])
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "This is a validated type and the values you're trying to construct it from violate the declared constraints."
 		},
 	},
 

@@ -144,6 +144,9 @@ type HTMLInjector struct {
 	Data []any
 }
 
+// This is used for unthinking errors, since the `err` package can't describe the type of a value. 
+type DescribeTypeOfValueAtLocation uint32
+
 // These inhabit the first few memory addresses of the VM.
 var CONSTANTS = []values.Value{values.UNDEF, values.FALSE, values.TRUE, values.U_OBJ, values.ZERO, values.ONE, values.BLNG, values.OK, values.EMPTY}
 
@@ -591,7 +594,7 @@ loop:
 					if !(vm.Mem[args[1]].V.(bool)) {
 						tokNumber := uint32(vm.Mem[args[2]].V.(int))
 						errorInfo := vm.ValidationErrors[args[3]]
-						vm.Mem[args[0]] = vm.makeError("vm/typecheck/fail", tokNumber,
+						vm.Mem[args[0]] = vm.makeError("vm/validation/fail", tokNumber,
 							errorInfo.Condition, errorInfo.Type, errorInfo.Tok, errorInfo.Value)
 						if len(vm.callstack) == stackHeight {
 							return
@@ -604,7 +607,7 @@ loop:
 				default:
 					tokNumber := uint32(vm.Mem[args[2]].V.(int))
 					errorInfo := vm.ValidationErrors[args[3]]
-					vm.Mem[args[0]] = vm.makeError("vm/typecheck/bool", tokNumber,
+					vm.Mem[args[0]] = vm.makeError("vm/validation/bool", tokNumber,
 						errorInfo.Condition, errorInfo.Type, errorInfo.Tok,
 						vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0), vm.Mem[args[1]], errorInfo.Tok)
 					if len(vm.callstack) == stackHeight {
@@ -1705,11 +1708,13 @@ loop:
 					switch arg := arg.(type) {
 					case uint32:
 						newVals = append(newVals, vm.Mem[arg])
+					case DescribeTypeOfValueAtLocation:
+						newArgs = append(newArgs, vm.DescribeType(vm.Mem[arg].T, LITERAL, 0))
 					default:
 						newArgs = append(newArgs, arg)
 					}
 				}
-				vm.Mem[args[0]] = values.Value{values.ERROR, 
+				vm.Mem[args[0]] = values.Value{values.ERROR,
 					&err.Error{oldErr.ErrorId, oldErr.Message, newArgs, newVals, []*token.Token{}, oldErr.Token}}
 			case Untk:
 				if vm.Mem[args[0]].T == values.THUNK {

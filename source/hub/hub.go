@@ -225,8 +225,8 @@ func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external b
 		hub.WriteString("\n")
 		hub.WritePretty("[0] " + text.ERROR + e.Message + text.DescribePos(e.Token)+".")
 		hub.WriteString("\n\n")
-		hub.ers = []*pf.Error{e}
-		if len(e.Values) > 0 {
+		hub.ers = []*pf.Error{val.V.(*pf.Error)}
+		if len(val.V.(*pf.Error).Values) > 0 {
 			hub.WritePretty("Values are available with `hub values`.")
 			hub.WriteString("\n\n")
 		}
