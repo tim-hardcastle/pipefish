@@ -1,0 +1,42 @@
+def
+
+foo(i int) :
+    from a = "" for _::v = range 0::i :
+        v == 3 :
+            42
+        else :    
+            a + "zort"[v]
+
+bar(i int) :
+    from a string = fnerp(i) for _::v = range 0::i :
+        a + "zort"[v]
+
+fnerp(i int) :
+    i == 5 :
+        42 
+    else :
+        ""
+
+zort(i int) :
+    from a = "" for j int = troz(i); j < i; j + 1 :
+        a + "zort"[j]
+
+rozt(i int) :
+    from a = "" for j = troz(i); j < i; j + 1 :
+        a + "zort"[j]
+
+troz(i int) :
+    i == 3 :
+        "foo"
+    else :
+        0
+
+qux(i int) :
+    from a = "" for j = 0; j < i; xuq(i) :
+        a + "zort"[j]
+
+xuq(i int) :
+    i == 3 :
+        "foo"
+    else :
+        1

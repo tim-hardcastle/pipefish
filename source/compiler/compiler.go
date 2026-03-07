@@ -1425,7 +1425,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	rangeKeyLoc := uint32(DUMMY)      //          "
 	rangeValLoc := uint32(DUMMY)      //          "
 	iteratorLoc := uint32(DUMMY)      //          "
-	rangeOver := BkEarlyReturn(DUMMY) //      "
+	rangeOver := BkEarlyReturn(DUMMY) //          "
 
 	// The parser so far has only broken the header up into its parts, but has not validated
 	// that they're in the proper form.
@@ -1618,6 +1618,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	boundUpdateCheck := BkEarlyReturn(DUMMY)
 	indexUpdateCheck := BkEarlyReturn(DUMMY)
 	conditionalFails := BkEarlyReturn(DUMMY)
+	conditionIsError := BkEarlyReturn(DUMMY)
 
 	// We typecheck the initial values.
 
@@ -1651,10 +1652,18 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	if flavor == TRIPARTITE || flavor == WHILE {
 		cp.Cm("Compiling conditional.", tok)
 		conditionalCpResult := cp.CompileNode(node.ConditionOrRange, newContext)
+		conditionalLoc := cp.That()
 		if conditionalCpResult.Failed {
 			return FAIL
 		}
-		conditionalFails = cp.VmConditionalEarlyReturn(vm.Qfls, cp.That(), boundResultLoc)
+		if conditionalCpResult.Types.isOnly(values.ERROR) {
+			cp.Throw("comp/for/condition", node.GetToken())
+			return FAIL
+		}
+		if conditionalCpResult.Types.Contains(values.ERROR) {
+			conditionIsError = cp.VmConditionalEarlyReturn(vm.Qtyp, conditionalLoc, uint32(values.ERROR), conditionalLoc)
+		}
+		conditionalFails = cp.VmConditionalEarlyReturn(vm.Qfls, conditionalLoc, boundResultLoc)
 	}
 	if flavor == RANGE {
 		rangeOver = cp.VmConditionalEarlyReturn(vm.Qitr, iteratorLoc, boundResultLoc)
@@ -1723,7 +1732,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	cp.resolveBreaksWithoutValue()
 	cp.Put(vm.Asgm, boundResultLoc)
 	cp.resolveBreaksWithValue()
-	cp.VmComeFrom(conditionalFails, rangeOver, boundInitCheck, indexInitCheck, boundUpdateCheck, indexUpdateCheck)
+	cp.VmComeFrom(conditionalFails, conditionIsError, rangeOver, boundInitCheck, indexInitCheck, boundUpdateCheck, indexUpdateCheck)
 	bodyCpResult.Foldable = false
 	bodyCpResult.Types = bodyCpResult.Types.Union(boundVariableTypes)
 	if boundInitCheck != DUMMY || indexInitCheck != DUMMY || boundUpdateCheck != DUMMY ||

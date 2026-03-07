@@ -168,6 +168,7 @@ func TestForLoopRtes(t *testing.T) {
 		{`foo 4`, `vm/typecheck/bound/update`},
 		{`zort 3`, `vm/typecheck/index/init`},
 		{`qux 3`, `vm/typecheck/index/update`},
+		{`rozt 3`, `vm/types/a`},
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
