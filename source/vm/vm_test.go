@@ -162,6 +162,15 @@ func TestExternals(t *testing.T) {
 	}
 	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
 }
+func TestForLoopRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`bar 5`, `vm/typecheck/bound/init`},
+		{`foo 4`, `vm/typecheck/bound/update`},
+		{`zort 3`, `vm/typecheck/index/init`},
+		{`qux 3`, `vm/typecheck/index/update`},
+	}
+	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
+}
 func TestForLoops(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`fib 8`, `21`},

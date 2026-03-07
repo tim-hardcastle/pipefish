@@ -3804,6 +3804,32 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"vm/typecheck/bound/init": {
+		// Arguments:
+		// 0 a bool, true if the number of bound variables is > 1.
+		// 1 the sig as a string.
+		// 2 the token of the `for` declaration.
+		// 3 the type of the erring value as a string.
+		// 4 the expression being evaluated.
+		Message: func(tok *token.Token, args ...any) string {
+			plural := ""
+			if args[0].(bool) {
+				plural = "s"
+			}
+			return "type constraint" + plural + " " + emph(args[1]) + " on bound variable" + plural + " of `for` loop declared at " +
+			    "line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
+				"by expression " + emph(args[4])
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			plural := ""
+			if args[0].(bool) {
+				plural = "s"
+			}
+			return "You placed constraints on the type" + plural + " of the bound variable" + plural + " of the `for` loop which you violated by the " +
+			"initial assignment to the variable" + plural + "."
+		},
+	},
+
 	"vm/typecheck/bound/update": {
 		// Arguments:
 		// 0 a bool, true if the number of bound variables is > 1.
@@ -3819,7 +3845,61 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			    "line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) 
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "You placed constraints on the call types of this function which you then violated."
+			plural := ""
+			if args[0].(bool) {
+				plural = "s"
+			}
+			return "You placed constraints on the type" + plural + " of the bound variable" + plural + " of the `for` loop which you then violated."
+		},
+	},
+
+	"vm/typecheck/index/init": {
+		// Arguments:
+		// 0 a bool, true if the number of index variables is > 1.
+		// 1 the sig as a string.
+		// 2 the token of the `for` declaration.
+		// 3 the type of the erring value as a string.
+		// 4 the expression being evaluated.
+		Message: func(tok *token.Token, args ...any) string {
+			plural := ""
+			if args[0].(bool) {
+				plural = "s"
+			}
+			return "type constraint" + plural + " " + emph(args[1]) + " on index variable" + plural + " of `for` loop declared at " +
+			    "line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
+				"by expression " + emph(args[4])
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			plural := ""
+			if args[0].(bool) {
+				plural = "s"
+			}
+			return "You placed constraints on the type" + plural + " of the index variable" + plural + " of the `for` loop which you violated by the " +
+			"initial assignment to the variable" + plural + "."
+		},
+	},
+
+	"vm/typecheck/index/update": {
+		// Arguments:
+		// 0 a bool, true if the number of index variables is > 1.
+		// 1 the sig as a string.
+		// 2 the token of the `for` declaration.
+		// 3 the type of the erring value as a string.
+		Message: func(tok *token.Token, args ...any) string {
+			plural := ""
+			if args[0].(bool) {
+				plural = "s"
+			}
+			return "type constraint" + plural + " " + emph(args[1]) + " on index variable" + plural + " of `for` loop declared at " +
+			    "line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3])  + " supplied " +
+				"by expression " + emph(args[4])
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			plural := ""
+			if args[0].(bool) {
+				plural = "s"
+			}
+			return "You placed constraints on the type" + plural + " of the index variable" + plural + " of the `for` loop which you then violated."
 		},
 	},
 
