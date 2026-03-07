@@ -88,7 +88,7 @@ func staticTrackingToString(i int, td vm.TrackingData) string { // For the use o
 }
 
 func (cp *Compiler) trackingOn(ctxt Context) bool {
-	if !ctxt.IsReturn {
+	if ctxt.Typecheck == nil {
 		return false
 	}
 	if ctxt.TrackingFlavor == LF_TRACK && cp.GetTrackingScope() == 2 {
@@ -98,7 +98,7 @@ func (cp *Compiler) trackingOn(ctxt Context) bool {
 }
 
 func (cp *Compiler) autoOn(ctxt Context) bool {
-	if !ctxt.IsReturn {
+	if ctxt.Typecheck == nil {
 		return false
 	}
 	return ctxt.LogFlavor == LF_TRACK

@@ -25,6 +25,10 @@ rozt(i int) :
     from a = "" for j = troz(i); j < i; j + 1 :
         a + "zort"[j]
 
+zrot(i int) :
+    from a = "" for j = 0; j < i; j + xuq(i) :
+        a + "zort"[j]
+
 troz(i int) :
     i == 3 :
         "foo"

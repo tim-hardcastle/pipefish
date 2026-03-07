@@ -134,21 +134,26 @@ func (ccb *CommonCompilerBindle) AddTypeNumberToSharedAlternateTypes(typeNo valu
 // The `Context` is passed around the compiler to keep track of what it's trying to do. Is it compiling a function
 // body? Is it meant to be logging anything? Is it compiling a function, a command, an expression from the REPL? Etc.
 type Context struct {
-	Env            *Environment    // The association of variable names to variable locations.
-	FName          string          // If we're compiling a function, the name of the function we're compiling.
-	Access         CpAccess        // Whether we are compiling the body of a command; of a function; something typed into the REPL, etc.
-	IsReturn       bool            // Is the value of the node to be evaluated potentially a return value of the function being compiled?
-	Typecheck      FiniteTupleType // The type(s) for the compiler to check for if isReturn is true; nil if no return types are defined.
-	LowMem         uint32          // Where the memory of the function we're compiling (if indeed we are) starts, and so the lowest point from which we may need to copy memory in case of recursion.
-	TrackingFlavor LogFlavor       // Whether we should be tracking something and if so what.
-	LogFlavor      LogFlavor       // Whether we should be logging something and if so what.
-	ForReturns     AlternateType   // What (besides an error) we may expect 'for' to return, and therefor the expected result of a 'continue' or a 'break' with out a value after it.
+	Env            *Environment     // The association of variable names to variable locations.
+	FName          string           // If we're compiling a function, the name of the function we're compiling.
+	Access         CpAccess         // Whether we are compiling the body of a command; of a function; something typed into the REPL, etc.	
+	LowMem         uint32           // Where the memory of the function we're compiling (if indeed we are) starts, and so the lowest point from which we may need to copy memory in case of recursion.
+	TrackingFlavor LogFlavor        // Whether we should be tracking something and if so what.
+	LogFlavor      LogFlavor        // Whether we should be logging something and if so what.
+	ForReturns     AlternateType    // What (besides an error) we may expect 'for' to return, and therefor the expected result of a 'continue' or a 'break' without a value after it.
+	Typecheck      *ReturnTypeCheck // If non-nil, tells us whether we're typechecking the expression being compiled and if so why.
+}
+
+type ReturnTypeCheck = struct {
+	Tok       *token.Token         // Where the typecheck was declared.
+	Types FiniteTupleType      // The types.
+	Flavor    typeCheckFlavor      // Whether we're checking a function, `for` loop, lambda, etc.
 }
 
 // Unless we're going down a branch, we want the new context for each node compilation to have no forward type-checking.
 // This function concisely removes it.
 func (ctxt Context) x() Context {
-	ctxt.IsReturn = false
+	ctxt.Typecheck = nil
 	return ctxt
 }
 
@@ -1217,7 +1222,11 @@ NodeTypeSwitch:
 	}
 	// If the node we evaluated is potentially a return value of a function we're compiling, then
 	// if the function has return types this is where we can check if they've been violated.
-	if ctxt.IsReturn && !cp.checkInferredTypesAgainstContext(result.Types, ctxt.Typecheck, node.GetToken()) {
+	var errorMap = map[typeCheckFlavor]string{CHECK_RETURN_TYPES:"return", 
+											  CHECK_LOOP_BOUND_VARIABLE_UPDATE:"for"}
+	
+	if ctxt.Typecheck != nil && !cp.checkInferredTypesAgainstContext(result.Types, ctxt.Typecheck.Types, node.GetToken()) {
+		cp.Throw("com/types/" + errorMap[typeCheckFlavor(ctxt.Typecheck.Flavor)], node.GetToken(), ctxt.Typecheck.Types.describe(cp.Vm))
 		return FAIL
 	}
 	// We do a little logging.
@@ -1916,7 +1925,7 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *parser
 	newContext := ctxt
 	newContext.Env = newEnv
 	newContext.Access = LAMBDA
-	newContext.Typecheck = newRets
+	newContext.Typecheck = &ReturnTypeCheck{&fnNode.Token, newRets, CHECK_RETURN_TYPES}
 	// Compile the main body of the lambda.
 	bodyCpResult := cp.CompileNode(fnNode.Body, newContext)
 	if bodyCpResult.Failed {

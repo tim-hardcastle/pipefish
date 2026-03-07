@@ -1560,7 +1560,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		}
 		if izFn.given != nil {
 			iz.cp.ThunkList = []compiler.ThunkData{}
-			givenContext := compiler.Context{fnenv, functionName, compiler.DEF, false, nil, cpFn.LoReg, areWeTracking, compiler.LF_NONE, altType()}
+			givenContext := compiler.Context{fnenv, functionName, compiler.DEF, cpFn.LoReg, areWeTracking, compiler.LF_NONE, altType(), nil}
 			ok := iz.cp.CompileGivenBlock(izFn.given, givenContext)
 			if !ok {
 				return nil
@@ -1586,7 +1586,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 
 		}
 		// We compile a check on the return types.
-		bodyContext := compiler.Context{fnenv, functionName, ac, true, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), cpFn.LoReg, areWeTracking, compiler.LF_NONE, altType()}
+		bodyContext := compiler.Context{fnenv, functionName, ac, cpFn.LoReg, areWeTracking, compiler.LF_NONE, altType(), &compiler.ReturnTypeCheck{&izFn.op, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), compiler.CHECK_GIVEN_ASSIGNMENTS}}
 		bodyResult := iz.cp.CompileNode(izFn.body, bodyContext) // TODO --- could we in fact do anything useful if we knew it was a constant?
 		if bodyResult.Failed {
 			return nil
