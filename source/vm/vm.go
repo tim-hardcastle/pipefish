@@ -1356,7 +1356,6 @@ loop:
 					loc = args[1]
 				} else {
 					loc = loc + 1
-
 				}
 				continue
 			case QleT:
@@ -2160,7 +2159,7 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 	}
 	switch ty {
 	case values.INT:
-		return values.Value{values.ITERATOR, &values.KeyIncIterator{Max: container.V.(int)}}
+		return values.Value{values.ITERATOR, &values.IncIterator{StartVal: 0, MaxVal: container.V.(int), Val: 0}}
 	case values.LIST:
 		if keysOnly {
 			return values.Value{values.ITERATOR, &values.KeyIncIterator{Max: container.V.(vector.Vector).Len()}}
@@ -2175,7 +2174,7 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 		left := pair[0]
 		right := pair[1]
 		if left.T != values.INT || right.T != values.INT {
-			return values.Value{values.ERROR, vm.makeError("vm/for/pair", tokLoc)}
+			return vm.makeError("vm/for/pair", tokLoc)
 		}
 		leftV := left.V.(int)
 		rightV := right.V.(int)
@@ -2209,11 +2208,11 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 	case values.TYPE:
 		abTyp := container.V.(values.AbstractType)
 		if len(abTyp.Types) != 1 {
-			return values.Value{values.ERROR, vm.makeError("vm/for/type/a", tokLoc)}
+			return vm.makeError("vm/for/type/a", tokLoc)
 		}
 		typ := abTyp.Types[0]
 		if !vm.ConcreteTypeInfo[typ].IsEnum() {
-			return values.Value{values.ERROR, vm.makeError("vm/for/type/b", tokLoc)}
+			return vm.makeError("vm/for/type/b", tokLoc)
 		}
 		if keysOnly {
 			return values.Value{values.ITERATOR, &values.KeyIncIterator{Max: len(vm.ConcreteTypeInfo[typ].(EnumType).ElementNames)}}
@@ -2221,7 +2220,7 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 			return values.Value{values.ITERATOR, &values.EnumIterator{Type: typ, Max: len(vm.ConcreteTypeInfo[typ].(EnumType).ElementNames)}}
 		}
 	default:
-		return values.Value{values.ERROR, vm.makeError("vm/for/type/c", tokLoc)}
+		return vm.makeError("vm/for/type/c", tokLoc)
 	}
 }
 

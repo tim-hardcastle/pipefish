@@ -5,7 +5,6 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/token"
-	"github.com/tim-hardcastle/pipefish/source/values"
 
 	"fmt"
 	"strconv"
@@ -795,22 +794,48 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/return/length": {
+	"comp/types/length/for": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "return has wrong number of values"
+			return redescribeType(args[0].(string)) +" of bound variables specified at line " + 
+			describeLine(args[1]) + " cannot be satisfied by " +  redescribeType(args[2].(string))
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "You have given a return type to your function constraining the number of " +
-				"values it can return, and then tried to return the wrong number of values."
+			return "The number of bound variables in the declaration of your `for` loop doesn't match " +
+			"the number of values returned by this branch of the body of the `for` loop."
 		},
 	},
 
-	"comp/return/types": {
+	"comp/types/length/return": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "return " + redescribeType(args[0].(string)) + " cannot satisfy specifed return " + redescribeType(args[1].(string))
+			return "return " +  redescribeType(args[0].(string)) +" specified at line " + 
+			describeLine(args[1]) + " cannot be satisfied by " +  redescribeType(args[2].(string))
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "You have given a return type to your function and at least one branch of this function cannot under any circumstances actually return anything that fits this return type. Pipefish assumes that this is an error."
+			return "You have given a return type to your function constraining the number of " +
+				"values it can return, and this branch of the function has tried to return the " +
+				"wrong number of values."
+		},
+	},
+
+	"comp/types/for": {
+		Message: func(tok *token.Token, args ...any) string {
+			return redescribeType(args[0].(string)) +" of bound variables specified at line " + 
+			describeLine(args[1]) + " cannot be satisfied by " +  redescribeType(args[2].(string))
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "The types of bound variables in the declaration of your `for` loop doesn't match " +
+			"the number of values returned by this branch of the body of the `for` loop."
+		},
+	},
+
+	"comp/types/return": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "return " +  redescribeType(args[0].(string)) +" specified at line " + 
+			describeLine(args[1]) + " cannot be satisfied by " +  redescribeType(args[2].(string))
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "You have given a return type to your function and this branch of the function " +
+			"can't return anything that fits this return type."
 		},
 	},
 
@@ -4191,28 +4216,6 @@ func emphStr(s any) string {
 	return fmt.Sprintf("`\"%v\"`", s)
 }
 
-func EmphType(v values.Value) string {
-	return "`" + strconv.Itoa(int(v.T)) + "`" // TODO.
-}
-
-func DescribeParams(vL []values.Value) string {
-	result := ""
-	sep := ""
-	for _, v := range vL {
-		result = result + sep + EmphType(v)
-		sep = ", "
-	}
-	return result
-}
-
-func DescribeSomeParams(vL []values.Value, unfinished bool) string {
-	result := DescribeParams(vL)
-	if unfinished {
-		result = result + " ..."
-	}
-	return result
-}
-
 func redescribeType(s string) string {
 	result := "type"
 	if strings.ContainsAny(s, ",/") {
@@ -4220,4 +4223,8 @@ func redescribeType(s string) string {
 	}
 	result = result + " `" + s + "`"
 	return result
+}
+
+func describeLine(x any) string {
+	return "<Y>" + strconv.Itoa(x.(int)) + "</>"
 }

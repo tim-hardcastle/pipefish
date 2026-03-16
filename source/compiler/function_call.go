@@ -283,7 +283,7 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 		cp.cmP("Overlap is partial: "+overlap.describe(cp.Vm), b.tok)
 		cp.cmP("Accepted single types are "+acceptedSingleTypes.describe(cp.Vm), b.tok)
 		cp.cmP("Emitting type comparisons for single types.", b.tok)
-		// Then we need to generate a conditional. Which one exactly depends on whether we're looking at a any, a tuple, or both.
+		// Then we need to generate a conditional. Which one exactly depends on whether we're looking at a single, a tuple, or both.
 		switch len(acceptedSingleTypes) {
 		case 0:
 			if isVarargs { // I think this has to be true at this point but it can do no harm to check. TODO --- it can, it uses up time.

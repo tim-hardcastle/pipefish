@@ -116,7 +116,7 @@ func NewCommonCompilerBindle() *CommonCompilerBindle {
 	copy(newBindle.AnyTypeScheme, anyOrNull)
 	newBindle.AnyTypeScheme = newBindle.AnyTypeScheme.Union(newBindle.AnyTuple)
 	newBindle.SharedTypenameToTypeList["tuple"] = newBindle.AnyTuple
-	newBindle.IsRangeable = altType(values.TUPLE, values.STRING, values.TYPE, values.PAIR, values.LIST, values.MAP, values.SET, values.SNIPPET)
+	newBindle.IsRangeable = altType(values.INT, values.TUPLE, values.STRING, values.TYPE, values.PAIR, values.LIST, values.MAP, values.SET, values.SNIPPET)
 	return newBindle
 }
 
@@ -143,11 +143,11 @@ type Context struct {
 	ForReturns     AlternateType    // What (besides an error) we may expect 'for' to return, and therefor the expected result of a 'continue' or a 'break' without a value after it.
 	Typecheck      *ReturnTypeCheck // If non-nil, tells us whether we're typechecking the expression being compiled and if so why.
 }
-
+        
 type ReturnTypeCheck = struct {
 	Tok       *token.Token         // Where the typecheck was declared.
-	Types FiniteTupleType      // The types.
-	Flavor    typeCheckFlavor      // Whether we're checking a function, `for` loop, lambda, etc.
+	Types     TypeScheme           // The types.
+	Flavor    typeCheckFlavor      // Whether we're checking a function or a `for` loop, etc.
 }
 
 // Unless we're going down a branch, we want the new context for each node compilation to have no forward type-checking.
@@ -1220,13 +1220,10 @@ NodeTypeSwitch:
 		cp.Throw("comp/fcis", node.GetToken())
 		return FAIL
 	}
-	// If the node we evaluated is potentially a return value of a function we're compiling, then
-	// if the function has return types this is where we can check if they've been violated.
-	var errorMap = map[typeCheckFlavor]string{CHECK_RETURN_TYPES:"return", 
-											  CHECK_LOOP_BOUND_VARIABLE_UPDATE:"for"}
-	
-	if ctxt.Typecheck != nil && !cp.checkInferredTypesAgainstContext(result.Types, ctxt.Typecheck.Types, node.GetToken()) {
-		cp.Throw("com/types/" + errorMap[typeCheckFlavor(ctxt.Typecheck.Flavor)], node.GetToken(), ctxt.Typecheck.Types.describe(cp.Vm))
+	// If the node we evaluated is potentially a return value of a function we're compiling, 
+	// or the body of a `for` loop, then if the function has return types this is where we 
+	// can check if they've been violated.
+	if ctxt.Typecheck != nil && !cp.checkInferredTypesAgainstContext(result.Types, ctxt.Typecheck, node.GetToken()) {
 		return FAIL
 	}
 	// We do a little logging.
@@ -1260,21 +1257,36 @@ NodeTypeSwitch:
 }
 
 // A function auxiliary to the previous one that checks the return types of a function.
-func (cp *Compiler) checkInferredTypesAgainstContext(rtnTypes AlternateType, typecheck FiniteTupleType, tok *token.Token) bool {
-	if len(typecheck) == 0 {
+func (cp *Compiler) checkInferredTypesAgainstContext(rtnTypes AlternateType, tc *ReturnTypeCheck, tok *token.Token) bool {
+	errorSuffix := "return"
+	if tc.Flavor == CHECK_LOOP_BOUND_VARIABLE_UPDATE {
+		errorSuffix = "for"
+	}
+	typesToCheck := tc.Types
+	typeLengths := lengths(rtnTypes)
+	checkLengths := lengths(typesToCheck)
+	if len(checkLengths) == 0 {
+		return true
+	}
+	if len(checkLengths) == 1 && checkLengths.Contains(0) {
 		return true
 	}
 	singles, _ := rtnTypes.splitSinglesAndTuples()
-	typeLengths := lengths(rtnTypes)
-	if (!(typeLengths.Contains(-1) || typeLengths.Contains(len(typecheck)))) &&
+	if (!(typeLengths.Contains(-1) || typeLengths.OverlapsWith(checkLengths))) &&
 		!(singles.areOnly(values.ERROR, values.UNSATISFIED_CONDITIONAL)) {
-		cp.Throw("comp/return/length", tok, rtnTypes.describe(cp.Vm), typecheck.describe(cp.Vm))
+		cp.Throw("comp/types/length/" + errorSuffix, tok, typesToCheck.describe(cp.Vm), tc.Tok.Line, rtnTypes.describe(cp.Vm))
 		return false
 	}
-	for i, ty := range typecheck {
-		intersection := ty.(AlternateType).intersect(typesAtIndex(rtnTypes, i))
+	maxLen := 0
+	for l, _ := range typeLengths {
+		if l > maxLen {
+			maxLen = l
+		}
+	}
+	for i := range maxLen {
+		intersection := typesAtIndex(typesToCheck, i).intersect(typesAtIndex(rtnTypes, i))
 		if len(intersection) == 0 && !rtnTypes.areOnly(values.ERROR, values.UNSATISFIED_CONDITIONAL) {
-			cp.Throw("comp/return/types", tok, rtnTypes.without(SimpleType(values.ERROR)).describe(cp.Vm), typecheck.describe(cp.Vm))
+			cp.Throw("comp/types/" + errorSuffix, tok, typesToCheck.describe(cp.Vm), tc.Tok.Line, rtnTypes.without(SimpleType(values.ERROR)).describe(cp.Vm))
 			return false
 		}
 	}
@@ -1695,7 +1707,11 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	}
 	cp.ThunkList = saveThunkList
 
-	bodyCpResult := cp.CompileNode(node.Body, newContext)
+	bodyContext := newContext
+	if node.BoundVariables != nil {
+		bodyContext.Typecheck = &ReturnTypeCheck{node.BoundVariables.GetToken(), boundVariableTypes, CHECK_LOOP_BOUND_VARIABLE_UPDATE}
+	}
+	bodyCpResult := cp.CompileNode(node.Body, bodyContext)
 	if bodyCpResult.Failed {
 		return FAIL
 	}
@@ -2501,10 +2517,12 @@ func (cp *Compiler) EmitTypeChecks(
 	earlyReturnOnFailure := earlyReturners.Contains(flavor)
 	// And so this is the early return address that we're going to return to the caller if necessary, which can discharge it with a ComeFrom.
 	errorCheck := BkEarlyReturn(DUMMY)
-	errorCode := "vm/typecheck/assign"
-	if code, ok := errorCodes[flavor]; ok {
-		errorCode = "vm/typecheck/" + code
+	code := ""
+	var ok bool
+	if code, ok = errorCodes[flavor]; !ok {
+		code = "assign"
 	}
+	errorCode := "vm/typecheck/" + code
 	var thunkedErrorLocation uint32 // For generating errors at runtime.
 	if showExpression.Contains(flavor) {
 		thunkedErrorLocation = cp.ReserveError(errorCode, expression.GetToken(), len(sig) > 1, sig.Describe(cp.Vm), typeToken, vm.DescribeTypeOfValueAtLocation(loc), cp.P.PrettyPrintInline(expression), loc)

@@ -3,7 +3,7 @@ def
 foo(i int) :
     from a = "" for _::v = range 0::i :
         v == 3 :
-            42
+            lowInt(i)
         else :    
             a + "zort"[v]
 
@@ -13,7 +13,7 @@ bar(i int) :
 
 fnerp(i int) :
     i == 5 :
-        42 
+        lowInt(i)
     else :
         ""
 
@@ -31,7 +31,7 @@ zrot(i int) :
 
 troz(i int) :
     i == 3 :
-        "foo"
+        lowString(i)
     else :
         0
 
@@ -41,6 +41,19 @@ qux(i int) :
 
 xuq(i int) :
     i == 3 :
-        "foo"
+        lowString(i)
     else :
         1
+
+lowInt(i int) :
+    i < 50 :
+        42
+    else :
+        "foo"
+
+lowString(i int) :
+    i < 50 :
+        "foo"
+    else :
+        42
+
