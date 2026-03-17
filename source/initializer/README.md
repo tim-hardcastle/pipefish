@@ -6,8 +6,9 @@ There is one `Initializer` per module, as with compilers and parsers: an `Initia
 
 The `initializer` package consists of:
 
-* `deserializer.go`, which is used to deserialize the APIs of external services.
+* `api_deserialization.go`, which is used to deserialize the APIs of external services.
 * `initializer.go`, the main file directing initialization.
+* `parsing.go`, which handles the early stages of intialization mostly concerned with setting up the parsers and parsing the code.
 * `getters.go`, which supplies some miscellaneous utility functions for getting and transforming data.
 * `gohandler.go` which does housekeeping for the Go interop.
 * `gogen.go` which generates Golang source files.
