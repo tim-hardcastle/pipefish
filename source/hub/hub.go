@@ -185,18 +185,12 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 		hub.snap.AddInput(line)
 	}
 
+	hub.Sources["REPL input"] = []string{line}
+	hub.update()
+	serviceToUse = hub.Services[hub.currentServiceName()]
 	// The service may be broken, in which case we'll let the empty service handle the input.
 	if serviceToUse.IsBroken() {
 		serviceToUse = hub.Services[""]
-	}
-
-	hub.Sources["REPL input"] = []string{line}
-
-	// If we're livecoding we may need to recompile.
-	hub.update()
-	serviceToUse = hub.Services[hub.currentServiceName()]
-	if serviceToUse.IsBroken() {
-		return passedServiceName, false
 	}
 
 	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
@@ -207,6 +201,7 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 	// *** THIS IS THE BIT WHERE WE DO THE THING!
 	val := ServiceDo(serviceToUse, line)
 	// *** FROM ALL THAT LOGIC, WE EXTRACT ONE PIPEFISH VALUE !!!
+	
 	errorsExist, _ := serviceToUse.ErrorsExist()
 	if errorsExist { // Any lex-parse-compile errors should end up in the parser of the compiler of the service, returned in p.
 		hub.GetAndReportErrors(serviceToUse)
@@ -242,6 +237,7 @@ func (hub *Hub) update() {
 	needsUpdate := hub.serviceNeedsUpdate(hub.currentServiceName())
 	if hub.isLive() && needsUpdate {
 		path, _ := hub.Services[hub.currentServiceName()].GetFilepath()
+		println("")
 		hub.StartAndMakeCurrent(hub.TerminalUsername, hub.currentServiceName(), path)
 	}
 }

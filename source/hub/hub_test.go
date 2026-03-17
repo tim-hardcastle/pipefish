@@ -35,3 +35,14 @@ func TestEnv(t *testing.T) {
 	}
 	test_helper.RunHubTest(t, "default", test)
 }
+
+func TestBrokenService(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub run "../hub/test-files/broken.pf"`, "Starting script [36m\"broken.pf\"[39m as service [36m\"broken\"[39m. [0] [31mError[39m: unexpected occurrence of [0m[48;2;0;0;64m[97mfnurgle[0m without a headword at line [33m1:0-7[39m of [36m\"../hub/[0m\n[33m[39m[36mtest-files/broken.pf\"[39m."},
+		{"2 + 2", "4"},
+		{`hub halt "broken"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}

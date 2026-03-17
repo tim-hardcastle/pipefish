@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"testing"
 
 	"strings"
 
@@ -250,7 +249,7 @@ func (iz *Initializer) ParseEverythingFromSourcecode(mc *vm.Vm, cpb *parser.Comm
 	iz.cp.ScriptFilepath = scriptFilepath
 	if !(scriptFilepath == "" || scriptFilepath == "InitializeFromCode" ||
 		(len(scriptFilepath) >= 5 && scriptFilepath[0:5] == "http:")) &&
-		!testing.Testing() && !(len(scriptFilepath) >= 11 && scriptFilepath[:11] == "test-files/") {
+		!(len(scriptFilepath) >= 11 && scriptFilepath[:11] == "test-files/") {
 		file, err := os.Stat(text.MakeFilepath(scriptFilepath))
 		if err != nil {
 			iz.throw("init/source", LINKING_TOKEN, scriptFilepath)
