@@ -2219,9 +2219,11 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 		} else {
 			return values.Value{values.ITERATOR, &values.EnumIterator{Type: typ, Max: len(vm.ConcreteTypeInfo[typ].(EnumType).ElementNames)}}
 		}
-	default:
-		return vm.makeError("vm/for/type/c", tokLoc)
 	}
+	if typeInfo, ok := vm.ConcreteTypeInfo[ty].(StructType); ok {
+		return values.Value{values.ITERATOR, &values.StructIterator{Labels: typeInfo.LabelNumbers, Values: container.V.([]values.Value)}}
+	}
+	return vm.makeError("vm/for/type/c", tokLoc)
 }
 
 // Constants for describing the syntax of functions.

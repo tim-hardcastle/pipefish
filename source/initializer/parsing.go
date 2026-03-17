@@ -965,6 +965,7 @@ func (iz *Initializer) createStructNames() {
 			continue
 		}
 		typeNo := iz.addStructType(dec.op.Literal, dec.private, ixPtr(dec))
+		iz.cp.Common.IsRangeable = iz.cp.Common.IsRangeable.Union(altType(typeNo))
 		iz.structDeclarationNumberToTypeNumber[i] = typeNo
 		if dec.op.Literal == "Error" {
 			iz.cp.Vm.UsefulTypes.UnwrappedError = typeNo

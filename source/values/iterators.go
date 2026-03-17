@@ -282,6 +282,39 @@ func (it *StringIterator) Reset() {
 	it.pos = 0
 }
 
+type StructIterator struct {
+	Labels []int 
+	Values []Value
+	pos int
+}
+
+func (it *StructIterator) Unfinished() bool {
+	return it.pos < len(it.Labels)
+}
+
+func (it *StructIterator) GetKey() Value {
+	keyResult := Value{LABEL, it.Labels[it.pos]}
+	it.pos++
+	return keyResult
+}
+
+func (it *StructIterator) GetValue() Value {
+	valResult := it.Values[it.pos]
+	it.pos++
+	return valResult
+}
+
+func (it *StructIterator) GetKeyValuePair() (Value, Value) {
+	keyResult := Value{LABEL, it.Labels[it.pos]}
+	valResult := it.Values[it.pos]
+	it.pos++
+	return keyResult, valResult
+}
+
+func (it *StructIterator) Reset() {
+	it.pos = 0
+}
+
 type TupleIterator struct { // TODO --- write actual iterator for Map for this to wrap around.
 	Elements []Value
 	Len      int
