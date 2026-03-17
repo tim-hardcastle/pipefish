@@ -24,13 +24,6 @@ var ThingsToIgnore = (dtypes.MakeFromSlice(MandatoryImports)).
 	Add("user/hub/hub.hub").Add("user/hub/hub.pf").Add("source/hub/hub.pf").
 	Add("Builtin constant").Add("user/themes.pf")
 
-var StandardLibraries = dtypes.MakeFromSlice([]string{"crypto/aes", "crypto/bcrypt", 
-	"crypto/rand", "crypto/rsa", "crypto/sha_256", "crypto/sha_512", "database/sql",
-	"encoding/csv", "encoding/base_32", "encoding/base_64", "encoding/json", "files", 
-	"fmt", "html", "lists", "markdown", "math", "math/big", "math/cmplx", "math/rand", 
-	"net/http", "net/mail", "net/smtp", "net/url", "os/exec", "path", "path/filepath", 
-	"reflect", "regexp", "strings", "strconv", "terminal", "time", "unicode"})
-
 const (
 	OMIT_BUILTINS      = false // If true then the file builtins.pf, etc, will not be added to the service. Note that this means the hub won't work.
 	IGNORE_BOILERPLATE = true  // Should usually be left true. Means that the flags below won't show instrumentation when compiling buitins.pf, etc.

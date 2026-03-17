@@ -1,8 +1,13 @@
 package initializer
 
 import (
+	"path/filepath"
+	"strings"
+
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/parser"
+	"github.com/tim-hardcastle/pipefish/source/settings"
+	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
@@ -231,4 +236,46 @@ func MakeAstTypeFrom(s string) parser.TypeNode {
 
 func AsBling(s string) parser.TypeNode {
 	return &parser.TypeBling{token.Token{}, s}
+}
+
+var StandardLibraries = dtypes.MakeFromSlice([]string{"crypto/aes", "crypto/bcrypt", 
+	"crypto/rand", "crypto/rsa", "crypto/sha_256", "crypto/sha_512", "database/sql",
+	"encoding/csv", "encoding/base_32", "encoding/base_64", "encoding/json", "files", 
+	"fmt", "html", "lists", "markdown", "math", "math/big", "math/cmplx", "math/rand", 
+	"net/http", "net/mail", "net/smtp", "net/url", "os/exec", "path", "path/filepath", 
+	"reflect", "regexp", "strings", "strconv", "terminal", "time", "unicode"})
+
+func MakeFilepath(scriptFilepath string) string {
+	doctoredFilepath := strings.Clone(scriptFilepath)
+	if len(scriptFilepath) >= 4 && scriptFilepath[0:4] == "hub/" {
+		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, filepath.FromSlash(scriptFilepath))
+	}
+	if len(scriptFilepath) >= 7 && scriptFilepath[0:7] == "rsc-pf/" {
+		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source", "initializer", filepath.FromSlash(scriptFilepath))
+	}
+	if StandardLibraries.Contains(scriptFilepath) {
+		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries/", scriptFilepath)
+	}
+	if filepath.Ext(doctoredFilepath) == "" {
+		doctoredFilepath = doctoredFilepath + ".pf"
+	}
+	return doctoredFilepath
+}
+
+func TweakNameAndPath(name, path, source string) (string, string) {
+	if name == "" {
+		name = ExtractFileName(path)
+	}
+	if StandardLibraries.Contains(path) {
+		path = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries" , path) + ".pf"
+	}
+	if !text.Head(path, "http:") && filepath.IsLocal(path) {
+		path = filepath.Join(filepath.Dir(source), path)
+	}
+	return name, path
+}
+
+func ExtractFileName(s string) string {
+	filenameWithExt := filepath.Base(s)
+	return strings.TrimSuffix(filenameWithExt, filepath.Ext(filenameWithExt))
 }

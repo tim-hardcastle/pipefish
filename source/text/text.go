@@ -14,20 +14,9 @@ import (
 
 	"path/filepath"
 
-	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/token"
 	"golang.org/x/term"
 )
-
-func ExtractFileName(s string) string {
-	if strings.LastIndex(s, ".") >= 0 {
-		s = s[:strings.LastIndex(s, ".")]
-	}
-	if strings.LastIndex(s, "/") >= 0 {
-		s = s[strings.LastIndex(s, "/")+1:]
-	}
-	return s
-}
 
 func ToEscapedText(s string) string {
 	result := "\""
@@ -266,36 +255,6 @@ func WithoutDots(s string) string {
 	} else {
 		return s
 	}
-}
-
-func MakeFilepath(scriptFilepath string) string {
-	doctoredFilepath := strings.Clone(scriptFilepath)
-	if len(scriptFilepath) >= 4 && scriptFilepath[0:4] == "hub/" {
-		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, filepath.FromSlash(scriptFilepath))
-	}
-	if len(scriptFilepath) >= 7 && scriptFilepath[0:7] == "rsc-pf/" {
-		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source", "initializer", filepath.FromSlash(scriptFilepath))
-	}
-	if settings.StandardLibraries.Contains(scriptFilepath) {
-		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries/", scriptFilepath)
-	}
-	if filepath.Ext(doctoredFilepath) == "" {
-		doctoredFilepath = doctoredFilepath + ".pf"
-	}
-	return doctoredFilepath
-}
-
-func TweakNameAndPath(name, path, source string) (string, string) {
-	if name == "" {
-		name = ExtractFileName(path)
-	}
-	if settings.StandardLibraries.Contains(path) {
-		path = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries" , path) + ".pf"
-	}
-	if !Head(path, "http:") && filepath.IsLocal(path) {
-		path = filepath.Join(filepath.Dir(source), path)
-	}
-	return name, path
 }
 
 func ReadChar() rune {

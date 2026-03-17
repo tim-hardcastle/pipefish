@@ -1,0 +1,1 @@
+This contains flags which control the compile-time output of the various parts of the compiler, used to debug Pipefish itself.

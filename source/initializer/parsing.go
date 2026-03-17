@@ -33,11 +33,28 @@ import (
 
 // Just exists to wrap around the next function.
 func (iz *Initializer) ParseEverythingFromFilePath(mc *vm.Vm, cpb *parser.CommonParserBindle, ccb *compiler.CommonCompilerBindle, scriptFilepath, namespacePath string) (*compiler.Compiler, error) {
-	sourcecode, e := compiler.GetSourceCode(scriptFilepath)
+	sourcecode, e := GetSourceCode(scriptFilepath)
 	if e != nil {
 		return nil, e
 	}
 	return iz.ParseEverythingFromSourcecode(mc, cpb, ccb, scriptFilepath, sourcecode, namespacePath), nil
+}
+
+func GetSourceCode(scriptFilepath string) (string, error) {
+	var sourcebytes []byte
+	var err error
+	if scriptFilepath != "" { // In which case we're making a blank VM.
+		if len(scriptFilepath) >= 11 && scriptFilepath[:11] == "test-files/" {
+			sourcebytes, err = compiler.TestFolder.ReadFile(scriptFilepath)
+		} else {
+			sourcebytes, err = os.ReadFile(MakeFilepath(scriptFilepath))
+		}
+		if err != nil {
+			return "", err
+		}
+	}
+	sourcebytes = append(sourcebytes, '\n')
+	return string(sourcebytes), nil
 }
 
 // This is broken into separate named steps basically so that I can in fact give the steps names.
@@ -187,7 +204,7 @@ func (iz *Initializer) addToNameSpaceByFilename(thingsToImport []string) {
 func (iz *Initializer) addToNameSpace(thingsToImport []*tokenizedExternalOrImportDeclaration) {
 	for _, dec := range thingsToImport {
 		path := dec.path.Literal
-		_, path = text.TweakNameAndPath("", path, dec.path.Source)
+		_, path = TweakNameAndPath("", path, dec.path.Source)
 		iz.cmI("Adding '" + path + "' to namespace")
 		var libDat []byte
 		var err error
@@ -220,7 +237,7 @@ func (iz *Initializer) parseImports(startAt int) []*tokenizedExternalOrImportDec
 		}
 		name := dec.name.Literal
 		path := dec.path.Literal
-		name, path = text.TweakNameAndPath(name, path, dec.path.Source)
+		name, path = TweakNameAndPath(name, path, dec.path.Source)
 		if dec.name.Literal == "NULL" {
 			unnamespacedImports = append(unnamespacedImports, dec)
 			continue
@@ -259,7 +276,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 		dec := tc.(*tokenizedExternalOrImportDeclaration)
 		name := dec.name.Literal
 		path := dec.path.Literal
-		name, path = text.TweakNameAndPath(name, path, dec.path.Source)
+		name, path = TweakNameAndPath(name, path, dec.path.Source)
 		if path == "" { // Then this will work only if there's already an instance of a service of that name running on the hub.
 			externalCP, ok := iz.Common.serviceCompilers[name]
 			if !ok {

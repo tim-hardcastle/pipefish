@@ -127,7 +127,7 @@ func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompiler
 
 // Initializes a compiler given the filepath.
 func StartCompilerFromFilepath(filepath string, svs map[string]*compiler.Compiler, store *values.Map) (*compiler.Compiler, error) {
-	sourcecode, e := compiler.GetSourceCode(filepath)
+	sourcecode, e := GetSourceCode(filepath)
 	if e != nil {
 		return nil, e
 	}
@@ -250,7 +250,7 @@ func (iz *Initializer) ParseEverythingFromSourcecode(mc *vm.Vm, cpb *parser.Comm
 	if !(scriptFilepath == "" || scriptFilepath == "InitializeFromCode" ||
 		(len(scriptFilepath) >= 5 && scriptFilepath[0:5] == "http:")) &&
 		!(len(scriptFilepath) >= 11 && scriptFilepath[:11] == "test-files/") {
-		file, err := os.Stat(text.MakeFilepath(scriptFilepath))
+		file, err := os.Stat(MakeFilepath(scriptFilepath))
 		if err != nil {
 			iz.throw("init/source", LINKING_TOKEN, scriptFilepath)
 			return nil

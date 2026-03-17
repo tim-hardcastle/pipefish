@@ -4,7 +4,6 @@ package compiler
 
 import (
 	"bytes"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -172,23 +171,6 @@ func (cp *Compiler) GetAlternateTypeFromConcreteTypeName(name string) AlternateT
 // Manufactures a value.
 func val(T values.ValueType, V any) values.Value {
 	return values.Value{T: T, V: V}
-}
-
-func GetSourceCode(scriptFilepath string) (string, error) {
-	var sourcebytes []byte
-	var err error
-	if scriptFilepath != "" { // In which case we're making a blank VM.
-		if len(scriptFilepath) >= 11 && scriptFilepath[:11] == "test-files/" {
-			sourcebytes, err = TestFolder.ReadFile(scriptFilepath)
-		} else {
-			sourcebytes, err = os.ReadFile(text.MakeFilepath(scriptFilepath))
-		}
-		if err != nil {
-			return "", err
-		}
-	}
-	sourcebytes = append(sourcebytes, '\n')
-	return string(sourcebytes), nil
 }
 
 var (

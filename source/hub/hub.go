@@ -27,6 +27,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/database"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/err"
+	"github.com/tim-hardcastle/pipefish/source/initializer"
 	"github.com/tim-hardcastle/pipefish/source/pf"
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/text"
@@ -510,7 +511,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		fname := args[0]
 		sname := args[1]
 		if sname == "" {
-			sname = text.ExtractFileName(fname)
+			sname = initializer.ExtractFileName(fname)
 		}
 		if filepath.IsLocal(fname) {
 			dir, _ := os.Getwd()
@@ -1398,9 +1399,6 @@ func (h *Hub) MakeFilepath(scriptFilepath string) string {
 	}
 	if len(scriptFilepath) >= 7 && scriptFilepath[0:7] == "rsc-pf/" {
 		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source", "initializer", filepath.FromSlash(scriptFilepath))
-	}
-	if settings.StandardLibraries.Contains(scriptFilepath) {
-		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries/", scriptFilepath)
 	}
 	if len(scriptFilepath) >= 3 && scriptFilepath[len(scriptFilepath)-3:] != ".pf" && len(scriptFilepath) >= 4 && scriptFilepath[len(scriptFilepath)-4:] != ".hub" {
 		doctoredFilepath = doctoredFilepath + ".pf"

@@ -107,7 +107,7 @@ func (iz *Initializer) compileGo() {
 
 	for source := range iz.goBucket.sources {
 		sourceToken := &token.Token{Source: source}
-		f, err := os.Stat(text.MakeFilepath(source))
+		f, err := os.Stat(MakeFilepath(source))
 		if err != nil {
 			iz.throw("golang/file", sourceToken, source, err.Error())
 			break
