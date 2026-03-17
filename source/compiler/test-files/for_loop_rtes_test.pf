@@ -5,11 +5,11 @@ foo(i int) :
         v == 3 :
             lowInt(i)
         else :    
-            a + "zort"[v]
+            a & "zort"[v]
 
 bar(i int) :
     from a string = fnerp(i) for _::v = range 0::i :
-        a + "zort"[v]
+        a & "zort"[v]
 
 fnerp(i int) :
     i == 5 :
@@ -19,15 +19,15 @@ fnerp(i int) :
 
 zort(i int) :
     from a = "" for j int = troz(i); j < i; j + 1 :
-        a + "zort"[j]
+        a & "zort"[j]
 
 rozt(i int) :
     from a = "" for j = troz(i); j < i; j + 1 :
-        a + "zort"[j]
+        a & "zort"[j]
 
 zrot(i int) :
     from a = "" for j = 0; j < i; j + xuq(i) :
-        a + "zort"[j]
+        a & "zort"[j]
 
 troz(i int) :
     i == 3 :
@@ -37,7 +37,7 @@ troz(i int) :
 
 qux(i int) :
     from a = "" for j = 0; j < i; xuq(i) :
-        a + "zort"[j]
+        a & "zort"[j]
 
 xuq(i int) :
     i == 3 :

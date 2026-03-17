@@ -15,7 +15,6 @@ var BUILTINS = map[string]functionAndReturnType{
 	"add_floats":                {(*Compiler).btAddFloats, AltType(values.FLOAT)},
 	"add_integers":              {(*Compiler).btAddIntegers, AltType(values.INT)},
 	"add_lists":                 {(*Compiler).btAddLists, AltType(values.LIST)},
-	"add_rune_to_rune":          {(*Compiler).btAddRuneToRune, AltType(values.STRING)},
 	"add_rune_to_string":        {(*Compiler).btAddRuneToString, AltType(values.STRING)},
 	"add_sets":                  {(*Compiler).btAddSets, AltType(values.SET)},
 	"add_string_to_rune":        {(*Compiler).btAddStringToRune, AltType(values.STRING)},
@@ -60,7 +59,6 @@ var BUILTINS = map[string]functionAndReturnType{
 	"keys_of_map":               {(*Compiler).btKeysOfMap, AltType(values.LIST)},
 	"keys_of_struct":            {(*Compiler).btKeysOfStruct, AltType(values.LIST)},
 	"label_of_string":           {(*Compiler).btLabelOfString, AltType(values.LABEL)},
-	"last_in_tuple":             {(*Compiler).btLastInTuple, AltType()},
 	"len_list":                  {(*Compiler).btLenList, AltType(values.INT)},
 	"len_map":                   {(*Compiler).btLenMap, AltType(values.INT)},
 	"len_set":                   {(*Compiler).btLenSet, AltType(values.INT)},
@@ -118,10 +116,6 @@ func (cp *Compiler) btAddIntegers(tok *token.Token, dest uint32, args []uint32) 
 
 func (cp *Compiler) btAddLists(tok *token.Token, dest uint32, args []uint32) {
 	cp.Emit(vm.AddL, dest, args[0], args[2])
-}
-
-func (cp *Compiler) btAddRuneToRune(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Adrr, dest, args[0], args[2])
 }
 
 func (cp *Compiler) btAddRuneToString(tok *token.Token, dest uint32, args []uint32) {
@@ -301,10 +295,6 @@ func (cp *Compiler) btKeysOfStruct(tok *token.Token, dest uint32, args []uint32)
 
 func (cp *Compiler) btLabelOfString(tok *token.Token, dest uint32, args []uint32) {
 	cp.Emit(vm.Lbls, dest, args[0], cp.ReserveToken(tok))
-}
-
-func (cp *Compiler) btLastInTuple(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Tpll, dest, args[0], cp.ReserveToken(tok))
 }
 
 func (cp *Compiler) btLenList(tok *token.Token, dest uint32, args []uint32) {

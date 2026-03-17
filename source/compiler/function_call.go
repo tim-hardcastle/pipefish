@@ -592,12 +592,6 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 						} else {
 							functionAndType.T = typesAtIndex(b.types[0], 0)
 						}
-					case "last_in_tuple":
-						if len(b.types) == 0 {
-							return nil, false
-						} else {
-							functionAndType.T = typesAtIndex(b.types[0], len(b.types)-1)
-						}
 					case "tuple_of_varargs":
 						ft := FiniteTupleType{}
 						for _, ty := range b.types {

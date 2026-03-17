@@ -355,8 +355,6 @@ loop:
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
 			case Adds:
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(string) + vm.Mem[args[2]].V.(string)}
-			case Adrr:
-				vm.Mem[args[0]] = values.Value{values.STRING, string(vm.Mem[args[1]].V.(rune)) + string(vm.Mem[args[2]].V.(rune))}
 			case Adrs:
 				vm.Mem[args[0]] = values.Value{values.STRING, string(vm.Mem[args[1]].V.(rune)) + vm.Mem[args[2]].V.(string)}
 			case Adsr:
@@ -1654,13 +1652,6 @@ loop:
 					break Switch
 				}
 				vm.Mem[args[0]] = tup[0]
-			case Tpll:
-				tup := vm.Mem[args[1]].V.([]values.Value)
-				if len(tup) == 0 {
-					vm.Mem[args[0]] = vm.makeError("vm/tup/last", args[2])
-					break Switch
-				}
-				vm.Mem[args[0]] = tup[len(tup)-1]
 			case Trak:
 				staticData := vm.Tracking[args[0]]
 				newData := TrackingData{staticData.Flavor, staticData.Tok, staticData.LogToLoc, staticData.LogTimeLoc, make([]any, len(staticData.Args))}

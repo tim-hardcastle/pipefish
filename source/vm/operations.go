@@ -101,7 +101,6 @@ var OPERANDS = map[Opcode]opDescriptor{
 	AddL: {"addL", operands{dst, mem, mem}},
 	AddS: {"addS", operands{dst, mem, mem}},
 	Adds: {"adds", operands{dst, mem, mem}},
-	Adrr: {"adds", operands{dst, mem, mem}},
 	Adrs: {"adds", operands{dst, mem, mem}},
 	Adsr: {"adds", operands{dst, mem, mem}},
 	Adtk: {"adtk", operands{dst, mem, tok}},
@@ -239,7 +238,6 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Thnk: {"thnk", operands{dst, mem, loc}},
 	Tinf: {"tinf", operands{dst, mem}},
 	Tplf: {"tupf", operands{dst, mem, tok}},
-	Tpll: {"tupl", operands{dst, mem, tok}},
 	Trak: {"trak", operands{trk}},
 	TupL: {"tupL", operands{dst, mem}},
 	TuLx: {"tuLx", operands{dst, mem, tok}},
@@ -276,7 +274,6 @@ const (
 	AddL
 	AddS
 	Adds
-	Adrr
 	Adrs
 	Adsr
 	Adtk
@@ -420,7 +417,6 @@ const (
 	Thnk
 	Tinf
 	Tplf
-	Tpll
 	Trak
 	TupL
 	TuLx
