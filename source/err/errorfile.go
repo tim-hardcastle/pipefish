@@ -3016,7 +3016,9 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "can't range over given type"
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "You can range over lists, strings, maps, sets, and enums."
+			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
+			"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
+			"upper bound of a range starting at 0."
 		},
 	},
 
@@ -3025,7 +3027,9 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "can't range over given type"
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "You can range over lists, strings, maps, sets, and enums."
+			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
+			"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
+			"upper bound of a range starting at 0."
 		},
 	},
 
@@ -3034,7 +3038,9 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "can't range over given type"
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "You can range over lists, strings, maps, sets, and enums."
+			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
+			"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
+			"upper bound of a range starting at 0."
 		},
 	},
 

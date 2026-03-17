@@ -120,6 +120,10 @@ func NewCommonCompilerBindle() *CommonCompilerBindle {
 	return newBindle
 }
 
+func (ccb *CommonCompilerBindle) IsInfalliblyRangeable() AlternateType {
+	return ccb.IsRangeable.without(AltType(values.PAIR, values.TYPE))
+}
+
 func (ccb *CommonCompilerBindle) AddTypeNumberToSharedAlternateTypes(typeNo values.ValueType, abTypes ...string) {
 	abTypes = append(abTypes, "any")
 	for _, ty := range abTypes {
@@ -1442,11 +1446,12 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	// The 'flavor' flag allows us to keep track of what kind of `for` loop we're compiling.
 	flavor := UNDEFINED_LOOP_FLAVOR
 	hasBoundVariables := false
-	var keysOnly, valuesOnly bool     // Only applies to range-style loops.
-	rangeKeyLoc := uint32(DUMMY)      //          "
-	rangeValLoc := uint32(DUMMY)      //          "
-	iteratorLoc := uint32(DUMMY)      //          "
-	rangeOver := BkEarlyReturn(DUMMY) //          "
+	var keysOnly, valuesOnly bool         // Only applies to range-style loops.
+	rangeKeyLoc := uint32(DUMMY)          //          "
+	rangeValLoc := uint32(DUMMY)          //          "
+	iteratorLoc := uint32(DUMMY)          //          "
+	rangeOver := BkEarlyReturn(DUMMY)     //          "
+	iteratorCreationError := BkEarlyReturn(DUMMY) //  "
 
 	// The parser so far has only broken the header up into its parts, but has not validated
 	// that they're in the proper form.
@@ -1613,6 +1618,9 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 					}
 					cp.AddThatAsVariable(newEnv, rightName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken())
 				}
+				if len(rangeCpResult.Types.intersect(cp.Common.IsInfalliblyRangeable())) <  len(rangeCpResult.Types) {
+					iteratorCreationError = cp.VmConditionalEarlyReturn(vm.Qtyp, iteratorLoc, uint32(values.ERROR), iteratorLoc)
+				}
 			}
 		} else {
 			cp.Throw("comp/for/range/c", node.GetToken())
@@ -1757,7 +1765,8 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	cp.resolveBreaksWithoutValue()
 	cp.Put(vm.Asgm, boundResultLoc)
 	cp.resolveBreaksWithValue()
-	cp.VmComeFrom(conditionalFails, conditionIsError, rangeOver, boundInitCheck, indexInitCheck, boundUpdateCheck, indexUpdateCheck)
+	cp.VmComeFrom(conditionalFails, conditionIsError, rangeOver, boundInitCheck, 
+		indexInitCheck, boundUpdateCheck, indexUpdateCheck, iteratorCreationError)
 	bodyCpResult.Foldable = false
 	bodyCpResult.Types = bodyCpResult.Types.Union(boundVariableTypes)
 	if boundInitCheck != DUMMY || indexInitCheck != DUMMY || boundUpdateCheck != DUMMY ||
