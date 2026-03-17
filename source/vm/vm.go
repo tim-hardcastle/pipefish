@@ -2193,11 +2193,7 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 			return values.Value{values.ITERATOR, &values.TupleIterator{Elements: container.V.(values.Snippet).Data, Len: len(container.V.(values.Snippet).Data)}}
 		}
 	case values.STRING:
-		if keysOnly {
-			return values.Value{values.ITERATOR, &values.KeyIncIterator{Max: len(container.V.(string))}}
-		} else {
 			return values.Value{values.ITERATOR, &values.StringIterator{Str: container.V.(string)}}
-		}
 	case values.TUPLE:
 		tupleElements := container.V.([]values.Value)
 		if keysOnly {

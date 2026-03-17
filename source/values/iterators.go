@@ -1,6 +1,8 @@
 package values
 
 import (
+	"unicode/utf8"
+
 	"src.elv.sh/pkg/persistent/vector"
 )
 
@@ -260,21 +262,24 @@ func (it *StringIterator) Unfinished() bool {
 }
 
 func (it *StringIterator) GetKey() Value {
+	_, l := utf8.DecodeRuneInString(it.Str[it.pos:])
 	keyResult := Value{INT, it.pos}
-	it.pos++
+	it.pos = it.pos + l
 	return keyResult
 }
 
 func (it *StringIterator) GetValue() Value {
-	valResult := Value{RUNE, int32(it.Str[it.pos])}
-	it.pos++
+	r, l := utf8.DecodeRuneInString(it.Str[it.pos:])
+	valResult := Value{RUNE, r}
+	it.pos = it.pos + l
 	return valResult
 }
 
 func (it *StringIterator) GetKeyValuePair() (Value, Value) {
 	keyResult := Value{INT, it.pos}
-	valResult := Value{RUNE, int32(it.Str[it.pos])}
-	it.pos++
+	r, l := utf8.DecodeRuneInString(it.Str[it.pos:])
+	valResult := Value{RUNE, r}
+	it.pos = it.pos + l
 	return keyResult, valResult
 }
 
