@@ -710,6 +710,9 @@ func TestWith(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
 		{`john with age::23`, `Person with (name::"John", age::23)`},
+		{`Person with (name::"John")`, `Person with (name::"John", age::NULL)`},
+		{`Cat with (name::"John")`, `vm/with/type/g`},
+		{`Cat with (name::"John", age::true)`, `vm/with/type/h`},
 		{`myList with diffList`, `["x", "y", "c", "d"]`},
 		{`myOtherList with [2,1]::"q"`, `["a", "b", ["x", "q", "z"], "d"]`},
 		{`myOtherList with []::"q"`, `vm/with/list/b`},
@@ -718,8 +721,12 @@ func TestWith(t *testing.T) {
 		{`myMap with diffMap`, `map("a"::99, "b"::99, "c"::3, "d"::4)`},
 		{`otherMap with ["a", 1]::99`, `map("a"::[0, 99], "b"::[2, 3])`},
 		{`myMap with "a"::99, "z"::42`, `map("a"::99, "b"::2, "c"::3, "d"::4, "z"::42)`},
+		{`myMap with []::99`, `vm/with/map/b`},
 		{`myMap without "a"`, `map("b"::2, "c"::3, "d"::4)`},
 		{`myMap without "a", "b"`, `map("c"::3, "d"::4)`},
+		{`Addable with "foo"::99`, `vm/with/type/a`},
+		{`int with "foo"::99`, `vm/with/type/b`},
+
 	}
 	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
 }

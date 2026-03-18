@@ -1753,7 +1753,7 @@ loop:
 						ln := vec.Len()
 						if ln == 0 {
 							vm.Mem[args[0]] = vm.makeError("vm/with/map/b", args[2])
-							break
+							break Switch
 						}
 						keys = make([]values.Value, ln)
 						for i := 0; i < ln; i++ {
@@ -1812,14 +1812,13 @@ loop:
 					if v.T == values.UNDEFINED_TYPE { // As a special case, we don't need to specify that nullable things are `NULL`.
 						if vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i].Contains(values.NULL) {
 							outVals[i] = values.Value{values.NULL, nil}
-							break Switch
 						} else { // Otherwise, omitting a field is an error.
 							labName := vm.Labels[vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers[i]]
 							vm.Mem[args[0]] = vm.makeError("vm/with/type/g", args[2], labName)
 							break Switch
 						}
 					}
-					if !vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i].Contains(v.T) {
+					if !vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i].Contains(outVals[i].T) {
 						labName := vm.Labels[vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers[i]]
 						vm.Mem[args[0]] = vm.makeError("vm/with/type/h", args[2], vm.DescribeType(v.T, LITERAL, 0), labName, vm.DescribeType(typ, LITERAL, 0), vm.DescribeAbstractType(vm.ConcreteTypeInfo[typ].(StructType).AbstractStructFields[i], LITERAL, 0))
 						break Switch

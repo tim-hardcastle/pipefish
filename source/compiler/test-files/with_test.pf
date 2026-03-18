@@ -1,6 +1,7 @@
 newtype
 
-Person = struct(name string, age int)
+Person = struct(name string, age int?)
+Cat = struct(name string, age int)
 
 var
 
