@@ -187,7 +187,18 @@ func TestEof(t *testing.T) {
 }
 func TestEquality(t *testing.T) {
 	tests := []test_helper.TestItem{
-		
+		{`comp true, false`, `false`},
+		{`comp 0.5, 0.5`, `true`},
+		{`OK == OK`, `true`},
+		{`IOTA == IOTA`, `false`},
+		{`name == age`, `false`},
+		{`comp int, string`, `false`},
+		{`ta == tb`, `false`},
+		{`(1, 2, 3) == (1, 2, 3)`, `true`},
+		{`(1, 2, 3) == (1, 2, 4)`, `false`},
+		{`snippet(1, 2, 3) == snippet(1, 2, 3)`, `true`},
+		{`snippet(1, 2, 3) == snippet(1, 2)`, `false`},
+		{`snippet(1, 2, 3) == snippet(1, 2, 4)`, `false`},
 		{`comp(foo(1), foo(2))`, `vm/equals/type`},
 		{`zort 0, 1`, `vm/div/zero/c`},
 		{`zort 1, 0`, `vm/div/zero/c`},
@@ -236,6 +247,8 @@ func TestForLoops(t *testing.T) {
 		{`find GREEN, Color`, `3`},
 		{`find GREEN, myList`, `2`},
 		{`find GREEN, myMap`, `"c"`},
+		{`find "bar", mySnippet`, `1`},
+		{`findInTuple "c", myTuple`, `2`},
 		{`allKeys myList`, `[0, 1, 2, 3, 4, 5]`},
 		{`allKeys "Angela"`, `[0, 1, 2, 3, 4, 5]`},
 		{`allValues myList`, `[PURPLE, BLUE, GREEN, YELLOW, ORANGE, RED]`},
@@ -246,6 +259,14 @@ func TestForLoops(t *testing.T) {
 		{`showRangeKeys 8, 3`, `[0, 1, 2, 3, 4]`},
 		{`showRangeValues 8, 3 `, `[7, 6, 5, 4, 3]`},
 		{`x`, `10`},
+		{`triangle 4`, `10`},
+		{`countTuple myOtherTuple`, `3`},
+		{`count myPoint`, `2`},
+		{`count mySnippet`, `3`},
+		{`count Color`, `6`},
+		{`addTuple myOtherTuple`, `6`},
+		{`add myPoint`, `3`},
+		{`add myOtherSet`, `6`},
 	}
 	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
 }
@@ -710,6 +731,8 @@ func TestWith(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
 		{`john with age::23`, `Person with (name::"John", age::23)`},
+		{`john with []::23`, `vm/with/struct/b`},
+		{`rex with [friends, 1]::"Daisy"`, `Dog with (name::"Rex", friends::["Fido", "Daisy"])`},
 		{`Person with (name::"John")`, `Person with (name::"John", age::NULL)`},
 		{`Cat with (name::"John")`, `vm/with/type/g`},
 		{`Cat with (name::"John", age::true)`, `vm/with/type/h`},

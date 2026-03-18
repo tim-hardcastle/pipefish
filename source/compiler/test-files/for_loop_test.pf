@@ -2,13 +2,25 @@ newtype
 
 Color = enum RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE
 
+Point = struct(xcoord, ycoord int)
+
 var
+
+myPoint = Point(1, 2)
 
 myMap = map ("a"::RED, "b"::YELLOW, "c"::GREEN)
 
 myList = [PURPLE, BLUE, GREEN, YELLOW, ORANGE, RED]
 
 mySet = set "a", "e", "i", "o", "u"
+
+myOtherSet = set(1, 2, 3)
+
+mySnippet = -- foo |"bar"| spong
+
+myTuple tuple = ("a", "b", "c", "d")
+
+myOtherTuple tuple = (1, 2, 3)
 
 var x = 0
 
@@ -55,6 +67,29 @@ find(x, C) :
         else :
             continue
 
+findInTuple(x any?, C tuple) :
+    from a = -1 for i::y = range C :
+        x == y :
+            break i 
+        else :
+            continue
+
+add(x) :
+    from a = 0 for _::v = range x :
+        a + v
+
+addTuple(x tuple) :
+    from a = 0 for _::v = range x :
+        a + v
+
+countTuple(x tuple) :
+    from a = 0 for i::_ = range x :
+        a + 1
+
+count(x) :
+    from a = 0 for i::_ = range x :
+        a + 1  
+
 allKeys(x) :
     from L = [] for k:: _ = range x :
         L + [k]
@@ -74,3 +109,7 @@ showRangeKeys(x, y int) :
 showRangeValues(x, y int) :
     from L = [] for _::v = range x::y :
         L + [v] 
+
+triangle(n int) :
+    from a = 0 for i::_ = range n + 1 :
+        a + i

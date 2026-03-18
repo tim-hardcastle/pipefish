@@ -1,3 +1,7 @@
+newtype 
+
+Person = struct(name string, age int)
+
 def 
 
 foo(i int) :
@@ -11,3 +15,13 @@ zort(x, y int) :
 
 comp(x, y any) :
     x == y
+
+const 
+
+IOTA = func(x int) : x
+
+var
+
+ta tuple = (1, 2, 3)
+
+tb tuple = (1, 2)

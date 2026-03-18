@@ -2,10 +2,12 @@ newtype
 
 Person = struct(name string, age int?)
 Cat = struct(name string, age int)
+Dog = struct(name string, friends list)
 
 var
 
 john = Person("John", 22)
+rex = Dog("Rex", ["Fido", "Butch"])
 myList = ["a", "b", "c", "d"]
 myOtherList = ["a", "b", ["x", "y", "z"], "d"]
 myMap = map("a"::1, "b"::2, "c"::3, "d"::4)

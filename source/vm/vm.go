@@ -1855,7 +1855,7 @@ loop:
 						ln := vec.Len()
 						if ln == 0 {
 							vm.Mem[args[0]] = vm.makeError("vm/with/struct/b", args[2])
-							break
+							break Switch
 						}
 						keys = make([]values.Value, ln)
 						for i := 0; i < ln; i++ {
