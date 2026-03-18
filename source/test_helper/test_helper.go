@@ -173,6 +173,12 @@ var Qux13Result = "\n  ▪ Log at line 7 : We're here. \n" +
 	"  ▪ Log at line 10 : Guess we're taking the 'else' branch. \n" +
 	"  ▪ Log at line 11 : And we return \"odd\". "
 
+var LogToFileResult = `- Log at line 7 : We're here.
+- Log at line 8 : We test to see if i (3) is even, which is false.
+- Log at line 10 : Guess we're taking the 'else' branch.
+- Log at line 11 : And we return "odd".
+`
+
 func Teardown(nameOfTestFile string) {
 	currentDirectory, _ := os.Getwd()
 	absolutePathToGobucket, _ := filepath.Abs(currentDirectory + "/../../source/initializer/gobucket/")

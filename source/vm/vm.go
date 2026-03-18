@@ -232,108 +232,6 @@ loop:
 			args := vm.Code[loc].Args
 		Switch:
 			switch vm.Code[loc].Opcode {
-			case Gsql:
-				// Arguments:
-				// 0: the destination, which ends up as OK or an error, i.e. it's what the command returns.
-				// 1: the address of the reference variable: where we put what we get from SQL.
-				// 2: the desired type of the result
-				// 3: the database
-				// 4: the snippet
-				// 5: 0 for `as`, 1 for `like`.
-				// 6: the token
-				rType := vm.Mem[args[2]].V.(values.AbstractType)
-				if rType.Len() != 1 {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/c", args[5], vm.DescribeAbstractType(vm.Mem[args[2]].V.(values.AbstractType), LITERAL, 0))
-					break Switch
-				}
-				cType := rType.Types[0]
-				dbValue := vm.Mem[args[3]].V.([]values.Value)
-				driverNo := dbValue[0].V.(int)
-				host := dbValue[1].V.(string)
-				port := dbValue[2].V.(int)
-				name := dbValue[3].V.(string)
-				user := dbValue[4].V.(string)
-				password := dbValue[5].V.(string)
-				connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
-					host, port, name, user, password)
-				sqlObj, connectionError := sql.Open(database.SqlDrivers[driverNo], connectionString)
-				if connectionError != nil {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/connect/a", args[6], connectionError.Error())
-					vm.Mem[args[1]] = vm.Mem[args[0]]
-					break Switch
-				}
-				pingError := sqlObj.Ping()
-				if pingError != nil {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/ping/a", args[6], pingError.Error())
-					vm.Mem[args[1]] = vm.Mem[args[0]]
-					break Switch
-				}
-				snippet := vm.Mem[args[4]].V.(values.Snippet).Data
-				buf := strings.Builder{}
-				vals := make([]values.Value, 0, len(snippet)/2)
-				for i, v := range snippet {
-					if i%2 == 0 {
-						buf.WriteString(v.V.(string))
-					} else {
-						vals = append(vals, v)
-						buf.WriteString("$")
-						buf.WriteString(strconv.Itoa(1 + i/2))
-					}
-				}
-				result := vm.evalGetSQL(sqlObj, cType, buf.String(), vals, args[5], args[6], ctx)
-				vm.Mem[args[1]] = result
-				if result.T == values.ERROR {
-					vm.Mem[args[0]] = result
-				} else {
-					vm.Mem[args[0]] = values.OK
-				}
-			case Psql:
-				dbValue := vm.Mem[args[1]].V.([]values.Value)
-				driverNo := dbValue[0].V.(int)
-				host := dbValue[1].V.(string)
-				port := dbValue[2].V.(int)
-				name := dbValue[3].V.(string)
-				user := dbValue[4].V.(string)
-				password := dbValue[5].V.(string)
-				connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
-					host, port, name, user, password)
-				sqlObj, connectionError := sql.Open(database.SqlDrivers[driverNo], connectionString)
-				if connectionError != nil {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/connect/b", args[3], connectionError.Error())
-					break Switch
-				}
-				pingError := sqlObj.Ping()
-				if pingError != nil {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/ping/b", args[3], pingError.Error())
-					break Switch
-				}
-				snippet := vm.Mem[args[2]].V.(values.Snippet).Data
-				buf := strings.Builder{}
-				vals := make([]values.Value, 0, len(snippet)/2)
-				for i, v := range snippet {
-					if i%2 == 0 {
-						buf.WriteString(v.V.(string))
-					} else {
-						if v.T == values.TYPE {
-							if v.V.(values.AbstractType).Len() != 1 {
-								vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/d", args[3], vm.DescribeAbstractType(v.V.(values.AbstractType), LITERAL, 0))
-								break Switch
-							}
-							cType := v.V.(values.AbstractType).Types[0]
-							sqlSig, err := vm.getTableSigFromStructType(cType, args[3])
-							if err.T == values.ERROR {
-								vm.Mem[args[0]] = err
-								break Switch
-							}
-							buf.WriteString(sqlSig)
-						} else {
-							vals = append(vals, v)
-							buf.WriteString("$")
-							buf.WriteString(strconv.Itoa(1 + i/2))
-						}
-					}
-				}
-				vm.Mem[args[0]] = vm.evalPostSQL(sqlObj, buf.String(), vals, args[3])
 			case Addf:
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(float64) + vm.Mem[args[2]].V.(float64)}
 			case Addi:
@@ -387,7 +285,6 @@ loop:
 							vm.OutHandle.Write(text.NewMarkdown("", 92, func(s string) string { return s }).Render([]string{trackingString}))
 						}
 					case values.STRING:
-						// TODO --- this is obviously very wasteful. Make $_logTo into a constant?
 						filename := vm.Mem[staticData.LogToLoc].V.(string)
 						path := filename
 						if filepath.IsLocal(path) {
@@ -406,8 +303,6 @@ loop:
 							}
 						}
 						f.WriteString(trackingString)
-					default:
-						println("Ooops", vm.DescribeTypeAndValue(vm.Mem[staticData.LogToLoc], LITERAL, 0))
 					}
 				}
 			case Call:
@@ -885,6 +780,61 @@ loop:
 					break Switch
 				}
 				vm.Mem[args[0]] = val
+			case Gsql:
+				// Arguments:
+				// 0: the destination, which ends up as OK or an error, i.e. it's what the command returns.
+				// 1: the address of the reference variable: where we put what we get from SQL.
+				// 2: the desired type of the result
+				// 3: the database
+				// 4: the snippet
+				// 5: 0 for `as`, 1 for `like`.
+				// 6: the token
+				rType := vm.Mem[args[2]].V.(values.AbstractType)
+				if rType.Len() != 1 {
+					vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/c", args[5], vm.DescribeAbstractType(vm.Mem[args[2]].V.(values.AbstractType), LITERAL, 0))
+					break Switch
+				}
+				cType := rType.Types[0]
+				dbValue := vm.Mem[args[3]].V.([]values.Value)
+				driverNo := dbValue[0].V.(int)
+				host := dbValue[1].V.(string)
+				port := dbValue[2].V.(int)
+				name := dbValue[3].V.(string)
+				user := dbValue[4].V.(string)
+				password := dbValue[5].V.(string)
+				connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
+					host, port, name, user, password)
+				sqlObj, connectionError := sql.Open(database.SqlDrivers[driverNo], connectionString)
+				if connectionError != nil {
+					vm.Mem[args[0]] = vm.makeError("vm/sql/connect/a", args[6], connectionError.Error())
+					vm.Mem[args[1]] = vm.Mem[args[0]]
+					break Switch
+				}
+				pingError := sqlObj.Ping()
+				if pingError != nil {
+					vm.Mem[args[0]] = vm.makeError("vm/sql/ping/a", args[6], pingError.Error())
+					vm.Mem[args[1]] = vm.Mem[args[0]]
+					break Switch
+				}
+				snippet := vm.Mem[args[4]].V.(values.Snippet).Data
+				buf := strings.Builder{}
+				vals := make([]values.Value, 0, len(snippet)/2)
+				for i, v := range snippet {
+					if i%2 == 0 {
+						buf.WriteString(v.V.(string))
+					} else {
+						vals = append(vals, v)
+						buf.WriteString("$")
+						buf.WriteString(strconv.Itoa(1 + i/2))
+					}
+				}
+				result := vm.evalGetSQL(sqlObj, cType, buf.String(), vals, args[5], args[6], ctx)
+				vm.Mem[args[1]] = result
+				if result.T == values.ERROR {
+					vm.Mem[args[0]] = result
+				} else {
+					vm.Mem[args[0]] = values.OK
+				}
 			case Gtef:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(float64) >= vm.Mem[args[2]].V.(float64)}
 			case Gtei:
@@ -1333,6 +1283,53 @@ loop:
 				} else {
 					fmt.Println(vm.DefaultDescription(vm.Mem[args[0]]))
 				}
+			case Psql:
+				dbValue := vm.Mem[args[1]].V.([]values.Value)
+				driverNo := dbValue[0].V.(int)
+				host := dbValue[1].V.(string)
+				port := dbValue[2].V.(int)
+				name := dbValue[3].V.(string)
+				user := dbValue[4].V.(string)
+				password := dbValue[5].V.(string)
+				connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
+					host, port, name, user, password)
+				sqlObj, connectionError := sql.Open(database.SqlDrivers[driverNo], connectionString)
+				if connectionError != nil {
+					vm.Mem[args[0]] = vm.makeError("vm/sql/connect/b", args[3], connectionError.Error())
+					break Switch
+				}
+				pingError := sqlObj.Ping()
+				if pingError != nil {
+					vm.Mem[args[0]] = vm.makeError("vm/sql/ping/b", args[3], pingError.Error())
+					break Switch
+				}
+				snippet := vm.Mem[args[2]].V.(values.Snippet).Data
+				buf := strings.Builder{}
+				vals := make([]values.Value, 0, len(snippet)/2)
+				for i, v := range snippet {
+					if i%2 == 0 {
+						buf.WriteString(v.V.(string))
+					} else {
+						if v.T == values.TYPE {
+							if v.V.(values.AbstractType).Len() != 1 {
+								vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/d", args[3], vm.DescribeAbstractType(v.V.(values.AbstractType), LITERAL, 0))
+								break Switch
+							}
+							cType := v.V.(values.AbstractType).Types[0]
+							sqlSig, err := vm.getTableSigFromStructType(cType, args[3])
+							if err.T == values.ERROR {
+								vm.Mem[args[0]] = err
+								break Switch
+							}
+							buf.WriteString(sqlSig)
+						} else {
+							vals = append(vals, v)
+							buf.WriteString("$")
+							buf.WriteString(strconv.Itoa(1 + i/2))
+						}
+					}
+				}
+				vm.Mem[args[0]] = vm.evalPostSQL(sqlObj, buf.String(), vals, args[3])
 			case Qabt:
 				for _, t := range args[1 : len(args)-1] {
 					if vm.Mem[args[0]].T == values.ValueType(t) {

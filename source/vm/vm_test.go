@@ -1,6 +1,8 @@
 package vm_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
@@ -424,6 +426,23 @@ func TestLogging(t *testing.T) {
 		{`qux 13`, test_helper.Qux13Result},
 	}
 	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestOutput)
+}
+
+func TestLoggingToFile(t *testing.T) {
+	currentDirectory, _ := os.Getwd()
+	absoluteLocationOfLogFile, _ := filepath.Abs(currentDirectory + "/../compiler/test-files/logtest.md")
+	os.Remove(absoluteLocationOfLogFile)
+	tests := []test_helper.TestItem{
+		{`qux 3`, `"odd"`},
+	}
+	test_helper.RunTest(t, "logging_to_file_test.pf", tests, test_helper.TestValues)
+	resultBytes, err := os.ReadFile(absoluteLocationOfLogFile)
+	if err != nil {
+		t.Fatalf("unable to read file: %v", err)
+	}
+	if string(resultBytes) != test_helper.LogToFileResult {
+		t.Fatal("Expected:\n", test_helper.LogToFileResult, "\nGot\n", string(resultBytes))
+	}
 }
 func TestOverloading(t *testing.T) {
 	tests := []test_helper.TestItem{
