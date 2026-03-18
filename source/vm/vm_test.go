@@ -83,8 +83,10 @@ func TestBuiltins(t *testing.T) {
 		{`literal 'q'`, `"'q'"`},
 		{`rune 65`, `'A'`},
 		{`map "a"::1, "b"::2`, `map("a"::1, "b"::2)`},
+		{`map ([1]::2)`, `vm/map/key`},
 		{`set 1, 2, 3`, `set(1, 2, 3)`},
 		{`set(1, 2, 3) /\ set(2, 3, 4) == set(2, 3)`, `true`},
+		{`set(1, 2, 3) - set(3, 4) == set(1, 2)`, `true`},
 		{`string 4.0`, `"4.0"`},
 		{`string 4`, `"4"`},
 		{`tuple 1`, `tuple(1)`},
@@ -168,6 +170,13 @@ func TestCorners(t *testing.T) {
 		{`moo 1, 2`, `3`},
 	}
 	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
+}
+func TestEnums(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Color 2`, `BLUE`},
+		{`Color 3`, `vm/enum`},
+	}
+	test_helper.RunTest(t, "enums_test.pf", tests, test_helper.TestValues)
 }
 func TestEof(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -519,6 +528,7 @@ func TestParameterizedTypes(t *testing.T) {
 		{`clones{int}`, `clones{int}`},
 		{`Zort{0}(0::0)`, `Zort{0}(0::0)`},
 		{`Troz{0}(0)`, `Troz{0}(0)`},
+		{`fooify 1`, `vm/param/exist`},
 	}
 	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
 }
@@ -566,6 +576,7 @@ func TestSnippet(t *testing.T) {
 		{`(qux 5)[1]`, `10`},
 		{`(qux 5)[2]`, `" bar"`},
 		{`snippet(1, "q", true)`, `snippet(1, "q", true)`},
+		{`len snippet(1, "q", true)`, `3`},
 	}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
 }
@@ -621,6 +632,12 @@ func TestTypeInstances(t *testing.T) {
 		{`Z{12}(2) in Z{12}`, `true`},
 	}
 	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
+}
+func TestUnwrap(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`unwrap 42`, `vm/unwrap`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
 func TestUserDefinedTypes(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -694,6 +711,8 @@ func TestWith(t *testing.T) {
 		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
 		{`john with age::23`, `Person with (name::"John", age::23)`},
 		{`myList with diffList`, `["x", "y", "c", "d"]`},
+		{`myOtherList with [2,1]::"q"`, `["a", "b", ["x", "q", "z"], "d"]`},
+		{`myOtherList with []::"q"`, `vm/with/list/b`},
 		{`myMap with "a"::99`, `map("a"::99, "b"::2, "c"::3, "d"::4)`},
 		{`myMap with "z"::42`, `map("a"::1, "b"::2, "c"::3, "d"::4, "z"::42)`},
 		{`myMap with diffMap`, `map("a"::99, "b"::99, "c"::3, "d"::4)`},

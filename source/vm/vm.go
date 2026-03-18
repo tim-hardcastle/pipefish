@@ -1186,7 +1186,7 @@ loop:
 				if ok {
 					vm.Mem[args[0]] = values.Value{values.ValueType(args[1]), ix}
 				} else {
-					vm.Mem[args[0]] = vm.makeError("vm/index/p", args[3], info.GetName(LITERAL), ix)
+					vm.Mem[args[0]] = vm.makeError("vm/enum", args[3], info.GetName(LITERAL), ix)
 				}
 			case Mker:
 				vm.Mem[args[0]] = values.Value{values.ERROR, &err.Error{ErrorId: "vm/user", Message: vm.Mem[args[1]].V.(string), Token: vm.Tokens[args[2]]}}
@@ -1208,10 +1208,6 @@ loop:
 			case Mkmp:
 				result := &values.Map{}
 				for _, p := range vm.Mem[args[1]].V.([]values.Value) {
-					if p.T != values.PAIR {
-						vm.Mem[args[0]] = vm.makeError("vm/map/pair", args[2], p, vm.DescribeType(p.T, LITERAL, 0))
-						break Switch
-					}
 					k := p.V.([]values.Value)[0]
 					v := p.V.([]values.Value)[1]
 					if !((values.NULL <= k.T && k.T < values.PAIR) || vm.ConcreteTypeInfo[k.T].IsEnum() || // TODO, we can just have a simple filter and/or a method of the interface.
@@ -1272,8 +1268,6 @@ loop:
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, -vm.Mem[args[1]].V.(int)}
 			case Notb:
 				vm.Mem[args[0]] = values.Value{values.BOOL, !vm.Mem[args[1]].V.(bool)}
-			case Orb:
-				vm.Mem[args[0]] = values.Value{values.BOOL, (vm.Mem[args[1]].V.(bool) || vm.Mem[args[2]].V.(bool))}
 			case Outp:
 				vm.OutHandle.Out(vm.Mem[args[0]])
 				vm.PostHappened = true
@@ -1430,13 +1424,6 @@ loop:
 					loc = loc + 1
 				} else {
 					loc = args[1]
-				}
-				continue
-			case Qtyl:
-				if vm.Mem[args[0]].T == vm.Mem[args[1]].V.(values.AbstractType).Types[0] {
-					loc = loc + 1
-				} else {
-					loc = args[2]
 				}
 				continue
 			case Qtyp:

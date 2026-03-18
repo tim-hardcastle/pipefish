@@ -5,10 +5,17 @@ Z = clone{i int} int :       // Some modular arithmetic.
 
 make Z{5}, Z{12}
 
+Foo = clone{i int} int
+
+make Foo{0}
+
 def
 
 (x Z{i int}) + (y Z{i int}) :
     Z{i}(int(x) + int(y) mod i)
+
+fooify(i int) :
+    Foo{i}(i)
 
 newtype
 

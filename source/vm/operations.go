@@ -203,7 +203,6 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Negf: {"negf", operands{dst, mem}},
 	Negi: {"negi", operands{dst, mem}},
 	Notb: {"notb", operands{dst, mem}},
-	Orb:  {"orb", operands{dst, mem, mem}},
 	Outp: {"outp", operands{mem}},
 	Outt: {"outt", operands{mem}},
 	Qabt: {"qabt", operands{mem, tup, loc}},
@@ -218,7 +217,6 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Qsnq: {"qsnq", operands{mem, loc}},
 	Qtpt: {"qtpt", operands{mem, num, tup, loc}},
 	Qtru: {"qtru", operands{mem, loc}},
-	Qtyl: {"qtyl", operands{mem, mem, loc}},
 	Qtyp: {"qtyp", operands{mem, typ, loc}},
 	Psql: {"gsql", operands{dst, mem, mem, tok}},
 	Ret:  {"ret", operands{}},
@@ -379,7 +377,6 @@ const (
 	Negf
 	Negi
 	Notb
-	Orb
 	Outp
 	Outt
 	Psql
@@ -398,7 +395,6 @@ const (
 	Qspq
 	Qtpt
 	Qtru
-	Qtyl
 	Qtyp
 	Ret
 	Rpop

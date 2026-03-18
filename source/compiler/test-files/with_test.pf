@@ -6,6 +6,7 @@ var
 
 john = Person("John", 22)
 myList = ["a", "b", "c", "d"]
+myOtherList = ["a", "b", ["x", "y", "z"], "d"]
 myMap = map("a"::1, "b"::2, "c"::3, "d"::4)
 otherMap = map("a"::[0, 1], "b"::[2, 3])
 

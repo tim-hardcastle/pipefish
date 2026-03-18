@@ -150,6 +150,7 @@ func TestBuiltins(t *testing.T) {
 		{`map "a"::1, "b"::2`, `map("a"::1, "b"::2)`},
 		{`set 1, 2, 3`, `set(1, 2, 3)`},
 		{`set(1, 2, 3) /\ set(2, 3, 4) == set(2, 3)`, `true`},
+		{`set(1, 2, 3) - set(3, 4) == set(1, 2)`, `true`},
 		{`string 4.0`, `"4.0"`},
 		{`string 4`, `"4"`},
 		{`tuple 1`, `tuple(1)`},
@@ -204,6 +205,13 @@ func TestCorners(t *testing.T) {
 		{`moo 1, 2`, `3`},
 	}
 	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
+}
+func TestEnums(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Color 2`, `BLUE`},
+		{`Color 3`, `vm/enum`},
+	}
+	test_helper.RunTest(t, "enums_test.pf", tests, test_helper.TestValues)
 }
 func TestEquality(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -609,6 +617,7 @@ func TestSnippets(t *testing.T) {
 		{`(qux 5)[0]`, `"foo "`},
 		{`(qux 5)[1]`, `10`},
 		{`(qux 5)[2]`, `" bar"`},
+		{`len snippet(1, "q", true)`, `3`},
 	}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
 }

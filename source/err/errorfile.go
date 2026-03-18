@@ -3011,6 +3011,15 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"vm/enum": {
+		Message: func(tok *token.Token, args ...any) string {
+			return fmt.Sprintf("out of range: can't construct element %v of type %v", emph(args[1]),  emph(args[0]))
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return fmt.Sprintf("Types that can be indexed by integers are %v, %v, %v, %v, and %v if it has integer keys.", emph("list"), emph("pair"), emph("string"), emph("tuple"), emph("map"))
+		},
+	},
+
 	"vm/equals/type": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "comparing value of type " + emph(args[0]) + " with value of type " + emph(args[1])
@@ -3290,15 +3299,6 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"vm/index/p": {
-		Message: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("out of range: can't index value of type %v by %v", emph(args[0]), emph(args[1]))
-		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return fmt.Sprintf("Types that can be indexed by integers are %v, %v, %v, %v, and %v if it has integer keys.", emph("list"), emph("pair"), emph("string"), emph("tuple"), emph("map"))
-		},
-	},
-
 	"vm/index/q": {
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't index value of type %v by %v", emph(args[0]), emph(args[1]))
@@ -3369,15 +3369,6 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "In order to convert a string value to a label, the label must have been defined as the label of a field of a struct."
-		},
-	},
-
-	"vm/map/pair": {
-		Message: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("can't use value of type %v as a key-value pair", emph(args[0]))
-		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return "A map is constructed from a tuple of key-value pairs."
 		},
 	},
 
