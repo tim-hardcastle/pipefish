@@ -1,0 +1,11 @@
+const
+
+SNG = 1 
+
+TUP tuple = 2, 3
+
+def
+
+conc(x, y bool) :
+    (x : TUP; else : SNG), (y: TUP; else : SNG)
+    
