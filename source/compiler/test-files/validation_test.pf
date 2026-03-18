@@ -1,0 +1,21 @@
+newtype
+
+Person = struct(name string, age int) :
+    name != ""
+    age >= 0
+
+EvenNumber = clone int :
+    that mod 2 == 0
+
+Thing = clone int :
+    foo that 
+
+def foo(i int) :
+    i == 0 : 
+        error "fnerg"
+    i == 1 : 
+        42
+    i == 2 :
+        false 
+    else :
+        true

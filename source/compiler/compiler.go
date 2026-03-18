@@ -1141,8 +1141,9 @@ NodeTypeSwitch:
 					cp.Throw("comp/clones", node.GetToken())
 					break NodeTypeSwitch
 				}
-				cp.Put(vm.Clon, cp.That(), cp.ReserveToken(node.GetToken()))
-				result = concResult(values.TYPE, true)
+				tokNo := cp.ReserveToken(node.GetToken())
+				cp.Put(vm.Clon, cp.That(), tokNo)
+				result = concResult(values.TYPE, argResult.Foldable)
 				break NodeTypeSwitch
 			}
 			result = cpResult{Types: AltType(values.ERROR, values.TYPE), Foldable: true}

@@ -141,13 +141,6 @@ func TestRef(t *testing.T) {
 	}
 	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestValues)
 }
-func TestRuntimeTypecheck(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`EvenNumber 2`, `EvenNumber(2)`},
-		{`EvenNumber 3`, `vm/validation/fail`},
-	}
-	test_helper.RunTest(t, "runtime_typecheck_test.pf", tests, test_helper.TestValues)
-}
 func TestSnippet(t *testing.T) {
 	tests := []test_helper.TestItem{}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
@@ -175,6 +168,13 @@ func TestUsing(t *testing.T) {
 		{`StringClone("foo") + StringClone("bar")`, `StringClone("foobar")`},
 	}
 	test_helper.RunTest(t, "using_test.pf", tests, test_helper.TestValues)
+}
+func TestValidation(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`EvenNumber 2`, `EvenNumber(2)`},
+		{`EvenNumber 3`, `vm/validation/fail`},
+	}
+	test_helper.RunTest(t, "validation_test.pf", tests, test_helper.TestValues)
 }
 func TestVariablesAndConsts(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -293,3 +293,5 @@ func TestExternalOrImportChunking(t *testing.T) {
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestExternalOrImportChunking)
 }
+
+

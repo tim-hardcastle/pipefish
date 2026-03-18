@@ -515,7 +515,7 @@ loop:
 				}
 			case Clon:
 				if vm.Mem[args[1]].T != values.TYPE {
-					vm.Mem[args[0]] = vm.makeError("vm/clones/type", args[1])
+					vm.Mem[args[0]] = vm.makeError("vm/clones/type", args[2], args[1])
 					break Switch
 				}
 				abType := values.AbstractType{}

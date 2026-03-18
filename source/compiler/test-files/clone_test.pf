@@ -37,6 +37,9 @@ string(x vector) :
         vector from L = [] for i::el = range x :
             L + [el + y[i]]
 
+getClones(x) :
+    clones{x}
+
 newtype
 
 Person = struct(name, occupation string)

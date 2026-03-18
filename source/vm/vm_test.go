@@ -121,9 +121,21 @@ func TestClones(t *testing.T) {
 		{`StringClone("aardvark") == StringClone("zebra")`, `false`},
 		{`5 apples + 3 apples`, `apples(8)`},
 		{`clones{list}`, `clones{list}`},
+		{`getClones 42`, `vm/clones/type`},
 	}
 	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
 }
+
+func TestConcatenation(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`conc false, true`, `(1, 2, 3)`},
+		{`conc false, false`, `(1, 1)`},
+		{`conc true, false`, `(2, 3, 1)`},
+		{`conc true, true`, `(2, 3, 2, 3)`},
+	}
+	test_helper.RunTest(t, "concatenation_test.pf", tests, test_helper.TestValues)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`true : 5; else : 6`, `5`},
@@ -508,22 +520,13 @@ func TestReflection(t *testing.T) {
 	}
 	test_helper.RunTest(t, "reflect_test.pf", tests, test_helper.TestValues)
 }
-func TestRuntimeTypecheck(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`EvenNumber 2`, `EvenNumber(2)`},
-		{`EvenNumber 3`, `vm/validation/fail`},
-		{`Person "Doug", 42`, `Person with (name::"Doug", age::42)`},
-		{`Person "", 42`, `vm/validation/fail`},
-		{`Person "Doug", -99`, `vm/validation/fail`},
-	}
-	test_helper.RunTest(t, "runtime_typecheck_test.pf", tests, test_helper.TestValues)
-}
 
 func TestSnippet(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`(qux 5)[0]`, `"foo "`},
 		{`(qux 5)[1]`, `10`},
 		{`(qux 5)[2]`, `" bar"`},
+		{`snippet(1, "q", true)`, `snippet(1, "q", true)`},
 	}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
 }
@@ -610,6 +613,20 @@ func TestValid(t *testing.T) {
 		{`foo 0`, `Error`},
 	}
 	test_helper.RunTest(t, "valid_test.pf", tests, test_helper.TestValues)
+}
+func TestValidation(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`EvenNumber 2`, `EvenNumber(2)`},
+		{`EvenNumber 3`, `vm/validation/fail`},
+		{`Person "Doug", 42`, `Person with (name::"Doug", age::42)`},
+		{`Person "", 42`, `vm/validation/fail`},
+		{`Person "Doug", -99`, `vm/validation/fail`},
+		{`Thing 0`, `vm/user`},
+		{`Thing 1`, `vm/validation/bool`},
+		{`Thing 2`, `vm/validation/fail`},
+		{`Thing 3`, `Thing(3)`},
+	}
+	test_helper.RunTest(t, "validation_test.pf", tests, test_helper.TestValues)
 }
 func TestVariableAccessErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
