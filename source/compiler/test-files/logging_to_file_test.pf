@@ -1,0 +1,11 @@
+var
+
+$_logTo = "logtest.md"
+
+def
+
+qux(i int) :          \\ We're here.
+    i mod 2 == 0 :    \\ We test to see if i (|i|) is even, which is |i mod 2 == 0|.
+        "even"        \\ We return "even", because |i| is even.
+    else :            \\ Guess we're taking the 'else' branch.
+        "odd"         \\ And we return "odd".
