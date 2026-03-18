@@ -948,11 +948,11 @@ loop:
 					}
 				}
 			case Itgk:
-				vm.Mem[args[0]] = vm.Mem[args[1]].V.(values.Iterator).GetKey()
+				vm.Mem[args[0]] = vm.Mem[args[1]].V.(Iterator).GetKey()
 			case Itkv:
-				vm.Mem[args[0]], vm.Mem[args[1]] = vm.Mem[args[2]].V.(values.Iterator).GetKeyValuePair()
+				vm.Mem[args[0]], vm.Mem[args[1]] = vm.Mem[args[2]].V.(Iterator).GetKeyValuePair()
 			case Itgv:
-				vm.Mem[args[0]] = vm.Mem[args[1]].V.(values.Iterator).GetValue()
+				vm.Mem[args[0]] = vm.Mem[args[1]].V.(Iterator).GetValue()
 			case Itor:
 				vm.Mem[args[0]] = values.Value{values.RUNE, rune(vm.Mem[args[1]].V.(int))}
 			case IxSn:
@@ -1341,7 +1341,7 @@ loop:
 				}
 				continue
 			case Qitr:
-				if vm.Mem[args[0]].V.(values.Iterator).Unfinished() {
+				if vm.Mem[args[0]].V.(Iterator).Unfinished() {
 					loc = args[1]
 				} else {
 					loc = loc + 1
@@ -1449,8 +1449,6 @@ loop:
 				memToSave := make([]values.Value, highLoc-lowLoc)
 				copy(memToSave, vm.Mem[lowLoc:highLoc])
 				vm.recursionStack = append(vm.recursionStack, recursionData{memToSave, lowLoc})
-			case Rsit:
-				vm.Mem[args[0]].V.(values.Iterator).Reset()
 			case SliL:
 				vec := vm.Mem[args[1]].V.(vector.Vector)
 				ix := vm.Mem[args[2]].V.([]values.Value)
@@ -2133,16 +2131,16 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 	}
 	switch ty {
 	case values.INT:
-		return values.Value{values.ITERATOR, &values.IncIterator{StartVal: 0, MaxVal: container.V.(int), Val: 0}}
+		return values.Value{values.ITERATOR, &IncIterator{StartVal: 0, MaxVal: container.V.(int), Val: 0}}
 	case values.LIST:
 		if keysOnly {
-			return values.Value{values.ITERATOR, &values.KeyIncIterator{Max: container.V.(vector.Vector).Len()}}
+			return values.Value{values.ITERATOR, &KeyIncIterator{Max: container.V.(vector.Vector).Len()}}
 		} else {
-			return values.Value{values.ITERATOR, &values.ListIterator{VecIt: container.V.(vector.Vector).Iterator()}}
+			return values.Value{values.ITERATOR, &ListIterator{VecIt: container.V.(vector.Vector).Iterator()}}
 		}
 	case values.MAP:
 		mapAsSlice := container.V.(*values.Map).AsSlice()
-		return values.Value{values.ITERATOR, &values.MapIterator{KVPairs: mapAsSlice, Len: len(mapAsSlice)}}
+		return values.Value{values.ITERATOR, &MapIterator{KVPairs: mapAsSlice, Len: len(mapAsSlice)}}
 	case values.PAIR:
 		pair := container.V.([]values.Value)
 		left := pair[0]
@@ -2153,27 +2151,27 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 		leftV := left.V.(int)
 		rightV := right.V.(int)
 		if leftV <= rightV {
-			return values.Value{values.ITERATOR, &values.IncIterator{StartVal: leftV, MaxVal: rightV, Val: leftV}}
+			return values.Value{values.ITERATOR, &IncIterator{StartVal: leftV, MaxVal: rightV, Val: leftV}}
 		} else {
-			return values.Value{values.ITERATOR, &values.DecIterator{MinVal: rightV, StartVal: leftV - 1, Val: leftV - 1}}
+			return values.Value{values.ITERATOR, &DecIterator{MinVal: rightV, StartVal: leftV - 1, Val: leftV - 1}}
 		}
 	case values.SET:
 		setAsSlice := container.V.(values.Set).AsSlice()
-		return values.Value{values.ITERATOR, &values.SetIterator{Elements: setAsSlice, Len: len(setAsSlice)}}
+		return values.Value{values.ITERATOR, &SetIterator{Elements: setAsSlice, Len: len(setAsSlice)}}
 	case values.SNIPPET:
 		if keysOnly {
-			return values.Value{values.ITERATOR, &values.KeyIncIterator{Max: len(container.V.(values.Snippet).Data)}}
+			return values.Value{values.ITERATOR, &KeyIncIterator{Max: len(container.V.(values.Snippet).Data)}}
 		} else {
-			return values.Value{values.ITERATOR, &values.TupleIterator{Elements: container.V.(values.Snippet).Data, Len: len(container.V.(values.Snippet).Data)}}
+			return values.Value{values.ITERATOR, &TupleIterator{Elements: container.V.(values.Snippet).Data, Len: len(container.V.(values.Snippet).Data)}}
 		}
 	case values.STRING:
-			return values.Value{values.ITERATOR, &values.StringIterator{Str: container.V.(string)}}
+			return values.Value{values.ITERATOR, &StringIterator{Str: container.V.(string)}}
 	case values.TUPLE:
 		tupleElements := container.V.([]values.Value)
 		if keysOnly {
-			return values.Value{values.ITERATOR, &values.KeyIncIterator{Max: len(tupleElements)}}
+			return values.Value{values.ITERATOR, &KeyIncIterator{Max: len(tupleElements)}}
 		} else {
-			return values.Value{values.ITERATOR, &values.TupleIterator{Elements: tupleElements, Len: len(tupleElements)}}
+			return values.Value{values.ITERATOR, &TupleIterator{Elements: tupleElements, Len: len(tupleElements)}}
 		}
 	case values.TYPE:
 		abTyp := container.V.(values.AbstractType)
@@ -2185,13 +2183,13 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 			return vm.makeError("vm/for/type/b", tokLoc)
 		}
 		if keysOnly {
-			return values.Value{values.ITERATOR, &values.KeyIncIterator{Max: len(vm.ConcreteTypeInfo[typ].(EnumType).ElementNames)}}
+			return values.Value{values.ITERATOR, &KeyIncIterator{Max: len(vm.ConcreteTypeInfo[typ].(EnumType).ElementNames)}}
 		} else {
-			return values.Value{values.ITERATOR, &values.EnumIterator{Type: typ, Max: len(vm.ConcreteTypeInfo[typ].(EnumType).ElementNames)}}
+			return values.Value{values.ITERATOR, &EnumIterator{Type: typ, Max: len(vm.ConcreteTypeInfo[typ].(EnumType).ElementNames)}}
 		}
 	}
 	if typeInfo, ok := vm.ConcreteTypeInfo[ty].(StructType); ok {
-		return values.Value{values.ITERATOR, &values.StructIterator{Labels: typeInfo.LabelNumbers, Values: container.V.([]values.Value)}}
+		return values.Value{values.ITERATOR, &StructIterator{Labels: typeInfo.LabelNumbers, Values: container.V.([]values.Value)}}
 	}
 	return vm.makeError("vm/for/type/c", tokLoc)
 }

@@ -222,7 +222,6 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Ret:  {"ret", operands{}},
 	Rpop: {"rpop", operands{}},
 	Rpsh: {"rpsh", operands{num, num}},
-	Rsit: {"rsit", operands{dst}},
 	SliL: {"sliL", operands{dst, mem, mem, tok}},
 	Slis: {"slis", operands{dst, mem, mem, tok}},
 	SliT: {"sliT", operands{dst, mem, mem, tok}},
@@ -399,7 +398,6 @@ const (
 	Ret
 	Rpop
 	Rpsh
-	Rsit
 	SliL
 	Slis
 	SliT

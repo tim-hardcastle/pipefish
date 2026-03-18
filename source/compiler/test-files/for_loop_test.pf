@@ -90,6 +90,23 @@ count(x) :
     from a = 0 for i::_ = range x :
         a + 1  
 
+countTupleV(x tuple) :
+    from a = 0 for _::v = range x :
+        a + 1
+
+countV(x) :
+    from a = 0 for _::v = range x :
+        a + 1  
+
+countTupleKv(x tuple) :
+    from a = 0 for k::v = range x :
+        a + 1
+
+countKv(x) :
+    from a = 0 for k::v = range x :
+        a + 1  
+
+
 allKeys(x) :
     from L = [] for k:: _ = range x :
         L + [k]
