@@ -1,0 +1,13 @@
+def 
+
+foo(i int) :
+    i == 1 :
+        42
+    i == 2 :
+        "foo"
+
+zort(x, y int) :
+    12 div x == 12 div y
+
+comp(x, y any) :
+    x == y

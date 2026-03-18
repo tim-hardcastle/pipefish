@@ -149,6 +149,7 @@ func TestBuiltins(t *testing.T) {
 		{`rune 65`, `'A'`},
 		{`map "a"::1, "b"::2`, `map("a"::1, "b"::2)`},
 		{`set 1, 2, 3`, `set(1, 2, 3)`},
+		{`set(1, 2, 3) /\ set(2, 3, 4) == set(2, 3)`, `true`},
 		{`string 4.0`, `"4.0"`},
 		{`string 4`, `"4"`},
 		{`tuple 1`, `tuple(1)`},
@@ -230,8 +231,11 @@ func TestEquality(t *testing.T) {
 		{`map(1::2, 3::4) == map(1::2, 3::5)`, `false`},
 		{`map(1::2, 3::4) == map(1::2, 3::4, 5::6)`, `false`},
 		{`map(1::2, 3::4, 5::6) == map(1::2, 3::4)`, `false`},
+		{`comp(foo(1), foo(2))`, `vm/equals/type`},
+		{`zort 0, 1`, `vm/div/zero/c`},
+		{`zort 1, 0`, `vm/div/zero/c`},
 	}
-	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "equality_test", tests, test_helper.TestValues)
 }
 func TestEqualityCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -241,6 +245,14 @@ func TestEqualityCompilerErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
+func TestEval(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`eval "4"`, `4`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+}
+
 func TestExternals(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`zort.square 5`, `25`},
@@ -489,6 +501,12 @@ func TestInterfaces(t *testing.T) {
 		{`Fnug(5) in Foobarable`, `false`},
 	}
 	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
+}
+func TestLabels(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`label "qux"`, `qux`},
+	}
+	test_helper.RunTest(t, "labels_test.pf", tests, test_helper.TestValues)
 }
 func TestLambdas(t *testing.T) {
 	tests := []test_helper.TestItem{

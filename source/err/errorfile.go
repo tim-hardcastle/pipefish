@@ -3011,6 +3011,16 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"vm/equals/type": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "comparing value of type " + emph(args[0]) + " with value of type " + emph(args[1])
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return "In Pipefish, comparing two values of different types using `==` is considered an " +
+			"error."
+		},
+	},
+
 	"vm/for/type/a": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't range over given type"
@@ -3353,7 +3363,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"vm/label/exist": {
+	"vm/label/exists": {
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't convert string %v to a label", emphStr(args[0]))
 		},

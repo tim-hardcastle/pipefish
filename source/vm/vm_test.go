@@ -8,6 +8,16 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestAssignment(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`x`, `'q'`},
+		{`y`, `2`},
+		{`x rune, y int = 'z', 42`, `OK`},
+		{`y = 42`, `OK`},
+	}
+	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
+}
+
 func TestBuiltins(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`5.0 + 2.0`, `7.0`},
@@ -22,6 +32,11 @@ func TestBuiltins(t *testing.T) {
 		{`5 / 2`, `2.5`},
 		{`5 / 2.0`, `2.5`},
 		{`5.0 / 2`, `2.5`},
+		{`7 / 0`, `vm/div/zero/a`},
+		{`7.0 / 0.0`, `vm/div/zero/b`},
+		{`7 div 0`, `vm/div/zero/c`},
+		{`7.0 / 0`, `vm/div/zero/d`},
+		{`7 / 0.0`, `vm/div/zero/e`},
 		{`5.0 > 2.0`, `true`},
 		{`5.0 >= 2.0`, `true`},
 		{`5 > 2`, `true`},
@@ -69,6 +84,7 @@ func TestBuiltins(t *testing.T) {
 		{`rune 65`, `'A'`},
 		{`map "a"::1, "b"::2`, `map("a"::1, "b"::2)`},
 		{`set 1, 2, 3`, `set(1, 2, 3)`},
+		{`set(1, 2, 3) /\ set(2, 3, 4) == set(2, 3)`, `true`},
 		{`string 4.0`, `"4.0"`},
 		{`string 4`, `"4"`},
 		{`tuple 1`, `tuple(1)`},
@@ -159,6 +175,21 @@ func TestEof(t *testing.T) {
 		{`zort 42`, `42`},
 	}
 	test_helper.RunTest(t, "eof_test.pf", tests, test_helper.TestValues)
+}
+func TestEquality(t *testing.T) {
+	tests := []test_helper.TestItem{
+		
+		{`comp(foo(1), foo(2))`, `vm/equals/type`},
+		{`zort 0, 1`, `vm/div/zero/c`},
+		{`zort 1, 0`, `vm/div/zero/c`},
+	}
+	test_helper.RunTest(t, "equality_test", tests, test_helper.TestValues)
+}
+func TestEval(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`eval "4"`, `4`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
 func TestExternals(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -412,6 +443,14 @@ func TestJson(t *testing.T) {
 		{`decode PEOPLE_MAP like map{string, Person} == map("fred"::(Person with (name::"Fred", age::NULL)), "john"::(Person with (name::"John", age::22)))`, `true`},
 	}
 	test_helper.RunTest(t, "json_test.pf", tests, test_helper.TestValues)
+}
+
+func TestLabels(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`label "qux"`, `qux`},
+		{`label "blerp"`, `vm/label/exists`},
+	}
+	test_helper.RunTest(t, "labels_test.pf", tests, test_helper.TestValues)
 }
 func TestLiterals(t *testing.T) {
 	tests := []test_helper.TestItem{

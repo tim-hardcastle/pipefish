@@ -676,7 +676,7 @@ loop:
 					break
 				}
 				if vm.Mem[args[1]].T != vm.Mem[args[2]].T {
-					vm.Mem[args[0]] = vm.Mem[args[3]]
+					vm.Mem[args[0]] = vm.makeError("vm/equals/type", args[3], args[1], args[2], vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0), vm.DescribeType(vm.Mem[args[2]].T, LITERAL, 0))
 				} else {
 					vm.Mem[args[0]] = values.Value{values.BOOL, vm.equals(vm.Mem[args[1]], vm.Mem[args[2]])}
 				}
@@ -1149,7 +1149,7 @@ loop:
 				if ok {
 					vm.Mem[args[0]] = vm.Mem[labelNo]
 				} else {
-					vm.Mem[args[0]] = vm.makeError("vm/label/exist", args[2], stringToConvert)
+					vm.Mem[args[0]] = vm.makeError("vm/label/exists", args[2], stringToConvert)
 				}
 			case LenL:
 				vm.Mem[args[0]] = values.Value{values.INT, vm.Mem[args[1]].V.(vector.Vector).Len()}
