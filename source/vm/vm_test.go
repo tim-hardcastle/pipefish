@@ -43,6 +43,12 @@ func TestIndexingRtes(t *testing.T) {
 		{`goo myTuple, 0::"q"`, `vm/index/b`},
 		{`foo myWord, "p"::0`, `vm/index/a`},
 		{`foo myWord, 0::"q"`, `vm/index/b`},
+		{`foo myWord, -1::2`, `vm/index/c`},
+		{`foo myWord, 3::2`, `vm/index/d`},
+		{`foo myList, 1::99`, `vm/index/e`},
+		{`foo myWord, 1::99`, `vm/index/f`},
+		{`goo myTuple, 1::99`, `vm/index/r`},
+		{`foo myBool, 1::99`, `vm/index/g`},
 	}
 	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
 }

@@ -3238,10 +3238,11 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"vm/index/g": {
 		Message: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("upper bound %v of tuple slice is strictly greater than the arity %v of the tuple", emph(args[0]), args[1])
+			return fmt.Sprintf("can't slice value of type %v by a pair", emph(args[0]))
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
-			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
+			return fmt.Sprintf("You can slice things of type `tuple`, `list`, and `string`, plus the clones of lists and strings if " +
+			"you requested this by declaring the clone type.")
 		},
 	},
 

@@ -1027,12 +1027,12 @@ loop:
 					case values.TUPLE:
 						tup := container.V.([]values.Value)
 						if ix[1].V.(int) > len(tup) {
-							vm.Mem[args[0]] = vm.makeError("vm/index/r", args[3], ix[1].V.(int))
+							vm.Mem[args[0]] = vm.makeError("vm/index/r", args[3], ix[1].V.(int), len(tup))
 							break Switch
 						}
 						vm.Mem[args[0]] = values.Value{values.TUPLE, tup[ix[0].V.(int):ix[1].V.(int)]}
 					default:
-						vm.Mem[args[0]] = vm.makeError("vm/index/g", args[3])
+						vm.Mem[args[0]] = vm.makeError("vm/index/g", args[3], vm.DescribeType(container.T, LITERAL, 0))
 						break Switch
 					}
 				} else {
