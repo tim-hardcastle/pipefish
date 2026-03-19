@@ -46,7 +46,7 @@ func (vm *Vm) DescribeOperandValues(addr uint32) string {
 }
 
 func (vm *Vm) DescribeTypeAndValue(v values.Value, flavor descriptionFlavor, cpNumber uint32) string {
-	return vm.DescribeType(v.T, flavor, cpNumber) + "::" + vm.toString(v, flavor, cpNumber)
+	return vm.DescribeType(v.T, flavor, cpNumber) + "::" + vm.ToString(v, flavor, cpNumber)
 }
 
 func (vm *Vm) DescribeType(t values.ValueType, flavor descriptionFlavor, cpNumber uint32) string {
@@ -70,7 +70,7 @@ const (
 
 // TODO --- LITERAL should produce an error on being fed something unserializable.
 // Add an EXPLICIT option for LITERAL with fallback to STRING.
-func (vm *Vm) toString(v values.Value, flavor descriptionFlavor, cpNumber uint32) string {
+func (vm *Vm) ToString(v values.Value, flavor descriptionFlavor, cpNumber uint32) string {
 	typeInfo := vm.ConcreteTypeInfo[v.T]
 	var buf strings.Builder
 	if _, ok := typeInfo.(BuiltinType); !ok && flavor == LITERAL {
@@ -169,8 +169,8 @@ func (vm *Vm) toString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 		if ob.ErrorId != "vm/user" {
 			ob = err.CreateErr(ob.ErrorId, ob.Token, ob.Args...)
 		}
-		return text.NewMarkdown("", 92, func(s string)string{return s}).Render(
-			[]string{text.RT_ERROR+ob.Message+text.DescribePos(ob.Token)+"."})
+		return text.NewMarkdown("", 92, func(s string) string { return s }).Render(
+			[]string{text.RT_ERROR + ob.Message + text.DescribePos(ob.Token) + "."})
 	case values.FLOAT:
 		f := v.V.(float64)
 		if f == math.Trunc(f) {
@@ -344,19 +344,19 @@ func (vm *Vm) DescribeAbstractType(aT values.AbstractType, flavor descriptionFla
 }
 
 func (vm *Vm) DefaultDescription(v values.Value) string {
-	return vm.toString(v, DEFAULT, DUMMY)
+	return vm.ToString(v, DEFAULT, DUMMY)
 }
 
 func (vm *Vm) Literal(v values.Value, cpNumber uint32) string {
-	return vm.toString(v, LITERAL, cpNumber)
+	return vm.ToString(v, LITERAL, cpNumber)
 }
 
 func (vm *Vm) StringifyValue(v values.Value, flavor descriptionFlavor, cpNumber uint32) string {
 	if flavor == LITERAL {
-		return vm.toString(v, LITERAL, cpNumber)
+		return vm.ToString(v, LITERAL, cpNumber)
 	}
 	if v.T == values.TUPLE || v.T == values.SUCCESSFUL_VALUE || v.T == values.ERROR {
-		return vm.toString(v, flavor, cpNumber)
+		return vm.ToString(v, flavor, cpNumber)
 	}
 	vm.Mem[vm.StringifyLoReg] = v
 	vm.run(vm.StringifyCallTo, context.Background()) // TODO --- does this matter?
@@ -397,9 +397,9 @@ func (vm *Vm) DumpStore(store values.Map, password string) string {
 	var plaintext strings.Builder
 	plaintext.WriteString("PLAINTEXT\n")
 	for _, pair := range store.AsSlice() {
-		plaintext.WriteString(vm.toString(pair.Key, LITERAL, 0))
+		plaintext.WriteString(vm.ToString(pair.Key, LITERAL, 0))
 		plaintext.WriteString("::")
-		plaintext.WriteString(vm.toString(pair.Val, LITERAL, 0))
+		plaintext.WriteString(vm.ToString(pair.Val, LITERAL, 0))
 		plaintext.WriteString("\n")
 	}
 	if password == "" {

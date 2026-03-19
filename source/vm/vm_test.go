@@ -8,54 +8,43 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-func TestForLoops(t *testing.T) {
+func TestIndexingRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`fib 8`, `21`},
-		{`collatzA 42`, `1`},
-		{`collatzB 42`, `1`},
-		{`evens Color`, `[RED, YELLOW, BLUE]`},
-		{`evens "Angela"`, `['A', 'g', 'l']`},
-		{`evens myList`, `[PURPLE, GREEN, ORANGE]`},
-		{`find GREEN, Color`, `3`},
-		{`find GREEN, myList`, `2`},
-		{`find GREEN, myMap`, `"c"`},
-		{`find "bar", mySnippet`, `1`},
-		{`findInTuple "c", myTuple`, `2`},
-		{`allKeys myList`, `[0, 1, 2, 3, 4, 5]`},
-		{`allKeys "Angela"`, `[0, 1, 2, 3, 4, 5]`},
-		{`allValues myList`, `[PURPLE, BLUE, GREEN, YELLOW, ORANGE, RED]`},
-		{`showRange 3, 8`, `[0::3, 1::4, 2::5, 3::6, 4::7]`},
-		{`showRangeKeys 3, 8`, `[0, 1, 2, 3, 4]`},
-		{`showRangeValues 3, 8`, `[3, 4, 5, 6, 7]`},
-		{`showRange 8, 3`, `[0::7, 1::6, 2::5, 3::4, 4::3]`},
-		{`showRangeKeys 8, 3`, `[0, 1, 2, 3, 4]`},
-		{`showRangeValues 8, 3 `, `[7, 6, 5, 4, 3]`},
-		{`x`, `10`},
-		{`triangle 4`, `10`},
-		{`countTuple myOtherTuple`, `3`},
-		{`countTupleV myOtherTuple`, `3`},
-		{`countTupleKv myOtherTuple`, `3`},
-		{`count myPoint`, `2`},
-		{`count mySnippet`, `3`},
-		{`count Color`, `6`},
-		{`count myMap`, `3`},
-		{`count myList`, `6`},
-		{`count mySet`, `5`},
-		{`countV myMap`, `3`},
-		{`countV myPoint`, `2`},
-		{`countV mySnippet`, `3`},
-		{`countV Color`, `6`},
-		{`countV "Angela"`, `6`},
-		{`countV myList`, `6`},
-		{`countKv myPoint`, `2`},
-		{`countKv mySnippet`, `3`},
-		{`countKv Color`, `6`},
-		{`countKv mySet`, `5`},
-		{`addTuple myOtherTuple`, `6`},
-		{`add myPoint`, `3`},
-		{`add myOtherSet`, `6`},
+		{`myTuple[-1]`, `vm/index/m`},
+		{`mySnippet[-1]`, `vm/index/s`},
+		{`myList[-1]`, `vm/index/list`},
+		{`myWord[-1]`, `vm/index/string`},
+		{`myPair[-1]`, `vm/index/pair`},
+		{`myTuple[99]`, `vm/index/m`},
+		{`mySnippet[99]`, `vm/index/s`},
+		{`myList[99]`, `vm/index/list`},
+		{`myWord[99]`, `vm/index/string`},
+		{`myPair[99]`, `vm/index/pair`},
+		{`myMap[99]`, `vm/index/h`},
+		{`myList["p"::0]`, `vm/slice/list/a`},
+		{`myList[0::"q"]`, `vm/slice/list/b`},
+		{`myTuple["p"::0]`, `vm/index/a`},
+		{`myTuple[0::"q"]`, `vm/index/b`},
+		{`myWord["p"::0]`, `vm/slice/string/a`},
+		{`myWord[0::"q"]`, `vm/slice/string/b`},
+		{`goo myTuple, -1`, `vm/index/m`},
+		{`foo myList, -1`, `vm/index/j`},
+		{`foo myWord, -1`, `vm/index/l`},
+		{`foo myPair, -1`, `vm/index/k`},
+		{`goo myTuple, 99`, `vm/index/m`},
+		{`foo mySnippet, 99`, `vm/index/s`},
+		{`foo myList, 99`, `vm/index/j`},
+		{`foo myWord, 99`, `vm/index/l`},
+		{`foo myPair, 99`, `vm/index/k`},
+		{`foo myMap, 99`, `vm/index/h`},
+		{`foo myList, "p"::0`, `vm/index/a`},
+		{`foo myList, 0::"q"`, `vm/index/b`},
+		{`goo myTuple, "p"::0`, `vm/index/a`},
+		{`goo myTuple, 0::"q"`, `vm/index/b`},
+		{`foo myWord, "p"::0`, `vm/index/a`},
+		{`foo myWord, 0::"q"`, `vm/index/b`},
 	}
-	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
 }
 
 func TestAssignment(t *testing.T) {
@@ -225,6 +214,7 @@ func TestEnums(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Color 2`, `BLUE`},
 		{`Color 3`, `vm/enum`},
+		{`int BLUE`, `2`},
 	}
 	test_helper.RunTest(t, "enums_test.pf", tests, test_helper.TestValues)
 }
@@ -286,7 +276,55 @@ func TestForLoopRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
-
+func TestForLoops(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`fib 8`, `21`},
+		{`collatzA 42`, `1`},
+		{`collatzB 42`, `1`},
+		{`evens Color`, `[RED, YELLOW, BLUE]`},
+		{`evens "Angela"`, `['A', 'g', 'l']`},
+		{`evens myList`, `[PURPLE, GREEN, ORANGE]`},
+		{`find GREEN, Color`, `3`},
+		{`find GREEN, myList`, `2`},
+		{`find GREEN, myMap`, `"c"`},
+		{`find "bar", mySnippet`, `1`},
+		{`findInTuple "c", myTuple`, `2`},
+		{`allKeys myList`, `[0, 1, 2, 3, 4, 5]`},
+		{`allKeys "Angela"`, `[0, 1, 2, 3, 4, 5]`},
+		{`allValues myList`, `[PURPLE, BLUE, GREEN, YELLOW, ORANGE, RED]`},
+		{`showRange 3, 8`, `[0::3, 1::4, 2::5, 3::6, 4::7]`},
+		{`showRangeKeys 3, 8`, `[0, 1, 2, 3, 4]`},
+		{`showRangeValues 3, 8`, `[3, 4, 5, 6, 7]`},
+		{`showRange 8, 3`, `[0::7, 1::6, 2::5, 3::4, 4::3]`},
+		{`showRangeKeys 8, 3`, `[0, 1, 2, 3, 4]`},
+		{`showRangeValues 8, 3 `, `[7, 6, 5, 4, 3]`},
+		{`x`, `10`},
+		{`triangle 4`, `10`},
+		{`countTuple myOtherTuple`, `3`},
+		{`countTupleV myOtherTuple`, `3`},
+		{`countTupleKv myOtherTuple`, `3`},
+		{`count myPoint`, `2`},
+		{`count mySnippet`, `3`},
+		{`count Color`, `6`},
+		{`count myMap`, `3`},
+		{`count myList`, `6`},
+		{`count mySet`, `5`},
+		{`countV myMap`, `3`},
+		{`countV myPoint`, `2`},
+		{`countV mySnippet`, `3`},
+		{`countV Color`, `6`},
+		{`countV "Angela"`, `6`},
+		{`countV myList`, `6`},
+		{`countKv myPoint`, `2`},
+		{`countKv mySnippet`, `3`},
+		{`countKv Color`, `6`},
+		{`countKv mySet`, `5`},
+		{`addTuple myOtherTuple`, `6`},
+		{`add myPoint`, `3`},
+		{`add myOtherSet`, `6`},
+	}
+	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
+}
 func TestFunctionSharing(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`C(1, 2) in Addable`, `true`},
@@ -434,6 +472,7 @@ func TestIndexing(t *testing.T) {
 	}
 	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
 }
+
 func TestInnerFunctionsAndVariables(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 42`, `42`},

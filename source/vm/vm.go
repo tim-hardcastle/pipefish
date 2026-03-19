@@ -863,7 +863,7 @@ loop:
 				if ok {
 					vm.Mem[args[0]] = pair[ix]
 				} else {
-					vm.Mem[args[0]] = vm.makeError("vm/index/pair", args[3])
+					vm.Mem[args[0]] = vm.makeError("vm/index/pair", args[3], ix)
 				}
 			case Idxs:
 				str := vm.Mem[args[1]].V.(string)
@@ -956,9 +956,20 @@ loop:
 			case Itor:
 				vm.Mem[args[0]] = values.Value{values.RUNE, rune(vm.Mem[args[1]].V.(int))}
 			case IxSn:
-				vm.Mem[args[0]] = vm.Mem[args[1]].V.(values.Snippet).Data[vm.Mem[args[2]].V.(int)]
+				ix := vm.Mem[args[2]].V.(int)
+				if ix < 0 || ix >= len(vm.Mem[args[1]].V.(values.Snippet).Data) {
+					vm.Mem[args[0]] = vm.makeError("vm/index/s", args[3], ix)
+				} else {
+					vm.Mem[args[0]] = vm.Mem[args[1]].V.(values.Snippet).Data[ix]
+				}
 			case IxTn:
-				vm.Mem[args[0]] = vm.Mem[args[1]].V.([]values.Value)[args[2]]
+				ix := int(args[2])
+				container := vm.Mem[args[1]].V.([]values.Value)
+				if ix < 0 || ix >= len(container) {
+					vm.Mem[args[0]] = vm.makeError("vm/index/tuple", args[3], ix)
+				} else {
+					vm.Mem[args[0]] = container[args[2]]
+				}
 			case IxXx:
 				container := vm.Mem[args[1]]
 				if container.T == values.ERROR {

@@ -1,1 +1,0 @@
-This supplies the necessary magic for GitHub to run the tests for the project.

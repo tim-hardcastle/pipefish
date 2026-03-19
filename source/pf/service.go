@@ -1,12 +1,19 @@
 package pf
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"reflect"
+	"strings"
+
+	"golang.org/x/crypto/pbkdf2"
 
 	"github.com/tim-hardcastle/pipefish/source/compiler"
 	"github.com/tim-hardcastle/pipefish/source/err"
@@ -702,7 +709,33 @@ var DEFAULT_TYPE_FOR = map[Type]reflect.Type{
 // Serializes a Map of Values into newline-separated key-value pairs, encrypting if the
 // password is non-empty, and heading the result with "PLAINTEXT\n" if the password is empty.
 func (sv *Service) WriteSecret(store values.Map, password string) string {
-	return sv.cp.Vm.DumpStore(store, password)
+	var plaintext strings.Builder
+	plaintext.WriteString("PLAINTEXT\n")
+	for _, pair := range store.AsSlice() {
+		plaintext.WriteString(sv.cp.Vm.ToString(pair.Key, vm.LITERAL, 0))
+		plaintext.WriteString("::")
+		plaintext.WriteString(sv.cp.Vm.ToString(pair.Val, vm.LITERAL, 0))
+		plaintext.WriteString("\n")
+	}
+	if password == "" {
+		return plaintext.String()
+	}
+	plaintext.WriteString(strings.Repeat(" ", aes.BlockSize-plaintext.Len()%aes.BlockSize))
+	salt := make([]byte, 32)
+	rand.Read(salt)
+	key := pbkdf2.Key([]byte(password), salt, 65536, 32, sha256.New) // sha256 has nothing to do with it but the API is stupid.
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	// We also use salt for the AES cypher (the salt being called `iv` below because the people
+	// I copied the code from have a sense of humor).
+	ciphertext := make([]byte, aes.BlockSize+plaintext.Len())
+	iv := ciphertext[:aes.BlockSize]
+	rand.Read(iv)
+	mode := cipher.NewCBCEncrypter(block, iv)
+	mode.CryptBlocks(ciphertext[aes.BlockSize:], []byte(plaintext.String()))
+	return string(salt) + string(ciphertext)
 }
 
 // This highlights the given string on the assumption that it's Pipefish

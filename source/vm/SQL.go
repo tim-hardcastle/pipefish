@@ -88,7 +88,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 				valVal = values.Value{secondType, valVals}
 			}
 			if _, ok := mp.Get(keyVal); ok {
-				return vm.makeError("sql/map/exists", tok, vm.toString(keyVal, LITERAL, 0))
+				return vm.makeError("sql/map/exists", tok, vm.ToString(keyVal, LITERAL, 0))
 			}
 			mp = mp.Set(keyVal, valVal)
 		}
@@ -213,11 +213,11 @@ func (vm *Vm) getPfRow(rows *sql.Rows, pointerList []any, typeNumber values.Valu
 		return fields[0]
 	}
 	typecheck := vm.getTypecheck(typeNumber)
-	if typecheck != nil { 
+	if typecheck != nil {
 		vm.Mem[typecheck.TokNumberLoc] = values.Value{values.INT, int(tok)}
 		for i, v := range fields {
 			vm.Mem[typecheck.InLoc+uint32(i)] = v
-		} 
+		}
 		vm.Mem[typecheck.ResultLoc] = values.Value{values.SUCCESSFUL_VALUE, nil}
 		vm.run(typecheck.CallAddress, ctx)
 		if vm.Mem[typecheck.ResultLoc].T == values.ERROR {

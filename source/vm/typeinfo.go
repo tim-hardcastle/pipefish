@@ -17,7 +17,6 @@ const (
 
 type TypeInformation interface {
 	GetName(flavor descriptionFlavor) string
-	getPath() string
 	IsEnum() bool
 	IsStruct() bool
 	isSnippet() bool
@@ -59,10 +58,6 @@ func (t BuiltinType) IsWrapperType() bool {
 
 func (t BuiltinType) IsPrivate() bool {
 	return false
-}
-
-func (t BuiltinType) getPath() string {
-	return ""
 }
 
 func (t BuiltinType) IsMandatoryImport() bool {
@@ -116,10 +111,6 @@ func (t EnumType) IsClone() bool {
 
 func (t EnumType) IsWrapperType() bool {
 	return false
-}
-
-func (t EnumType) getPath() string {
-	return t.Path
 }
 
 func (t EnumType) IsMandatoryImport() bool {
@@ -184,10 +175,6 @@ func (t CloneType) IsWrapperType() bool {
 	return false
 }
 
-func (t CloneType) getPath() string {
-	return t.Path
-}
-
 func (t CloneType) IsMandatoryImport() bool {
 	return t.IsMI
 }
@@ -248,10 +235,6 @@ func (t StructType) IsWrapperType() bool {
 
 func (t StructType) Len() int {
 	return len(t.LabelNumbers)
-}
-
-func (t StructType) getPath() string {
-	return t.Path
 }
 
 func (t StructType) IsMandatoryImport() bool {
@@ -319,10 +302,6 @@ func (t WrapperType) IsClone() bool {
 
 func (t WrapperType) IsWrapperType() bool {
 	return true
-}
-
-func (t WrapperType) getPath() string {
-	return t.Path
 }
 
 func (t WrapperType) IsMandatoryImport() bool {
