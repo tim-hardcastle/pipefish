@@ -1792,10 +1792,6 @@ loop:
 					if !ok {
 						break
 					}
-					if pair.T != values.PAIR {
-						vm.Mem[args[0]] = vm.makeError("vm/with/pair", args[2])
-						break Switch
-					}
 					key := pair.V.([]values.Value)[0]
 					val := pair.V.([]values.Value)[1]
 					if key.T != values.LABEL {
@@ -1805,10 +1801,6 @@ loop:
 					keyNumber := typeInfo.Resolve(key.V.(int))
 					if keyNumber == -1 {
 						vm.Mem[args[0]] = vm.makeError("vm/with/type/e", args[2], vm.DefaultDescription(key), vm.DescribeType(typ, LITERAL, 0))
-						break Switch
-					}
-					if outVals[keyNumber].T != values.UNDEFINED_TYPE {
-						vm.Mem[args[0]] = vm.makeError("vm/with/type/f", args[2], vm.DefaultDescription(key))
 						break Switch
 					}
 					outVals[keyNumber] = val
