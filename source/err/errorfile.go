@@ -3128,6 +3128,15 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"vm/index/label": {
+		Message: func(tok *token.Token, args ...any) string {
+			return fmt.Sprintf("trying to index a struct by something of type %v`", emph(args[0]))
+		},
+		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			return fmt.Sprintf("A struct can only be indexed by something of type `label`.")
+		},
+	},
+
 	"vm/index/list": {
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v is out of range `0::%v`", emph(args[0]), args[1])
@@ -3392,7 +3401,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"vm/mod/int": {
+	"vm/mod/zero": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "taking the modulus of a number by zero"
 		},

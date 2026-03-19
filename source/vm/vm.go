@@ -618,7 +618,7 @@ loop:
 					break Switch
 				}
 				// The normal case.
-				// The code here is repeated with a few twists in a very non-DRY in `vmgo` and any changes necessary here will probably need to be copied there.
+				// The code here is repeated with a few twists in a very non-DRY way in the go handler and any changes necessary here will probably need to be copied there.
 				if len(args)-2 != len(lambda.Sig) { // TODO: variadics.
 					vm.Mem[args[0]] = values.Value{values.ERROR, err.CreateErr("vm/func/args", lambda.Tok)}
 					break Switch
@@ -962,14 +962,10 @@ loop:
 				} else {
 					vm.Mem[args[0]] = vm.Mem[args[1]].V.(values.Snippet).Data[ix]
 				}
+			// This is emitted by `function_call` and the typechecking logic and so the index should
+			// be correct ad no bounds-checking is required.
 			case IxTn:
-				ix := int(args[2])
-				container := vm.Mem[args[1]].V.([]values.Value)
-				if ix < 0 || ix >= len(container) {
-					vm.Mem[args[0]] = vm.makeError("vm/index/tuple", args[3], ix)
-				} else {
-					vm.Mem[args[0]] = container[args[2]]
-				}
+				vm.Mem[args[0]] = (vm.Mem[args[1]].V.([]values.Value))[args[2]]
 			case IxXx:
 				container := vm.Mem[args[1]]
 				if container.T == values.ERROR {
@@ -985,11 +981,11 @@ loop:
 				if cloneInfo, ok := vm.ConcreteTypeInfo[indexType].(CloneType); ok {
 					indexType = cloneInfo.Parent
 				}
+				containerType := container.T
+				if cloneInfo, ok := vm.ConcreteTypeInfo[containerType].(CloneType); ok {
+					containerType = cloneInfo.Parent
+				}
 				if indexType == values.PAIR { // Then we're slicing.
-					containerType := container.T
-					if cloneInfo, ok := vm.ConcreteTypeInfo[containerType].(CloneType); ok && cloneInfo.IsSliceable {
-						containerType = cloneInfo.Parent
-					}
 					ix := vm.Mem[args[2]].V.([]values.Value)
 					if ix[0].T != values.INT {
 						vm.Mem[args[0]] = vm.makeError("vm/index/a", args[3], vm.DescribeType(ix[0].T, LITERAL, 0))
@@ -1008,7 +1004,7 @@ loop:
 						break Switch
 					}
 					// We switch on the type of the lhs.
-					switch container.T {
+					switch containerType {
 					case values.LIST:
 						vec := vm.Mem[args[1]].V.(vector.Vector)
 						if ix[1].V.(int) > vec.Len() {
@@ -1037,19 +1033,19 @@ loop:
 					}
 				} else {
 					// Otherwise it's not a slice. We switch on the type of the lhs.
-					containerType := container.T
-					if cloneInfo, ok := vm.ConcreteTypeInfo[containerType].(CloneType); ok {
-						containerType = cloneInfo.Parent
-					}
 					typeInfo := vm.ConcreteTypeInfo[containerType]
 					if typeInfo.IsStruct() {
+						if vm.Mem[args[2]].T != values.LABEL {
+							vm.Mem[args[0]] = vm.makeError("vm/index/label", args[3], args[2], vm.DescribeType(vm.Mem[args[2]].T, LITERAL, 0))
+							break Switch
+						}
 						ix := typeInfo.(StructType).Resolve(vm.Mem[args[2]].V.(int))
 						if ix == -1 {
 							vm.Mem[args[0]] = vm.makeError("vm/index/t", args[3], typeInfo.(StructType).Name, vm.Labels[vm.Mem[args[2]].V.(int)])
 						} else {
 							vm.Mem[args[0]] = vm.Mem[args[1]].V.([]values.Value)[ix]
 						}
-						break
+						break Switch
 					}
 					if containerType == values.MAP {
 						mp := container.V.(*values.Map)
@@ -1132,7 +1128,7 @@ loop:
 				ix := typeInfo.Resolve(vm.Mem[args[2]].V.(int))
 				if ix == -1 {
 					vm.Mem[args[0]] = vm.makeError("vm/index/u", args[3], vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0), vm.DefaultDescription(vm.Mem[args[2]]))
-					continue
+					break Switch
 				}
 				vm.Mem[args[0]] = vm.Mem[args[1]].V.([]values.Value)[ix]
 			case IxZn:
@@ -1250,7 +1246,7 @@ loop:
 			case Modi:
 				divisor := vm.Mem[args[2]].V.(int)
 				if divisor == 0 {
-					vm.Mem[args[0]] = vm.makeError("vm/mod/int", args[3])
+					vm.Mem[args[0]] = vm.makeError("vm/mod/zero", args[3])
 				} else {
 					vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(int) % vm.Mem[args[2]].V.(int)}
 				}

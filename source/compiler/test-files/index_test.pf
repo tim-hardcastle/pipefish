@@ -8,6 +8,12 @@ Shade = enum LIGHT, MEDIUM, DARK
 
 Tone = struct(shade Shade, color Color)
 
+Quark = struct(color Color, charm int)
+
+Clist = clone list using slice
+
+Cint = clone int 
+
 const 
 
 DARK_BLUE = Tone DARK, BLUE 
@@ -16,7 +22,13 @@ KEY = shade
 
 var
 
+myClist = Clist [RED, GREEN, BLUE] 
+
+myCint = Cint 2
+
 myColor = Tone LIGHT, GREEN 
+
+mySubatomicParticle = Quark BLUE, 0
 
 key = shade 
 
@@ -44,6 +56,8 @@ mySnippet = -- foo |"bar"| troz |"zort"|
 
 myBool = true
 
+
+
 def // Indexing when we don't know the types in advance is a different compilation from when we know one or both.
 
 foo(x, y) :
@@ -52,3 +66,21 @@ foo(x, y) :
 goo(x tuple, y) :
     x[y]
 
+ixs(S struct, k label) :
+    S[k]
+
+ixE(a, b bool) :
+    (listOrError a)[numberOrError b]
+
+listOrError(b bool) :
+    b :
+        error "this is my error"
+    else :
+        [0, 1, 2, 3]
+
+numberOrError(b bool) :
+    b :
+        error "this is my error"
+    else :
+        2
+    

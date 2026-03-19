@@ -10,6 +10,23 @@ import (
 
 func TestIndexingRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
+		{`[RED, GREEN, BLUE][true::2]`, `vm/slice/list/a`},
+		{`[RED, GREEN, BLUE][2::true]`, `vm/slice/list/b`},
+		{`[RED, GREEN, BLUE][-1::2]`, `vm/slice/list/c`},
+		{`[RED, GREEN, BLUE][3::2]`, `vm/slice/list/d`},
+		{`[RED, GREEN, BLUE][0::99]`, `vm/slice/list/e`},
+		{`"aardvark"[true::2]`, `vm/slice/string/a`},
+		{`"aardvark"[2::true]`, `vm/slice/string/b`},
+		{`"aardvark"[-1::2]`, `vm/slice/string/c`},
+		{`"aardvark"[3::2]`, `vm/slice/string/d`},
+		{`"aardvark"[0::99]`, `vm/slice/string/e`},
+		{`(1, 2, 3)[true::2]`, `vm/slice/tuple/a`},
+		{`(1, 2, 3)[2::true]`, `vm/slice/tuple/b`},
+		{`(1, 2, 3)[-1::2]`, `vm/slice/tuple/c`},
+		{`(1, 2, 3)[3::2]`, `vm/slice/tuple/d`},
+		{`(1, 2, 3)[0::99]`, `vm/slice/tuple/e`},
+		{`ixE true, false`, `vm/user`},
+		{`ixE false, true`, `vm/user`},
 		{`myTuple[-1]`, `vm/index/m`},
 		{`mySnippet[-1]`, `vm/index/s`},
 		{`myList[-1]`, `vm/index/list`},
@@ -49,6 +66,12 @@ func TestIndexingRtes(t *testing.T) {
 		{`foo myWord, 1::99`, `vm/index/f`},
 		{`goo myTuple, 1::99`, `vm/index/r`},
 		{`foo myBool, 1::99`, `vm/index/g`},
+		{`foo myColor, charm`, `vm/index/t`},
+		{`foo myColor, true`, `vm/index/label`},
+		{`foo [1, 2, 3], "aardvark"`, `vm/index/i`},
+		{`foo [1, 2, 3], -1`, `vm/index/j`},
+		{`foo true, -1`, `vm/index/q`},
+		{`ixs myColor, charm`, `vm/index/u`},
 	}
 	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
 }
@@ -82,6 +105,7 @@ func TestBuiltins(t *testing.T) {
 		{`7 div 0`, `vm/div/zero/c`},
 		{`7.0 / 0`, `vm/div/zero/d`},
 		{`7 / 0.0`, `vm/div/zero/e`},
+		{`7 mod 0`, `vm/mod/zero`},
 		{`5.0 > 2.0`, `true`},
 		{`5.0 >= 2.0`, `true`},
 		{`5 > 2`, `true`},
@@ -118,6 +142,7 @@ func TestBuiltins(t *testing.T) {
 		{`5 in int?`, `true`},
 		{`int 5.2`, `5`},
 		{`int "5"`, `5`},
+		{`len keys (map "a"::1, "b"::2, "c"::3)`, `3`},
 		{`len [1, 2, 3]`, `3`},
 		{`len (map "a"::1, "b"::2, "c"::3)`, `3`},
 		{`len set 1, 2, 3`, `3`},
@@ -463,6 +488,7 @@ func TestIndexing(t *testing.T) {
 		{`myMap["a"]`, `[1, 2]`},
 		{`foo myMap, myIndex`, `[1, 2]`},
 		{`foo myList, myNumber`, `[5, 6]`},
+		{`foo myList, 0::1`, `[[1, 2]]`},
 		{`foo myColor, key`, `LIGHT`},
 		{`foo myPair, myOtherNumber`, `"bar"`},
 		{`foo myWord, myNumber`, `'g'`},
@@ -475,9 +501,13 @@ func TestIndexing(t *testing.T) {
 		{`goo myTuple, myNumber`, `3`},
 		{`foo mySnippet, myNumber`, `" troz "`},
 		{`foo myWord, myIntPair`, `"An"`},
+		{`foo myClist, myCint`, `BLUE`},
+		{`foo myClist, myIntPair`, `Clist[RED, GREEN]`},
 	}
 	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
 }
+
+
 
 func TestInnerFunctionsAndVariables(t *testing.T) {
 	tests := []test_helper.TestItem{
