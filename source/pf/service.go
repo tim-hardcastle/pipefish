@@ -373,7 +373,7 @@ func (sv *Service) GetErrorReport() (string, error) {
 func GetTraceReport(e *err.Error) string {
 	result := text.RT_ERROR + e.Message + "\n\n"
 	for i := len(e.Trace) - 1; i >= 0; i-- {
-		result = result + "  From: " + text.DescribeTok(e.Trace[i]) + text.DescribePos(e.Trace[i]) + "."
+		result = result + "  From: " + err.DescribeTok(e.Trace[i]) + err.DescribePos(e.Trace[i]) + "."
 	}
 	return result + "\n"
 }

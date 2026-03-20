@@ -219,7 +219,7 @@ func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external b
 			e = err.CreateErr(e.ErrorId, e.Token, e.Args...)
 		}
 		hub.WriteString("\n")
-		hub.WritePretty("[0] " + text.ERROR + e.Message + text.DescribePos(e.Token)+".")
+		hub.WritePretty("[0] " + text.ERROR + e.Message + err.DescribePos(e.Token)+".")
 		hub.WriteString("\n\n")
 		hub.ers = []*pf.Error{val.V.(*pf.Error)}
 		if len(val.V.(*pf.Error).Values) > 0 {
@@ -899,7 +899,7 @@ func (hub *Hub) createService(name, scriptFilepath string) bool {
 			println("Filepath is", scriptFilepath)
 			println("Pipefish: unable to compile hub: " + newService.GetErrors()[0].ErrorId + ".")
 			println(newService.GetErrors()[0].Message)
-			println(text.DescribePos(newService.GetErrors()[0].Token))
+			println(err.DescribePos(newService.GetErrors()[0].Token))
 			panic("That's all folks!")
 		}
 		if !newService.IsInitialized() {

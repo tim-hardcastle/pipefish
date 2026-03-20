@@ -8,10 +8,8 @@ package text
 
 import (
 	"os"
-	"strconv"
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/token"
 	"golang.org/x/term"
 )
 
@@ -49,50 +47,7 @@ func ErrorFont(s string) string {
 	return BAD_RED + UNDERLINE + s + RESET
 }
 
-func DescribePos(token *token.Token) string {
-	if token == nil {
-		return ""
-	}
-	prettySource := token.Source
-	if prettySource == "" {
-		return ""
-	}
-	if prettySource != "REPL input" {
-		prettySource = "<C>\"" + prettySource + "\"</>"
-	}
-	if token.Line > 0 {
-		result := strconv.Itoa(token.Line) + ":" + strconv.Itoa(token.ChStart)
-		if token.ChStart != token.ChEnd {
-			result = result + "-" + strconv.Itoa(token.ChEnd)
-		}
-		result = " at line <Y>" + result + "</> "
-		return result + "of " + prettySource + ""
-	}
-	return " in " + prettySource + ""
-}
 
-// Describes a token for the purposes of error messages etc.
-func DescribeTok(tok *token.Token) string {
-	switch tok.Type {
-	case token.LPAREN:
-		if tok.Literal == "|->" {
-			return "indent"
-		}
-	case token.RPAREN:
-		if tok.Literal == "<-|" {
-			return "outdent"
-		}
-	case token.NEWLINE:
-		if tok.Literal == "\n" {
-			return "newline"
-		}
-	case token.EOF:
-		return "end of line"
-	case token.STRING:
-		return "`\"" + tok.Literal + "\"`"
-	}
-	return "`" + tok.Literal + "`"
-}
 
 
 const (

@@ -3,7 +3,6 @@ package err
 import (
 	"strings"
 
-	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/token"
 
 	"fmt"
@@ -1431,13 +1430,13 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/enum/expect": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "wasn't expecting " + text.DescribeTok(tok)
+			return "wasn't expecting " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects an enum declaration to take the form:" +
 				"\n\n|-----------------------------------------------\n\n" +
 				"def\n\nMyEnumName = enum FOO, BAR, TROZ\n\n|-\n\n" + "The right hand side of the expression that " +
-				"you have supplied is defective because it has an unxpected " + text.DescribeTok(tok) + "."
+				"you have supplied is defective because it has an unxpected " + DescribeTok(tok) + "."
 		},
 	},
 
@@ -1467,13 +1466,13 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/enum/ident": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "expected identifier, got " + text.DescribeTok(tok)
+			return "expected identifier, got " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects an enum declaration to take the form:" +
 				"\n\n|-----------------------------------------------\n\n" +
 				"def\n\nMyEnumName = enum FOO, BAR, TROZ\n\n|-\n\n" + "The right hand side of the expression that " +
-				"you have supplied is defective because it has a " + text.DescribeTok(tok) + " where " +
+				"you have supplied is defective because it has a " + DescribeTok(tok) + " where " +
 				"Pipefish was expecting one of the elements of the enum."
 		},
 	},
@@ -1544,7 +1543,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/head": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "unexpected occurrence of " + text.DescribeTok(tok) + " without a headword"
+			return "unexpected occurrence of " + DescribeTok(tok) + " without a headword"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects every part of your script to go in a section headed by one of the headwords " +
@@ -1676,7 +1675,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/name/exists/a": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "definition of " + emph(args[1]) + text.DescribePos((args[0]).(*token.Token)) +
+			return "definition of " + emph(args[1]) + DescribePos((args[0]).(*token.Token)) +
 				" conflicts with definition"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
@@ -1686,7 +1685,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/name/exists/b": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "definition of " + emph(args[1]) + text.DescribePos((args[0]).(*token.Token)) +
+			return "definition of " + emph(args[1]) + DescribePos((args[0]).(*token.Token)) +
 				" conflicts with definition"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
@@ -1696,7 +1695,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/name/exists/c": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "definition of " + emph(args[1]) + text.DescribePos((args[0]).(*token.Token)) +
+			return "definition of " + emph(args[1]) + DescribePos((args[0]).(*token.Token)) +
 				" conflicts with definition"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
@@ -1706,7 +1705,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/overload/a": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "too much overloading: function " + emph(args[0]) + " defined" + text.DescribePos(args[1].(*token.Token)) + " conflicts with another version of the same function defined at"
+			return "too much overloading: function " + emph(args[0]) + " defined" + DescribePos(args[1].(*token.Token)) + " conflicts with another version of the same function defined at"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish allows for multiple dispatch, i.e. you could write two functions like this and the result " +
@@ -1729,7 +1728,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/overload/b": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "too much overloading: function " + emph(args[0]) + " defined" + text.DescribePos(args[1].(*token.Token)) + " conflicts with another version of the same function defined at"
+			return "too much overloading: function " + emph(args[0]) + " defined" + DescribePos(args[1].(*token.Token)) + " conflicts with another version of the same function defined at"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish allows for multiple dispatch, i.e. you could write two functions like this and the result " +
@@ -1752,7 +1751,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/overload/c": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "too much overloading: function " + emph(args[0]) + " defined" + text.DescribePos(args[1].(*token.Token)) + " conflicts with another version of the same function defined at"
+			return "too much overloading: function " + emph(args[0]) + " defined" + DescribePos(args[1].(*token.Token)) + " conflicts with another version of the same function defined at"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish allows for multiple dispatch, i.e. you could write two functions like this and the result " +
@@ -2299,7 +2298,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/before/a": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "can't put " + text.DescribeTok(tok) + " before " + text.DescribeTok(args[0].(*token.Token))
+			return "can't put " + DescribeTok(tok) + " before " + DescribeTok(args[0].(*token.Token))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error occurs when you put one thing after another where they just make no sense in " +
@@ -2309,7 +2308,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/before/b": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "can't put " + text.DescribeTok(tok) + " before " + text.DescribeTok(args[0].(*token.Token))
+			return "can't put " + DescribeTok(tok) + " before " + DescribeTok(args[0].(*token.Token))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error occurs when you put one thing after another where they just make no sense in " +
@@ -2339,7 +2338,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/close": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "Pipefish was expecting an expression before closure by " + text.DescribeTok(tok)
+			return "Pipefish was expecting an expression before closure by " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error is produced when an outdent, `)`, `]`, or `}` occurs when " +
@@ -2349,20 +2348,20 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/eol": {
 		Message: func(tok *token.Token, args ...any) string {
-			return text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
-				" unclosed by " + text.DescribeTok(tok)
+			return DescribeTok(args[0].(*token.Token)) + DescribePos(args[0].(*token.Token)) +
+				" unclosed by " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			opposite := oppositeOf[args[0].(*token.Token).Literal]
 			return "You've reached the end of an expression and the " +
-				text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
+				DescribeTok(args[0].(*token.Token)) + DescribePos(args[0].(*token.Token)) +
 				"hasn't been supplied with a corresponding " + opposite + "."
 		},
 	},
 
 	"parse/expected": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "Pipefish wasn't expecting " + text.DescribeTok(tok)
+			return "Pipefish wasn't expecting " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error occurs when an otherwise well-formed expression " +
@@ -2382,7 +2381,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/follow": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "Pipefish expected something to follow " + text.DescribeTok(tok)
+			return "Pipefish expected something to follow " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error occurs when something which only makes sense as a prefix, such as `not`, is " +
@@ -2478,18 +2477,18 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/match": {
 		Message: func(tok *token.Token, args ...any) string {
-			return text.DescribeTok(tok) + " doesn't close anything"
+			return DescribeTok(tok) + " doesn't close anything"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			opposite := oppositeOf[args[0].(*token.Token).Literal]
-			return "The " + text.DescribeTok(tok) + " at " + text.DescribePos(tok) + " doesn't " +
+			return "The " + DescribeTok(tok) + " at " + DescribePos(tok) + " doesn't " +
 				"correspond to  any " + opposite + "that needs closing."
 		},
 	},
 
 	"parse/missing": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "Pipefish expected an expression on either side of " + text.DescribeTok(tok)
+			return "Pipefish expected an expression on either side of " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error is typically returned when a binary operator is missing its left-hand side, e.g. if " +
@@ -2508,15 +2507,15 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/nesting": {
 		Message: func(tok *token.Token, args ...any) string {
-			return text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
-				" unclosed by " + text.DescribeTok(tok)
+			return DescribeTok(args[0].(*token.Token)) + DescribePos(args[0].(*token.Token)) +
+				" unclosed by " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			opposite := oppositeOf[args[0].(*token.Token).Literal]
-			return "The " + text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
+			return "The " + DescribeTok(args[0].(*token.Token)) + DescribePos(args[0].(*token.Token)) +
 				" hasn't been supplied with a corresponding " + opposite +
-				" by the time the parser reaches the unmatching nesting closure " + text.DescribeTok(tok) +
-				text.DescribePos(tok) + "."
+				" by the time the parser reaches the unmatching nesting closure " + DescribeTok(tok) +
+				DescribePos(tok) + "."
 		},
 	},
 
@@ -2551,10 +2550,10 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/prefix": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "can't parse " + text.DescribeTok(tok) + " as a prefix"
+			return "can't parse " + DescribeTok(tok) + " as a prefix"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "You've put " + text.DescribeTok(tok) + " in such a position that it looks like you want it to " +
+			return "You've put " + DescribeTok(tok) + " in such a position that it looks like you want it to " +
 				"function as a prefix, but it isn't one."
 		},
 	},
@@ -2571,27 +2570,27 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/ret/a": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "unexpected occurrence of " + text.DescribeTok(tok) + " in return types"
+			return "unexpected occurrence of " + DescribeTok(tok) + " in return types"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expected your return types to the right of the `->` to be one or more types separated by " +
-				"commas, and so it is puzzled to find " + text.DescribeTok(tok) + " instead."
+				"commas, and so it is puzzled to find " + DescribeTok(tok) + " instead."
 		},
 	},
 
 	"parse/ret/b": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "unexpected occurrence of " + text.DescribeTok(tok) + " in return types"
+			return "unexpected occurrence of " + DescribeTok(tok) + " in return types"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expected your return types to the right of the `->` to be one or more types separated by " +
-				"commas, and so it is puzzled to find " + text.DescribeTok(tok) + " instead."
+				"commas, and so it is puzzled to find " + DescribeTok(tok) + " instead."
 		},
 	},
 
 	"parse/sig/ident/a": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "expected identifier, found " + text.DescribeTok(tok)
+			return "expected identifier, found " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the function declaration Pipefish was expecting the name of a parameter."
@@ -2600,7 +2599,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/sig/ident/c": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "expected identifier, found " + text.DescribeTok(tok)
+			return "expected identifier, found " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the function declaration Pipefish was expecting the name of a parameter."
@@ -2609,7 +2608,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/sig/ident/d": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "expected identifier, found " + text.DescribeTok(tok)
+			return "expected identifier, found " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the function declaration Pipefish was expecting the name of a parameter."
@@ -2618,31 +2617,31 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/sig/a": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "unexpected occurrence of " + text.DescribeTok(tok)
+			return "unexpected occurrence of " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish is trying to interpret this as a function or assignment signature, and " +
-				"the " + text.DescribeTok(tok) + " doesn't belong in such a context."
+				"the " + DescribeTok(tok) + " doesn't belong in such a context."
 		},
 	},
 
 	"parse/sig/b": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "unexpected occurrence of " + text.DescribeTok(tok)
+			return "unexpected occurrence of " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish is trying to interpret this as a function or assignment signature, and " +
-				"the " + text.DescribeTok(tok) + " doesn't belong in such a context."
+				"the " + DescribeTok(tok) + " doesn't belong in such a context."
 		},
 	},
 
 	"parse/sig/c": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "unexpected occurrence of " + text.DescribeTok(tok)
+			return "unexpected occurrence of " + DescribeTok(tok)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish is trying to interpret this as a function or assignment signature, and " +
-				"the " + text.DescribeTok(tok) + " doesn't belong in such a context."
+				"the " + DescribeTok(tok) + " doesn't belong in such a context."
 		},
 	},
 
@@ -2657,7 +2656,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/try/colon": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "found " + text.DescribeTok(tok) + " in `try` expression"
+			return "found " + DescribeTok(tok) + " in `try` expression"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "`try` should be followed either by a colon, or by the name of a variable to capture the error, followed by a colon."
@@ -2666,7 +2665,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/try/ident": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "found " + text.DescribeTok(tok) + " in `try` expression"
+			return "found " + DescribeTok(tok) + " in `try` expression"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "`try` should be followed either by a colon, or by the name of a variable to capture the error, followed by a colon."
@@ -2684,7 +2683,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"sigs/expect": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "found " + text.DescribeTok(tok) + " in function declaration, expected `:` or `->`"
+			return "found " + DescribeTok(tok) + " in function declaration, expected `:` or `->`"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "A function's call parameters should be followed either by a colon, or optionally by its return types."
@@ -2725,7 +2724,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"sigs/params": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "found " + text.DescribeTok(tok) + " in function declaration, expected `,` or `)`"
+			return "found " + DescribeTok(tok) + " in function declaration, expected `,` or `)`"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "A function's call parameters should be seperated by commas and terminated by a closing parenthesis."
@@ -2734,7 +2733,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"sigs/paren": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "found " + text.DescribeTok(tok) + " in function declaration, expected `)`"
+			return "found " + DescribeTok(tok) + " in function declaration, expected `)`"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "A function's call parameters should be seperated by commas and terminated by a closing parenthesis."
@@ -3997,7 +3996,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 	"vm/validation/bool": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "runtime validation " + emph(args[0]) + " declared" +
-				text.DescribePos(args[2].(*token.Token)) + " returned a non-boolean value of type " +
+				DescribePos(args[2].(*token.Token)) + " returned a non-boolean value of type " +
 				emph(args[3]) + " when constructing value of type " + emph(args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
@@ -4008,7 +4007,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 	"vm/validation/fail": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed type validation declared" +
-				text.DescribePos(args[2].(*token.Token)) + " when constructing value of type " + emph(args[1])
+				DescribePos(args[2].(*token.Token)) + " when constructing value of type " + emph(args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "This is a validated type and the values you're trying to construct it from violate the declared constraints."
