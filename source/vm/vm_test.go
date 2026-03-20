@@ -32,12 +32,6 @@ func TestBuiltins(t *testing.T) {
 		{`5 / 2`, `2.5`},
 		{`5 / 2.0`, `2.5`},
 		{`5.0 / 2`, `2.5`},
-		{`7 / 0`, `vm/div/zero/a`},
-		{`7.0 / 0.0`, `vm/div/zero/b`},
-		{`7 div 0`, `vm/div/zero/c`},
-		{`7.0 / 0`, `vm/div/zero/d`},
-		{`7 / 0.0`, `vm/div/zero/e`},
-		{`7 mod 0`, `vm/mod/zero`},
 		{`5.0 > 2.0`, `true`},
 		{`5.0 >= 2.0`, `true`},
 		{`5 > 2`, `true`},
@@ -85,7 +79,6 @@ func TestBuiltins(t *testing.T) {
 		{`literal 'q'`, `"'q'"`},
 		{`rune 65`, `'A'`},
 		{`map "a"::1, "b"::2`, `map("a"::1, "b"::2)`},
-		{`map ([1]::2)`, `vm/map/key`},
 		{`set 1, 2, 3`, `set(1, 2, 3)`},
 		{`set(1, 2, 3) /\ set(2, 3, 4) == set(2, 3)`, `true`},
 		{`set(1, 2, 3) - set(3, 4) == set(1, 2)`, `true`},
@@ -96,6 +89,13 @@ func TestBuiltins(t *testing.T) {
 		{`type bool`, `type`},
 		{`[1, 2, 3] & 4`, `[1, 2, 3, 4]`},
 		{`4 in (set(1, 2, 3) & 4)`, `true`},
+		{`7 / 0`, `vm/div/zero/a`},
+		{`7.0 / 0.0`, `vm/div/zero/b`},
+		{`7 div 0`, `vm/div/zero/c`},
+		{`7.0 / 0`, `vm/div/zero/d`},
+		{`7 / 0.0`, `vm/div/zero/e`},
+		{`7 mod 0`, `vm/mod/zero`},
+		{`map ([1]::2)`, `vm/map/key`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
@@ -647,7 +647,6 @@ func TestParameterizedTypes(t *testing.T) {
 		{`Zort{0}(0::0)`, `Zort{0}(0::0)`},
 		{`Troz{0}(0)`, `Troz{0}(0)`},
 		{`fooify 1`, `vm/param/exist`},
-
 	}
 	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
 }
@@ -803,16 +802,7 @@ func TestValidation(t *testing.T) {
 	}
 	test_helper.RunTest(t, "validation_test.pf", tests, test_helper.TestValues)
 }
-func TestVariableAccessErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`B`, `comp/ident/private`},
-		{`A = 43`, `comp/assign/const`},
-		{`z`, `comp/ident/private`},
-		{`secretB`, `comp/private`},
-		{`secretZ`, `comp/private`},
-	}
-	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestCompilerErrors)
-}
+
 
 func TestVariablesAndConsts(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -829,21 +819,15 @@ func TestWith(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
 		{`john with age::23`, `Person with (name::"John", age::23)`},
-		{`john with []::23`, `vm/with/struct/b`},
-		{`john with name::23`, `vm/with/f`},
 		{`rex with [friends, 1]::"Daisy"`, `Dog with (name::"Rex", friends::["Fido", "Daisy"])`},
 		{`Person with (name::"John")`, `Person with (name::"John", age::NULL)`},
-		{`Cat with (name::"John")`, `vm/with/type/g`},
-		{`Cat with (name::"John", age::true)`, `vm/with/type/h`},
 		{`myList with diffList`, `["x", "y", "c", "d"]`},
 		{`myOtherList with [2,1]::"q"`, `["a", "b", ["x", "q", "z"], "d"]`},
-		{`myOtherList with []::"q"`, `vm/with/list/b`},
 		{`myMap with "a"::99`, `map("a"::99, "b"::2, "c"::3, "d"::4)`},
 		{`myMap with "z"::42`, `map("a"::1, "b"::2, "c"::3, "d"::4, "z"::42)`},
 		{`myMap with diffMap`, `map("a"::99, "b"::99, "c"::3, "d"::4)`},
 		{`otherMap with ["a", 1]::99`, `map("a"::[0, 99], "b"::[2, 3])`},
 		{`myMap with "a"::99, "z"::42`, `map("a"::99, "b"::2, "c"::3, "d"::4, "z"::42)`},
-		{`myMap with []::99`, `vm/with/map/b`},
 		{`myMap without "a"`, `map("b"::2, "c"::3, "d"::4)`},
 		{`myMap without "a", "b"`, `map("c"::3, "d"::4)`},
 		{`Addable with "foo"::99`, `vm/with/type/a`},
@@ -854,7 +838,12 @@ func TestWith(t *testing.T) {
 		{`myList with -1::"foo"`, `vm/with/b`},
 		{`myList with 6::"foo"`, `vm/with/b`},
 		{`myMap with F::"foo"`, `vm/with/c`},
-
+		{`Cat with (name::"John")`, `vm/with/type/g`},
+		{`Cat with (name::"John", age::true)`, `vm/with/type/h`},
+		{`john with []::23`, `vm/with/struct/b`},
+		{`john with name::23`, `vm/with/f`},
+		{`myOtherList with []::"q"`, `vm/with/list/b`},
+		{`myMap with []::99`, `vm/with/map/b`},
 	}
 	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
 }

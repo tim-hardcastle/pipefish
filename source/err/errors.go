@@ -121,3 +121,5 @@ func MergeErrors(a, b Errors) Errors {
 	}
 	return result
 }
+
+var oppositeOf = map[string]string{"<-|": "indent", "|->": "outdent", ")": "(", "(": ")", "]": "[", "[": "]", "}": "{", "{": "}"}

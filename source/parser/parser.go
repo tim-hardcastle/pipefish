@@ -862,7 +862,7 @@ func (p *Parser) parseSnippetExpression(tok token.Token) Node {
 	cT := p.CurToken
 	pT := p.PeekToken
 	nodes := []Node{}
-	bits, ok := text.GetTextWithBarsAsList(tok.Literal)
+	bits, ok := GetTextWithBarsAsList(tok.Literal)
 	if !ok {
 		p.Throw("parse/snippet/form", &tok)
 		return nil
@@ -884,6 +884,36 @@ func (p *Parser) parseSnippetExpression(tok token.Token) Node {
 	p.CurToken = cT
 	p.PeekToken = pT
 	return &SnippetLiteral{Token: tok, Value: tok.Literal, Values: nodes}
+}
+
+func GetTextWithBarsAsList(text string) ([]string, bool) {
+	strList := []string{}
+	var (
+		word string
+		exp  bool
+	)
+	for _, c := range text {
+		if c == '|' {
+			if exp {
+				strList = append(strList, word+"|")
+				word = ""
+				exp = false
+			} else {
+				strList = append(strList, word)
+				word = "|"
+				exp = true
+			}
+		} else {
+			word = word + string(c)
+		}
+	}
+	if exp {
+		return nil, false
+	}
+	if word != "" {
+		strList = append(strList, word)
+	}
+	return strList, true
 }
 
 func (p *Parser) parseStringLiteral() Node {

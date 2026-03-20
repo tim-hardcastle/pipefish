@@ -2249,7 +2249,7 @@ func (cp *Compiler) compileLog(node *parser.LogExpression, ctxt Context) (uint32
 	output := cp.Reserve(values.STRING, "", &node.Token)
 	first := true
 	logStr := node.Value
-	strList, ok := text.GetTextWithBarsAsList(logStr)
+	strList, ok := parser.GetTextWithBarsAsList(logStr)
 	if !ok {
 		cp.Throw("comp/log/close", &node.Token)
 		return uint32(DUMMY), false, false

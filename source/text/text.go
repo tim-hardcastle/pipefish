@@ -8,39 +8,12 @@ package text
 
 import (
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
-
-	"path/filepath"
 
 	"github.com/tim-hardcastle/pipefish/source/token"
 	"golang.org/x/term"
 )
-
-func ToEscapedText(s string) string {
-	result := "\""
-	for _, ch := range s {
-		switch ch {
-		case '\n':
-			result = result + "\n"
-		case '\r':
-			result = result + "\r"
-		case '\t':
-			result = result + "\t"
-		default:
-			result = result + string(ch)
-		}
-	}
-	return result + "\""
-}
-
-func FlattenedFilename(s string) string {
-	base := filepath.Base(s)
-	withoutSuffix := strings.TrimSuffix(base, filepath.Ext(base))
-	flattened := strings.Replace(withoutSuffix, ".", "_", -1)
-	return flattened
-}
 
 func Flatten(s string) string {
 	s = strings.Replace(s, ".", "_", -1)
@@ -121,43 +94,6 @@ func DescribeTok(tok *token.Token) string {
 	return "`" + tok.Literal + "`"
 }
 
-func DescribeOpposite(tok *token.Token) string {
-	switch tok.Literal {
-	case "<-|":
-		{
-			return "indent"
-		}
-	case "|->":
-		{
-			return "indent"
-		}
-	case ")":
-		{
-			return "'('"
-		}
-	case "]":
-		{
-			return "["
-		}
-	case "}":
-		{
-			return "{"
-		}
-	case "(":
-		{
-			return "')'"
-		}
-	case "[":
-		{
-			return "]"
-		}
-	case "{":
-		{
-			return "}"
-		}
-	}
-	return "You goofed, that doesn't have an opposite."
-}
 
 const (
 	RESET                  = "\033[0m"
@@ -186,50 +122,6 @@ const (
 	ORANGE                 = "\033[38;2;255;165;0m"
 )
 
-func GetTextWithBarsAsList(text string) ([]string, bool) {
-	strList := []string{}
-	var (
-		word string
-		exp  bool
-	)
-	for _, c := range text {
-		if c == '|' {
-			if exp {
-				strList = append(strList, word+"|")
-				word = ""
-				exp = false
-			} else {
-				strList = append(strList, word)
-				word = "|"
-				exp = true
-			}
-		} else {
-			word = word + string(c)
-		}
-	}
-	if exp {
-		return nil, false
-	}
-	if word != "" {
-		strList = append(strList, word)
-	}
-	return strList, true
-}
-
-// Removes the last two folders in a filepath. TODO --- don't.
-func Trim(path string) string {
-	sep := "/"
-	if runtime.GOOS == "windows" {
-		sep = "\\"
-	}
-	lastFS := strings.LastIndex(path, sep)
-	path = path[:lastFS]
-	lastFS = strings.LastIndex(path, sep)
-	path = path[:lastFS]
-	path = path + sep
-	return path
-}
-
 // What it says.
 func Capitalize(s string) string {
 	return strings.ToUpper(s[0:1]) + s[1:]
@@ -249,13 +141,7 @@ func Tail(s, substr string) bool {
 	return s[len(s)-len(substr):] == substr
 }
 
-func WithoutDots(s string) string {
-	if Head(s, "...") {
-		return s[3:]
-	} else {
-		return s
-	}
-}
+
 
 func ReadChar() rune {
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))

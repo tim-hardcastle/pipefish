@@ -796,19 +796,19 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"comp/types/length/for": {
 		Message: func(tok *token.Token, args ...any) string {
-			return redescribeType(args[0].(string)) +" of bound variables specified at line " + 
-			describeLine(args[1]) + " cannot be satisfied by " +  redescribeType(args[2].(string))
+			return redescribeType(args[0].(string)) + " of bound variables specified at line " +
+				describeLine(args[1]) + " cannot be satisfied by " + redescribeType(args[2].(string))
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "The number of bound variables in the declaration of your `for` loop doesn't match " +
-			"the number of values returned by this branch of the body of the `for` loop."
+				"the number of values returned by this branch of the body of the `for` loop."
 		},
 	},
 
 	"comp/types/length/return": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "return " +  redescribeType(args[0].(string)) +" specified at line " + 
-			describeLine(args[1]) + " cannot be satisfied by " +  redescribeType(args[2].(string))
+			return "return " + redescribeType(args[0].(string)) + " specified at line " +
+				describeLine(args[1]) + " cannot be satisfied by " + redescribeType(args[2].(string))
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "You have given a return type to your function constraining the number of " +
@@ -819,23 +819,23 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"comp/types/for": {
 		Message: func(tok *token.Token, args ...any) string {
-			return redescribeType(args[0].(string)) +" of bound variables specified at line " + 
-			describeLine(args[1]) + " cannot be satisfied by " +  redescribeType(args[2].(string))
+			return redescribeType(args[0].(string)) + " of bound variables specified at line " +
+				describeLine(args[1]) + " cannot be satisfied by " + redescribeType(args[2].(string))
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "The types of bound variables in the declaration of your `for` loop doesn't match " +
-			"the number of values returned by this branch of the body of the `for` loop."
+				"the number of values returned by this branch of the body of the `for` loop."
 		},
 	},
 
 	"comp/types/return": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "return " +  redescribeType(args[0].(string)) +" specified at line " + 
-			describeLine(args[1]) + " cannot be satisfied by " +  redescribeType(args[2].(string))
+			return "return " + redescribeType(args[0].(string)) + " specified at line " +
+				describeLine(args[1]) + " cannot be satisfied by " + redescribeType(args[2].(string))
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "You have given a return type to your function and this branch of the function " +
-			"can't return anything that fits this return type."
+				"can't return anything that fits this return type."
 		},
 	},
 
@@ -2353,9 +2353,10 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				" unclosed by " + text.DescribeTok(tok)
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			opposite := oppositeOf[args[0].(*token.Token).Literal]
 			return "You've reached the end of an expression and the " +
 				text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
-				"hasn't been supplied with a corresponding " + text.DescribeOpposite(args[0].(*token.Token))
+				"hasn't been supplied with a corresponding " + opposite + "."
 		},
 	},
 
@@ -2480,8 +2481,9 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return text.DescribeTok(tok) + " doesn't close anything"
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			opposite := oppositeOf[args[0].(*token.Token).Literal]
 			return "The " + text.DescribeTok(tok) + " at " + text.DescribePos(tok) + " doesn't " +
-				"correspond to  any " + text.DescribeOpposite(tok) + "that needs closing."
+				"correspond to  any " + opposite + "that needs closing."
 		},
 	},
 
@@ -2510,8 +2512,9 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				" unclosed by " + text.DescribeTok(tok)
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+			opposite := oppositeOf[args[0].(*token.Token).Literal]
 			return "The " + text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
-				" hasn't been supplied with a corresponding " + text.DescribeOpposite(args[0].(*token.Token)) +
+				" hasn't been supplied with a corresponding " + opposite +
 				" by the time the parser reaches the unmatching nesting closure " + text.DescribeTok(tok) +
 				text.DescribePos(tok) + "."
 		},
@@ -2519,7 +2522,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"parse/param/form": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "malformed parpmeterized type declaration"
+			return "malformed parameterized type declaration"
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "At this point PIpefish was expecting either a comma or a closing brace."
@@ -3013,7 +3016,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"vm/enum": {
 		Message: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("out of range: can't construct element %v of type %v", emph(args[1]),  emph(args[0]))
+			return fmt.Sprintf("out of range: can't construct element %v of type %v", emph(args[1]), emph(args[0]))
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return fmt.Sprintf("Types that can be indexed by integers are %v, %v, %v, %v, and %v if it has integer keys.", emph("list"), emph("pair"), emph("string"), emph("tuple"), emph("map"))
@@ -3026,7 +3029,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "In Pipefish, comparing two values of different types using `==` is considered an " +
-			"error."
+				"error."
 		},
 	},
 
@@ -3036,8 +3039,8 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
-			"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
-			"upper bound of a range starting at 0."
+				"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
+				"upper bound of a range starting at 0."
 		},
 	},
 
@@ -3047,8 +3050,8 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
-			"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
-			"upper bound of a range starting at 0."
+				"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
+				"upper bound of a range starting at 0."
 		},
 	},
 
@@ -3058,8 +3061,8 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
-			"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
-			"upper bound of a range starting at 0."
+				"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
+				"upper bound of a range starting at 0."
 		},
 	},
 
@@ -3251,7 +3254,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			return fmt.Sprintf("You can slice things of type `tuple`, `list`, and `string`, plus the clones of lists and strings if " +
-			"you requested this by declaring the clone type.")
+				"you requested this by declaring the clone type.")
 		},
 	},
 
@@ -3859,7 +3862,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				plural = "s"
 			}
 			return "type constraint" + plural + " " + emph(args[1]) + " on bound variable" + plural + " of `for` loop declared at " +
-			    "line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
+				"line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
 				"by expression " + emph(args[4])
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
@@ -3868,7 +3871,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				plural = "s"
 			}
 			return "You placed constraints on the type" + plural + " of the bound variable" + plural + " of the `for` loop which you violated by the " +
-			"initial assignment to the variable" + plural + "."
+				"initial assignment to the variable" + plural + "."
 		},
 	},
 
@@ -3884,7 +3887,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				plural = "s"
 			}
 			return "type constraint" + plural + " " + emph(args[1]) + " on bound variable" + plural + " of `for` loop declared at " +
-			    "line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) 
+				"line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3])
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
 			plural := ""
@@ -3908,7 +3911,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				plural = "s"
 			}
 			return "type constraint" + plural + " " + emph(args[1]) + " on index variable" + plural + " of `for` loop declared at " +
-			    "line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
+				"line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
 				"by expression " + emph(args[4])
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
@@ -3917,7 +3920,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				plural = "s"
 			}
 			return "You placed constraints on the type" + plural + " of the index variable" + plural + " of the `for` loop which you violated by the " +
-			"initial assignment to the variable" + plural + "."
+				"initial assignment to the variable" + plural + "."
 		},
 	},
 
@@ -3933,7 +3936,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				plural = "s"
 			}
 			return "type constraint" + plural + " " + emph(args[1]) + " on index variable" + plural + " of `for` loop declared at " +
-			    "line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3])  + " supplied " +
+				"line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
 				"by expression " + emph(args[4])
 		},
 		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {

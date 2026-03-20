@@ -216,7 +216,7 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 	userDefinedTypes := make(types)
 	for _, function := range iz.goBucket.functions[source] {
 		for _, v := range function.sig {
-			name := text.WithoutDots(v.VarType.String())
+			name := withoutDots(v.VarType.String())
 			// Note: casting the type info to `BuiltinType`` won't have the same effect,
 			// since it will include $_ types.
 			if name == "any" || name == "any?" {
@@ -232,7 +232,7 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 		}
 		for _, pair := range function.callInfo.ReturnTypes {
 			abType := iz.cp.GetAbstractTypeFromAstType(pair.VarType)
-			name := text.WithoutDots(pair.VarType.String())
+			name := withoutDots(pair.VarType.String())
 			if name == "any" || name == "any?" {
 				continue
 			}
@@ -380,5 +380,13 @@ func (iz *Initializer) getGoTimes() map[string]int64 {
 func (iz *Initializer) cmG(text, source string) {
 	if settings.SHOW_GOLANG && !(settings.MandatoryImportSet()).Contains(source) {
 		println(text)
+	}
+}
+
+func withoutDots(s string) string {
+	if text.Head(s, "...") {
+		return s[3:]
+	} else {
+		return s
 	}
 }
