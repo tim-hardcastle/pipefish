@@ -18,6 +18,7 @@ import (
 type Error struct {
 	ErrorId string
 	Message string
+	Explanation string // We fill this in on request (`hub why`) from the args.
 	Args    []any
 	Values  []values.Value
 	Trace   []*token.Token
@@ -33,7 +34,7 @@ type Errors = []*Error
 // The structs to contain the data in errorfile.go
 type ErrorCreator struct {
 	Message     func(tok *token.Token, args ...any) string
-	Explanation func(errors Errors, pos int, tok *token.Token, args ...any) string
+	Explanation func(tok *token.Token, args ...any) string
 }
 
 func Put(message string, tok *token.Token, ers Errors) []*Error {
@@ -82,8 +83,11 @@ func CreateErr(errorId string, tok *token.Token, args ...any) *Error {
 	if !ok {
 		return CreateErr("err/misdirect", tok, errorId)
 	}
-	msg := errorCreator.Message(tok, args...)
-	return &Error{ErrorId: errorId, Message: msg, Token: tok, Args: args}
+	return &Error{ErrorId: errorId,
+		          Message: errorCreator.Message(tok, args...),
+				  Token: tok,
+				  Args: args,
+	}
 }
 
 // Merges two lists of errors in order of occurrence, on the assumption that they

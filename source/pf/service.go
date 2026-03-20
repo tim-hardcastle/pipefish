@@ -379,11 +379,11 @@ func GetTraceReport(e *err.Error) string {
 }
 
 // Provides the answer to `hub why <n>`.
-func ExplainError(es []*Error, i int) (string, error) {
+func ExplainError(es []*Error, i int) (string, error) { // TODO --- at this point the explanation will be in the error when it's created.
 	if i >= len(es) {
 		return "", errors.New("index too big for list")
 	}
-	return (err.ErrorCreatorMap[es[i].ErrorId].Explanation(es, i, es[i].Token, es[i].Args...)), nil
+	return (err.ErrorCreatorMap[es[i].ErrorId].Explanation(es[i].Token, es[i].Args...)), nil
 }
 
 // GetFilepath to the root file of the service.

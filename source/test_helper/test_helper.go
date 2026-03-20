@@ -83,7 +83,12 @@ func TestValues(cp *compiler.Compiler, s string) (string, error) {
 		return "", errors.New("failed to compile with code " + cp.P.Common.Errors[0].ErrorId)
 	}
 	if v.T == values.ERROR {
-		return v.V.(*err.Error).ErrorId, nil
+		e := v.V.(*err.Error)
+		// This will at least crash if the explanation mistypes the arguments.
+		if ec, ok := err.ErrorCreatorMap[e.ErrorId]; ok {
+			ec.Explanation(e.Token, e.Args...)
+		}
+		return e.ErrorId, nil
 	}
 	return cp.Vm.Literal(v, 0), nil
 }
@@ -125,7 +130,12 @@ func TestInitializationErrors(cp *compiler.Compiler, s string) (string, error) {
 	if len(cp.P.Common.Errors) == 0 {
 		return "", errors.New("unexpected successful compilation")
 	}
-	if "init/" + s == cp.P.Common.Errors[0].ErrorId {
+	topError := cp.P.Common.Errors[0]
+	if "init/" + s == topError.ErrorId {
+		// This will at least crash if the explanation mistypes the arguments.
+		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
+			ec.Explanation(topError.Token, topError.Args...)
+		}
 		return "OK", nil
 	}
 	return cp.P.Common.Errors[0].ErrorId, nil
@@ -283,7 +293,12 @@ func TestTypeParserOutput(cp *compiler.Compiler, s string) (string, error) {
 func TestParserErrors(cp *compiler.Compiler, s string) (string, error) {
 	cp.P.ParseLine("test", s)
 	if cp.P.ErrorsExist() {
-		return cp.P.Common.Errors[0].ErrorId, nil
+		topError := cp.P.Common.Errors[0]
+		// This will at least crash if the explanation mistypes the arguments.
+		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
+			ec.Explanation(topError.Token, topError.Args...)
+		}
+		return topError.ErrorId, nil
 	} else {
 		return "", errors.New("unexpected successful parsing")
 	}

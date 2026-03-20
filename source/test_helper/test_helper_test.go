@@ -51,6 +51,12 @@ func TestImperative(t *testing.T) {
 	}
 	test_helper.RunTest(t, "imperative_test.pf", tests, test_helper.TestOutput)
 }
+func TestItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`import/file`, `OK`},		
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
 func TestParserErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`2 +`, `parse/prefix`},
@@ -127,6 +133,7 @@ func TestTypeParser(t *testing.T) {
 func TestValues(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`A`, `42`},
+		{`7 / 0`, `vm/div/zero/a`},
 	}
 	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
 }

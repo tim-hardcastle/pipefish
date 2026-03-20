@@ -29,7 +29,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return ""
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return ""
 		},
 	},
@@ -38,7 +38,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to apply a value " + emph(args[0]) + " which can't be a function"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Since " + emph(args[0]) + " is a variable, it can only make sense to " +
 				"follow it directly with an expression if there was at least some possibility of " +
 				"it being of type `func`, which there isn't."
@@ -49,7 +49,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "too many values on rhs of assignment"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "An assignment which has more values on the " +
 				"right-hand side than it has variables on the left is an error."
 		},
@@ -59,7 +59,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "too few values on rhs of assignment"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "An assignment which has fewer values on the " +
 				"right-hand side than it has variables on the left is an error."
 		},
@@ -69,7 +69,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "too few values on rhs of assignment"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "An assignment which has fewer values on the " +
 				"right-hand side than it has variables on the left is an error."
 		},
@@ -79,7 +79,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "assigning to constant " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When an identifier has been declared constant in the " + emph("const") + " section of your script, it can't be redefined later: that's what it means to be constant."
 		},
 	},
@@ -88,7 +88,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "rhs of assignment can only be error"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "While it is possible for a local identifieer in a `given` block to be assigned an " +
 				"error value, it is assumed that you don't want this always to be the case, " +
 				"and so if the typechecker can determine that it is, this is a compile-time error."
@@ -99,7 +99,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "reassigning immutable variable or constant " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The only variables that can be redefined are global variables, and local variables defined in the body of a command."
 		},
 	},
@@ -108,7 +108,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed left-hand side of assignment"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish presumes from the `=` in the expression that you're " +
 				"trying to assign to a variable or variables, but it can't make sense " +
 				"of the left-hand side of the expression, where the variables should be."
@@ -119,7 +119,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed left-hand side of assignment"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish presumes from the `=` in the expression that you're " +
 				"trying to assign to a variable or variables, but it can't make sense " +
 				"of the left-hand side of the expression, where the variables should be."
@@ -130,7 +130,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "assigning to private variable " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When a variable has been declared private, it can be accessed from commands in your script but not directly from the REPL: this is what private means. For more information see " + emph(`hub help "private"`) + "."
 		},
 	},
@@ -139,7 +139,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to assign to a variable " + emph(args[0]) + " which doesn't exist"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Since you can't create variables in the REPL, you can only use it to assign " +
 				"values to public global variables."
 		},
@@ -149,7 +149,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "assigning a value of type " + emph(args[1]) + " to variable " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are trying to assign a value to a variable when you have explicitly said " +
 				"that the variable cannot contain values of that type"
 		},
@@ -159,7 +159,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "assigning a value of type " + emph(args[1]) + " to variable " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are trying to assign a value to a variable when you have explicitly said " +
 				"that the variable cannot contain values of that type"
 		},
@@ -169,7 +169,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Unknown bling " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error shouldn't occur."
 		},
 	},
@@ -178,7 +178,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unknown identifier " + emph(args[0].(string))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You don't seem to have declared that as a variable, function, constant, or anything else."
 		},
 	},
@@ -187,7 +187,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "left-hand side of " + emph("and") + " should be type " + emph("bool") + ", not " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Unlike in some languages, the " + emph("and") + " operator is not overloaded, and so can only be applied to boolean values."
 		},
 	},
@@ -196,7 +196,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "right-hand side of " + emph("and") + " should be type " + emph("bool") + ", not " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Unlike in some languages, the " + emph("and") + " operator is not overloaded, and so can only be applied to boolean values."
 		},
 	},
@@ -205,7 +205,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "left-hand side of conditional should be type " + emph("bool") + ", not " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Unlike in some languages, Pipefish has no notion of \"truthiness\", and so the left-hand side of a conditional should be a boolean-valued expression."
 		},
 	},
@@ -214,7 +214,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "the " + emph("not") + " operator should be type " + emph("bool") + ", not " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Unlike in some languages, Pipefish has no notion of \"truthiness\", and so the argument of " + emph("not") + " should be a boolean-valued expression."
 		},
 	},
@@ -223,7 +223,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "left-hand side of " + emph("or") + " should be type " + emph("bool") + ", not " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Unlike in some languages, the " + emph("or") + " operator is not overloaded, and so can only be applied to boolean values."
 		},
 	},
@@ -232,7 +232,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "right-hand side of " + emph("or") + " should be type " + emph("bool") + ", not " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Unlike in some languages, the " + emph("or") + " operator is not overloaded, and so can only be applied to boolean values."
 		},
 	},
@@ -241,7 +241,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "`break` outside of `for` loop"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `break` keyword really has no meaning outside of a `for` loop, " +
 				"since what it means is \"break out of the `for` loop we're in\"."
 		},
@@ -251,7 +251,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "`break` outside of `for` loop"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `break` keyword really has no meaning outside of a `for` loop, " +
 				"since what it means is \"break out of the `for` loop we're in\"."
 		},
@@ -261,7 +261,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting a type, not " + emph(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `clones` operator returns the abstract type consisting of all the clones of the given " +
 				"base type (including itself). It therefore expects a type as its only argument."
 		},
@@ -271,7 +271,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "`clones` operator without an argument"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `clones` operator returns the abstract type consisting of all the clones of the given " +
 				"base type (including itself). It therefore expects a type as its only argument."
 		},
@@ -281,7 +281,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "`continue` outside of `for` loop"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `continue` keyword really has no meaning outside of a `for` loop, " +
 				"since what it means is \"continue the `for` loop we're in without changing the bound variables\"."
 		},
@@ -291,7 +291,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expression " + emph(args[0]) + " can only return error"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "One of your function arguments can only return an error value, which means that the function itself will only ever return that error value. Pipefish assumes that this is a mistake."
 		},
 	},
@@ -300,7 +300,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "left-hand side of comparison can only be error"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "One of the values you're trying to compare can only ever be an error value, meaning that the comparison itself will just return this error. Pipefish assumes that this is a mistake."
 		},
 	},
@@ -309,7 +309,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "right-hand side of comparison can only be error"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "One of the values you're trying to compare can only ever be an error value, meaning that the comparison itself will just return this error. Pipefish assumes that this is a mistake."
 		},
 	},
@@ -318,7 +318,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "comparison can only return error"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Because of the types of the values you're trying to compare, the result, if compiled, could only ever produce a runtime error. Pipefish assumes that this is a mistake."
 		},
 	},
@@ -327,7 +327,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't compare values of types " + emph(args[0]) + " and " + emph(args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish doesn't let you compare values of different types, on the grounds that " +
 				"this is more often a mistake than intentional."
 		},
@@ -337,7 +337,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "imperative code in " + emph("def") + " section"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Some of this carries out imperative operations, other parts try to return values."
 		},
 	},
@@ -346,7 +346,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected assignment of bound variables"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting you to define the bound variables of the `for` " +
 				"loop here, but instead has found something else."
 		},
@@ -356,7 +356,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected assignment of bound variables"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting you to define the bound variables of the `for` " +
 				"loop here, but instead has found something else."
 		},
@@ -366,7 +366,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed declaration of bound variables"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting a declaration of variable names, and optionally their types " +
 				"on the left hand side of the `=` sign, but insted has found something it can't make sense of."
 		},
@@ -376,7 +376,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed declaration of bound variables"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting a declaration of variable names, and optionally their types " +
 				"on the left hand side of the `=` sign, but insted has found something it can't make sense of."
 		},
@@ -386,7 +386,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "bound variable " + emph(args[0]) + " already exists"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The bound variables of a `for` loop must be specific to that `for` loop."
 		},
 	},
@@ -395,7 +395,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "loop has no bound variables"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "In a function, a `for` loop must have bound variables or there's no point in it " +
 				"existing: all such a loop ever does is return the final value of the bound variables."
 		},
@@ -405,7 +405,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "reassigning to variable " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The index variables of a `for` loop cannot have already been declared in the scope."
 		},
 	},
@@ -414,7 +414,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "reassigning to variable " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The index variables of a `for` loop cannot have already been declared in the scope."
 		},
 	},
@@ -423,7 +423,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "reassigning to variable " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The index variables of a `for` loop cannot have already been declared in the scope."
 		},
 	},
@@ -432,7 +432,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed assignment of range"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expect the range of a `for` loop to be assigned to a pair of " +
 				"index variables separated by a `::` operator."
 		},
@@ -442,7 +442,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed assignment of range"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expect the range of a `for` loop to be assigned to a pair of " +
 				"index variables separated by a `::` operator."
 		},
@@ -452,7 +452,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed assignment of range"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expect the range of a `for` loop to be assigned to a pair of " +
 				"index variables separated by a `::` operator."
 		},
@@ -462,7 +462,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "discarding both key and value of range"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish currently doesn't let you do this. It may be allowed in later " +
 				"versions, since there is a marginal use-case." // TODO.
 		},
@@ -472,7 +472,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "ranging over invalid type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The argument of `range` should be a type you can in fact range over, such as a list or a set."
 		},
 	},
@@ -481,7 +481,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed expression in `given` block"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting either a function declaration or an assignment, and " +
 				"this is neither."
 		},
@@ -507,7 +507,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			}
 			return description + " in " + emph("given") + " block"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "It isn't possible to define variables in terms of each other because how would that even work?"
 		},
 	},
@@ -516,7 +516,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "variable " + emph(args[0]) + " already exists"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish doesn't allow the variables declared in a `given` block " +
 				"to \"shadow\" existing variables."
 		},
@@ -526,7 +526,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "variable " + emph(args[0]) + " defined twice"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You've tried to define the same variable twice on the left-hand side of the same assignment."
 		},
 	},
@@ -535,7 +535,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "identifier " + emph(tok.Literal) + " doesn't identify a global variable"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You're trying to bring a variable into the scope of the command by using the " + emph("global") + " keyword when it is not in fact a global variable."
 		},
 	},
@@ -544,7 +544,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + emph(tok.Literal) + " after " + emph("global")
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The only thing Pipefish expects to find after the " + emph("global") + " keyword is the name of a global variable"
 		},
 	},
@@ -553,7 +553,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "identifier " + emph(args[0].(string)) + " is undeclared"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You don't seem to have declared that as a variable, function, constant, or anything else."
 		},
 	},
@@ -562,7 +562,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "attempt to access private identifier " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Once a value has been declared private, it can only be accessed from within the service that owns it."
 		},
 	},
@@ -571,7 +571,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "list index is not of type " + emph("int") + " or " + emph("pair")
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A list may be indexed by an integer, to select a particular value, or by a pair of integers, to take a slice."
 		},
 	},
@@ -580,7 +580,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "string index is not of type " + emph("int") + " or " + emph("pair")
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A string may be indexed by an integer, to select a particular value, or by a pair of integers, to take a slice."
 		},
 	},
@@ -589,7 +589,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "pair index is not of type" + emph("int")
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A pair may be indexed only by the integers " + emph("0") + " and " + emph("1")
 		},
 	},
@@ -598,7 +598,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "snippet index is not of type" + emph("int")
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A snippet may be indexed only by integers."
 		},
 	},
@@ -607,7 +607,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "label " + emph(args[0]) + " does not label any field of a struct of type " + emph(args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A struct may only be indexed by the labels it was given in its definition."
 		},
 	},
@@ -616,7 +616,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "attempting to index a struct by something other than a label"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A struct may only be indexed by the labels it was given in its definition."
 		},
 	},
@@ -625,7 +625,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "struct cannot be indexed by given label expression"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "If this was compiled, it would always produce an error at runtime because the label would never match the struct type."
 		},
 	},
@@ -634,7 +634,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "tuple index is not of type" + emph("int") + " or " + emph("pair")
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A tuple may be indexed by an integer, to select a particular value, or by a pair of integers, to take a slice."
 		},
 	},
@@ -643,7 +643,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unknown infix " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are using " + emph(tok.Literal) + " as though it was an infix, but you haven't declared it as such in the `cmd` or `def` section."
 		},
 	},
@@ -652,7 +652,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unknown prefix " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are using " + emph(tok.Literal) + " as though it was a prefix, but you haven't declared it as such in the `cmd` or `def` section."
 		},
 	},
@@ -661,7 +661,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unknown suffix " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are using " + emph(tok.Literal) + " as though it was a suffix, but you haven't declared it as such in the `cmd` or `def` section."
 		},
 	},
@@ -670,7 +670,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to wrap an error in a list"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The expression you are trying to wrap in a list must evaluate to an error, and so trying to wrap it in a list would return an error rather than a list. Pipefish assumes that this is not what you want to do."
 		},
 	},
@@ -679,7 +679,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unclosed " + emph("|") + " in logging expression"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish interprets " + emph("| <expression> |") + " in a logging expression as meaning that the expression should be evaluated and inserted into the string. It therefore expects the " + emph("|") + " symbols to come in matching pairs."
 		},
 	},
@@ -688,7 +688,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unknown namespace " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are using " + emph(args[0]) + " as though it was a namespace, but you haven't declared it as such in the `import` or `external` section."
 		},
 	},
@@ -697,7 +697,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to use private namespace " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "If an import or an external service has been declared private, you can only access it from the code that imports it, not from either the REPL or from code that imports the importing code."
 		},
 	},
@@ -706,7 +706,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "right-hand side of filter expression cannot return boolean"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects the right-hand side of a filter operator to be a function returning a boolean, or an boolean-valued expression containing" + emph("that") + "."
 		},
 	},
@@ -715,7 +715,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to use " + emph(tok.Literal) + " as a function"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting an expression that it could pipe the left-hand side of the piping operator into."
 		},
 	},
@@ -724,7 +724,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting an expression that it could pipe the left-hand side of the piping operator into."
 		},
 	},
@@ -733,7 +733,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "lhs of piping operator is not a list"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting a list on the left-hand side of the " +
 				"piping operator but the typechecker has determined that it can never " +
 				"be one."
@@ -744,7 +744,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting an expression that it could pipe the left-hand side of the piping operator into."
 		},
 	},
@@ -753,7 +753,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to use " + emph(tok.Literal) + " as a function"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting an expression that it could pipe the left-hand side of the piping operator into."
 		},
 	},
@@ -762,7 +762,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to access a private function or command " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When a service declares something as private, that means that this is for its own use and cannot be used by a client service or from the REPL."
 		},
 	},
@@ -771,7 +771,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to access private type " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A type declared private can only be accessed by the service that owns it."
 		},
 	},
@@ -780,7 +780,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "mixture of imperative and functional code"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Despite this being defined as a command, it tries to return values."
 		},
 	},
@@ -789,7 +789,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "mixture of imperative and functional code"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Despite this being defined as a function, it carries out some imperative behavior."
 		},
 	},
@@ -799,7 +799,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return redescribeType(args[0].(string)) + " of bound variables specified at line " +
 				describeLine(args[1]) + " cannot be satisfied by " + redescribeType(args[2].(string))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The number of bound variables in the declaration of your `for` loop doesn't match " +
 				"the number of values returned by this branch of the body of the `for` loop."
 		},
@@ -810,7 +810,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "return " + redescribeType(args[0].(string)) + " specified at line " +
 				describeLine(args[1]) + " cannot be satisfied by " + redescribeType(args[2].(string))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You have given a return type to your function constraining the number of " +
 				"values it can return, and this branch of the function has tried to return the " +
 				"wrong number of values."
@@ -822,7 +822,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return redescribeType(args[0].(string)) + " of bound variables specified at line " +
 				describeLine(args[1]) + " cannot be satisfied by " + redescribeType(args[2].(string))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The types of bound variables in the declaration of your `for` loop doesn't match " +
 				"the number of values returned by this branch of the body of the `for` loop."
 		},
@@ -833,7 +833,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "return " + redescribeType(args[0].(string)) + " specified at line " +
 				describeLine(args[1]) + " cannot be satisfied by " + redescribeType(args[2].(string))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You have given a return type to your function and this branch of the function " +
 				"can't return anything that fits this return type."
 		},
@@ -843,7 +843,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "passing non-variable to reference parameter"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The only thing you can ever pass to a reference parameter of a command is the name of a variable."
 		},
 	},
@@ -852,7 +852,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to create variable " + emph(tok.Literal) + " in REPL"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "It is not possible to create new variables in the REPL."
 		},
 	},
@@ -861,7 +861,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "mixture of imperative and functional code"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Some of this carries out imperative operations, other parts try to return values."
 		},
 	},
@@ -870,7 +870,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "too many arguments for `...`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The splat operator `...` takes only one argument, on its left."
 		},
 	},
@@ -879,7 +879,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't inject tuple of indeterminate length into SQL"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "To inject a tuple into SQL, the compiler needs to be able to figure out in advance how many elements the tuple will have, and in this case it can't."
 		},
 	},
@@ -888,7 +888,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "argument of `...` must be a list or clone of list, not " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The purpose of the splat operator `...` is to expand a list or " +
 				"listlike value into a tuple. You're applying it to the wrong type."
 		},
@@ -898,7 +898,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected type suffix " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish wasn't expecting to see that as a suffix. Only clones of `float` " +
 				"and `int` have suffix constructors."
 		},
@@ -908,7 +908,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected type suffix " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish wasn't expecting to see that as a suffix. Only clones of `float` " +
 				"and `int` have suffix constructors."
 		},
@@ -918,7 +918,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expression can only have error type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When Pipefish typechecks something, it is permissible at compile-time " +
 				"for that thing to contain an error not declared in the type annotations: " +
 				"that would be a runtime error. However, it is a compile-time error for this " +
@@ -931,7 +931,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "wrong number of arguments"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The typechecker has found a situation where your code can only ever " +
 				"pass/return the wrong number of arguments."
 		},
@@ -941,7 +941,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to assign multiple values to non-tuple type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The typechecker has determined that you're trying to squeeze more " +
 				"than one value into a place where your type signature says that only " +
 				"one will go"
@@ -952,7 +952,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "wrong number of arguments"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The typechecker has found a situation where your code can only ever " +
 				"pass/return the wrong number of arguments."
 		},
@@ -962,7 +962,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to return value from " + emph("try") + " expression"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A " + emph("try") + " expression is imperative and can return only success or failure"
 		},
 	},
@@ -971,7 +971,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "using global " + emph(tok.Literal) + " in " + emph("try") + "expression"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The variables that capture the error of a " + emph("try") + " expression can only be local variables."
 		},
 	},
@@ -980,7 +980,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "concatenation must produce error"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are trying to concatenate together two values one of which is certainly of type " + emph("error") + ". As this will only return the error, Pipefish assumes this is a mistake."
 		},
 	},
@@ -989,7 +989,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "concatenation must produce error"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are trying to concatenate together two values one of which is certainly of type " + emph("error") + ". As this will only return the error, Pipefish assumes this is a mistake."
 		},
 	},
@@ -998,7 +998,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unknown variable " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The typechecker has found itself trying to typecheck a variable which doesn't exist."
 		},
 	},
@@ -1007,7 +1007,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "abstract type" + emph(tok) + " used as prefix"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When a type is used as a prefix, it is always a type constructor, a function that " +
 				"returns a value of that type. Since you can only construct values with concrete types, " +
 				"the name of an abstract type can never be used in this way."
@@ -1018,7 +1018,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unknown type " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are using " + emph(args[0]) + " in such a way that Pipefish thinks " +
 				"you're trying to use it as a type; but you haven't declared it as one."
 		},
@@ -1028,7 +1028,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "function " + emph(args[0]) + " cannot accept arguments of type " + args[1].(string)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "While this function or command does exist, there is no version of it accepting the types you have supplied."
 		},
 	},
@@ -1037,7 +1037,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "function " + emph(args[0]) + " cannot accept arguments of type " + args[1].(string)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "While this function or command does exist, there is no version of it accepting the types you have supplied."
 		},
 	},
@@ -1046,7 +1046,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unreachable code"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You have written code which can't be reached because one of the previous branches " +
 				"must be taken. As there is never any point in doing this, Pipefish assumes that this is a mistake."
 		},
@@ -1056,7 +1056,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Pipefish is trying and failing to raise an error with reference " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The author of Pipefish, being a silly goose, has managed to throw an error with a code " +
 				"that doesn't actually correspond to an error. This should be reported to him as an issue."
 		},
@@ -1066,7 +1066,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "external service is broken"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish has been able to contact the service but it is currently in a non-functional state."
 		},
 	},
@@ -1075,7 +1075,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to deserialize message from external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This condition should never actually arise. Please contact the author of Pipefish and tell him how it occurred."
 		},
 	},
@@ -1084,7 +1084,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to deserialize message from external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This condition should never actually arise. Please contact the author of Pipefish and tell him how it occurred."
 		},
 	},
@@ -1093,7 +1093,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to deserialize message from external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This condition should never actually arise. Please contact the author of Pipefish and tell him how it occurred."
 		},
 	},
@@ -1102,7 +1102,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to deserialize message from external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This condition should never actually arise. Please contact the author of Pipefish and tell him how it occurred."
 		},
 	},
@@ -1111,7 +1111,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to deserialize message from external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This condition should never actually arise. Please contact the author of Pipefish and tell him how it occurred."
 		},
 	},
@@ -1120,7 +1120,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to deserialize message from external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This condition should never actually arise. Please contact the author of Pipefish and tell him how it occurred."
 		},
 	},
@@ -1129,7 +1129,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to deserialize message from external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This condition should never actually arise. Please contact the author of Pipefish and tell him how it occurred."
 		},
 	},
@@ -1138,7 +1138,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to deserialize message from external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This condition should never actually arise. Please contact the author of Pipefish and tell him how it occurred."
 		},
 	},
@@ -1147,7 +1147,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to compile Go\n\nError was " + emph(args[0].(string))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A Pipefish function written in Go has failed to compile at initialization time."
 		},
 	},
@@ -1156,7 +1156,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to compile Go"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A Pipefish function written in Go has failed to compile at initialization time."
 		},
 	},
@@ -1165,7 +1165,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "abstract type in signature of golang function"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Only concrete types can appear in the signature of a golang function because " +
 				"how would you convert an abstract type to Go?"
 		},
@@ -1175,7 +1175,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "abstract type " + emph(args[0]) + " in field " + emph(args[2]) + " of struct type " + emph(args[1]) + " being converted to golang"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Only concrete types can appear in the signature of a Pipefish struct that participates in Go interop"
 		},
 	},
@@ -1184,7 +1184,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to convert golang values"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error should not occur."
 		},
 	},
@@ -1193,7 +1193,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to create .go file with error " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "For some reason Pipefish was literally unable to write the file to disc."
 		},
 	},
@@ -1202,7 +1202,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to open Go\n\nError was " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A generated Go script has failed to open at initialization time."
 		},
 	},
@@ -1211,7 +1211,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to open Go\n\nError was" + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A generated Go script has failed to open at initialization time."
 		},
 	},
@@ -1220,7 +1220,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to open file " + emph(args[0]) + " with error message " + emph(args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A Pipefish function written in Go has failed to compile at initialization time."
 		},
 	},
@@ -1229,7 +1229,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't pass value of type " + emph(args[0]) + " to Go as value"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Not all types can be passed to Go. This isn't one of them."
 		},
 	},
@@ -1238,7 +1238,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't pass value of type " + emph(args[0]) + " to Go"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Not all types can be passed to Go. This isn't one of them."
 		},
 	},
@@ -1247,7 +1247,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't pass value of type " + emph(args[0]) + " to Go"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Not all types can be passed to Go. This isn't one of them."
 		},
 	},
@@ -1256,7 +1256,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "non-final parameter of golang function can't be variadic"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Such signatures don't make sense in Go and in fact since a golang " +
 				"function can only have a vanilla sig, it wouldn't make sense in" +
 				"Pipefish either."
@@ -1267,7 +1267,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected identifier, not " + emph(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The word following `abstract` in a type definition is meant to be the " +
 				"name of the type, and so must be a valid identifier."
 		},
@@ -1277,7 +1277,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to alias unknown type " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can't alias a type unless it exists."
 		},
 	},
@@ -1286,7 +1286,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected assignment"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "All you're meant to do in the `var` and `const` sections of " +
 				"the code is assign variables and constants."
 		},
@@ -1296,7 +1296,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "name of clone type " + emph(tok) + " has already been declared"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The name of a clone type must be a unique identifier within its namespace."
 		},
 	},
@@ -1305,7 +1305,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "found " + emph(tok) + " in a clone declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point Pipefish would have expected a comma, a colon, or a newline."
 		},
 	},
@@ -1314,7 +1314,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "found " + emph(tok) + " instead of newline"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the declaration of a clone type, you're meant to have " +
 				"finished, and Pipefish doesn't understand what you mean by adding " + emph(tok) + "."
 		},
@@ -1324,7 +1324,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "found `given` in clone declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Type declarations don't have a `given` section, only functions, commands " +
 				"and `for` loops have that. If you're trying to parameterize the type, just a `:` and " +
 				"a block of code is necessary."
@@ -1335,7 +1335,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected identifier, not " + emph(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The word following `clone` in a type definition is meant to be the " +
 				"name of the base type being cloned."
 		},
@@ -1345,7 +1345,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected identifier, not " + emph(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "After `using`, Pipefish expects a comma-separated list of operations " +
 				"requested for the clone type."
 		},
@@ -1355,7 +1355,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "parameterized type has no parameters"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Your use of `{` in this type declaration suggests that you're trying to make a " +
 				"parameterized type declaration, but it doesn't have any parameters."
 		},
@@ -1365,7 +1365,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "left brace `{` unclosed by right brace"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Your use of `{` in this type definition suggests that you're trying to make a " +
 				"parameterized type definition, but there's no corresponding right brace to close it."
 		},
@@ -1375,7 +1375,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't clone type " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Only the types `float`, `int`, `list`, `map`, `pair`, `rune`, " +
 				"`set` and `string` are cloneable."
 		},
@@ -1385,7 +1385,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't clone type " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Only the types `float`, `int`, `list`, `map`, `pair`, `rune`, " +
 				"`set` and `string` are cloneable."
 		},
@@ -1395,7 +1395,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't clone type " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Only the types `float`, `int`, `list`, `map`, `pair`, `rune`, " +
 				"`set` and `string` are cloneable."
 		},
@@ -1405,7 +1405,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "missing type in parameterized struct declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The tyes of the parameters in a parameterized struct declaration must be given explicitly."
 		},
 	},
@@ -1414,7 +1414,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "illegal dependency on command"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Only a command can use another command as a dependency."
 		},
 	},
@@ -1423,7 +1423,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "illegal dependency on global variable"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Only a command or another variable declaration can use another " +
 				"variable as a dependency."
 		},
@@ -1433,7 +1433,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "wasn't expecting " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects an enum declaration to take the form:" +
 				"\n\n|-----------------------------------------------\n\n" +
 				"def\n\nMyEnumName = enum FOO, BAR, TROZ\n\n|-\n\n" + "The right hand side of the expression that " +
@@ -1445,7 +1445,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "element " + emph(tok) + " has already been declared"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The elements of two enums should always be distinct. So for example the following " +
 				"will produce an error because `CLUBS` appears in both enums:" +
 				"```" +
@@ -1460,7 +1460,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "enum definition has no elements"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "An enum deifnition must have at least one element."
 		},
 	},
@@ -1469,7 +1469,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected identifier, got " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects an enum declaration to take the form:" +
 				"\n\n|-----------------------------------------------\n\n" +
 				"def\n\nMyEnumName = enum FOO, BAR, TROZ\n\n|-\n\n" + "The right hand side of the expression that " +
@@ -1482,7 +1482,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to get API with error " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return `Hopefully the error returned will tell you the nature of the problem.`
 		},
 	},
@@ -1491,7 +1491,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "service " + emph(tok.Literal) + " does not exist"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return `If you try to initialize an external service just by giving the name of the service, then this will only work if a service of that name is already running on the hub.`
 		},
 	},
@@ -1500,7 +1500,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "source conflict for external service " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return `The service you specified already exists on the hub and keeps its sourcecode in a different file from the one you specified.`
 		},
 	},
@@ -1509,7 +1509,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to open file " + emph(args[0]) + " with error " + emph(args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error very much means what it says. Pipefish tried to open the file " +
 				"specified in the `external` statement, and failed."
 		},
@@ -1519,7 +1519,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed path to external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return `Pipefish expects the path to an http service to be of the form <url>:<port>/<hostname>/<name of external service>.`
 		},
 	},
@@ -1528,7 +1528,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed path to external service"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return `Pipefish expects the path to an http service to be of the form <url>:<port>/<hostname>/<name of external service>.`
 		},
 	},
@@ -1537,7 +1537,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected " + emph(tok) + " after `golang` definition"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The only thing that should come after the final brace in a `golang` declaration is a new line or the end of the file."
 		},
 	},
@@ -1546,7 +1546,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + text.DescribeTok(tok) + " without a headword"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects every part of your script to go in a section headed by one of the headwords " +
 				"`var`, `def`, `cmd`, etc. Instead, you've started your script with something other than " +
 				"a headword, and so Pipefish doesn't know which section that thing should belong to." +
@@ -1559,7 +1559,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "unexpected occurrence of " + emph(tok) +
 				" in an `import` or `external` declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the declaration, Piepfish expected the declaration to be over, and to be terminated with a new line."
 		},
 	},
@@ -1569,7 +1569,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "unexpected occurrence of " + emph(tok) +
 				" in an `import` or `external` declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting either a string consisting of a path to " +
 				"an import or external service; or an identifier declaring a namespace."
 		},
@@ -1580,7 +1580,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "unexpected occurrence of " + emph(tok) +
 				" in the `import`/`external` section"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The only thing you should be doing in the `import` section is specifying " +
 				"files to import and, optionally, the namespaces to put them in." +
 				"\n\nFor more information about the `import` section see `hub help \"import\"`."
@@ -1592,7 +1592,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "unexpected occurrence of " + emph(tok) +
 				" in an `import` or `external` declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting a string consisting of a path to " +
 				"an import or external service."
 		},
@@ -1602,7 +1602,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "couldn't open file " + emph(args[0]) + " with OS error " + emph(args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "What it says. Pipefish is trying to import something from the given filepath and failing."
 		},
 	},
@@ -1611,7 +1611,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't find file " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "What it says. Pipefish is trying to import something from the given filepath and can't find it."
 		},
 	},
@@ -1620,7 +1620,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The only thing Pipefish was expecting to see after `interface` is a colon."
 		},
 	},
@@ -1629,7 +1629,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "`self` missing in clause of interface"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The parts of an interface define what types fit it b referring to the " +
 				"behavior of a pseudotype called `self`. Any clause of this definition that " +
 				"doesn't refer to `self` would not in fact contribute to the definition of " +
@@ -1642,7 +1642,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "identifier " + emph(args[0]) + " has already been defined as something other " +
 				"than a label"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can't declare the same identifier twice!"
 		},
 	},
@@ -1651,7 +1651,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + emph(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "After `make`, Pipefish expects a series of instances of parameterized types separated by commas; the names of the parameterized types must be valid identifiers."
 		},
 	},
@@ -1660,7 +1660,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to `make` something which is not a type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "After `make`, Pipefish expects a series of instances of parameterized types separated by commas."
 		},
 	},
@@ -1669,7 +1669,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to `make` something which is not an instance of a parameterized type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "After `make`, Pipefish expects a series of instances of parameterized types separated by commas."
 		},
 	},
@@ -1679,7 +1679,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "definition of " + emph(args[1]) + text.DescribePos((args[0]).(*token.Token)) +
 				" conflicts with definition"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can't declare the same identifier twice!"
 		},
 	},
@@ -1689,7 +1689,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "definition of " + emph(args[1]) + text.DescribePos((args[0]).(*token.Token)) +
 				" conflicts with definition"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can't declare the same identifier twice!"
 		},
 	},
@@ -1699,7 +1699,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "definition of " + emph(args[1]) + text.DescribePos((args[0]).(*token.Token)) +
 				" conflicts with definition"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can't declare the same identifier twice!"
 		},
 	},
@@ -1708,7 +1708,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "too much overloading: function " + emph(args[0]) + " defined" + text.DescribePos(args[1].(*token.Token)) + " conflicts with another version of the same function defined at"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish allows for multiple dispatch, i.e. you could write two functions like this and the result " +
 				"would work as intended\n\n" +
 				"````\n" +
@@ -1731,7 +1731,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "too much overloading: function " + emph(args[0]) + " defined" + text.DescribePos(args[1].(*token.Token)) + " conflicts with another version of the same function defined at"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish allows for multiple dispatch, i.e. you could write two functions like this and the result " +
 				"would work as intended\n\n" +
 				"````\n" +
@@ -1754,7 +1754,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "too much overloading: function " + emph(args[0]) + " defined" + text.DescribePos(args[1].(*token.Token)) + " conflicts with another version of the same function defined at"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish allows for multiple dispatch, i.e. you could write two functions like this and the result " +
 				"would work as intended\n\n" +
 				"````\n" +
@@ -1777,7 +1777,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "mismatching reference parameters in overloaded function"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "If you overload a function with reference parameters, then they must have the same number of reference parameters, at the start of the parameter list, or you will see this error."
 		},
 	},
@@ -1786,7 +1786,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed type expression in return signature"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "From your use of `{` Pipefish infers that you're trying to make a type " +
 				"expression, but it seems to be incomplete."
 		},
@@ -1796,7 +1796,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "re-use of type parameter " + emph(args[0]) + " with conflicting type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When you use the same identifier as the name of a type parameter in a function declaration " +
 				"it must be the same type every time."
 		},
@@ -1806,7 +1806,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't instantiate parameterized type " + emph(args[0]) + "; bad parameter types"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			if args[1].(int) == 1 {
 				return "While there is a parameterized type called " + emph(tok) + ", its parameters " +
 					"are of the wrong types for you to instantiate it using the values you supplied."
@@ -1821,7 +1821,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "re-use of type parameter " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can't use the same identifier as the name of a type parameter and " +
 				"an ordinary parameter of a function."
 		},
@@ -1831,7 +1831,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "public struct type " + emph(tok.Literal) + " cannot contain private type " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A public struct cannot contain a field which has a private type."
 		},
 	},
@@ -1840,7 +1840,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "clone of " + emph("float") + " cannot request operation " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A clone of " + emph("float") + " can only request the native operations suitable to that type, i.e. " +
 				emph("+") + ", " + emph("-") + ", " + emph("*") + ", and " + emph("/") + "."
 		},
@@ -1850,7 +1850,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "clone of " + emph("int") + " cannot request operation " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A clone of " + emph("int") + " can only request the native operations suitable to that type, i.e. " +
 				emph("+") + ", " + emph("-") + ", " + emph("*") + emph("div") + ", " + ", and " + emph("mod") + "."
 		},
@@ -1860,7 +1860,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "clone of " + emph("list") + " cannot request operation " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A clone of " + emph("list") + " can only request the native operations suitable to that type, i.e. " +
 				emph("+") + ", " + emph("&") + ", " + emph("with") + ", " + emph("?>") + emph(">>") + ", " + ", and " + emph("slice") + "."
 		},
@@ -1870,7 +1870,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "clone of " + emph("map") + " cannot request operation " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A clone of " + emph("map") + " can only request the native operations suitable to that type, i.e. " +
 				emph("with") + " and " + emph("without") + "."
 		},
@@ -1880,7 +1880,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "clone of " + emph("pair") + " cannot request operations"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Since the " + emph("pair") + " type has no native operations besides " +
 				"indexing, which you get for free, there's nothing to request."
 		},
@@ -1890,7 +1890,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "clone of " + emph("set") + " cannot request operation " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A clone of " + emph("set") + " can tonly request the native operations suitable to that type, i.e. " +
 				emph("+") + ", " + emph("&") + ", " + emph("/\\") + ", and " + emph("-") + "."
 		},
@@ -1900,7 +1900,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "clone of " + emph("string") + " cannot request operation " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A clone of " + emph("string") + " can only request the native operations suitable to that type, i.e. " +
 				emph("+") + " and " + emph("slice") + "."
 		},
@@ -1910,7 +1910,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "public abstract type " + emph(tok.Literal) + " cannot contain private type " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A public abstract type cannot contain a private type."
 		},
 	},
@@ -1919,7 +1919,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "service variable " + emph(args[0]) + " has illegal dependencies"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "As service variables are initialized before anything else, they shouldn't" +
 				"depend on anything else you define in your code."
 		},
@@ -1929,7 +1929,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "service variable " + emph(args[0]) + " should have type " + emph(args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The fact that you can redeclare service variables doesn't mean you can change their type."
 		},
 	},
@@ -1938,7 +1938,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to get source " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The initializer can't retrieve the source code for the given file. Check that it exists."
 		},
 	},
@@ -1947,7 +1947,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected " + emph(tok) + " in struct declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the type declaration Pipefish was expecting you to be finished."
 		},
 	},
@@ -1956,7 +1956,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "found `given` in struct declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Type declarations don't have a `given` section, only functions, commands " +
 				"and `for` loops have that. If you're trying to parameterize the type, just a `:` and " +
 				"a block of code is necessary."
@@ -1967,7 +1967,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected left parenthesis"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the declaration of a struct type, Pipefish expects a left parenthesis, " +
 				"followed by the fields of the struct type."
 		},
@@ -1977,7 +1977,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "left brace `{` unclosed by right brace"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Your use of `{` in this type declaration suggests that you're trying to make a " +
 				"parameterized type declaration, but there's no corresponding right brace to close it."
 		},
@@ -1987,7 +1987,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected right parenthesis"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the declaration of a struct type, Pipefish expects a right parenthesis, " +
 				"closing the list of the fields of the struct."
 		},
@@ -1997,7 +1997,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "no parameters in paraameterized struct"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can't have a parameterized type which has no parameters."
 		},
 	},
@@ -2006,7 +2006,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "missing type in parameterized struct declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The tyes of the parameters in a parameterized struct declaration must be given explicitly."
 		},
 	},
@@ -2015,7 +2015,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected ocurence of " + emph(tok) + "; expected `=`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A type declaration should begin with the name of a type followed by `=`."
 		},
 	},
@@ -2024,7 +2024,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurence of " + emph(tok) + "; expected flavor of type to declare"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "After the `=` sign in a type declaration, Pipefish expects the flavor of type " +
 				"to be declared, i.e. `abstract`, `clone`, `enum`, `interface`, or `struct`."
 		},
@@ -2034,7 +2034,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurence of " + emph(tok) + "; expected flavor of type to declare"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "After the `=` sign in a type declaration, Pipefish expects the flavor of type " +
 				"to be declared, i.e. `abstract`, `clone`, `enum`, `interface`, or `struct`."
 		},
@@ -2044,7 +2044,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected ocurence of " + emph(tok) + "; expected type name"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A type declaration should begin with the name of a type, which must therefore be a valid identifier."
 		},
 	},
@@ -2053,7 +2053,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unknown type " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "An abstract type declaration should consist of types joined by the " + emph("/") + "operator, but you're using something that isn't the name of a type."
 		},
 	},
@@ -2063,7 +2063,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "typecheck " + emph(args[0]) + " declared at for type " + emph(args[1]) +
 				" can never return a boolean value"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A typecheck should return a boolean value or an error but this can't do either."
 		},
 	},
@@ -2072,7 +2072,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "invalid binary token"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects a token begining with `0b` to represent a number in binary notation, so " +
 				"that the remaining characters should all be 0s and 1s. You are seeing this error " +
 				"because Pipefish was unable to parse the token in this way."
@@ -2083,7 +2083,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "a line ending in `,` must be followed by a line beginning with `..`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish allows two forms of continuation, and one is to end a line in a comma " +
 				"in positions where a comma would be correct anyway, and to begin the next line with `..`\n\n" +
 				"For example: \n\n" +
@@ -2100,7 +2100,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "a line ending in `..` must be followed by a line beginning with `..`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish allows two forms of continuation, and one is to end a line in a comma " +
 				"in positions where a comma would be correct anyway, and to begin the next line with `..`\n\n" +
 				"For example: \n\n" +
@@ -2117,7 +2117,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "a line can't begin with a continuation unless it follows a line ending with either a continuation or a comma"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish allows two forms of continuation, and one is to end a line in a comma " +
 				"in positions where a comma would be correct anyway, and to begin the next line with `..`\n\n" +
 				"For example: \n\n" +
@@ -2134,7 +2134,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected `.`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `.` symbol can only occur in a few contexts: as a decimal point; as a namespace operator, " +
 				"or as part of the `..` and `...` symbols."
 		},
@@ -2144,7 +2144,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "bad indentation in snippet"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `--` operator, followed by a snippet, obeys the same sort of whitespace rules as a `:` followed by a block of code. Either the snippet is all one line, in which case it may go on the same line as the `--`; or it is a block defined by indentation."
 		},
 	},
@@ -2153,7 +2153,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "bad indentation in snippet"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `--` operator, followed by a snippet, obeys the same sort of whitespace rules as a `:` followed by a block of code. Either the snippet is all one line, in which case it may go on the same line as the `---`; or it is a block defined by indentation."
 		},
 	},
@@ -2162,7 +2162,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "bad indentation in snippet"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The '---' operator, followed by a snippet, obeys the same sort of whitespace rules as a ':' followed by a block of code. Either the snippet is all one line, in which case it may go on the same line as the '--'; or it is a block defined by indentation."
 		},
 	},
@@ -2171,7 +2171,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "no `{` after `golang"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects the `golang` token to be followed by `{` to introduce the Go code, to be terminated by a matching `}`."
 		},
 	},
@@ -2180,7 +2180,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "invalid octal token"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects a token begining with `0o` to represent a number in octal notation, so " +
 				"that the remaining characters should all be digits between 0 and 7. You are seeing this error " +
 				"because Pipefish was unable to parse the token in this way."
@@ -2191,7 +2191,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "invalid hexadecimal token"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects a token begining with `0x` to represent a number in binary notation, so " +
 				"that the remaining characters should all be digits or letters (of either case) between A and F inclusive. " +
 				"You are seeing this error because Pipefish was unable to parse the token in this way."
@@ -2202,7 +2202,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "illegal character"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You have used an illegal character or combination of characters in an identifier."
 		},
 	},
@@ -2211,7 +2211,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "namespace must be identifier"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "From your use of `.`, Pipefish supposes that you're trying to refer to an entity " +
 				"inside of a namespace; but the namespace you're using isn't a valid identifier."
 		},
@@ -2221,7 +2221,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "namespaced entity must be identifier"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "From your use of `.`, Pipefish supposes that you're trying to refer to an entity " +
 				"inside of a namespace; but the name you're using for the entity isn't a valid identifier."
 		},
@@ -2231,7 +2231,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "invalid number"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects a token begining with a digit to represent a number. " +
 				"You are seeing this error because Pipefish was unable to parse the token in this way."
 		},
@@ -2241,7 +2241,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "string unterminated by end of line"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Having begun a string literal with an opening quote, you haven't concluded it with a matching " +
 				"closing quote before the end of your line of code."
 		},
@@ -2251,7 +2251,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "string unterminated by end of line"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Having begun a string literal with an opening quote, you haven't concluded it with a matching " +
 				"closing quote before the end of your line of code."
 		},
@@ -2261,7 +2261,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "string unterminated by end of line"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Having begun a string literal with an opening quote, you haven't concluded it with a matching " +
 				"closing quote before the end of your line of code."
 		},
@@ -2271,7 +2271,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "string unterminated by end of line"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Having begun a string literal with an opening quote, you haven't concluded it with a matching " +
 				"closing quote before the end of your line of code."
 		},
@@ -2281,7 +2281,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "rune literal unterminated by end of line"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Having begun a rune literal with an opening quote, you haven't concluded it with a matching " +
 				"closing quote before the end of your line of code."
 		},
@@ -2291,7 +2291,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "whitespace is inconsistent with previous indentation levels"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When you outdent your code, it should end up with the same indentation " +
 				"as some previous line of code, otherwise Pipefish can't infer what nesting level you're trying to indicate."
 		},
@@ -2301,7 +2301,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't put " + text.DescribeTok(tok) + " before " + text.DescribeTok(args[0].(*token.Token))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error occurs when you put one thing after another where they just make no sense in " +
 				"sequence, e.g. `7 8` or `false \"Wombat\"` or `0.5 (`."
 		},
@@ -2311,7 +2311,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't put " + text.DescribeTok(tok) + " before " + text.DescribeTok(args[0].(*token.Token))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error occurs when you put one thing after another where they just make no sense in " +
 				"sequence, e.g. `7 8` or `false \"Wombat\"` or `0.5 (`."
 		},
@@ -2321,7 +2321,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "empty code block"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Your use of the `:` symbol here indicates that you're trying to start " +
 				"a block of code, but there's nothing after it."
 		},
@@ -2331,7 +2331,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "`func` declaration should have a colon"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A `func` declaration looks much like a normal function declaration, and like a normal " +
 				"function it requires a `:` between the parameters and the function body."
 		},
@@ -2341,7 +2341,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting an expression before closure by " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error is produced when an outdent, `)`, `]`, or `}` occurs when " +
 				"an expression is incomplete: for example if you type `(2 + )` into the REPL."
 		},
@@ -2352,7 +2352,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
 				" unclosed by " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			opposite := oppositeOf[args[0].(*token.Token).Literal]
 			return "You've reached the end of an expression and the " +
 				text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
@@ -2364,9 +2364,9 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Pipefish wasn't expecting " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error occurs when an otherwise well-formed expression " +
-				"is followed by some stray bit of code that shouldn't be there, e.g. `(2 + 2) \"wombat\"`." + blame(errors, pos, "lex/comma")
+				"is followed by some stray bit of code that shouldn't be there, e.g. `(2 + 2) \"wombat\"`."
 		},
 	},
 
@@ -2374,7 +2374,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Couldn't parse " + emph(tok) + " as float"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Something about the form of " + emph(tok) + " has persuaded Pipefish to try and parse it " +
 				"as a floating-point number, and yet it is not a floating-point number so Pipefish has failed."
 		},
@@ -2384,7 +2384,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Pipefish expected something to follow " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error occurs when something which only makes sense as a prefix, such as `not`, is " +
 				"then not followed by anything."
 		},
@@ -2394,7 +2394,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected colon, not " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "While there are lots of valid forms the declaration of a `for` loop can " +
 				"take, this isn't one of them."
 		},
@@ -2404,7 +2404,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected semicolon, not " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "While there are lots of valid forms the declaration of a `for` loop can " +
 				"take, this isn't one of them."
 		},
@@ -2414,7 +2414,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Prefix " + emph("from") + " without " + emph("for")
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When " + emph("from") + " appears in prefix position, Pipefish expects it to be binding variable to a succeeding " + emph("for") + " loop, and it can't find one in this case."
 		},
 	},
@@ -2423,7 +2423,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed instance of parameterized type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish thinks you're trying to make an instance of a parameterized type, " +
 				"but in that case we'd expect a comma or a closing brace here."
 		},
@@ -2433,7 +2433,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "bad value in instance of parameterized type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The arguments you use to instantiate a parameterized type should be " +
 				"of type `bool`, `float`, `int`, `rune`, `string`, `type`, or an enum type."
 		},
@@ -2443,7 +2443,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed inner function declaration: unexpected occurrence of " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish thinks you're trying to declare an inner function here but is unable to parse it as such."
 		},
 	},
@@ -2452,7 +2452,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed inner function declaration: unexpected occurrence of " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish thinks you're trying to declare an inner function here but is unable to parse it as such."
 		},
 	},
@@ -2461,7 +2461,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed inner function declaration: unexpected occurrence of " + emph(tok.Literal)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish thinks you're trying to declare an inner function here but is unable to parse it as such."
 		},
 	},
@@ -2470,7 +2470,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Pipefish expected an expression before the end of the line"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error is produced when a line stops with something clearly missing, e.g. if you put `2 + `" +
 				" into the REPL."
 		},
@@ -2480,7 +2480,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return text.DescribeTok(tok) + " doesn't close anything"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			opposite := oppositeOf[args[0].(*token.Token).Literal]
 			return "The " + text.DescribeTok(tok) + " at " + text.DescribePos(tok) + " doesn't " +
 				"correspond to  any " + opposite + "that needs closing."
@@ -2491,7 +2491,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "Pipefish expected an expression on either side of " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error is typically returned when a binary operator is missing its left-hand side, e.g. if " +
 				"you ask the REPL to evaluate `and false`."
 		},
@@ -2501,7 +2501,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't find namespace " + emph(tok.Namespace)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You haven't declared that namespace in the `import`  or `external` sections"
 		},
 	},
@@ -2511,7 +2511,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
 				" unclosed by " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			opposite := oppositeOf[args[0].(*token.Token).Literal]
 			return "The " + text.DescribeTok(args[0].(*token.Token)) + text.DescribePos(args[0].(*token.Token)) +
 				" hasn't been supplied with a corresponding " + opposite +
@@ -2524,7 +2524,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed parameterized type declaration"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point PIpefish was expecting either a comma or a closing brace."
 		},
 	},
@@ -2533,7 +2533,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "name " + emph(tok) + " is not a valid identifier"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "It seems like you're trying to define a parameterized type here, " +
 				"but the name you've supplied for it is not a valid identifier."
 		},
@@ -2543,7 +2543,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unnecceptable type in parameters of parameterized type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The parameters of a parameterized type should themselves be " +
 				"of type `bool`, `float`, `int`, `rune`, `string`, `type`, or an enum type."
 		},
@@ -2553,7 +2553,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't parse " + text.DescribeTok(tok) + " as a prefix"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You've put " + text.DescribeTok(tok) + " in such a position that it looks like you want it to " +
 				"function as a prefix, but it isn't one."
 		},
@@ -2563,7 +2563,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected closing brace"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You used a left brace as though you were trying to refer to a parameterized " +
 				"type, but there is no corresponding right brace."
 		},
@@ -2573,7 +2573,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + text.DescribeTok(tok) + " in return types"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expected your return types to the right of the `->` to be one or more types separated by " +
 				"commas, and so it is puzzled to find " + text.DescribeTok(tok) + " instead."
 		},
@@ -2583,7 +2583,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + text.DescribeTok(tok) + " in return types"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expected your return types to the right of the `->` to be one or more types separated by " +
 				"commas, and so it is puzzled to find " + text.DescribeTok(tok) + " instead."
 		},
@@ -2593,7 +2593,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected identifier, found " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the function declaration Pipefish was expecting the name of a parameter."
 		},
 	},
@@ -2602,7 +2602,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected identifier, found " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the function declaration Pipefish was expecting the name of a parameter."
 		},
 	},
@@ -2611,7 +2611,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected identifier, found " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the function declaration Pipefish was expecting the name of a parameter."
 		},
 	},
@@ -2620,7 +2620,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish is trying to interpret this as a function or assignment signature, and " +
 				"the " + text.DescribeTok(tok) + " doesn't belong in such a context."
 		},
@@ -2630,7 +2630,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish is trying to interpret this as a function or assignment signature, and " +
 				"the " + text.DescribeTok(tok) + " doesn't belong in such a context."
 		},
@@ -2640,7 +2640,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + text.DescribeTok(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish is trying to interpret this as a function or assignment signature, and " +
 				"the " + text.DescribeTok(tok) + " doesn't belong in such a context."
 		},
@@ -2650,7 +2650,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "`|` symbol in snippet left unclosed by end of snippet"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Within a snipped, the `|` characters are meant to come in pairs aorund Pipefish expressions."
 		},
 	},
@@ -2659,7 +2659,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "found " + text.DescribeTok(tok) + " in `try` expression"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "`try` should be followed either by a colon, or by the name of a variable to capture the error, followed by a colon."
 		},
 	},
@@ -2668,7 +2668,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "found " + text.DescribeTok(tok) + " in `try` expression"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "`try` should be followed either by a colon, or by the name of a variable to capture the error, followed by a colon."
 		},
 	},
@@ -2677,7 +2677,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "type " + emph(tok.Namespace+tok.Literal) + " doesn't exist"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You seem to be trying to use " + emph(tok.Namespace+tok.Literal) + "as a type but you haven't defined it as one."
 		},
 	},
@@ -2686,7 +2686,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "found " + text.DescribeTok(tok) + " in function declaration, expected `:` or `->`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A function's call parameters should be followed either by a colon, or optionally by its return types."
 		},
 	},
@@ -2695,7 +2695,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected type name, found " + emph(tok)
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A return signature should consist of names of types separated by commas, " +
 				"and so at this point Pipefish was expecting a type name, which would necessarily be " +
 				"a valid identifier."
@@ -2706,7 +2706,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected " + emph(tok) + " in return signature"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A return signature should consist of names of types separated by commas, " +
 				"and so at this point Pipefish was expecting a comma, or a colon to introduce " +
 				"the main body of the function."
@@ -2717,7 +2717,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "function/command has no name"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish thinks you're trying to declare a command or function, but you've " +
 				"failed to give it a name."
 		},
@@ -2727,7 +2727,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "found " + text.DescribeTok(tok) + " in function declaration, expected `,` or `)`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A function's call parameters should be seperated by commas and terminated by a closing parenthesis."
 		},
 	},
@@ -2736,7 +2736,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "found " + text.DescribeTok(tok) + " in function declaration, expected `)`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A function's call parameters should be seperated by commas and terminated by a closing parenthesis."
 		},
 	},
@@ -2745,7 +2745,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unfinished type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "It looks like you're trying to give the name of a type, but didn't finish doing so, e.g. you have an unclosed brace."
 		},
 	},
@@ -2754,7 +2754,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "detatched indent"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The indentation marking the beginning of a code block should follow a line ending in a colon."
 		},
 	},
@@ -2763,7 +2763,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "logging following comma or `..`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "While the logging syntax looks a lot like a comment, the rules governing its " +
 				"use are slightly more strict: it cannot follow a continuaton as indicated by a comma or `..`."
 		},
@@ -2773,7 +2773,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't use abstract type as map key in converting from SQL."
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish needs to know a specific concrete type to try to convert things into, " +
 				"for much the same reason as you can't have a constructor for an abstract type."
 		},
@@ -2783,7 +2783,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't use abstract type as map value in converting from SQL."
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish needs to know a specific concrete type to try to convert things into, " +
 				"for much the same reason as you can't have a constructor for an abstract type."
 		},
@@ -2793,7 +2793,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't use abstract type as list element type in converting from SQL."
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish needs to know a specific concrete type to try to convert things into, " +
 				"for much the same reason as you can't have a constructor for an abstract type."
 		},
@@ -2803,7 +2803,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't use abstract type as set element type in converting from SQL."
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish needs to know a specific concrete type to try to convert things into, " +
 				"for much the same reason as you can't have a constructor for an abstract type."
 		},
@@ -2813,7 +2813,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "duplicate key in map: " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When you turn the rows returned from SQL into a map, this error shows that one of the key values has been repeated."
 		},
 	},
@@ -2822,7 +2822,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to parse Pipefish in SQL snippet"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Your SQL contains an expression of the form `|...|`, which Pipefish is attempting to interpret as being in the Pipefish language. However, the parser isn't able to parse it."
 		},
 	},
@@ -2831,7 +2831,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't convert Pipefish struct to SQL table"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Recall that only a limited number of types have been implemented for demonstration purposes."
 		},
 	},
@@ -2840,7 +2840,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "value is not of type `func`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "It only makes sense to apply a value to an expression if the value " +
 				"is a lambda function."
 		},
@@ -2850,7 +2850,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "value on left of `and` is not of type `bool`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The built-in `and` operator can only be applied to values of boolean types."
 		},
 	},
@@ -2859,7 +2859,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "value on right of `and` is not of type `bool`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The built-in `and` operator can only be applied to values of boolean types."
 		},
 	},
@@ -2868,7 +2868,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "value on left of conditional `:` is not of type `bool`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish has no such things as \"truthiness\": the `:` operator can only take a boolean value as its condition."
 		},
 	},
@@ -2877,7 +2877,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "value is not of type `bool`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The built-in `not` operator can only be applied to values of boolean types."
 		},
 	},
@@ -2886,7 +2886,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "value on left of `or` is not of type `bool`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The built-in `or` operator can only be applied to values of boolean types."
 		},
 	},
@@ -2895,7 +2895,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "value on right of `or` is not of type `bool`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The built-in `or` operator can only be applied to values of boolean types."
 		},
 	},
@@ -2904,7 +2904,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "unable to perform cast"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Types can only be cast between clones of the same parent, or the " +
 				"parent itself; or between integers and enums; or between lists and structs."
 		},
@@ -2914,7 +2914,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't cast to abstract type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A cast changes the type of a value to the given type, which must therefore " +
 				"be a concrete type, since a value can't have an abstract type."
 		},
@@ -2924,7 +2924,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "cast to enum out of range"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When casting an integer to an enum type, the integer must be in a range " +
 				"from and including 0 to and excluding the length of the type."
 		},
@@ -2934,7 +2934,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "wrong number of list elements for cast to struct"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When casting a list to a struct type, the length of the list must be " +
 				"the same as the number of fields of the struct type."
 		},
@@ -2944,7 +2944,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "wrong types of list elements for cast to struct"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When casting a list to a struct type, the  types of the list element must " +
 				"correspond to the types of the fields of the struct type."
 		},
@@ -2954,7 +2954,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "applying `clones` to something which is not a type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `clones` function returns the types that clone a given type, and so cannot " +
 				"take anything other than a type as its argument."
 		},
@@ -2964,7 +2964,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "process halted with CTRL+C"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pressing CTRL+C will halt whatever process Pipefish is running, returning you to the TUI."
 		},
 	},
@@ -2973,7 +2973,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "division by zero"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "As it is not possible to divide a number by zero, Pipefish considers this a runtime error."
 		},
 	},
@@ -2982,7 +2982,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "division by zero"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "As it is not possible to divide a number by zero, Pipefish considers this a runtime error."
 		},
 	},
@@ -2991,7 +2991,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "division by zero"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "As it is not possible to divide a number by zero, Pipefish considers this a runtime error."
 		},
 	},
@@ -3000,7 +3000,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "division by zero"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "As it is not possible to divide a number by zero, Pipefish considers this a runtime error."
 		},
 	},
@@ -3009,7 +3009,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "division by zero"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "As it is not possible to divide a number by zero, Pipefish considers this a runtime error."
 		},
 	},
@@ -3018,7 +3018,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("out of range: can't construct element %v of type %v", emph(args[1]), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("Types that can be indexed by integers are %v, %v, %v, %v, and %v if it has integer keys.", emph("list"), emph("pair"), emph("string"), emph("tuple"), emph("map"))
 		},
 	},
@@ -3027,7 +3027,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "comparing value of type " + emph(args[0]) + " with value of type " + emph(args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "In Pipefish, comparing two values of different types using `==` is considered an " +
 				"error."
 		},
@@ -3037,7 +3037,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't range over given type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
 				"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
 				"upper bound of a range starting at 0."
@@ -3048,7 +3048,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't range over given type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
 				"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
 				"upper bound of a range starting at 0."
@@ -3059,7 +3059,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't range over given type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
 				"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
 				"upper bound of a range starting at 0."
@@ -3070,7 +3070,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "range should be pair of integers"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "If you're going to give the range of a list using `::`, the elements of the pair should both be integers."
 		},
 	},
@@ -3079,7 +3079,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "lambda function has the wrong number of arguments"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The arguments passed are different in number from the parameters of the function."
 		},
 	},
@@ -3088,7 +3088,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to convert Pipefish value"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You're trying to apply a Go lambda function (wrapped in a Pipefish " +
 				"lambda function), to something that Pipefish doesn't know how to convert " +
 				"into Go."
@@ -3099,7 +3099,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "function has the wrong types"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The arguments passed are different in type from the parameters of the function."
 		},
 	},
@@ -3108,7 +3108,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't convert Go value of type " + emph(args[0]) + " to Pipefish"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Not every Go value can or should be converted into Pipefish."
 		},
 	},
@@ -3117,7 +3117,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't convert Go value of type " + emph(args[0]) + " to Pipefish"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Not every Go value can or should be converted into Pipefish."
 		},
 	},
@@ -3126,7 +3126,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't convert Pipefish value of type " + emph(args[0]) + " to Go"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Not every Pipefish value can or should be converted into Go."
 		},
 	},
@@ -3135,7 +3135,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("trying to index a struct by something of type %v`", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A struct can only be indexed by something of type `label`.")
 		},
 	},
@@ -3144,7 +3144,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v is out of range `0::%v`", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A list is indexed over a range from and including 0 up to and excluding the length of the list.")
 		},
 	},
@@ -3153,7 +3153,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v cannot be used to index something of type %v", emph(args[0]), emph("pair"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("As a pair contains only two elements, they are indexed by %v and %v.", emph(0), emph(1))
 		},
 	},
@@ -3162,7 +3162,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A string is indexed over a range from and including 0 up to and excluding the length of the string.")
 		},
 	},
@@ -3171,7 +3171,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A tuple is indexed over a range from and including 0 up to and excluding the arity of the tuple.")
 		},
 	},
@@ -3180,7 +3180,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't index type %v", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The only types you can index are enum types.")
 		},
 	},
@@ -3189,7 +3189,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v out of range for type %v", emph(args[1]), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("An enum type is indexed over a range from and including 0 up to and excluding the length of the type.")
 		},
 	},
@@ -3198,7 +3198,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3207,7 +3207,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3216,7 +3216,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice %v is less than %v", emph(args[0]), emph(0))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("Nothing can be indexed by a negative number.")
 		},
 	},
@@ -3225,7 +3225,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound of slice %v is less than lower bound %v", emph(args[1]), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3234,7 +3234,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound %v of list slice is strictly greater than list length %v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
 		},
 	},
@@ -3243,7 +3243,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound %v of string slice is strictly greater than string length %v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
 		},
 	},
@@ -3252,7 +3252,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't slice value of type %v by a pair", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("You can slice things of type `tuple`, `list`, and `string`, plus the clones of lists and strings if " +
 				"you requested this by declaring the clone type.")
 		},
@@ -3262,7 +3262,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("key not found in map")
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("It is an error to try and get a value from a map using a key that is not in fact in the map.")
 		},
 	},
@@ -3271,7 +3271,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't index value of type %v by value of type %v", emph(args[0]), emph(args[1]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The %v, %v, %v, and %v types can be indexed by integers; the %v type by its field labels, and a %v by any of its keys. This fits none of those cases.", emph("list"), emph("pair"), emph("string"), emph("tuple"), emph("struct"), emph("map"))
 		},
 	},
@@ -3280,7 +3280,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A list is indexed over a range from and including 0 up to and excluding the length of the list.")
 		},
 	},
@@ -3289,7 +3289,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v cannot be used to index something of type %v", emph(args[0]), emph("pair"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("As a pair contains only two elements, they are indexed by %v and %v.", emph(0), emph(1))
 		},
 	},
@@ -3298,7 +3298,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A string is indexed over a range from and including 0 up to and excluding the length of the string.")
 		},
 	},
@@ -3307,7 +3307,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A tuple is indexed over a range from and including 0 up to and excluding the arity of the tuple.")
 		},
 	},
@@ -3316,7 +3316,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't index value of type %v by %v", emph(args[0]), emph(args[1]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("Pipefish just can't make sense of that at all.")
 		},
 	},
@@ -3325,7 +3325,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound %v of tuple slice is strictly greater than string length %v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
 		},
 	},
@@ -3334,7 +3334,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v of snippet is out of range", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The greatest value the index of a snippet can have is the length of the thing being indexed.")
 		},
 	},
@@ -3343,7 +3343,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't index struct of type %v by label %v", emph(args[0]), emph(args[1]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A struct can only be indexed by the labels declared in its type signature."
 		},
 	},
@@ -3352,7 +3352,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't index struct of type %v by label %v", emph(args[0]), emph(args[1]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "A struct can only be indexed by the labels declared in its type signature."
 		},
 	},
@@ -3361,7 +3361,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "string has wrong form to convert to int"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "To be converted into an integer, a string must consist exclusively of the digits `0` ... `9`."
 		},
 	},
@@ -3371,7 +3371,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "string has wrong form to convert to float"
 		},
 		// TODO --- look up the spec of the conversion and see if this is true.
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "To be converted into an float, a string must consist exclusively of the digits `0` ... `9` and the decimal point."
 		},
 	},
@@ -3380,7 +3380,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't convert string %v to a label", emphStr(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "In order to convert a string value to a label, the label must have been defined as the label of a field of a struct."
 		},
 	},
@@ -3389,7 +3389,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't use value of type %v as the key in a key-value pair", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "To be the key of a key-value pair in a map, a value must have a type which is not a struct."
 		},
 	},
@@ -3398,7 +3398,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected value of type `list`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The value on the left-hand side of the operators `?>` and `>>` " +
 				"should always be of type `list`."
 		},
@@ -3408,7 +3408,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "taking the modulus of a number by zero"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "As it is not possible to divide a number by zero, Pipefish considers this a runtime error."
 		},
 	},
@@ -3417,7 +3417,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "something unexpected has gone wrong"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Please tell the author of Pipefish that he messed up. Thank you."
 		},
 	},
@@ -3426,7 +3426,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "VM panicked with error " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the development of Pipefish this error may come from " +
 				"something you've done, e.g. a stack overflow, or from an error in Pipefish itself. " +
 				"If you suspect the latter, you should contact the author."
@@ -3437,7 +3437,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "variable captured two different types"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When you use a variable in a function signature to capture a type, and you use the " +
 				"same variable for this purpose more than one in the same signature, then it must capture " +
 				"the same type each time."
@@ -3448,7 +3448,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't make parameterized type with arguments supplied"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "While a parameterized type of the right name exists, the values you've " +
 				"supplied are of the wrong type to construct it."
 		},
@@ -3458,7 +3458,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "right-hand side of filter expression cannot return boolean"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects the right-hand side of a filter operator to be a function returning a boolean, or an boolean-valued expression containing" + emph("that") + "."
 		},
 	},
@@ -3467,7 +3467,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to use " + emph(tok.Literal) + " as a function"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting an expression that it could pipe the left-hand side of the piping operator into."
 		},
 	},
@@ -3476,7 +3476,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to use " + emph(tok.Literal) + " as a function"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting an expression that it could pipe the left-hand side of the piping operator into."
 		},
 	},
@@ -3485,7 +3485,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3494,7 +3494,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3503,7 +3503,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice %v is less than %v", emph(args[0]), emph(0))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("Nothing can be indexed by a negative number.")
 		},
 	},
@@ -3512,7 +3512,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound of slice %v is less than lower bound %v", emph(args[1]), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3521,7 +3521,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound %v of list slice is strictly greater than list length %v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
 		},
 	},
@@ -3530,7 +3530,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3539,7 +3539,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3548,7 +3548,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice %v is less than %v", emph(args[0]), emph(0))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("Nothing can be indexed by a negative number.")
 		},
 	},
@@ -3557,7 +3557,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound of slice %v is less than lower bound %v", emph(args[1]), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3566,7 +3566,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound %v of string slice is strictly greater than list length %v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
 		},
 	},
@@ -3575,7 +3575,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3584,7 +3584,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3593,7 +3593,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("lower bound of slice %v is less than %v", emph(args[0]), emph(0))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("Nothing can be indexed by a negative number.")
 		},
 	},
@@ -3602,7 +3602,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound of slice %v is less than lower bound %v", emph(args[1]), emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
 		},
 	},
@@ -3611,7 +3611,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("upper bound %v of tuple slice is strictly greater than list length %v", emph(args[0]), args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
 		},
 	},
@@ -3620,7 +3620,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected value of type `list`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The value on the left-hand side of the splat operator `...` " +
 				"should always be of type `list`."
 		},
@@ -3630,7 +3630,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't coerce SQL data to " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish can only coerce SQL rows into concrete types."
 		},
 	},
@@ -3639,7 +3639,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't coerce SQL data to " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish can only coerce SQL rows into concrete types."
 		},
 	},
@@ -3648,7 +3648,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't coerce SQL data to " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish can only coerce SQL rows into concrete types."
 		},
 	},
@@ -3657,7 +3657,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't coerce SQL data to " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish can only coerce SQL rows into concrete types."
 		},
 	},
@@ -3666,7 +3666,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to connect to SQL database with error " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "There is a problem connecting to the database. Check that it's running " +
 				"and that you're using the right arguments to connect."
 		},
@@ -3676,7 +3676,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to connect to SQL database with error " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "There is a problem connecting to the database. Check that it's running " +
 				"and that you're using the right arguments to connect."
 		},
@@ -3686,7 +3686,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to query SQL database with error " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "While the connection to the SQL database is good, the SQL query you " +
 				"passed it was defective in a way that hopefully will be explained in SQL's " +
 				"own error message as relayed by Pipefish."
@@ -3698,7 +3698,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't convert Go type " + emph(args[0]) + " to Pipefish"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return ""
 		},
 	},
@@ -3707,7 +3707,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected one row; got many"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You told Pipefish to coerce the result of your SQL quesry into " +
 				"a sigle value, but it returned multiple rows."
 		},
@@ -3717,7 +3717,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to ping SQL database with error " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "There is a problem pingingto the database. Check that it's still running."
 		},
 	},
@@ -3726,7 +3726,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to ping SQL database with error " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "There is a problem pingingto the database. Check that it's still running."
 		},
 	},
@@ -3735,7 +3735,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "repeat value found when converting SQL query result to set"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "When the rows of the result of a SQL query are converted into a set, " +
 				"Pipefish will treat it as an error if any of the rows are duplicated."
 		},
@@ -3745,7 +3745,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed to post to SQL database with error " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "While the connection to the SQL database is good, the SQL query you " +
 				"passed it was defective in a way that hopefully will be explained in SQL's " +
 				"own error message as relayed by Pipefish."
@@ -3756,7 +3756,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't scan data from SQL database; error was \"" + args[0].(string) + "\""
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Hopefully the error returned makes it clear why this has happened."
 		},
 	},
@@ -3765,7 +3765,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't scan data from SQL database; error was \"" + args[0].(string) + "\""
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Hopefully the error returned makes it clear why this has happened."
 		},
 	},
@@ -3774,7 +3774,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't convert type " + emph(args[0]) + " to SQL signature"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "We only convert a type into SQL to produce a SQL table signature from " +
 				"that type, with the row names of the table corresponding to the field names of " +
 				"the struct. It is therefore essential that the type supplied should in fact *be* " +
@@ -3786,7 +3786,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't coerce SQL data to " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish can only coerce SQL rows into a limited number of types, and " +
 				"this isn't one of them."
 		},
@@ -3796,7 +3796,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't coerce SQL data to " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish can only coerce SQL rows into a limited number of types, and " +
 				"this isn't one of them."
 		},
@@ -3806,7 +3806,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't coerce SQL data to " + emph(args[0])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish can only coerce SQL rows into a limited number of types, and " +
 				"this isn't one of them."
 		},
@@ -3816,7 +3816,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected one row; got none"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You told Pipefish to coerce the result of your SQL quesry into " +
 				"a sigle value, but it returned no rows."
 		},
@@ -3826,7 +3826,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to take the first element of an empty tuple"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The empty tuple `()` has no first element."
 		},
 	},
@@ -3835,7 +3835,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to take the last element of an empty tuple"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The empty tuple `()` has no last element."
 		},
 	},
@@ -3844,7 +3844,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed runtime typecheck of function argument"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You placed constraints on the call types of this function which you then violated."
 		},
 	},
@@ -3865,7 +3865,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				"line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
 				"by expression " + emph(args[4])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			plural := ""
 			if args[0].(bool) {
 				plural = "s"
@@ -3889,7 +3889,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "type constraint" + plural + " " + emph(args[1]) + " on bound variable" + plural + " of `for` loop declared at " +
 				"line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			plural := ""
 			if args[0].(bool) {
 				plural = "s"
@@ -3914,7 +3914,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				"line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
 				"by expression " + emph(args[4])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			plural := ""
 			if args[0].(bool) {
 				plural = "s"
@@ -3939,7 +3939,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				"line <Y>" + strconv.Itoa(args[2].(*token.Token).Line) + "</> unsatisfied by value of type " + emph(args[3]) + " supplied " +
 				"by expression " + emph(args[4])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			plural := ""
 			if args[0].(bool) {
 				plural = "s"
@@ -3952,7 +3952,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed typecheck on return type"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You placed constraints on the return type of this expression which you then violated."
 		},
 	},
@@ -3961,7 +3961,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "<For reasons, possibly bad ones, the actual error message is generated in the compiler.>"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You have supplied the function with arguments of types for which no function of that name is defined."
 		},
 	},
@@ -3970,7 +3970,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "<For reasons, possibly bad ones, the actual error message is generated in the compiler.>"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You have supplied the function with arguments of types for which no function of that name is defined."
 		},
 	},
@@ -3979,7 +3979,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "<For reasons, possibly bad ones, the actual error message is generated in the compiler.>"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "You have supplied the function with arguments of types for which no function of that name is defined."
 		},
 	},
@@ -3988,7 +3988,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to unwrap something that isn't an `error`"
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `unwrap` function converts things of type `error` into type `Error`: " +
 				"it doesn't work on anything else."
 		},
@@ -4000,7 +4000,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 				text.DescribePos(args[2].(*token.Token)) + " returned a non-boolean value of type " +
 				emph(args[3]) + " when constructing value of type " + emph(args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "Runtime validation should return either a boolean value or an error."
 		},
 	},
@@ -4010,7 +4010,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "failed type validation declared" +
 				text.DescribePos(args[2].(*token.Token)) + " when constructing value of type " + emph(args[1])
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return "This is a validated type and the values you're trying to construct it from violate the declared constraints."
 		},
 	},
@@ -4019,7 +4019,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("type %v found indexing list in %v expression where %v was expected", emph(args[0]), emph("with"), emph("int"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A list must be indexed by an integer.")
 		},
 	},
@@ -4028,7 +4028,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("index %v in %v expression out of bounds for list of length %v", emph(args[0]), emph("with"), emph(args[1]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("When you copy-and-mutate a list using a %v expression, the greatest possible value of the index is the length of the list.", emph("with"))
 		},
 	},
@@ -4037,7 +4037,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("trying to index a map with a value of type %v in %v expression", emph(args[0]), emph("with"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A map can only be indexed by things of type %v, %v, %v, %v, %v, %v or %v", emph("bool"), emph("enum"), emph("float"), emph("int"), emph("label"), emph("rune"), emph("string"))
 		},
 	},
@@ -4046,7 +4046,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("type %v found indexing struct in %v expression where %v was expected", emph(args[0]), emph("with"), emph("label"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A struct must be indexed by one of the field labels given in its definition.")
 		},
 	},
@@ -4055,7 +4055,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("%v is not a field label of structs of type %v", emph(args[0]), emph(args[1]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A struct is indexed only by its own labels as specified in the type definition.")
 		},
 	},
@@ -4064,7 +4064,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("assignment in %v expression of value of type %v to field %v of struct of type %v, which requires %v", emph("with"), emph(args[0]), emph(args[1]), emph(args[2]), emph(args[3]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The values that can be put into a struct are constrained by the types in its definition.")
 		},
 	},
@@ -4073,7 +4073,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("type %v found in %v expression where %v was expected", emph(args[0]), emph("with"), emph("pair"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The right-hand side of a %v expression should be a tuple of key-value pairs.", emph("with"))
 		},
 	},
@@ -4082,7 +4082,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("empty list found as key in %v expression", emph("with"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A %v expression of the form %v is malformed.", emph("with"), emph("x with []::y"))
 		},
 	},
@@ -4091,7 +4091,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("type %v found in %v expression where %v was expected", emph(args[0]), emph("with"), emph("pair"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The right-hand side of a %v expression should be a tuple of key-value pairs.", emph("with"))
 		},
 	},
@@ -4100,7 +4100,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("empty list found as key in %v expression", emph("with"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A %v expression of the form %v is malformed.", emph("with"), emph("x with []::y"))
 		},
 	},
@@ -4109,7 +4109,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("cannot instantiate abstract type %v", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A long-form constructor must be used on a concrete struct type.")
 		},
 	},
@@ -4118,7 +4118,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("cannot instantiate non-struct type %v", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A long-form constructor must be used on a concrete struct type.")
 		},
 	},
@@ -4127,7 +4127,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("type %v found in long-form constructor where %v was expected", emph(args[0]), emph("pair"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The right-hand side of a long-form constructor should be a tuple of key-value pairs.")
 		},
 	},
@@ -4136,7 +4136,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("left-hand side of key-value pair in struct constructor should be of type %v, not %v", "label", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A struct is indexed by its labels.")
 		},
 	},
@@ -4145,7 +4145,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("%v is not a field label of structs of type %v", emph(args[0]), emph(args[1]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A struct is indexed only by its own labels as specified in the type definition.")
 		},
 	},
@@ -4154,7 +4154,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("redefinition of %v in long-form constructor", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A long-form constructor can specify the value of each field only once.")
 		},
 	},
@@ -4163,7 +4163,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("no assignment to field %v in long-form constructor", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("Unless a field of a struct is nullable, it must be specified in a long-form constructor for the struct.")
 		},
 	},
@@ -4172,7 +4172,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("assignment of value of type %v to field %v of struct of type %v, which requires %v", emph(args[0]), emph(args[1]), emph(args[2]), emph(args[3]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The values that can be put into a struct are constrained by the types in its definition.")
 		},
 	},
@@ -4181,7 +4181,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("type %v found in %v expression where %v was expected", emph(args[0]), emph("with"), emph("pair"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The right-hand side of a %v expression should be a tuple of key-value pairs.", emph("with"))
 		},
 	},
@@ -4190,7 +4190,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("empty list found as key in %v expression", emph("with"))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("A %v expression of the form %v is malformed.", emph("with"), emph("x with []::y"))
 		},
 	},
@@ -4199,27 +4199,10 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Message: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("can't use value of type %v as key of map", emph(args[0]))
 		},
-		Explanation: func(errors Errors, pos int, tok *token.Token, args ...any) string {
+		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The key of a map cannot be of a struct type.")
 		},
 	},
-}
-
-func blame(errors Errors, pos int, args ...string) string {
-	if pos == 0 {
-		return ""
-	}
-	for _, v := range args {
-		if errors[pos-1].ErrorId == v {
-			very := ""
-			if ((*errors[pos]).Token.Line - errors[pos-1].Token.Line) <= 1 {
-				very = "very "
-			}
-			return "\n\nIn this case the problem is " + very + "likely a knock-on effect of the previous error ([" +
-				strconv.Itoa(pos-1) + "] " + errors[pos-1].Message + ".)"
-		}
-	}
-	return ""
 }
 
 func emph(s any) string {
