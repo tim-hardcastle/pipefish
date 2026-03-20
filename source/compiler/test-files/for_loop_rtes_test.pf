@@ -57,3 +57,7 @@ lowString(i int) :
     else :
         42
 
+count(A) :
+    from a = 0 for _::i = range A :
+        a + 1
+

@@ -1412,9 +1412,9 @@ func (iz *Initializer) compileValidation(name string, node parser.Node, newEnv *
 	iz.cp.Emit(vm.Ret)
 	typeCheck := &vm.TypeCheck{CallAddress: callAddress, InLoc: inLoc, ResultLoc: resultLoc, TokNumberLoc: tokNumberLoc}
 	if info.IsClone() {
-		info = info.(vm.CloneType).AddTypeCheck(typeCheck)
+		info = info.(vm.CloneType).AddValidation(typeCheck)
 	} else {
-		info = info.(vm.StructType).AddTypeCheck(typeCheck)
+		info = info.(vm.StructType).AddValidation(typeCheck)
 	}
 	iz.cp.Vm.ConcreteTypeInfo[typeNumber] = info
 	return true

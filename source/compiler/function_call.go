@@ -137,7 +137,7 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node parser.Callab
 	cp.cmP("Returned from initial call into generateNewArgument", b.tok)
 	cp.Put(vm.Asgm, b.outLoc)
 	if returnTypes.isOnly(values.ERROR) && node.GetToken().Literal != "error" {
-		if text.Tail(b.tok.Literal, "{}") { 
+		if text.Tail(b.tok.Literal, "{}") {
 			cp.Throw("comp/types/a", b.tok, b.tok.Literal, (b.types[1:]).describeWithPotentialInfix(cp.Vm, b.tok.Literal))
 			return FAIL
 		} else {
@@ -530,8 +530,8 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 					cp.Emit(vm.Rpop)
 					cp.Emit(vm.Asgm, b.outLoc, F.OutReg) // Because the different implementations of the function will have their own out register.
 					return F.RtnTypes, false
-				} 
-				
+				}
+
 				if (b.access == REPL || b.libcall) && F.Private {
 					cp.cmP("REPL trying to access private function. Returning error.", b.tok)
 					cp.Throw("comp/private", b.tok)
@@ -613,18 +613,18 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 				if text.Tail(builtinTag, "{}") {
 					typeOperator := builtinTag[:len(builtinTag)-2]
 					tokenOrdinal := cp.ReserveToken(b.tok)
-					// It could be one of the special constructors of parameterized clones 
+					// It could be one of the special constructors of parameterized clones
 					// of sets or maps from varargs, in which case we convert it first.
 					switch {
-					case text.Head(typeOperator, "&m_") :
+					case text.Head(typeOperator, "&m_"):
 						cp.Put(vm.CvTT, b.valLocs[1:]...)
 						cp.Put(vm.Mkmp, cp.That(), tokenOrdinal)
 						cp.Emit(vm.CasP, b.outLoc, tokenOrdinal, b.valLocs[0], cp.That())
-					case text.Head(typeOperator, "&s_") :
+					case text.Head(typeOperator, "&s_"):
 						cp.Put(vm.CvTT, b.valLocs[1:]...)
 						cp.Put(vm.Mkst, cp.That(), tokenOrdinal)
 						cp.Emit(vm.CasP, b.outLoc, tokenOrdinal, b.valLocs[0], cp.That())
-					case cp.P.ParTypes[typeOperator].IsClone :
+					case cp.P.ParTypes[typeOperator].IsClone:
 						cp.Emit(vm.CasP, b.outLoc, tokenOrdinal, b.valLocs[0], b.valLocs[1])
 					default:
 						args := append([]uint32{b.outLoc, tokenOrdinal}, b.valLocs...)
@@ -643,11 +643,11 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 						args := append([]uint32{b.outLoc, uint32(typeNumber)}, b.valLocs...)
 						cp.cmP("Emitting short form constructor.", b.tok)
 						cp.Emit(vm.Strc, args...)
-						typeCheck = typeInfo.(vm.StructType).TypeCheck
+						typeCheck = typeInfo.(vm.StructType).Validation
 					} else { // Or a clone constructor.
 						cp.cmP("Emitting clone constructor.", b.tok)
 						cp.Emit(vm.Cast, b.outLoc, b.valLocs[0], uint32(typeNumber))
-						typeCheck = typeInfo.(vm.CloneType).TypeCheck
+						typeCheck = typeInfo.(vm.CloneType).Validation
 					}
 					if typeCheck == nil {
 						return AltType(typeNumber), false

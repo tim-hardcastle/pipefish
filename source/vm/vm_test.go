@@ -188,7 +188,7 @@ func TestEof(t *testing.T) {
 	}
 	test_helper.RunTest(t, "eof_test.pf", tests, test_helper.TestValues)
 }
-func TestEquality(t *testing.T) {
+func TestEquality(t *testing.T) { // Most of this gets tested elsewhere as a by-product of testing everything else,
 	tests := []test_helper.TestItem{
 		{`comp true, false`, `false`},
 		{`comp 0.5, 0.5`, `true`},
@@ -197,10 +197,13 @@ func TestEquality(t *testing.T) {
 		{`name == age`, `false`},
 		{`comp int, string`, `false`},
 		{`ta == tb`, `false`},
+		{`ta == tc`, `false`},
 		{`(1, 2, 3) == (1, 2, 3)`, `true`},
 		{`(1, 2, 3) == (1, 2, 4)`, `false`},
+		{`[1, 2, 3] == [1, 2, true]`, `false`},
 		{`snippet(1, 2, 3) == snippet(1, 2, 3)`, `true`},
 		{`snippet(1, 2, 3) == snippet(1, 2)`, `false`},
+		{`snippet(1, 2, 3) == snippet(1, 2, "foo")`, `false`},
 		{`snippet(1, 2, 3) == snippet(1, 2, 4)`, `false`},
 		{`comp(foo(1), foo(2))`, `vm/equals/type`},
 		{`zort 0, 1`, `vm/div/zero/c`},
@@ -236,6 +239,10 @@ func TestForLoopRtes(t *testing.T) {
 		{`qux 3`, `vm/typecheck/index/update`},
 		{`rozt 3`, `vm/types/a`},
 		{`zrot 3`, `vm/types/a`},
+		{`count any`, `vm/for/type/a`},
+		{`count int`, `vm/for/type/b`},
+		{`count true`, `vm/for/type/c`},
+
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
@@ -630,6 +637,8 @@ func TestParameterizedTypes(t *testing.T) {
 		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
 		{`Vec{3}[1, 2, 3] + Vec{3}[4, 5, 6]`, `Vec{3}[5, 7, 9]`},
 		{`Money{USD} == Money{EURO}`, `false`},
+		{`Money{USD}(3, 50)`, `Money{USD} with (large::3, small::50)`},
+		{`Dragon{PURPLE}("Smaug", 500)`, `Dragon{PURPLE} with (name::"Smaug", age::500)`},
 		{`list{int}[1, 2]`, `list{int}[1, 2]`},
 		{`list{int}[1, 2] + list{int}[3, 4]`, `list{int}[1, 2, 3, 4]`},
 		{`Z{5}(4) in Z{5}`, `true`},
@@ -638,6 +647,7 @@ func TestParameterizedTypes(t *testing.T) {
 		{`Zort{0}(0::0)`, `Zort{0}(0::0)`},
 		{`Troz{0}(0)`, `Troz{0}(0)`},
 		{`fooify 1`, `vm/param/exist`},
+
 	}
 	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
 }
@@ -820,6 +830,7 @@ func TestWith(t *testing.T) {
 		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
 		{`john with age::23`, `Person with (name::"John", age::23)`},
 		{`john with []::23`, `vm/with/struct/b`},
+		{`john with name::23`, `vm/with/f`},
 		{`rex with [friends, 1]::"Daisy"`, `Dog with (name::"Rex", friends::["Fido", "Daisy"])`},
 		{`Person with (name::"John")`, `Person with (name::"John", age::NULL)`},
 		{`Cat with (name::"John")`, `vm/with/type/g`},
@@ -839,6 +850,11 @@ func TestWith(t *testing.T) {
 		{`int with "foo"::99`, `vm/with/type/b`},
 		{`Person with "foo"::99`, `vm/with/type/d`},
 		{`Person with friends::99`, `vm/with/type/e`},
+		{`myList with true::"foo"`, `vm/with/a`},
+		{`myList with -1::"foo"`, `vm/with/b`},
+		{`myList with 6::"foo"`, `vm/with/b`},
+		{`myMap with F::"foo"`, `vm/with/c`},
+
 	}
 	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
 }

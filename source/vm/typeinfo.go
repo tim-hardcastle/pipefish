@@ -140,7 +140,7 @@ type CloneType struct {
 	IsMappable    bool
 	IsMI          bool
 	Using         []token.Token // TODO --- this is used during API serialization only and can be stored somewhere else once we move that to initialization time.
-	TypeCheck     *TypeCheck
+	Validation    *TypeCheck
 	TypeArguments []values.Value
 }
 
@@ -183,8 +183,8 @@ func (CloneType) IsClonedBy() values.AbstractType {
 	return values.MakeAbstractType()
 }
 
-func (t CloneType) AddTypeCheck(tc *TypeCheck) CloneType {
-	t.TypeCheck = tc
+func (t CloneType) AddValidation(tc *TypeCheck) CloneType {
+	t.Validation = tc
 	return t
 }
 
@@ -198,7 +198,7 @@ type StructType struct {
 	AbstractStructFields []values.AbstractType
 	ResolvingMap         map[int]int // TODO --- it would probably be better to implment this as a linear search below a given threshhold and a binary search above it.
 	IsMI                 bool
-	TypeCheck            *TypeCheck
+	Validation           *TypeCheck
 	TypeArguments        []values.Value
 }
 
@@ -261,8 +261,8 @@ func (t StructType) Resolve(labelNumber int) int {
 	return -1
 }
 
-func (t StructType) AddTypeCheck(tc *TypeCheck) StructType {
-	t.TypeCheck = tc
+func (t StructType) AddValidation(tc *TypeCheck) StructType {
+	t.Validation = tc
 	return t
 }
 
@@ -311,4 +311,3 @@ func (t WrapperType) IsMandatoryImport() bool {
 func (WrapperType) IsClonedBy() values.AbstractType {
 	return values.MakeAbstractType()
 }
-

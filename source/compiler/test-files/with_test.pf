@@ -10,9 +10,17 @@ john = Person("John", 22)
 rex = Dog("Rex", ["Fido", "Butch"])
 myList = ["a", "b", "c", "d"]
 myOtherList = ["a", "b", ["x", "y", "z"], "d"]
+thirdList = [john, rex]
 myMap = map("a"::1, "b"::2, "c"::3, "d"::4)
 otherMap = map("a"::[0, 1], "b"::[2, 3])
 
 diffMap tuple = "a"::99, "b"::99
 diffList tuple = 0::"x", 1::"y"
+
+F = func(x) : x 
+
+def 
+
+xwithy(x, y) :
+    x with y
 

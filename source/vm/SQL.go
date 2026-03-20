@@ -231,10 +231,10 @@ func (vm *Vm) getPfRow(rows *sql.Rows, pointerList []any, typeNumber values.Valu
 func (vm *Vm) getTypecheck(typeNumber values.ValueType) *TypeCheck {
 	info := vm.ConcreteTypeInfo[typeNumber]
 	if info, ok := info.(StructType); ok {
-		return info.TypeCheck
+		return info.Validation
 	}
 	if info, ok := info.(CloneType); ok {
-		return info.TypeCheck
+		return info.Validation
 	}
 	return nil
 }

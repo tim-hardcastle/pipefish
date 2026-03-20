@@ -144,7 +144,7 @@ type HTMLInjector struct {
 	Data []any
 }
 
-// This is used for unthinking errors, since the `err` package can't describe the type of a value. 
+// This is used for unthinking errors, since the `err` package can't describe the type of a value.
 type DescribeTypeOfValueAtLocation uint32
 
 // These inhabit the first few memory addresses of the VM.
@@ -384,7 +384,7 @@ loop:
 				continue
 			case CasP:
 				typeNo := vm.Mem[args[2]].V.(values.AbstractType).Types[0]
-				if typeCheck := vm.ConcreteTypeInfo[typeNo].(CloneType).TypeCheck; typeCheck != nil {
+				if typeCheck := vm.ConcreteTypeInfo[typeNo].(CloneType).Validation; typeCheck != nil {
 					vm.Mem[typeCheck.TokNumberLoc] = values.Value{values.INT, int(args[1])}
 					vm.Mem[typeCheck.InLoc] = vm.Mem[args[3]]
 					vm.Mem[typeCheck.ResultLoc] = values.Value{typeNo, vm.Mem[args[3]].V}
@@ -1536,9 +1536,11 @@ loop:
 				for _, loc := range args[3:] {
 					fields = append(fields, vm.Mem[loc])
 				}
-				if typeCheck := vm.ConcreteTypeInfo[typeNo].(StructType).TypeCheck; typeCheck != nil {
+				if typeCheck := vm.ConcreteTypeInfo[typeNo].(StructType).Validation; typeCheck != nil {
 					vm.Mem[typeCheck.TokNumberLoc] = values.Value{values.INT, int(args[1])}
-					vm.Mem[typeCheck.InLoc] = values.Value{typeNo, fields}
+					for i, loc := range args[3:] {
+						vm.Mem[typeCheck.InLoc+uint32(i)] = vm.Mem[loc]
+					}
 					vm.Mem[typeCheck.ResultLoc] = values.Value{typeNo, fields}
 					vm.run(typeCheck.CallAddress, ctx)
 					vm.Mem[args[0]] = vm.Mem[typeCheck.ResultLoc]
@@ -1822,7 +1824,7 @@ loop:
 					}
 				}
 				// It may need validation.
-				typecheck := vm.ConcreteTypeInfo[typ].(StructType).TypeCheck
+				typecheck := vm.ConcreteTypeInfo[typ].(StructType).Validation
 				if typecheck == nil {
 					vm.Mem[args[0]] = values.Value{typ, outVals}
 				} else {
@@ -2164,7 +2166,7 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 			return values.Value{values.ITERATOR, &TupleIterator{Elements: container.V.(values.Snippet).Data, Len: len(container.V.(values.Snippet).Data)}}
 		}
 	case values.STRING:
-			return values.Value{values.ITERATOR, &StringIterator{Str: container.V.(string)}}
+		return values.Value{values.ITERATOR, &StringIterator{Str: container.V.(string)}}
 	case values.TUPLE:
 		tupleElements := container.V.([]values.Value)
 		if keysOnly {
