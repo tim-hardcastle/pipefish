@@ -1,0 +1,5 @@
+newtype
+
+Foo = enum Qux, Bar
+
+Zort = struct(Qux string)

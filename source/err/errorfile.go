@@ -1885,6 +1885,16 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"init/request/rune": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "clone of " + emph("pair") + " cannot request operations"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "Since the " + emph("pair") + " type has no native operations besides " +
+				"taking the codepoint, which you get for free, there's nothing to request."
+		},
+	},
+
 	"init/request/set": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "clone of " + emph("set") + " cannot request operation " + emph(args[0])
@@ -1892,6 +1902,16 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "A clone of " + emph("set") + " can tonly request the native operations suitable to that type, i.e. " +
 				emph("+") + ", " + emph("&") + ", " + emph("/\\") + ", and " + emph("-") + "."
+		},
+	},
+
+	"init/request/snippet": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "clone of " + emph("pair") + " cannot request operations"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "Since the " + emph("pair") + " type has no native operations besides " +
+				"indexing, which you get for free, there's nothing to request."
 		},
 	},
 

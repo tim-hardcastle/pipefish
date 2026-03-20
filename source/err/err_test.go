@@ -211,6 +211,26 @@ func TestParserErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestParserErrors)
 }
+func TestParsingItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		// {`clone/exists`, `OK`}, // TODO --- It doesn't throw this! It really should.
+		{`clone/type/c`, `OK`},
+		{`enum/element`, `OK`},
+		{`head`, `OK`},
+		{`import/file`, `OK`},
+		{`label/exists`, `OK`},
+		{`request/float`, `OK`},
+		{`request/int`, `OK`},
+		{`request/list`, `OK`},
+		{`request/map`, `OK`},
+		{`request/pair`, `OK`},
+		{`request/rune`, `OK`},
+		{`request/set`, `OK`},
+		{`request/snippet`, `OK`},
+		{`request/string`, `OK`},	
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
 func TestTypeAccessCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Pair 1, 2`, `comp/private`},

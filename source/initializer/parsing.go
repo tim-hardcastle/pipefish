@@ -907,6 +907,8 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 			}
 		case values.PAIR:
 			iz.throw("init/request/pair", tok1)
+		case values.RUNE:
+			iz.throw("init/request/rune", tok1)
 		case values.SET:
 			switch op {
 			case "+":
@@ -924,6 +926,8 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 			default:
 				iz.throw("init/request/set", tok1, op)
 			}
+		case values.SNIPPET:
+			iz.throw("init/request/snippet", tok1)
 		case values.STRING:
 			switch op {
 			case "+":
@@ -1071,7 +1075,7 @@ func (iz *Initializer) makeLabelsFromSig(sig parser.AstSig, private bool, indexT
 					Access: acc,
 					Types:  altType(values.LABEL),
 				}
-		case alreadyExists: // Structs can of course have overlapping fields but we don't want to declare them twice.
+		case alreadyExists: 
 			labelLocation := global.MLoc
 			if iz.cp.Vm.Mem[labelLocation].T != values.LABEL {
 				iz.throw("init/label/exists", indexTok, labelName)

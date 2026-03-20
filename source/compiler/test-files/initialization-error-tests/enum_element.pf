@@ -1,0 +1,5 @@
+newtype 
+
+Suits = enum HEARTS, SPADES, CLUBS, DIAMONDS
+
+Organs = enum HEARTS, LIVERS, KIDNEYS
