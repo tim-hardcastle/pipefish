@@ -1,0 +1,288 @@
+package err_test
+
+import (
+	"testing"
+
+	"github.com/tim-hardcastle/pipefish/source/test_helper"
+)
+
+func TestAssignmentCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{``, `comp/assign/type/a`},
+	}
+	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrorsInCompiler)
+}
+
+func TestBooleanCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`5 or true`, `comp/bool/or/left`},
+		{`false or 5`, `comp/bool/or/right`},
+		{`5 and false`, `comp/bool/and/left`},
+		{`true and 5`, `comp/bool/and/right`},
+		{`5 : 5`, `comp/bool/cond`},
+		{`not 5`, `comp/bool/not`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestBuiltinRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`7 / 0`, `vm/div/zero/a`},
+		{`7.0 / 0.0`, `vm/div/zero/b`},
+		{`7 div 0`, `vm/div/zero/c`},
+		{`7.0 / 0`, `vm/div/zero/d`},
+		{`7 / 0.0`, `vm/div/zero/e`},
+		{`7 mod 0`, `vm/mod/zero`},
+		{`map ([1]::2)`, `vm/map/key`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+}
+func TestCastRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`cast "foo", enum`, `vm/cast/concrete`},
+		{`cast "foo", Person`, `vm/cast`},
+		{`cast -1, Color`, `vm/cast/enum`},
+		{`cast 99, Color`, `vm/cast/enum`},
+		{`cast ["John", 22, true], Person`, `vm/cast/fields`},
+		{`cast ["John", "22"], Person`, `vm/cast/types`},
+		{`float "foo"`, `vm/string/float`},
+		{`int "foo"`, `vm/string/int`},
+	}
+	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
+}
+func TestCloneRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`getClones 42`, `vm/clones/type`},
+	}
+	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
+}
+func TestEnumRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Color 3`, `vm/enum`},
+	}
+	test_helper.RunTest(t, "enums_test.pf", tests, test_helper.TestValues)
+}
+func TestEqualityCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`(error "foo") == 42`, `comp/error/eq/a`},
+		{`42 == (error "foo")`, `comp/error/eq/b`},
+		{`42 == "foo"`, `comp/eq/types`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestEqualityRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`comp(foo(1), foo(2))`, `vm/equals/type`},
+	}
+	test_helper.RunTest(t, "equality_test", tests, test_helper.TestValues)
+}
+func TestForLoopRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`bar 5`, `vm/typecheck/bound/init`},
+		{`foo 4`, `vm/typecheck/bound/update`},
+		{`zort 3`, `vm/typecheck/index/init`},
+		{`qux 3`, `vm/typecheck/index/update`},
+		{`rozt 3`, `vm/types/a`},
+		{`zrot 3`, `vm/types/a`},
+		{`count any`, `vm/for/type/a`},
+		{`count int`, `vm/for/type/b`},
+		{`count true`, `vm/for/type/c`},
+	}
+	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
+}
+func TestIndexingCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`[1, 2, 3][4.0]`, `comp/index/list`},
+		{`"foo"[4.0]`, `comp/index/string`},
+		{`(1, 2, 3)[4.0]`, `comp/index/tuple`},
+		{`(1::2)[4.0]`, `comp/index/pair`},
+		{`SN[4.0]`, `comp/index/snippet`},
+		{`JOHN[lives]`, "comp/index/struct/a"},
+		{`JOHN[42]`, "comp/index/struct/b"},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestIndexingRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`[RED, GREEN, BLUE][true::2]`, `vm/slice/list/a`},
+		{`[RED, GREEN, BLUE][2::true]`, `vm/slice/list/b`},
+		{`[RED, GREEN, BLUE][-1::2]`, `vm/slice/list/c`},
+		{`[RED, GREEN, BLUE][3::2]`, `vm/slice/list/d`},
+		{`[RED, GREEN, BLUE][0::99]`, `vm/slice/list/e`},
+		{`"aardvark"[true::2]`, `vm/slice/string/a`},
+		{`"aardvark"[2::true]`, `vm/slice/string/b`},
+		{`"aardvark"[-1::2]`, `vm/slice/string/c`},
+		{`"aardvark"[3::2]`, `vm/slice/string/d`},
+		{`"aardvark"[0::99]`, `vm/slice/string/e`},
+		{`(1, 2, 3)[true::2]`, `vm/slice/tuple/a`},
+		{`(1, 2, 3)[2::true]`, `vm/slice/tuple/b`},
+		{`(1, 2, 3)[-1::2]`, `vm/slice/tuple/c`},
+		{`(1, 2, 3)[3::2]`, `vm/slice/tuple/d`},
+		{`(1, 2, 3)[0::99]`, `vm/slice/tuple/e`},
+		{`ixE true, false`, `vm/user`},
+		{`ixE false, true`, `vm/user`},
+		{`myTuple[-1]`, `vm/index/m`},
+		{`mySnippet[-1]`, `vm/index/s`},
+		{`myList[-1]`, `vm/index/list`},
+		{`myWord[-1]`, `vm/index/string`},
+		{`myPair[-1]`, `vm/index/pair`},
+		{`myTuple[99]`, `vm/index/m`},
+		{`mySnippet[99]`, `vm/index/s`},
+		{`myList[99]`, `vm/index/list`},
+		{`myWord[99]`, `vm/index/string`},
+		{`myPair[99]`, `vm/index/pair`},
+		{`myMap[99]`, `vm/index/h`},
+		{`myList["p"::0]`, `vm/slice/list/a`},
+		{`myList[0::"q"]`, `vm/slice/list/b`},
+		{`myTuple["p"::0]`, `vm/index/a`},
+		{`myTuple[0::"q"]`, `vm/index/b`},
+		{`myWord["p"::0]`, `vm/slice/string/a`},
+		{`myWord[0::"q"]`, `vm/slice/string/b`},
+		{`goo myTuple, -1`, `vm/index/m`},
+		{`foo myList, -1`, `vm/index/j`},
+		{`foo myWord, -1`, `vm/index/l`},
+		{`foo myPair, -1`, `vm/index/k`},
+		{`goo myTuple, 99`, `vm/index/m`},
+		{`foo mySnippet, 99`, `vm/index/s`},
+		{`foo myList, 99`, `vm/index/j`},
+		{`foo myWord, 99`, `vm/index/l`},
+		{`foo myPair, 99`, `vm/index/k`},
+		{`foo myMap, 99`, `vm/index/h`},
+		{`foo myList, "p"::0`, `vm/index/a`},
+		{`foo myList, 0::"q"`, `vm/index/b`},
+		{`goo myTuple, "p"::0`, `vm/index/a`},
+		{`goo myTuple, 0::"q"`, `vm/index/b`},
+		{`foo myWord, "p"::0`, `vm/index/a`},
+		{`foo myWord, 0::"q"`, `vm/index/b`},
+		{`foo myWord, -1::2`, `vm/index/c`},
+		{`foo myWord, 3::2`, `vm/index/d`},
+		{`foo myList, 1::99`, `vm/index/e`},
+		{`foo myWord, 1::99`, `vm/index/f`},
+		{`goo myTuple, 1::99`, `vm/index/r`},
+		{`foo myBool, 1::99`, `vm/index/g`},
+		{`foo myColor, charm`, `vm/index/t`},
+		{`foo myColor, true`, `vm/index/label`},
+		{`foo [1, 2, 3], "aardvark"`, `vm/index/i`},
+		{`foo [1, 2, 3], -1`, `vm/index/j`},
+		{`foo true, -1`, `vm/index/q`},
+		{`ixs myColor, charm`, `vm/index/u`},
+	}
+	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
+}
+func TestLabelRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`label "blerp"`, `vm/label/exists`},
+	}
+	test_helper.RunTest(t, "labels_test.pf", tests, test_helper.TestValues)
+}
+func TestMiscellaneousCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`[error "foo"]`, `comp/list/err`},
+		{`break 42`, `comp/break/a`},
+		{`break`, `comp/break/b`},
+		{`continue`, `comp/continue`},
+		{`w(42)`, `comp/apply/func`},
+		{`("a", "b") ...`, `comp/splat/args`},
+		{`"foo" ...`, `comp/splat/type`},
+		{`42 >> that`, `comp/pipe/mf/list`},
+		{`[1, 2, 3] ?> 2 * that`, `comp/pipe/filter/bool`},
+		{`-- foo |(1, 2, 3)| bar`, `comp/snippet/tuple`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestParameterizedTypeRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`fooify 1`, `vm/param/exist`},
+	}
+	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
+}
+func TestParserErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`2 +`, `parse/prefix`},
+		{`1 + )`, `parse/prefix`},
+		{`1 + ]`, `parse/prefix`},
+		{`len 1,`, `parse/prefix`},
+		{`len(`, `parse/prefix`},
+		{`len(1`, `parse/line`},
+		{`troz.foo`, `parse/namespace/exists`},
+		{`2 "aardvark"`, `parse/before/a`},
+		{`func(x) wut`, `parse/colon`},
+		{`from 1`, `parse/from`},
+		{`(1))`, `parse/expected`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestParserErrors)
+}
+func TestTypeAccessCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Pair 1, 2`, `comp/private`},
+		{`Suit`, `comp/private/type`},
+		{`HEARTS`, `comp/ident/private`},
+		{`one`, `comp/ident/private`},
+	}
+	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestTypeExpressionCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`clones{string, int}`, `comp/clones/arguments`},
+		{`clones{NULL}`, `comp/clones`},
+		{`struct "foo"`, `comp/type/concrete`},
+		{`("foo") list{int}`, `comp/suffix/b`},
+		{`5 ; (post "foo")`, `comp/sanity`},
+		{`qux.foo 42`, `comp/namespace/private`},
+		{`(error "foo"), 42`, `comp/tuple/err/a`},
+		{`42, (error "foo")`, `comp/tuple/err/b`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestUnwrapRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`unwrap 42`, `vm/unwrap`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+}
+func TestValidationRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Thing 1`, `vm/validation/bool`},
+		{`Thing 2`, `vm/validation/fail`},
+	}
+	test_helper.RunTest(t, "validation_test.pf", tests, test_helper.TestValues)
+}
+func TestVariableAccessCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`B`, `comp/ident/private`},
+		{`A = 43`, `comp/assign/const`},
+		{`z`, `comp/ident/private`},
+		{`secretB`, `comp/private`},
+		{`secretZ`, `comp/private`},
+	}
+	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestVariableCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`i * i = 4`, `parse/sig/c`},
+		{`w = 42`, `comp/assign/private`},
+		{`X = 42`, `comp/assign/const`},
+		{`noVar = 0`, `comp/assign/repl`},
+		{`blerp`, `comp/ident/known`},
+		{`w`, `comp/ident/private`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestWithRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Addable with "foo"::99`, `vm/with/type/a`},
+		{`int with "foo"::99`, `vm/with/type/b`},
+		{`Person with "foo"::99`, `vm/with/type/d`},
+		{`Person with friends::99`, `vm/with/type/e`},
+		{`myList with true::"foo"`, `vm/with/a`},
+		{`myList with -1::"foo"`, `vm/with/b`},
+		{`myList with 6::"foo"`, `vm/with/b`},
+		{`myMap with F::"foo"`, `vm/with/c`},
+		{`Cat with (name::"John")`, `vm/with/type/g`},
+		{`Cat with (name::"John", age::true)`, `vm/with/type/h`},
+		{`john with []::23`, `vm/with/struct/b`},
+		{`john with name::23`, `vm/with/f`},
+		{`myOtherList with []::"q"`, `vm/with/list/b`},
+		{`myMap with []::99`, `vm/with/map/b`},
+	}
+	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
+}

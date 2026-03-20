@@ -378,7 +378,7 @@ func GetTraceReport(e *err.Error) string {
 	return result + "\n"
 }
 
-// Provie the answer to `hub why <n>`.
+// Provides the answer to `hub why <n>`.
 func ExplainError(es []*Error, i int) (string, error) {
 	if i >= len(es) {
 		return "", errors.New("index too big for list")

@@ -34,9 +34,12 @@ func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compile
 			println(text.BULLET + "Running test " + text.Emph(test.Input))
 		}
 		var cp *compiler.Compiler
-		if filename == "" {
-			cp, _ = initializer.StartCompilerFromFilepath(filename, map[string]*compiler.Compiler{}, &values.Map{})
-		} else {
+		switch filename {
+		case "" : cp, _ = initializer.StartCompilerFromFilepath(filename, map[string]*compiler.Compiler{}, &values.Map{})
+		case "test initialization errors" :
+			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/initialization-error-tests/"+
+			strings.ReplaceAll(test.Input, "/", "_")+".pf", ), map[string]*compiler.Compiler{}, &values.Map{})
+		default:
 			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/", filename), map[string]*compiler.Compiler{}, &values.Map{})
 		}
 		got, e := F(cp, test.Input)
@@ -119,6 +122,16 @@ func TestCompilerErrors(cp *compiler.Compiler, s string) (string, error) {
 }
 
 func TestInitializationErrors(cp *compiler.Compiler, s string) (string, error) {
+	if len(cp.P.Common.Errors) == 0 {
+		return "", errors.New("unexpected successful compilation")
+	}
+	if "init/" + s == cp.P.Common.Errors[0].ErrorId {
+		return "OK", nil
+	}
+	return cp.P.Common.Errors[0].ErrorId, nil
+}
+
+func TestInitializationErrorsInCompiler(cp *compiler.Compiler, s string) (string, error) {
 	return cp.P.Common.Errors[0].ErrorId, nil
 }
 

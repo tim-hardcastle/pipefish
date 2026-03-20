@@ -281,7 +281,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 			externalCP, ok := iz.Common.serviceCompilers[name]
 			if !ok {
 				iz.throw("init/external/exist/a", &dec.name)
-				continue
+				return
 			}
 			iz.addExternalOnSameHub(externalCP.ScriptFilepath, name)
 			continue
@@ -290,7 +290,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 			pos := strings.LastIndex(path, "/")
 			if pos == -1 {
 				iz.throw("init/external/path/a", &dec.path)
-				continue
+				return
 			}
 			hostpath := path[0:pos]
 			if !hasPort.Match([]byte(hostpath)) {
@@ -303,7 +303,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 			pos = strings.LastIndex(hostpath, "/")
 			if pos == -1 {
 				iz.throw("init/external/path/b", &dec.path)
-				continue
+				return
 			}
 			rline := readline.NewInstance()
 			println("\n\nPlease enter your username and password for hub at " + text.CYAN + "'" + pathWithoutPort + "'" + text.RESET + ".")
@@ -329,9 +329,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 		newServiceCp, e := StartCompilerFromFilepath(path, iz.Common.serviceCompilers, iz.Common.hubStore)
 		if e != nil { // Then we couldn't open the file.
 			iz.throw("init/external/file", &dec.path, path, e.Error())
-		}
-		if len(newServiceCp.P.Common.Errors) > 0 {
-			newServiceCp.P.Common.IsBroken = true
+			return
 		}
 		iz.Common.serviceCompilers[name] = newServiceCp
 		iz.addExternalOnSameHub(path, name)

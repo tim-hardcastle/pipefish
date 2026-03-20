@@ -15,6 +15,24 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`import/file`, `OK`},
+		{`head`, `OK`},
+		// {``, `OK`},
+		//{`external/exist/a`, `OK`},
+		
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
+func TestAssignmentCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		//{``, `comp/assign/type/a`},
+	}
+	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrorsInCompiler)
+}
+
 func TestAlias(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Strings == list{string}`, `true`},

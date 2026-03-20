@@ -9,11 +9,11 @@ import (
 // The only way to test the test helperis to run one of each of the tests it supports. Which we
 // were going to do anyway.
 
-func TestAssignmentErrorsInSource(t *testing.T) {
+func TestAssignmentCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{``, `comp/assign/type/a`},
 	}
-	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrors)
+	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrorsInCompiler)
 }
 func TestBooleanCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{

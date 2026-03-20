@@ -6,6 +6,8 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+
+
 func TestAlias(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Strings == list{string}`, `true`},
@@ -34,11 +36,11 @@ func TestAssignment(t *testing.T) {
 // 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
 // }
 
-func TestAssignmentErrorsInSource(t *testing.T) {
+func TestAssignmentCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{``, `comp/assign/type/a`},
 	}
-	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrors)
+	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrorsInCompiler)
 }
 
 func TestBooleans(t *testing.T) {
