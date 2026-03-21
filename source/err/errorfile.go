@@ -1272,6 +1272,15 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"init/alias": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "expected identifier, not " + emph(tok.Literal)
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "At this point Pipefish expected the name of a type to be aliased, not just a newline."
+		},
+	},
+
 	"init/alias/type": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to alias unknown type " + emph(args[0])
@@ -2079,11 +2088,20 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"init/typecheck/bool": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "typecheck " + emph(args[0]) + " declared at for type " + emph(args[1]) +
+			return "validation " + emph(args[0]) + " declared at for type " + emph(args[1]) +
 				" can never return a boolean value"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "A typecheck should return a boolean value or an error but this can't do either."
+			return "Validation should return a boolean value or an error but this can't do either."
+		},
+	},
+
+	"init/wrapper": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "expected identifier after `wrapper`"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "After the word `wrapper`, Pipefish expects to find the name of a Golang type to be wrapped, not just a newline."
 		},
 	},
 

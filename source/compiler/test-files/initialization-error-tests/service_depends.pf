@@ -1,0 +1,5 @@
+var 
+
+foo = "foo"
+
+$_logTo = foo

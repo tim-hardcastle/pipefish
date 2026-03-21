@@ -1,0 +1,4 @@
+newtype 
+
+42 = enum RED, GREEN, BLUE 
+

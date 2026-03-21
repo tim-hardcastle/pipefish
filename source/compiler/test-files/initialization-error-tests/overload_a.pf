@@ -1,0 +1,9 @@
+cmd
+
+foo(i int) :
+    i
+
+def
+
+foo(i int) :
+    i

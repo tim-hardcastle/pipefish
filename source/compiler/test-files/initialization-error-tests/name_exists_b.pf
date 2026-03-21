@@ -1,0 +1,8 @@
+const
+
+foo = 5
+
+def
+
+foo(i int) :
+    i

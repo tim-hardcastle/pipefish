@@ -804,11 +804,6 @@ func (iz *Initializer) chunkStruct(opTok token.Token, private bool, docString st
 	if !ok {
 		return &tokenizedStructDeclaration{}, false
 	}
-	if iz.P.CurTokenIs(token.GIVEN) {
-		iz.throw("init/struct/given", &iz.P.CurToken)
-		iz.finishChunk()
-		return &tokenizedCloneDeclaration{}, false
-	}
 	if !(iz.P.CurTokenIs(token.NEWLINE) || iz.P.CurTokenIs(token.EOF)) {
 		iz.throw("init/struct/expect", &iz.P.CurToken)
 		iz.finishChunk()

@@ -15,6 +15,34 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestPChunkingItes(t *testing.T) {
+	tests := []test_helper.TestItem{		
+		// {``, `OK`},	
+		// {``, `OK`},	
+		// {``, `OK`},	
+		// {``, `OK`},	
+		// {``, `OK`},	
+		// {``, `OK`},		
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
+func TestInitializerItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`depend/cmd`, `OK`},	
+		{`depend/var`, `OK`},	
+		{`make/ident`, `OK`},	
+		{`make/instance`, `OK`},
+		{`name/exists/a`, `OK`},
+		{`name/exists/b`, `OK`},	
+		{`overload/a`, `OK`},	
+		{`overload/ref`, `OK`},
+		{`service/depends`, `OK`},	
+		{`service/type`, `OK`},	
+		{`typecheck/bool`, `OK`},	
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
 func TestParsingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		
@@ -37,13 +65,47 @@ func TestParsingItes(t *testing.T) {
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
 
+func TestTChunkingItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`abstract/ident`, `OK`},	
+		{`alias`, `OK`},	
+		// {`assign`, `OK`},	This may be unreachable because it's looking for a `=` to end the sig, which will otherwise be malformed.
+		{`clone/expect/b`, `OK`},
+		{`clone/given`, `OK`},
+		// {`clone/ident`, `OK`},	May be forestalled by `init/type/expect/b`.	
+		// {`clone/op`, `OK`}, 	May be forestalled by `init/type/expect/b`.	
+		// {`clone/params`, `OK`},	May be forestalled by `sigs/params`
+		// {`clone/rbrace`, `OK`},	 May be forestalled by `sigs/params`
+		{`clone/type/c`, `OK`},
+		// {`enum/empty`, `OK`}, Got `enum/ident` instead, may be inaccessible.		
+		{`enum/expect`, `OK`},	
+		{`enum/ident`, `OK`},	
+		// {`golang`, `OK`},	The `relex/indent` error may forestall this one.   
+		{`impex/end`, `OK`},	
+		{`impex/expect`, `OK`},	
+		{`impex/pair`, `OK`},	
+		{`impex/string`, `OK`},	
+		{`interface/colon`, `OK`},
+		{`struct/expect`, `OK`},
+		{`struct/lparen`, `OK`},
+		// {`struct/params`, `OK`},	 May be forestalled by `sigs/params`
+		// {`struct/rbrace`, `OK`},	 May be forestalled by `sigs/params`	
+		// {`struct/rparen`, `OK`},	 May be forestalled by `sigs/params`
+		{`type/assign`, `OK`},	
+		{`type/expect/a`, `OK`},	
+		{`type/expect/b`, `OK`},	
+		{`type/ident`, `OK`},	
+		{`wrapper`, `OK`},			
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
 func TestAssignmentCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		//{``, `comp/assign/type/a`},
 	}
 	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrorsInCompiler)
 }
-
 func TestAlias(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Strings == list{string}`, `true`},

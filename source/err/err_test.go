@@ -49,6 +49,30 @@ func TestCastRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
 }
+func TestTChunkingItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`abstract/ident`, `OK`},	
+		{`alias`, `OK`},	
+		{`clone/expect/b`, `OK`},
+		{`clone/given`, `OK`},
+		{`clone/type/c`, `OK`},
+		{`enum/expect`, `OK`},	
+		{`enum/ident`, `OK`},	
+		{`impex/end`, `OK`},	
+		{`impex/expect`, `OK`},	
+		{`impex/pair`, `OK`},	
+		{`impex/string`, `OK`},	
+		{`interface/colon`, `OK`},
+		{`struct/expect`, `OK`},
+		{`struct/lparen`, `OK`},
+		{`type/assign`, `OK`},	
+		{`type/expect/a`, `OK`},	
+		{`type/expect/b`, `OK`},	
+		{`type/ident`, `OK`},	
+		{`wrapper`, `OK`},			
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
 func TestCloneRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`getClones 42`, `vm/clones/type`},
@@ -167,6 +191,22 @@ func TestIndexingRtes(t *testing.T) {
 		{`ixs myColor, charm`, `vm/index/u`},
 	}
 	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
+}
+func TestInitializerItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`depend/cmd`, `OK`},	
+		{`depend/var`, `OK`},	
+		{`make/ident`, `OK`},	
+		{`make/instance`, `OK`},
+		{`name/exists/a`, `OK`},
+		{`name/exists/b`, `OK`},	
+		{`overload/a`, `OK`},	
+		{`overload/ref`, `OK`},
+		{`service/depends`, `OK`},	
+		{`service/type`, `OK`},	
+		{`typecheck/bool`, `OK`},	
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
 func TestLabelRtes(t *testing.T) {
 	tests := []test_helper.TestItem{

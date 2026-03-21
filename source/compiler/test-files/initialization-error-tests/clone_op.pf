@@ -1,0 +1,3 @@
+newtype 
+
+Foo = type int using 86

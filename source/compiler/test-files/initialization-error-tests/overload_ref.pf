@@ -1,0 +1,5 @@
+def
+
+foo(x ref) : x
+
+foo(x int) : x
