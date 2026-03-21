@@ -7,6 +7,8 @@ import (
 )
 func TestParserErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
+		// {`(2 + 2]`, `parse/nesting`}, gives `parse/close` below. Is it accessible?
+		{`(2 + 2]`, `parse/close`},
 		{`foo[2;`, `parse/prefix`},
 		{`[2, 3, 4;`, `parse/prefix`},
 		{`2 +`, `parse/prefix`},
@@ -30,6 +32,8 @@ func TestParserErrors(t *testing.T) {
 		{`func(x int) : foo(x) given : foo(x int) == int : x`, `parse/inner/c`},
 		{`not`, `parse/prefix`},
 		{`-- foo |bar qux`, `parse/snippet/form`},
+		{`try e @`, `parse/try/colon`},
+		{`try 86 `, `parse/try/ident`},
 		// {`2 + 2)`, `parse/close`}, Probably blocked by `parse/expected`.
 		// {`not suf`, `parse/before/b`}, TODO --- why isn't this an error? 
 	}
@@ -182,6 +186,14 @@ func TestLogging(t *testing.T) {
 		{`qux(8)`, `(qux 8)`},
 	}
 	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestParserOutput)
+}
+func TestNamespaces(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`qux.foo 5`, `(qux.foo 5)`},
+		{`2 qux.zort 3`, `(2 qux.zort 3)`},
+		{`2 qux.troz`, `(2 qux.troz)`},
+	}
+	test_helper.RunTest(t, "namespace_test.pf", tests, test_helper.TestParserOutput)
 }
 func TestPrettyPrint(t *testing.T) {
 	tests := []test_helper.TestItem{

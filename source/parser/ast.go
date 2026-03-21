@@ -226,9 +226,13 @@ func (ie *InfixExpression) GetOperator() string    { return ie.Operator }
 func (ie *InfixExpression) GetToken() *token.Token { return &ie.Token }
 func (ie *InfixExpression) String() string {
 	var out bytes.Buffer
-
+	var kludge bool
 	out.WriteString("(")
 	for i, v := range ie.Args {
+		if !kludge && ie.GetToken().Namespace != "" && v.GetToken().Literal == ie.GetOperator() {
+			out.WriteString(ie.GetToken().Namespace)
+			kludge = true
+		}
 		out.WriteString(v.String())
 		if i < (len(ie.Args)-1) && !(reflect.TypeOf(v) == reflect.TypeOf(&Bling{})) &&
 			!(reflect.TypeOf(ie.Args[i+1]) == reflect.TypeOf(&Bling{})) {
@@ -360,6 +364,7 @@ func (pe *PrefixExpression) String() string {
 	var out bytes.Buffer
 
 	out.WriteString("(")
+	out.WriteString(pe.GetToken().Namespace)
 	out.WriteString(pe.Operator)
 	out.WriteString(" ")
 	for i, v := range pe.Args {
@@ -441,6 +446,7 @@ func (se *SuffixExpression) String() string {
 		}
 	}
 	out.WriteString(" ")
+	out.WriteString(se.GetToken().Namespace)
 	out.WriteString(se.Operator)
 	out.WriteString(")")
 	return out.String()

@@ -1108,9 +1108,3 @@ func (p *Parser) ResetAfterError() {
 func (p *Parser) ResetParser() {
 	p.nesting = dtypes.Stack[token.Token]{}
 }
-
-func newError(ident string, tok *token.Token, args ...any) *err.Error {
-	errorToReturn := err.CreateErr(ident, tok, args...)
-	errorToReturn.Trace = []*token.Token{tok}
-	return errorToReturn
-}

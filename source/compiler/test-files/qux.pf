@@ -1,6 +1,12 @@
-// Exists to be imported by the compile time errors test.
+// Exists to be imported by the compile time errors test and the namespace test.
 
 def
 
 foo(i int) :
     i
+
+(i int) zort (j int) :
+    i + j
+
+(i int) troz :
+    i 
