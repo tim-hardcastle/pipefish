@@ -5,6 +5,36 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
+func TestParserErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo[2;`, `parse/prefix`},
+		{`[2, 3, 4;`, `parse/prefix`},
+		{`2 +`, `parse/prefix`},
+		{`1 + )`, `parse/prefix`},
+		{`1 + ]`, `parse/prefix`},
+		{`len 1,`, `parse/prefix`},
+		{`len(`, `parse/prefix`},
+		{`len(1`, `parse/line`},
+		{`troz.foo`, `parse/namespace/exists`},
+		{`2 "aardvark"`, `parse/before/a`},
+		{`func(x) wut`, `parse/colon`},
+		{`from 1`, `parse/from`},
+		{`(1))`, `parse/expected`},
+		{`Z{5`, `parse/rbrace`},
+		{`42 foo.bar`, `parse/namespace/exists`},
+		{`42 foo.bar 99`, `parse/namespace/exists`},
+		{`for i::j = range k`, `parse/for/colon`},
+		{`for a = 1; a + 1 : foo`, `parse/for/semicolon`},
+		{`func(x) >> int : x`, `parse/sig/c`},
+		{`func(x int) : foo(x) given : foo(x int) >> int : x`, `parse/inner/a`},
+		{`func(x int) : foo(x) given : foo(x int) == int : x`, `parse/inner/c`},
+		{`not`, `parse/prefix`},
+		{`-- foo |bar qux`, `parse/snippet/form`},
+		// {`2 + 2)`, `parse/close`}, Probably blocked by `parse/expected`.
+		// {`not suf`, `parse/before/b`}, TODO --- why isn't this an error? 
+	}
+	test_helper.RunTest(t, "parser_error_test.pf", tests, test_helper.TestParserErrors)
+}
 func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`x = 'q'`, `(x = 'q')`},
@@ -131,6 +161,7 @@ func TestLambdas(t *testing.T) {
 		{`func(x, y int) : x, y`, `func(x int, y int) : (x , y)`},
 		{`func(x rune, y int) : x, y`, `func(x rune, y int) : (x , y)`},
 		{`func(x) -> int : x`, `func(x any?) -> ( int) : x`},
+		{`func(x) -> int : y given : y = x`, `(func(x any?) -> ( int) : y) given : ((y = x))`},
 		{`func(x) -> int? : x`, `func(x any?) -> ( int?) : x`},
 		{`func(x list{string}) -> list{string} : x`, `func(x list{string}) -> ( list{string}) : x`},
 		{`func(x list{42}) -> list{42} : x`, `func(x list{42}) -> ( list{42}) : x`},
@@ -142,6 +173,7 @@ func TestLambdas(t *testing.T) {
 		{`func(x list{GREEN}) : x`, `func(x list{GREEN}) : x`},
 		{`func(x list{_ type}) : x`, `func(x list{_ type}) : x`},
 		{`func(x rune, y int) -> rune, int : x, y`, `func(x rune, y int) -> ( rune,  int) : (x , y)`},
+		{`func(x int) : foo(x) given : foo(x int) -> int : x`, `(func(x int) : (foo x)) given : ((foo = func(x int) -> ( int) : x))`},
 	}
 	test_helper.RunTest(t, "lambda_parsing_test.pf", tests, test_helper.TestParserOutput)
 }
@@ -150,22 +182,6 @@ func TestLogging(t *testing.T) {
 		{`qux(8)`, `(qux 8)`},
 	}
 	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestParserOutput)
-}
-func TestParserErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`2 +`, `parse/prefix`},
-		{`1 + )`, `parse/prefix`},
-		{`1 + ]`, `parse/prefix`},
-		{`len 1,`, `parse/prefix`},
-		{`len(`, `parse/prefix`},
-		{`len(1`, `parse/line`},
-		{`troz.foo`, `parse/namespace/exists`},
-		{`2 "aardvark"`, `parse/before/a`},
-		{`func(x) wut`, `parse/colon`},
-		{`from 1`, `parse/from`},
-		{`(1))`, `parse/expected`},
-	}
-	test_helper.RunTest(t, "", tests, test_helper.TestParserErrors)
 }
 func TestPrettyPrint(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -230,6 +246,7 @@ func TestReparser(t *testing.T) {
 func TestSnippets(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`-- foo |bar| qux`, `(-- foo |bar| qux)`},
+		{`-- |foo| bar`, `(-- |foo| bar)`},
 		{`true -- foo |bar| qux`, `(true , (-- foo |bar| qux))`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestParserOutput)

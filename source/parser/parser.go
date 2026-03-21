@@ -364,10 +364,6 @@ func (p *Parser) ParseExpression(precedence int) Node {
 		// We look for suffixes.
 		for {
 			ok, rp := p.CanParse(p.PeekToken, SUFFIX)
-			if rp == nil {
-				p.Throw("parse/namespace", &p.CurToken, &p.PeekToken)
-				return nil
-			}
 			if !(rp.IsTypePrefix(p.PeekToken.Literal) || ok || p.PeekToken.Type == token.DOTDOTDOT) {
 				break
 			}
@@ -394,11 +390,7 @@ func (p *Parser) ParseExpression(precedence int) Node {
 			break
 		}
 		// We move on to infixes.
-		ok, rp := p.CanParse(p.PeekToken, INFIX)
-		if rp == nil {
-			p.Throw("parse/namespace/b", &p.PeekToken)
-			return nil
-		}
+		ok, _ := p.CanParse(p.PeekToken, INFIX)
 		foundInfix := nativeInfixes.Contains(p.PeekToken.Type) ||
 			lazyInfixes.Contains(p.PeekToken.Type) ||
 			ok
@@ -538,11 +530,11 @@ func (p *Parser) parseForExpression() *ForExpression {
 		return expression
 	}
 
-	pieces := p.ParseExpression(GIVEN)
+	pieces := p.ParseExpression(GIVEN) // The bits of the `for` expression up to the body.
 	if pieces == nil {
 		return nil
 	}
-	if pieces.GetToken().Type == token.COLON {
+	if pieces.GetToken().Type == token.COLON { // This is the colon introdicing the body, it has to be here.
 		expression.Body = pieces.(*LazyInfixExpression).Right
 		header := pieces.(*LazyInfixExpression).Left
 		if header.GetToken().Type == token.MAGIC_SEMICOLON { // If it has one, it should have two.
@@ -629,7 +621,7 @@ func (p *Parser) parseIndexExpression(left Node) Node {
 	p.NextToken()
 	exp.Index = p.ParseExpression(LOWEST)
 	if !p.expectPeek(token.RBRACK) {
-		p.NextToken() // Forces emission of error
+		// This will trigger another error so there's no need to throw one.
 		return nil
 	}
 	return exp
@@ -780,7 +772,7 @@ func (p *Parser) parseNativePrefixExpression() Node {
 	p.NextToken()
 	right := p.ParseExpression(precedences[prefix.Type])
 	if right == nil {
-		p.Throw("parse/follow", &prefix)
+		return nil
 	}
 	expression.Args = []Node{right}
 	return expression

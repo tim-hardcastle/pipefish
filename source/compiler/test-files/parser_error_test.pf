@@ -1,0 +1,10 @@
+newtype 
+
+Z = clone{i int} int
+
+make Z{5}
+
+def 
+
+(x int) suf :
+    x

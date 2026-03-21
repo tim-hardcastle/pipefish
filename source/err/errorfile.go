@@ -2456,6 +2456,17 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"parse/index": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "index expression should end with `]`"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "It looks like you're trying to write an expression of the form `x[y]`, indexing " +
+			"`x` by `y`, but have left off the final `]`."
+		},
+	},
+
+
 	"parse/instance/form": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed instance of parameterized type"
