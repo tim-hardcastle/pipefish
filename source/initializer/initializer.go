@@ -94,11 +94,11 @@ func NewCommonInitializerBindle(store *values.Map, services map[string]*compiler
 
 // A reference to a specific instance of a parameterized type.
 type parameterizedTypeInstance struct {
-	astType   parser.TypeNode
-	env       *compiler.Environment
-	typeCheck *parser.TokenizedCodeChunk
-	fields    parser.AstSig
-	vals      []values.Value
+	astType    parser.TypeNode
+	env        *compiler.Environment
+	validation *parser.TokenizedCodeChunk
+	fields     parser.AstSig
+	vals       []values.Value
 }
 
 type typeOperatorInfo struct {
@@ -1055,7 +1055,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			return nil
 		}
 	}
-	iz.cmI("Adding clone typechecks to declarations.")
+	iz.cmI("Adding clone validation to declarations.")
 	// Since the name of a type will appear already in the map as the name of the function
 	// constructing it, we'll mangle the names by adding a `*` to the front of each.
 	for i, pc := range iz.parsedCode[cloneDeclaration] {
@@ -1070,19 +1070,19 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	}
 	i := 0
 	for _, v := range iz.parameterizedInstanceMap {
-		if v.typeCheck.Length() == 0 {
+		if v.validation.Length() == 0 {
 			continue
 		}
 		name := "*" + v.astType.String() // Again we mangle the name with a '*' to distinguish is from the constructor.
-		v.typeCheck.ToStart()
-		iz.P.TokenizedCode = v.typeCheck
+		v.validation.ToStart()
+		iz.P.TokenizedCode = v.validation
 		node := iz.P.ParseTokenizedChunk()
 		pc := &parsedTypeInstance{
-			typeCheck:      node,
-			instantiatedAt: v.typeCheck.IndexToken(), // TODO --- no it isn't.
+			validation:     node,
+			instantiatedAt: node.GetToken(), // TODO --- no it isn't.
 			env:            nil,
 		}
-		namesToDeclarations[name] = []labeledParsedCodeChunk{{pc, makeDeclaration, i, name[1:], v.typeCheck.IndexToken()}}
+		namesToDeclarations[name] = []labeledParsedCodeChunk{{pc, makeDeclaration, i, name[1:], node.GetToken()}}
 		i++
 	}
 
@@ -1219,7 +1219,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 				iz.compileValidation(dec.name, parsedCode.body, compiler.NewEnvironment())
 				continue
 			case *parsedTypeInstance:
-				iz.compileValidation(dec.name, parsedCode.typeCheck, iz.parameterizedInstanceMap[dec.name].env)
+				iz.compileValidation(dec.name, parsedCode.validation, iz.parameterizedInstanceMap[dec.name].env)
 				continue
 			case *parsedFunction:
 				switch parsedCode.decType {

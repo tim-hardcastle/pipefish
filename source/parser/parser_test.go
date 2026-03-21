@@ -5,40 +5,7 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
-func TestParserErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		// {`(2 + 2]`, `parse/nesting`}, gives `parse/close` below. Is it accessible?
-		{`(2 + 2]`, `parse/close`},
-		{`foo[2;`, `parse/prefix`},
-		{`[2, 3, 4;`, `parse/prefix`},
-		{`2 +`, `parse/prefix`},
-		{`1 + )`, `parse/prefix`},
-		{`1 + ]`, `parse/prefix`},
-		{`len 1,`, `parse/prefix`},
-		{`len(`, `parse/prefix`},
-		{`len(1`, `parse/line`},
-		{`troz.foo`, `parse/namespace/exists`},
-		{`2 "aardvark"`, `parse/before/a`},
-		{`func(x) wut`, `parse/colon`},
-		{`from 1`, `parse/from`},
-		{`(1))`, `parse/expected`},
-		{`Z{5`, `parse/rbrace`},
-		{`42 foo.bar`, `parse/namespace/exists`},
-		{`42 foo.bar 99`, `parse/namespace/exists`},
-		{`for i::j = range k`, `parse/for/colon`},
-		{`for a = 1; a + 1 : foo`, `parse/for/semicolon`},
-		{`func(x) >> int : x`, `parse/sig/c`},
-		{`func(x int) : foo(x) given : foo(x int) >> int : x`, `parse/inner/a`},
-		{`func(x int) : foo(x) given : foo(x int) == int : x`, `parse/inner/c`},
-		{`not`, `parse/prefix`},
-		{`-- foo |bar qux`, `parse/snippet/form`},
-		{`try e @`, `parse/try/colon`},
-		{`try 86 `, `parse/try/ident`},
-		// {`2 + 2)`, `parse/close`}, Probably blocked by `parse/expected`.
-		// {`not suf`, `parse/before/b`}, TODO --- why isn't this an error? 
-	}
-	test_helper.RunTest(t, "parser_error_test.pf", tests, test_helper.TestParserErrors)
-}
+
 func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`x = 'q'`, `(x = 'q')`},
@@ -194,6 +161,42 @@ func TestNamespaces(t *testing.T) {
 		{`2 qux.troz`, `(2 qux.troz)`},
 	}
 	test_helper.RunTest(t, "namespace_test.pf", tests, test_helper.TestParserOutput)
+}
+func TestParserErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		// {`(2 + 2]`, `parse/nesting`}, gives `parse/close` below. Is it accessible?
+		// {`func(x int `, ``}, blows the whole thing up.
+		{`try 86`, `parse/try/ident`},
+		{`(2 + 2]`, `parse/close`},
+		{`foo[2;`, `parse/prefix`},
+		{`[2, 3, 4;`, `parse/prefix`},
+		{`2 +`, `parse/prefix`},
+		{`1 + )`, `parse/prefix`},
+		{`1 + ]`, `parse/prefix`},
+		{`len 1,`, `parse/prefix`},
+		{`len(`, `parse/prefix`},
+		{`len(1`, `parse/line`},
+		{`troz.foo`, `parse/namespace/exists`},
+		{`2 "aardvark"`, `parse/before/a`},
+		{`func(x) wut`, `parse/colon`},
+		{`from 1`, `parse/from`},
+		{`(1))`, `parse/expected`},
+		{`Z{5`, `parse/rbrace`},
+		{`42 foo.bar`, `parse/namespace/exists`},
+		{`42 foo.bar 99`, `parse/namespace/exists`},
+		{`for i::j = range k`, `parse/for/colon`},
+		{`for a = 1; a + 1 : foo`, `parse/for/semicolon`},
+		{`func(x) >> int : x`, `parse/sig/c`},
+		{`func(x int) : foo(x) given : foo(x int) >> int : x`, `parse/inner/a`},
+		{`func(x int) : foo(x) given : foo(x int) == int : x`, `parse/inner/c`},
+		{`not`, `parse/prefix`},
+		{`-- foo |bar qux`, `parse/snippet/form`},
+		{`try e @`, `parse/try/colon`},
+		{`try 86 `, `parse/try/ident`},
+		// {`2 + 2)`, `parse/close`}, Probably blocked by `parse/expected`.
+		// {`not suf`, `parse/before/b`}, TODO --- why isn't this an error? 
+	}
+	test_helper.RunTest(t, "parser_error_test.pf", tests, test_helper.TestParserErrors)
 }
 func TestPrettyPrint(t *testing.T) {
 	tests := []test_helper.TestItem{

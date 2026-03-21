@@ -163,7 +163,7 @@ func (iz *Initializer) extractNamesFromCodeChunk(dec labeledParsedCodeChunk) dty
 	case *parsedTypecheck:
 		return parser.ExtractAllNames(pc.body)
 	case *parsedTypeInstance:
-		return parser.ExtractAllNames(pc.typeCheck)
+		return parser.ExtractAllNames(pc.validation)
 	case *parsedFunction:
 		sigNames := dtypes.Set[string]{}
 		for _, pair := range pc.sig {
@@ -238,11 +238,11 @@ func AsBling(s string) parser.TypeNode {
 	return &parser.TypeBling{token.Token{}, s}
 }
 
-var StandardLibraries = dtypes.MakeFromSlice([]string{"crypto/aes", "crypto/bcrypt", 
+var StandardLibraries = dtypes.MakeFromSlice([]string{"crypto/aes", "crypto/bcrypt",
 	"crypto/rand", "crypto/rsa", "crypto/sha_256", "crypto/sha_512", "database/sql",
-	"encoding/csv", "encoding/base_32", "encoding/base_64", "encoding/json", "files", 
-	"fmt", "html", "lists", "markdown", "math", "math/big", "math/cmplx", "math/rand", 
-	"net/http", "net/mail", "net/smtp", "net/url", "os/exec", "path", "path/filepath", 
+	"encoding/csv", "encoding/base_32", "encoding/base_64", "encoding/json", "files",
+	"fmt", "html", "lists", "markdown", "math", "math/big", "math/cmplx", "math/rand",
+	"net/http", "net/mail", "net/smtp", "net/url", "os/exec", "path", "path/filepath",
 	"reflect", "regexp", "strings", "strconv", "terminal", "time", "unicode"})
 
 func MakeFilepath(scriptFilepath string) string {
@@ -267,7 +267,7 @@ func TweakNameAndPath(name, path, source string) (string, string) {
 		name = ExtractFileName(path)
 	}
 	if StandardLibraries.Contains(path) {
-		path = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries" , path) + ".pf"
+		path = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries", path) + ".pf"
 	}
 	if !text.Head(path, "http:") && filepath.IsLocal(path) {
 		path = filepath.Join(filepath.Dir(source), path)

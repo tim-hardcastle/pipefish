@@ -57,7 +57,7 @@ func (pc *parsedTypecheck) getToken() *token.Token { return pc.indexTok }
 // would be a waste of time to e.g. keep fetching the '3' to check that things are in a
 // type Vec{3}, etc.
 type parsedTypeInstance struct {
-	typeCheck      parser.Node           //
+	validation     parser.Node           //
 	instantiatedAt *token.Token          // The place in the code (or one of the places) where the type instance is named.
 	env            *compiler.Environment // The values for the parameters, already put into an environment as named constants, ready for compilation.
 }

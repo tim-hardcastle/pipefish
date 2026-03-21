@@ -369,10 +369,6 @@ func (tcc *TokenizedCodeChunk) Length() int {
 	return len(tcc.code)
 }
 
-func (tcc *TokenizedCodeChunk) IndexToken() *token.Token {
-	return &tcc.code[0]
-}
-
 func (tcc *TokenizedCodeChunk) NextToken() token.Token {
 	if tcc.position+1 < len(tcc.code) {
 		tcc.position++
