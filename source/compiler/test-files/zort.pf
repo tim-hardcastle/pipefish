@@ -48,3 +48,9 @@ MyType = abstract Shade/Color/Tone
 Person = struct(name string, age int)
 
 Qux = clone int
+
+Derp = clone{T type} int 
+
+Flerp = struct{L list} (x, y string)
+
+make Derp{bool}

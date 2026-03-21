@@ -15,17 +15,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-func TestPChunkingItes(t *testing.T) {
-	tests := []test_helper.TestItem{		
-		// {``, `OK`},	
-		// {``, `OK`},	
-		// {``, `OK`},	
-		// {``, `OK`},	
-		// {``, `OK`},	
-		// {``, `OK`},		
-	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
-}
+
 
 func TestInitializerItes(t *testing.T) {
 	tests := []test_helper.TestItem{

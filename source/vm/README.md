@@ -7,6 +7,8 @@ Mainly, the vm needs to do two things
 
 * `descriptors` contains functions for describing Pipefish values and types. In order to maintain DRYness and a single source of truth it does this for the rest of the application, by one route or another.
 
+* `externals` supplies ways for the hub to talk to external services.
+
 * `gohandler` contains functions for converting Pipefish values to Go values and vice versa.
 
 * `iohandler` lets you create iohandlers to modify where the vm gets its input and sends its output. Much of this has been moved to the `pf` package, which aliases the relevant types.
