@@ -12,6 +12,8 @@ make list{int}
 
 var
 
+someInt = 42
+
 v = NULL
 
 private
@@ -31,3 +33,16 @@ blerp(i int) :
 
 derp(x float) :
     1 / x
+
+zort(i int) :
+    i < 0 :
+        error "I hate negativity!"
+    else :
+        42 
+
+troz(i int) :
+    i < 0 :
+        error "So do I!"
+    else :
+        "aardvark"
+

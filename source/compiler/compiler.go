@@ -217,7 +217,7 @@ func (cp *Compiler) Do(line string) values.Value {
 //
 // The node types in the switch are in alphabetical order.
 func (cp *Compiler) CompileNode(node parser.Node, ctxt Context) cpResult {
-	cp.Cm("Compiling node of type "+(reflect.TypeOf(node).String())[5:]+" with literal "+text.Emph(node.GetToken().Literal)+".", node.GetToken())
+	cp.Cm("Compiling node of type "+(reflect.TypeOf(node).String())[8:]+" with literal "+text.Emph(node.GetToken().Literal)+".", node.GetToken())
 	cp.showCompile = settings.SHOW_COMPILER && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(node.GetToken().Source))
 	result := cpResult{}
 	state := cp.GetState()
@@ -763,14 +763,10 @@ NodeTypeSwitch:
 				rResult = concResult(values.CREATED_THUNK_OR_CONST, lResult.Foldable && rResult.Foldable)
 				break
 			}
-			// We may be executing a command.
-			cmdRet := lResult.Types.IsLegalCmdReturn()
-			if !cmdRet && !lResult.Types.Contains(values.UNSATISFIED_CONDITIONAL) {
-				// TODO --- implement warnings.
-				// cp.Throw("comp/unreachable", node.GetToken())
-				// break
-			}
-			if cmdRet { // It could be error, break, OK, or an unsatisfied conditional.
+			if ctxt.Access == CMD { // It could be error, break, OK, or an unsatisfied conditional.
+				if !lResult.Types.Contains(values.UNSATISFIED_CONDITIONAL) {
+				// TODO --- implement warnings. Code after this is true will be unreachable.
+				}
 				ifError := BkEarlyReturn(DUMMY)
 				ifCouldBeUnsatButIsnt := BkEarlyReturn(DUMMY)
 				if lResult.Types.Contains(values.ERROR) {

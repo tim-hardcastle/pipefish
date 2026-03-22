@@ -70,7 +70,6 @@ func (iz *Initializer) SerializedAPIToDeclarations(serializedAPI string, xserve 
 			buf.WriteString("\n\n")
 			lineNo++
 		case "PARTYPE":
-			println("Deserializing partype.")
 			isClone := false
 			buf.WriteString(parts[1])
 			if parts[2] == "CLONE" {

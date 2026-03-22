@@ -56,7 +56,7 @@ func (vm *Vm) DescribeType(t values.ValueType, flavor descriptionFlavor, cpNumbe
 	}
 	namespace, ok := vm.NamespaceInfo[cpNumber][t]
 	if !ok {
-		return "Unserializable type"
+		return "Unserializable type " + strconv.Itoa(int(t)) 
 	}
 	return namespace + plainName
 }

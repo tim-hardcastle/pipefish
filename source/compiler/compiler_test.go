@@ -251,11 +251,11 @@ func TestEqualityCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`(error "foo") == 42`, `comp/error/eq/a`},
 		{`42 == (error "foo")`, `comp/error/eq/b`},
+		{`zort someInt == troz someInt`, `comp/error/eq/c`},
 		{`42 == "foo"`, `comp/eq/types`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
-
 func TestEval(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`eval "4"`, `4`},
