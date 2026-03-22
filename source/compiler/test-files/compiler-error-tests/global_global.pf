@@ -1,0 +1,6 @@
+cmd 
+
+foo :
+    global x 
+
+

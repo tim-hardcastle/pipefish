@@ -7,12 +7,15 @@ newtype
 
 Person = struct(name string, age int)
 Cat = struct(name string, lives int)
+Foo = struct(foo int)
 
 make list{int}
 
 var
 
+animal Person/Cat = JOHN
 someInt = 42
+f func? = func(x int) : x
 
 v = NULL
 

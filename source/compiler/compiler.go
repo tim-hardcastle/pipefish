@@ -256,7 +256,7 @@ NodeTypeSwitch:
 				cp.Cm("Inferring the type of a variable "+text.Emph(pair.VarName)+" already defined ", &node.Token)
 				if sig[i].VarType != parser.INFERRED_TYPE_AST { // Then as we can't change the type of an existing variable, we must check that we're defining it the same way.
 					if !Equals(v.Types, cp.GetAlternateTypeFromTypeAst(sig[i].VarType)) {
-						cp.Throw("comp/assign/type/b", node.GetToken(), pair.VarName)
+						cp.Throw("comp/assign/type/b", node.GetToken(), pair.VarName, pair.VarType.String())
 						return FAIL
 					}
 				}
@@ -763,7 +763,7 @@ NodeTypeSwitch:
 				rResult = concResult(values.CREATED_THUNK_OR_CONST, lResult.Foldable && rResult.Foldable)
 				break
 			}
-			if ctxt.Access == CMD { // It could be error, break, OK, or an unsatisfied conditional.
+			if ctxt.Access == CMD || ctxt.Access == REPL && lResult.Types.areOnly(values.SUCCESSFUL_VALUE, values.ERROR, values.UNSATISFIED_CONDITIONAL) { // It could be error, break, OK, or an unsatisfied conditional.
 				if !lResult.Types.Contains(values.UNSATISFIED_CONDITIONAL) {
 				// TODO --- implement warnings. Code after this is true will be unreachable.
 				}

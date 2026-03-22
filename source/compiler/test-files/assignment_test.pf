@@ -5,3 +5,17 @@ x rune, y int = 'q', 2
 s tuple = 1, 2
 
 t tuple = 42
+
+const 
+
+A = "apple"
+
+newtype
+
+Person = struct(name string, age int)
+Cat = struct(name string, lives int)
+
+var
+
+animal Person/Cat = Person("John", 22)
+

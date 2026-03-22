@@ -89,13 +89,6 @@ func TestTChunkingItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
-
-func TestAssignmentCtes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		//{``, `comp/assign/type/a`},
-	}
-	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrorsInCompiler)
-}
 func TestAlias(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Strings == list{string}`, `true`},

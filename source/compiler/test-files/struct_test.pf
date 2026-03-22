@@ -7,7 +7,7 @@ var // And make some struct values.
 
 doug = Person("Douglas", 42)
 joe = Person with name::"Joseph", age::22
-tom = Cat with pink::false, name::"Tom", nobelPrizes::2
+tom Cat/Person = Cat with pink::false, name::"Tom", nobelPrizes::2
 
 const 
 

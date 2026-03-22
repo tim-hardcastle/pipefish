@@ -1,0 +1,7 @@
+cmd 
+
+foo : 
+    try e :
+        true == 42
+    else :
+        OK

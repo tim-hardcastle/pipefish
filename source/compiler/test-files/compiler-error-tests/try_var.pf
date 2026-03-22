@@ -1,0 +1,12 @@
+var
+
+X = 6
+
+cmd 
+
+foo : 
+    global X
+    try X :
+        OK
+    else :
+        OK

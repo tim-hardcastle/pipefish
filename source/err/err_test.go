@@ -8,9 +8,19 @@ import (
 
 func TestAssignmentCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{``, `comp/assign/type/a`},
+		{`assign/type/a`, `OK`},
 	}
-	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrorsInCompiler)
+	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+}
+
+func TestAssignmentErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`x = true`, `comp/typecheck/type`},
+		{`y = "foo"`, `comp/typecheck/type`},
+		{`y string = "foo"`, `comp/assign/type/b`},
+		{`A string = "orange"`, `comp/assign/const`},
+	}
+	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestCompilerErrors)
 }
 
 func TestBooleanCtes(t *testing.T) {
@@ -233,6 +243,8 @@ func TestMiscellaneousCtes(t *testing.T) {
 		{`42 >> that`, `comp/pipe/mf/list`},
 		{`[1, 2, 3] ?> 2 * that`, `comp/pipe/filter/bool`},
 		{`-- foo |(1, 2, 3)| bar`, `comp/snippet/tuple`},
+		{`1 given : 2`, `comp/expect/given`},
+		{`zwub 5`, `comp/known/prefix`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }

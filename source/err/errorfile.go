@@ -150,17 +150,18 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are trying to assign a value to a variable when you have explicitly said " +
-				"that the variable cannot contain values of that type"
+				"that the variable cannot contain values of that type."
 		},
 	},
 
 	"comp/assign/type/b": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "assigning a value of type " + emph(args[1]) + " to variable " + emph(args[0])
+			return "trying to redeclare variable " + emph(args[0]) + " as type " + emph(args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "You are trying to assign a value to a variable when you have explicitly said " +
-				"that the variable cannot contain values of that type"
+			return "The variable " + emph(args[0]) + " has already been declared, and at that point " +
+			"its type was declared or inferred. Now you're giving it a type again which is different " + 
+			"from that, which you can't do: the allowed types of a local variable are fixed on declaration."
 		},
 	},
 
@@ -329,6 +330,17 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish doesn't let you compare values of different types, on the grounds that " +
 				"this is more often a mistake than intentional."
+		},
+	},
+
+	"comp/expect/given": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "unexpected use of `given`"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "The `given` keyword introduces the definitions of local variables and constants " +
+			"for functions, lambdas, and `for` loops. Pipefish doesn't expect to find it in the middle of " +
+			"an expression, as it is here."
 		},
 	},
 

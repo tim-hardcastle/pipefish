@@ -5,6 +5,45 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
+
+// These test compiler errors which can only happen during initialization so that each one needs
+// its own script.
+func TestItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`assign/type/a`, `OK`},
+		{`global/global`, `OK`},
+		{`global/ident`, `OK`},
+		{`try/return`, `OK`},
+		{`try/var`, `OK`},
+		// Tests for failing upwards.
+		{`break fail`, `comp/eq/types`},
+		{`try fail`, `comp/eq/types`},
+	}
+	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+}
+
+// Tests that when compiling the node of a child fails, it then returns `FAIL` and we get the error
+// belonging to the child.
+func TestFailingUpward(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`2 == 'q' or true`, `comp/eq/types`},
+		{`false or 2 == true`, `comp/eq/types`},
+		{`2 == 'q' and true`, `comp/eq/types`},
+		{`true and 2 == true`, `comp/eq/types`},
+		{`2 == 'q' : true`, `comp/eq/types`},
+		{`true : 2 == true`, `comp/eq/types`},
+		{`2 == 'q' ; true`, `comp/eq/types`},
+		{`true ; 2 == true`, `comp/eq/types`},
+		{`not 2 == true`, `comp/eq/types`},
+		{`unwrap (2 == true)`, `comp/eq/types`},
+		{`2 == true`, `comp/eq/types`},
+		{`2 == true`, `comp/eq/types`},
+		{`len (2 == true)`, `comp/eq/types`},
+		{`f (2 == true)`, `comp/eq/types`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+
 func TestAlias(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Strings == list{string}`, `true`},
@@ -25,19 +64,28 @@ func TestAssignment(t *testing.T) {
 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
 }
 
-// func TestAssignmentErrors(t *testing.T) {
-// 	tests := []test_helper.TestItem{
-// 		{`x = true`, `OK`},
-// 		{`y = "foo"`, `OK`},
-// 	}
-// 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
-// }
-
-func TestAssignmentCtes(t *testing.T) {
+func TestAssignmentErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{``, `comp/assign/type/a`},
+		{`x = true`, `comp/typecheck/type`},
+		{`y = "foo"`, `comp/typecheck/type`},
+		{`y string = "foo"`, `comp/assign/type/b`},
+		{`A string = "orange"`, `comp/assign/const`},
 	}
-	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrorsInCompiler)
+	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestCompilerErrors)
+}
+
+
+
+func TestBooleanCompilerErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`5 or true`, `comp/bool/or/left`},
+		{`false or 5`, `comp/bool/or/right`},
+		{`5 and false`, `comp/bool/and/left`},
+		{`true and 5`, `comp/bool/and/right`},
+		{`5 : 5`, `comp/bool/cond`},
+		{`not 5`, `comp/bool/not`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
 
 func TestBooleans(t *testing.T) {
@@ -75,17 +123,6 @@ func TestBooleans(t *testing.T) {
 		{`true or true`, `true`},
 	}
 	test_helper.RunTest(t, "boolean_test.pf", tests, test_helper.TestValues)
-}
-func TestBooleanCompilerErrors(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`5 or true`, `comp/bool/or/left`},
-		{`false or 5`, `comp/bool/or/right`},
-		{`5 and false`, `comp/bool/and/left`},
-		{`true and 5`, `comp/bool/and/right`},
-		{`5 : 5`, `comp/bool/cond`},
-		{`not 5`, `comp/bool/not`},
-	}
-	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
 
 func TestBuiltins(t *testing.T) {
@@ -314,6 +351,13 @@ func TestForLoopRtes(t *testing.T) {
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
 
+func TestForLoopCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`break 2 == true`, `comp/break/a`},
+	}
+	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestCompilerErrors)
+}
+
 func TestForLoops(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`fib 8`, `21`},
@@ -482,6 +526,7 @@ func TestIndexingCompilerErrors(t *testing.T) {
 		{`SN[4.0]`, `comp/index/snippet`},
 		{`JOHN[lives]`, "comp/index/struct/a"},
 		{`JOHN[42]`, "comp/index/struct/b"},
+		{`animal[foo]`, "comp/index/struct/c"},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
@@ -565,6 +610,8 @@ func TestMiscellaneousCompilerErrors(t *testing.T) {
 		{`42 >> that`, `comp/pipe/mf/list`},
 		{`[1, 2, 3] ?> 2 * that`, `comp/pipe/filter/bool`},
 		{`-- foo |(1, 2, 3)| bar`, `comp/snippet/tuple`},
+		{`1 given : 2`, `comp/expect/given`},
+		{`zwub 5`, `comp/known/prefix`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
@@ -632,6 +679,7 @@ func TestStructs(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`doug`, `Person with (name::"Douglas", age::42)`},
 		{`tom in Cat`, `true`},
+		{`tom[pink]`, `false`},
 	}
 	test_helper.RunTest(t, "struct_test.pf", tests, test_helper.TestValues)
 }

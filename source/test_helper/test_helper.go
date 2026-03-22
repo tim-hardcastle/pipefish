@@ -39,6 +39,9 @@ func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compile
 		case "test initialization errors" :
 			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/initialization-error-tests/"+
 			strings.ReplaceAll(test.Input, "/", "_")+".pf", ), map[string]*compiler.Compiler{}, &values.Map{})
+		case "test compiler errors" :
+			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/compiler-error-tests/"+
+			strings.ReplaceAll(test.Input, "/", "_")+".pf", ), map[string]*compiler.Compiler{}, &values.Map{})
 		default:
 			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/", filename), map[string]*compiler.Compiler{}, &values.Map{})
 		}
@@ -142,6 +145,17 @@ func TestInitializationErrors(cp *compiler.Compiler, s string) (string, error) {
 }
 
 func TestInitializationErrorsInCompiler(cp *compiler.Compiler, s string) (string, error) {
+	if len(cp.P.Common.Errors) == 0 {
+		return "", errors.New("unexpected successful compilation")
+	}
+	topError := cp.P.Common.Errors[0]
+	if "comp/" + s == topError.ErrorId {
+		// This will at least crash if the explanation mistypes the arguments.
+		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
+			ec.Explanation(topError.Token, topError.Args...)
+		}
+		return "OK", nil
+	}
 	return cp.P.Common.Errors[0].ErrorId, nil
 }
 

@@ -1,0 +1,5 @@
+cmd
+
+foo :
+    for : 
+        break 2 == true

@@ -6,20 +6,20 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-// The only way to test the test helperis to run one of each of the tests it supports. Which we
+// The only way to test the test helper is to run one of each of the tests it supports. Which we
 // were going to do anyway.
 
-func TestAssignmentCtes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{``, `comp/assign/type/a`},
-	}
-	test_helper.RunTest(t, "assignment_error_test.pf", tests, test_helper.TestInitializationErrorsInCompiler)
-}
 func TestBooleanCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`5 or true`, `comp/bool/or/left`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+func TestCompilerItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`assign/type/a`, `OK`},
+	}
+	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
 func TestConstOrVarChunking(t *testing.T) {
 	tests := []test_helper.TestItem{
