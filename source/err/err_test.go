@@ -215,6 +215,12 @@ func TestLabelRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "labels_test.pf", tests, test_helper.TestValues)
 }
+func TestLoggingCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`42 \\ | forty-two`, `comp/log/close`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
+}
 func TestMiscellaneousCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`[error "foo"]`, `comp/list/err`},

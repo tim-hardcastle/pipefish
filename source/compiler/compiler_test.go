@@ -5,9 +5,6 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
-
-
-
 func TestAlias(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Strings == list{string}`, `true`},
@@ -547,6 +544,14 @@ func TestLogging(t *testing.T) {
 		{`foo 8`, test_helper.Foo8Result},
 	}
 	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestOutput)
+}
+func TestLoggingCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`42 \\ | forty-two`, `comp/log/close`},
+		{`42 \\ | 1 + |`, `parse/prefix`},
+		{`42 \\ | 42 == true |`, `comp/eq/types`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
 func TestMiscellaneousCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{

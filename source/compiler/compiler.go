@@ -2259,7 +2259,12 @@ func (cp *Compiler) compileLog(node *parser.LogExpression, ctxt Context) (uint32
 			continue
 		}
 		if str[0] == '|' { // Then we must parse and compile.
+			// This is a disgusting kludge to find out if if parses correctly.
+			errCount := len(cp.P.Common.Errors)
 			parsedAst := cp.P.ParseLine("code snippet in log expression", str[1:len(str)-1])
+			if errCount < len(cp.P.Common.Errors) {
+				return uint32(DUMMY), false, false
+			}
 			sResult := cp.CompileNode(parsedAst, ctxt.x())
 			if sResult.Failed {
 				return uint32(DUMMY), false, false
