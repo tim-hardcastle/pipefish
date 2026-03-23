@@ -6,7 +6,6 @@ package dtypes
 // They are ordered in order of addition to the map/set, not by comparison.
 
 import (
-	"fmt"
 	"github.com/wk8/go-ordered-map/v2"
 )
 
@@ -20,18 +19,7 @@ func(os *OrderedSet) Add(s string) {
 	os.om.Set(s, struct{}{})
 }
 
-func(os OrderedSet) String() string {
-	out := "orderedSet{"
-	sep := ""
-	for pair := os.om.Oldest(); pair != nil; pair = pair.Next() {
-		out = out + sep + pair.Key
-		sep = ", "
-	}
-	out = out + "}"
-	return out
-}
-
-func (os *OrderedSet) intersects (ot *OrderedSet) bool {
+func (os *OrderedSet) Intersects (ot *OrderedSet) bool {
 	for pair := ot.om.Oldest(); pair != nil; pair = pair.Next() {
 		if _, ok := os.om.Get(pair.Key); ok {
 			return true
@@ -48,15 +36,6 @@ type Digraph = orderedmap.OrderedMap[string, *OrderedSet]
 
 func NewDigraph() *Digraph {
 	return orderedmap.New[string, *OrderedSet]()
-}
-
-func String(D *Digraph) string {
-	result := "{\n"
-	for pair := D.Oldest(); pair != nil; pair = pair.Next() {
-		result += fmt.Sprintf("%v : %v", pair.Key, pair.Value.String())
-	}
-	result += "}\n"
-	return result
 }
 
 // Used for performing the Tarjan sort.
@@ -184,7 +163,7 @@ func  ArrowsTo(D *Digraph, x string) Set[string] {
 	for {
 		newResults := false
 		for pair := D.Oldest(); pair != nil; pair = pair.Next() {
-			if pair.Value.intersects(target) {
+			if pair.Value.Intersects(target) {
 				if !results.Contains(pair.Key) {
 					results.Add(pair.Key)
 					newResults = true
@@ -203,14 +182,3 @@ func Add(D *Digraph, name string) {
 }
 
 
-
-func Index[E comparable](slice []E, element E) int {
-	result := -1
-	for k, v := range slice {
-		if v == element {
-			result = k
-			break
-		}
-	}
-	return result
-}
