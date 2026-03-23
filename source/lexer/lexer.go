@@ -199,7 +199,11 @@ func (l *lexer) getTokens() []token.Token {
 	// We may have an identifier, a golang block, or a snippet.
 	if IsLegalStart(l.runes.CurrentRune()) {
 		lit := l.runes.ReadIdentifier()
-		tType := token.LookupIdent(lit)
+		var tType token.TokenType
+		var ok bool
+		if tType, ok = token.Keywords[lit]; !ok {
+			tType = token.IDENT
+		}
 		switch tType {
 		case token.GOLANG:
 			text := l.readGolang()

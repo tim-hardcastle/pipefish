@@ -1,5 +1,7 @@
 package token
 
+import "github.com/tim-hardcastle/pipefish/source/dtypes"
+
 type TokenType string
 
 const (
@@ -92,7 +94,7 @@ type Token struct {
 	Namespace string
 }
 
-var keywords = map[string]TokenType{
+var Keywords = map[string]TokenType{
 	// Keywords.
 	"break":    BREAK,
 	"continue": CONTINUE,
@@ -135,21 +137,4 @@ var keywords = map[string]TokenType{
 	"xcall": XCALL,
 }
 
-func LookupIdent(ident string) TokenType {
-	if tok, ok := keywords[ident]; ok {
-		return tok
-	}
-	return IDENT
-}
-
-func TokenTypeIsHeadword(t TokenType) bool {
-	return t == IMPORT || t == VAR || t == CMD || t == DEF || t == EXTERNAL || t == NEWTYPE || t == CONST
-}
-// Just shoves all the identifiers into a string, expanding the namespaces if any.
-func Stringify(toks []Token) string {
-	result := ""
-	for _, tok := range toks {
-		result = result + tok.Namespace + tok.Literal
-	}
-	return result
-}
+var HEADWORDS = dtypes.MakeFromSlice([]TokenType{CMD, CONST, DEF, EXTERNAL, IMPORT, NEWTYPE, VAR})

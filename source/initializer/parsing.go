@@ -402,6 +402,7 @@ func (iz *Initializer) getTokenizedCode(forcePrivate bool) { // `forceprivate`` 
 loop:
 	for iz.P.CurToken.Type != token.EOF {
 		var result tokenizedCode
+		_, ok := token.HEADWORDS[iz.P.CurToken.Type]
 		switch {
 		case iz.P.CurToken.Type == "": // We just continue.
 		case iz.P.CurToken.Type == token.NEWLINE: // We just continue.
@@ -411,7 +412,7 @@ loop:
 			} else {
 				docString = docString + iz.P.CurToken.Literal
 			}
-		case token.TokenTypeIsHeadword(iz.P.CurToken.Type):
+		case ok:
 			headword = iz.P.CurToken.Type
 			private = forcePrivate
 		case iz.P.CurToken.Type == token.PRIVATE:
@@ -703,8 +704,17 @@ func (iz *Initializer) createWrapperTypes() {
 			iz.setDeclaration(decWRAPPER, &dec.op, DUMMY, typeNo)
 		}
 		iz.addType(dec.op.Literal, "wrapper", typeNo)
-		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.WrapperType{Name: dec.op.Literal, Path: iz.P.NamespacePath, Private: dec.private, Gotype: token.Stringify(dec.goType)})
+		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.WrapperType{Name: dec.op.Literal, Path: iz.P.NamespacePath, Private: dec.private, Gotype: stringify(dec.goType)})
 	}
+}
+
+// Just shoves all the identifiers into a string, expanding the namespaces if any.
+func stringify(toks []token.Token) string {
+	result := ""
+	for _, tok := range toks {
+		result = result + tok.Namespace + tok.Literal
+	}
+	return result
 }
 
 // We create the clone types.

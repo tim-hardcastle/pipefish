@@ -60,36 +60,3 @@ func (S Stack[T]) Find(e T) int {
 	}
 	return -1
 }
-
-func ExplainWhitespaceStack(S *Stack[string]) string {
-	output := "["
-	for i := len((*S).vals) - 1; i >= 0; i-- {
-		if output != "[" {
-			output = output + ", "
-		}
-		output = output + "'"
-		output = output + ExplainWhitespace((*S).vals[i])
-		output = output + "'"
-	}
-	output = output + "]"
-	return output
-}
-
-func ExplainWhitespace(s string) string {
-	explanation := ""
-	for i := 0; i < len(s); i++ {
-		switch s[i] {
-		case '\n':
-			explanation = explanation + "\\n"
-		case '\r':
-			explanation = explanation + "\\r"
-		case '\t':
-			explanation = explanation + "\\t"
-		case ' ':
-			explanation = explanation + "\\s"
-		default:
-			explanation = explanation + "*I can't explain that*"
-		}
-	}
-	return explanation
-}
