@@ -200,12 +200,12 @@ func (p *Parser) isPositionallyFunctional() bool {
 }
 
 var (
-	nativeInfixes = dtypes.MakeFromSlice([]token.TokenType{
+	nativeInfixes = dtypes.From[token.TokenType](
 		token.COMMA, token.EQ, token.NOT_EQ, token.ASSIGN, token.GVN_ASSIGN, token.FOR,
 		token.GIVEN, token.LBRACK, token.MAGIC_COLON, token.MAGIC_SEMICOLON, token.PIPE, token.MAPPING,
-		token.FILTER, token.IFLOG})
-	lazyInfixes = dtypes.MakeFromSlice([]token.TokenType{token.AND,
-		token.OR, token.COLON, token.SEMICOLON, token.NEWLINE})
+		token.FILTER, token.IFLOG)
+	lazyInfixes = dtypes.From[token.TokenType](token.AND,
+		token.OR, token.COLON, token.SEMICOLON, token.NEWLINE)
 )
 
 // TODO --- there may at this point not be any need to have this different from any other function.

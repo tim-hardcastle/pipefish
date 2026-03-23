@@ -25,7 +25,7 @@ func (iz *Initializer) SerializedAPIToDeclarations(serializedAPI string, xserve 
 	lines := strings.Split(strings.TrimRight(serializedAPI, "\n"), "\n")
 	lineNo := 0
 	hasHappened := map[string]bool{"ENUM": false, "STRUCT": false, "PARTYPE": false, "MAKE":false, "ABSTRACT": false, "COMMAND": false, "FUNCTION": false}
-	types := dtypes.MakeFromSlice([]string{"ENUM", "CLONE", "STRUCT", "MAKE", "PARTYPE", "ABSTRACT"})
+	types := dtypes.From[string]("ENUM", "CLONE", "STRUCT", "MAKE", "PARTYPE", "ABSTRACT")
 	for lineNo < len(lines) {
 		line := lines[lineNo]
 		parts := strings.Split(line, " | ")

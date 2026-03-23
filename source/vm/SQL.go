@@ -239,7 +239,7 @@ func (vm *Vm) getTypecheck(typeNumber values.ValueType) *TypeCheck {
 	return nil
 }
 
-var NON_CONTAINERS = dtypes.MakeFromSlice([]values.ValueType{values.STRING, values.INT, values.BOOL})
+var NON_CONTAINERS = dtypes.From[values.ValueType](values.STRING, values.INT, values.BOOL)
 
 func (vm *Vm) getFields(pointerList []any, tok uint32) ([]values.Value, values.Value) {
 	fields := make([]values.Value, 0, len(pointerList))

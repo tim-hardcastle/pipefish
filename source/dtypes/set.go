@@ -1,9 +1,5 @@
 package dtypes
 
-import (
-	"fmt"
-)
-
 type Set[E comparable] map[E]struct{}
 
 func MakeFromSlice[E comparable](slice []E) Set[E] {
@@ -20,15 +16,6 @@ func From[E comparable](slice ... E) Set[E] {
 		S.Add(v)
 	}
 	return S
-}
-
-func (S Set[E]) String() string {
-	result := "{ "
-	for e := range S {
-		result += fmt.Sprintf("%v, ", e)
-	}
-	result = result[0:len(result)-1] + "}\n"
-	return result
 }
 
 func (S Set[E]) ToSlice() []E {
@@ -78,13 +65,3 @@ func (S Set[E]) Contains(e E) bool {
 	return found
 }
 
-func (S Set[E]) GetArbitraryElement() (E, bool) {
-	var result E
-	var ok bool
-	for e := range S { // There should be a less clumsy way to do this but ...
-		result = e
-		ok = true
-		break
-	}
-	return result, ok
-}

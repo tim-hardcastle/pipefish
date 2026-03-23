@@ -14,7 +14,7 @@ import (
 
 // Things which are not type names but can be used for constructing types or for other
 // purposes:
-var PSEUDOTYPES = dtypes.MakeFromSlice([]string{"clone", "clones"})
+var PSEUDOTYPES = dtypes.From[string]("clone", "clones")
 
 type typePrecedence = int
 
@@ -101,7 +101,7 @@ func (p *Parser) parseParamsOrArgs() TypeNode {
 	return result
 }
 
-var acceptableTypes = dtypes.MakeFromSlice([]string{"float", "int", "string", "rune", "bool", "type"})
+var acceptableTypes = dtypes.From[string]("float", "int", "string", "rune", "bool", "type")
 
 func (p *Parser) parseParams(nameTok token.Token) TypeNode {
 	indexTok := p.CurToken

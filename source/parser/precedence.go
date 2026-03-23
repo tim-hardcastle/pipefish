@@ -92,10 +92,10 @@ var precedences = map[token.TokenType]int{
 	token.LBRACK: INDEX,
 }
 
-var literals = dtypes.MakeFromSlice([]token.TokenType{token.INT, token.FLOAT, token.STRING, token.RUNE, token.TRUE, token.FALSE, token.ELSE})
-var literalsAndLParen = dtypes.MakeFromSlice([]token.TokenType{token.INT, token.FLOAT, token.STRING, token.RUNE, token.TRUE, token.FALSE, token.ELSE,
-	token.LPAREN, token.LBRACE})
-var assignmentTokens = dtypes.MakeFromSlice([]token.TokenType{token.ASSIGN, token.GVN_ASSIGN})
+var literals = dtypes.From[token.TokenType](token.INT, token.FLOAT, token.STRING, token.RUNE, token.TRUE, token.FALSE, token.ELSE)
+var literalsAndLParen = dtypes.From[token.TokenType](token.INT, token.FLOAT, token.STRING, token.RUNE, token.TRUE, token.FALSE, token.ELSE,
+	token.LPAREN, token.LBRACE)
+var assignmentTokens = dtypes.From[token.TokenType](token.ASSIGN, token.GVN_ASSIGN)
 
 func (p *Parser) peekPrecedence() int {
 	return p.rightPrecedence(p.PeekToken)

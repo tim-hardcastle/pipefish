@@ -137,4 +137,4 @@ var Keywords = map[string]TokenType{
 	"xcall": XCALL,
 }
 
-var HEADWORDS = dtypes.MakeFromSlice([]TokenType{CMD, CONST, DEF, EXTERNAL, IMPORT, NEWTYPE, VAR})
+var HEADWORDS = dtypes.From[TokenType](CMD, CONST, DEF, EXTERNAL, IMPORT, NEWTYPE, VAR)

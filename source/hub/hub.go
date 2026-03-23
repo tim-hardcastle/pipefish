@@ -758,13 +758,13 @@ func (hub *Hub) makeWriter() io.Writer {
 }
 
 // Things that only make sense if we have RBAM set up.
-var rbamVerbs = dtypes.MakeFromSlice([]string{"add", "create", "log-on", "log-off", "let", 
+var rbamVerbs = dtypes.From[string]("add", "create", "log-on", "log-off", "let", 
 "register", "groups", "groups-of-user", "groups-of-service", "services of group", 
-"services-of-user", "users-of-service", "users-of-group", "let-use", "let-own"})
+"services-of-user", "users-of-service", "users-of-group", "let-use", "let-own")
 
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
-var greenList = dtypes.MakeFromSlice([]string{"api", "errors", "help", "log-on", "log-off", 
-"groups", "register", "service", "switch", "values", "why", "quit"})
+var greenList = dtypes.From[string]("api", "errors", "help", "log-on", "log-off", 
+"groups", "register", "service", "switch", "values", "why", "quit")
 
 func getUnusedTestFilename(scriptFilepath string) string {
 	fname := filepath.Base(scriptFilepath)

@@ -2480,24 +2480,24 @@ var errorCodes = map[typeCheckFlavor]string{
 
 // When these encounter an error as a value, or when the typecheck fails and produces an error,
 // these flavors of typecheck return a `BkEarlyReturn` which can be used to return the error to wherever.
-var earlyReturners = dtypes.MakeFromSlice([]typeCheckFlavor{
+var earlyReturners = dtypes.From[typeCheckFlavor](
 	CHECK_GLOBAL_ASSIGNMENTS,
 	CHECK_LAMBDA_PARAMETERS,
 	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION,
 	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION,
 	CHECK_LOOP_BOUND_VARIABLE_UPDATE,
 	CHECK_LOOP_INDEX_VARIABLE_UPDATE,
-})
+)
 
 // Things that should show the expression that was the source of the value in their error messages.
-var showExpression = dtypes.MakeFromSlice([]typeCheckFlavor{
+var showExpression = dtypes.From[typeCheckFlavor](
 	CHECK_GIVEN_ASSIGNMENTS,
 	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION,
 	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION,
 	CHECK_LOOP_INDEX_VARIABLE_UPDATE,
 	CHECK_LOCAL_CMD_ASSIGNMENTS,
 	CHECK_GLOBAL_ASSIGNMENTS,
-})
+)
 
 // We take (a location of) a single value or tuple, the expression that yielded it, the type as an
 // AlternateType, a signature, an environment, a token, and a 'flavor' which says what exactly we're

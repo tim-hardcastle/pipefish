@@ -1151,7 +1151,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	// Service variables which tell the compiler how to compile things must be
 	// set before we compile the functions, and so can't be calculated but must
 	// be literal.
-	compilerDirectives := dtypes.MakeFromSlice([]string{"$_logging", "$_logTo", "$_logTime"})
+	compilerDirectives := dtypes.From[string]("$_logging", "$_logTo", "$_logTime")
 	// Add variables to environment.
 	for svName, svData := range serviceVariables {
 		rhs, ok := graph.Get(svName)
