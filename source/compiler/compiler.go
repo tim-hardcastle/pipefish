@@ -140,18 +140,18 @@ func (ccb *CommonCompilerBindle) AddTypeNumberToSharedAlternateTypes(typeNo valu
 type Context struct {
 	Env            *Environment     // The association of variable names to variable locations.
 	FName          string           // If we're compiling a function, the name of the function we're compiling.
-	Access         CpAccess         // Whether we are compiling the body of a command; of a function; something typed into the REPL, etc.	
+	Access         CpAccess         // Whether we are compiling the body of a command; of a function; something typed into the REPL, etc.
 	LowMem         uint32           // Where the memory of the function we're compiling (if indeed we are) starts, and so the lowest point from which we may need to copy memory in case of recursion.
 	TrackingFlavor LogFlavor        // Whether we should be tracking something and if so what.
 	LogFlavor      LogFlavor        // Whether we should be logging something and if so what.
 	ForReturns     AlternateType    // What (besides an error) we may expect 'for' to return, and therefor the expected result of a 'continue' or a 'break' without a value after it.
 	Typecheck      *ReturnTypeCheck // If non-nil, tells us whether we're typechecking the expression being compiled and if so why.
 }
-        
+
 type ReturnTypeCheck = struct {
-	Tok       *token.Token         // Where the typecheck was declared.
-	Types     TypeScheme           // The types.
-	Flavor    typeCheckFlavor      // Whether we're checking a function or a `for` loop, etc.
+	Tok    *token.Token    // Where the typecheck was declared.
+	Types  TypeScheme      // The types.
+	Flavor typeCheckFlavor // Whether we're checking a function or a `for` loop, etc.
 }
 
 // Unless we're going down a branch, we want the new context for each node compilation to have no forward type-checking.
@@ -765,7 +765,7 @@ NodeTypeSwitch:
 			}
 			if ctxt.Access == CMD || ctxt.Access == REPL && lResult.Types.areOnly(values.SUCCESSFUL_VALUE, values.ERROR, values.UNSATISFIED_CONDITIONAL) { // It could be error, break, OK, or an unsatisfied conditional.
 				if !lResult.Types.Contains(values.UNSATISFIED_CONDITIONAL) {
-				// TODO --- implement warnings. Code after this is true will be unreachable.
+					// TODO --- implement warnings. Code after this is true will be unreachable.
 				}
 				ifError := BkEarlyReturn(DUMMY)
 				ifCouldBeUnsatButIsnt := BkEarlyReturn(DUMMY)
@@ -1221,8 +1221,8 @@ NodeTypeSwitch:
 		cp.Throw("comp/fcis", node.GetToken())
 		return FAIL
 	}
-	// If the node we evaluated is potentially a return value of a function we're compiling, 
-	// or the body of a `for` loop, then if the function has return types this is where we 
+	// If the node we evaluated is potentially a return value of a function we're compiling,
+	// or the body of a `for` loop, then if the function has return types this is where we
 	// can check if they've been violated.
 	if ctxt.Typecheck != nil && !cp.checkInferredTypesAgainstContext(result.Types, ctxt.Typecheck, node.GetToken()) {
 		return FAIL
@@ -1275,7 +1275,7 @@ func (cp *Compiler) checkInferredTypesAgainstContext(rtnTypes AlternateType, tc 
 	singles, _ := rtnTypes.splitSinglesAndTuples()
 	if (!(typeLengths.Contains(-1) || typeLengths.OverlapsWith(checkLengths))) &&
 		!(singles.areOnly(values.ERROR, values.UNSATISFIED_CONDITIONAL)) {
-		cp.Throw("comp/types/length/" + errorSuffix, tok, typesToCheck.describe(cp.Vm), tc.Tok.Line, rtnTypes.describe(cp.Vm))
+		cp.Throw("comp/types/length/"+errorSuffix, tok, typesToCheck.describe(cp.Vm), tc.Tok.Line, rtnTypes.describe(cp.Vm))
 		return false
 	}
 	maxLen := 0
@@ -1287,7 +1287,7 @@ func (cp *Compiler) checkInferredTypesAgainstContext(rtnTypes AlternateType, tc 
 	for i := range maxLen {
 		intersection := typesAtIndex(typesToCheck, i).intersect(typesAtIndex(rtnTypes, i))
 		if len(intersection) == 0 && !rtnTypes.areOnly(values.ERROR, values.UNSATISFIED_CONDITIONAL) {
-			cp.Throw("comp/types/" + errorSuffix, tok, typesToCheck.describe(cp.Vm), tc.Tok.Line, rtnTypes.without(SimpleType(values.ERROR)).describe(cp.Vm))
+			cp.Throw("comp/types/"+errorSuffix, tok, typesToCheck.describe(cp.Vm), tc.Tok.Line, rtnTypes.without(SimpleType(values.ERROR)).describe(cp.Vm))
 			return false
 		}
 	}
@@ -1443,11 +1443,11 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	// The 'flavor' flag allows us to keep track of what kind of `for` loop we're compiling.
 	flavor := UNDEFINED_LOOP_FLAVOR
 	hasBoundVariables := false
-	var keysOnly, valuesOnly bool         // Only applies to range-style loops.
-	rangeKeyLoc := uint32(DUMMY)          //          "
-	rangeValLoc := uint32(DUMMY)          //          "
-	iteratorLoc := uint32(DUMMY)          //          "
-	rangeOver := BkEarlyReturn(DUMMY)     //          "
+	var keysOnly, valuesOnly bool                 // Only applies to range-style loops.
+	rangeKeyLoc := uint32(DUMMY)                  //          "
+	rangeValLoc := uint32(DUMMY)                  //          "
+	iteratorLoc := uint32(DUMMY)                  //          "
+	rangeOver := BkEarlyReturn(DUMMY)             //          "
 	iteratorCreationError := BkEarlyReturn(DUMMY) //  "
 
 	// The parser so far has only broken the header up into its parts, but has not validated
@@ -1498,7 +1498,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		for i, pair := range boundSig {
 			_, exists := newEnv.GetVar(pair.VarName)
 			if exists {
-				cp.Throw("comp/for/bound/exists", node.BoundVariables.GetToken())
+				cp.Throw("comp/for/bound/exists", node.BoundVariables.GetToken(), pair.VarName)
 				return FAIL
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
@@ -1542,7 +1542,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		for i, pair := range indexSig {
 			_, exists := newEnv.GetVar(pair.VarName)
 			if exists {
-				cp.Throw("comp/for/exists/index", node.Initializer.GetToken(), pair.VarName)
+				cp.Throw("comp/for/index/exists", node.Initializer.GetToken(), pair.VarName)
 				return FAIL
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
@@ -1615,7 +1615,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 					}
 					cp.AddThatAsVariable(newEnv, rightName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken())
 				}
-				if len(rangeCpResult.Types.intersect(cp.Common.IsInfalliblyRangeable())) <  len(rangeCpResult.Types) {
+				if len(rangeCpResult.Types.intersect(cp.Common.IsInfalliblyRangeable())) < len(rangeCpResult.Types) {
 					iteratorCreationError = cp.VmConditionalEarlyReturn(vm.Qtyp, iteratorLoc, uint32(values.ERROR), iteratorLoc)
 				}
 			}
@@ -1645,6 +1645,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	indexUpdateCheck := BkEarlyReturn(DUMMY)
 	conditionalFails := BkEarlyReturn(DUMMY)
 	conditionIsError := BkEarlyReturn(DUMMY)
+	conditionIsNotBool := BkEarlyReturn(DUMMY)
 
 	// We typecheck the initial values.
 
@@ -1682,12 +1683,16 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		if conditionalCpResult.Failed {
 			return FAIL
 		}
-		if conditionalCpResult.Types.isOnly(values.ERROR) {
+		if conditionalCpResult.Types.IsNoneOf(values.BOOL) {
 			cp.Throw("comp/for/condition", node.GetToken())
 			return FAIL
 		}
 		if conditionalCpResult.Types.Contains(values.ERROR) {
 			conditionIsError = cp.VmConditionalEarlyReturn(vm.Qtyp, conditionalLoc, uint32(values.ERROR), conditionalLoc)
+		}
+		if !conditionalCpResult.Types.areOnly(values.BOOL, values.ERROR) {
+			cp.ReserveError("vm/for/condition", tok, vm.DescribeTypeOfValueAtLocation(conditionalLoc), conditionalLoc)
+			conditionIsNotBool = cp.VmConditionalEarlyReturn(vm.Qntp, conditionalLoc, uint32(values.ERROR), cp.That())
 		}
 		conditionalFails = cp.VmConditionalEarlyReturn(vm.Qfls, conditionalLoc, boundResultLoc)
 	}
@@ -1762,7 +1767,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	cp.resolveBreaksWithoutValue()
 	cp.Put(vm.Asgm, boundResultLoc)
 	cp.resolveBreaksWithValue()
-	cp.VmComeFrom(conditionalFails, conditionIsError, rangeOver, boundInitCheck, 
+	cp.VmComeFrom(conditionalFails, conditionIsError, conditionIsNotBool, rangeOver, boundInitCheck,
 		indexInitCheck, boundUpdateCheck, indexUpdateCheck, iteratorCreationError)
 	bodyCpResult.Foldable = false
 	bodyCpResult.Types = bodyCpResult.Types.Union(boundVariableTypes)
@@ -2465,21 +2470,21 @@ const (
 
 // Used to construct errors for the VM to return at runtime..
 var errorCodes = map[typeCheckFlavor]string{
-	CHECK_RETURN_TYPES: "return",
+	CHECK_RETURN_TYPES:                       "return",
 	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION: "bound/init",
 	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION: "index/init",
-	CHECK_LOOP_BOUND_VARIABLE_UPDATE: "bound/update",
-	CHECK_LOOP_INDEX_VARIABLE_UPDATE: "index/update",
-	CHECK_LAMBDA_PARAMETERS: "lambda",
+	CHECK_LOOP_BOUND_VARIABLE_UPDATE:         "bound/update",
+	CHECK_LOOP_INDEX_VARIABLE_UPDATE:         "index/update",
+	CHECK_LAMBDA_PARAMETERS:                  "lambda",
 }
 
 // When these encounter an error as a value, or when the typecheck fails and produces an error,
 // these flavors of typecheck return a `BkEarlyReturn` which can be used to return the error to wherever.
 var earlyReturners = dtypes.MakeFromSlice([]typeCheckFlavor{
 	CHECK_GLOBAL_ASSIGNMENTS,
-	CHECK_LAMBDA_PARAMETERS, 
+	CHECK_LAMBDA_PARAMETERS,
 	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION,
-	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION, 
+	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION,
 	CHECK_LOOP_BOUND_VARIABLE_UPDATE,
 	CHECK_LOOP_INDEX_VARIABLE_UPDATE,
 })
@@ -2494,16 +2499,16 @@ var showExpression = dtypes.MakeFromSlice([]typeCheckFlavor{
 	CHECK_GLOBAL_ASSIGNMENTS,
 })
 
-// We take (a location of) a single value or tuple, the expression that yielded it, the type as an 
-// AlternateType, a signature, an environment, a token, and a 'flavor' which says what exactly we're 
-// doing and in particular whether the sig contains names we should be inserting the tuple elements 
-// into or is just a return type signature in which case there will be no names and we can leave them 
+// We take (a location of) a single value or tuple, the expression that yielded it, the type as an
+// AlternateType, a signature, an environment, a token, and a 'flavor' which says what exactly we're
+// doing and in particular whether the sig contains names we should be inserting the tuple elements
+// into or is just a return type signature in which case there will be no names and we can leave them
 // as they are.
-// We generate code which emits as much type-checking as is necessary given the fit of the signature 
-// to the AlternateType, and which inserts the values of the tuple into the variables specified in 
+// We generate code which emits as much type-checking as is necessary given the fit of the signature
+// to the AlternateType, and which inserts the values of the tuple into the variables specified in
 // the signature.
-// If the types cannot fit the sig we should of course emit a compile-time error. If they *may* not fit 
-// the sig, the runtime equivalent is to fill the parameters up with an error value generated from the 
+// If the types cannot fit the sig we should of course emit a compile-time error. If they *may* not fit
+// the sig, the runtime equivalent is to fill the parameters up with an error value generated from the
 // token.
 // If the sig is of an assignment in a command or a given block, then this is in fact all that needs to be done. If it's a
 // lambda, then the rest of the code in the lambda can then return an error if passed one.

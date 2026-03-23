@@ -130,3 +130,10 @@ showRangeValues(x, y int) :
 triangle(n int) :
     from a = 0 for i::_ = range n + 1 :
         a + i
+
+tridub(n int) :
+    from a = 0 for i::_ = range n + 1 :
+        a + j 
+    given :
+        j = 2 * i
+

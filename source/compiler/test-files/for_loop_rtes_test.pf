@@ -61,3 +61,12 @@ count(A) :
     from a = 0 for _::i = range A :
         a + 1
 
+merp(i int) :
+    from a = 0 for j = 0; grerp(j); j + 1 :
+        a + j 
+
+grerp(i int) :
+    i == 0 :
+        true 
+    else :
+        86

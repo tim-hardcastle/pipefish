@@ -239,10 +239,10 @@ func TestForLoopRtes(t *testing.T) {
 		{`qux 3`, `vm/typecheck/index/update`},
 		{`rozt 3`, `vm/types/a`},
 		{`zrot 3`, `vm/types/a`},
+		{`merp 3`, `vm/for/condition`},
 		{`count any`, `vm/for/type/a`},
 		{`count int`, `vm/for/type/b`},
 		{`count true`, `vm/for/type/c`},
-
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }

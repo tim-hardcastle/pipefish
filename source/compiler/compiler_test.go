@@ -6,22 +6,22 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-// These test compiler errors which can only happen during initialization so that each one needs
-// its own script.
-func TestItes(t *testing.T) {
+func TestForLoopCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`assign/type/a`, `OK`},
-		{`fcis`, `OK`},
-		{`for/bound/present`, `OK`},
-		{`global/global`, `OK`},
-		{`global/ident`, `OK`},
-		{`try/return`, `OK`},
-		{`try/var`, `OK`},
-		// Tests for failing upwards.
-		{`break fail`, `comp/eq/types`},
-		{`try fail`, `comp/eq/types`},
+		{`break 2 == true`, `comp/break/a`},
+		{`from a == 0 for _::i = range 0::5 : a + i`, `comp/for/assign/a`},
+		{`from a, a = 0, 0 for _::i = range z : a + i, a`, `comp/for/bound/exists`},
+		{`from a = 0 for i == 0; i < 5; i + 1 : a + i`, `comp/for/assign/b`},
+		{`from a = 0 for i, i = 0, 0; i < 5; i + 1 : a + i`, `comp/for/index/exists`},
+		{`from a = 0 for true::i = range 0::5 : a + i`, `comp/for/range/a`},
+		{`from a = 0 for i::true = range 0::5 : a + i`, `comp/for/range/b`},
+		{`from a = 0 for i::j = range true : a + i`, `comp/for/range/types`},
+		{`from a = 0 for a::j = range 5 : a + i`, `comp/for/exists/key`},
+		{`from a = 0 for i::a = range 5 : a + i`, `comp/for/exists/value`},
+		{`from a = 0 for i+j = range 5 : a + i`, `comp/for/range/c`},
+		{`from a = 0 for i = 0; 1/0; i + 1 : a + i`, `comp/for/condition`},
 	}
-	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
 
 // Tests that when compiling the node of a child fails, it then returns `FAIL` and we get the error
@@ -49,7 +49,12 @@ func TestFailingUpward(t *testing.T) {
 		{`z[0]`, `comp/ident/known`},
 		{`"foo"[z]`, `comp/ident/known`},
 		{`valid z`, `comp/ident/known`},
-
+		{`from true = 0 for _::i = range 0::5 : a + i`, `parse/sig/c`},
+		{`from a = z for _::i = range 0::5 : a + i`, `comp/ident/known`},
+		{`from a = 0 for true = 0; i < 5; i + 1 : a + i`, `parse/sig/c`},
+		{`from a = 0 for i = z; i < 5; i + 1 : a + i`, `comp/ident/known`},
+		{`from a = 0 for i = 0; z; i + 1 : a + i`, `comp/ident/known`},
+		{`from a = 0 for i = 0; i < 5; i + z : a + i`, `comp/ident/known`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
@@ -83,8 +88,6 @@ func TestAssignmentErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestCompilerErrors)
 }
-
-
 
 func TestBooleanCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -360,17 +363,10 @@ func TestForLoopRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
-
-func TestForLoopCtes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`break 2 == true`, `comp/break/a`},
-	}
-	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestCompilerErrors)
-}
-
 func TestForLoops(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`fib 8`, `21`},
+		{`tridub 4`, `20`},
 		{`collatzA 42`, `1`},
 		{`collatzB 42`, `1`},
 		{`evens Color`, `[RED, YELLOW, BLUE]`},
@@ -483,6 +479,24 @@ func TestHighlighter(t *testing.T) {
 		{`.`, `[38;2;86;156;214m.[0m`},
 	}
 	test_helper.RunTest(t, "highlighter_test.pf", tests, test_helper.TestHighlighter)
+}
+
+// These test compiler errors which can only happen during initialization so that each one needs
+// its own script.
+func TestItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`assign/type/a`, `OK`},
+		{`fcis`, `OK`},
+		{`for/bound/present`, `OK`},
+		{`global/global`, `OK`},
+		{`global/ident`, `OK`},
+		{`try/return`, `OK`},
+		{`try/var`, `OK`},
+		// Tests for failing upwards.
+		{`break fail`, `comp/eq/types`},
+		{`try fail`, `comp/eq/types`},
+	}
+	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
 func TestImports(t *testing.T) {
 	tests := []test_helper.TestItem{

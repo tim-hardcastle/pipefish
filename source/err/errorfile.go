@@ -160,8 +160,8 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The variable " + emph(args[0]) + " has already been declared, and at that point " +
-			"its type was declared or inferred. Now you're giving it a type again which is different " + 
-			"from that, which you can't do: the allowed types of a local variable are fixed on declaration."
+				"its type was declared or inferred. Now you're giving it a type again which is different " +
+				"from that, which you can't do: the allowed types of a local variable are fixed on declaration."
 		},
 	},
 
@@ -339,8 +339,8 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The `given` keyword introduces the definitions of local variables and constants " +
-			"for functions, lambdas, and `for` loops. Pipefish doesn't expect to find it in the middle of " +
-			"an expression, as it is here."
+				"for functions, lambdas, and `for` loops. Pipefish doesn't expect to find it in the middle of " +
+				"an expression, as it is here."
 		},
 	},
 
@@ -412,7 +412,17 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/for/exists/index": {
+	"comp/for/condition": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "condition of `for` loop cannot be boolean"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "You're writing a C-style tripartite `for` loop where the middle clause is a " +
+			"condition determining whether we can go round the loop again, and this can never be boolean."
+		},
+	},
+
+	"comp/for/index/exists": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "reassigning to variable " + emph(args[0])
 		},
@@ -2474,10 +2484,9 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "It looks like you're trying to write an expression of the form `x[y]`, indexing " +
-			"`x` by `y`, but have left off the final `]`."
+				"`x` by `y`, but have left off the final `]`."
 		},
 	},
-
 
 	"parse/instance/form": {
 		Message: func(tok *token.Token, args ...any) string {
@@ -3093,6 +3102,25 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"vm/for/condition": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "condition of `for` loop should be of type `bool`, not " + emph(args[0])
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "The condition in a C-style tripartite `for` loop must always return either `true`" +
+			`or false at runtime.`
+		},
+	},
+
+	"vm/for/pair": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "range should be pair of integers"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "If you're going to give the range of a list using `::`, the elements of the pair should both be integers."
+		},
+	},
+
 	"vm/for/type/a": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't range over given type"
@@ -3123,15 +3151,6 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "You can range over lists, strings, maps, sets, snippets, and enums. You can also " +
 				"specifiy integer bounds as a pair `x::y`, or supply an integer which will be used as the " +
 				"upper bound of a range starting at 0."
-		},
-	},
-
-	"vm/for/pair": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "range should be pair of integers"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "If you're going to give the range of a list using `::`, the elements of the pair should both be integers."
 		},
 	},
 
