@@ -1,0 +1,5 @@
+def 
+
+foo(i int) :
+    for _::j = range i :
+        42
