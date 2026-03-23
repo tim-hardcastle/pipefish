@@ -59,6 +59,18 @@ func TestCastRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
 }
+func TestCompilerItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`assign/type/a`, `OK`},
+		{`fcis`, `OK`},
+		{`for/bound/present`, `OK`},
+		{`global/global`, `OK`},
+		{`global/ident`, `OK`},
+		{`try/return`, `OK`},
+		{`try/var`, `OK`},
+	}
+	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+}
 func TestTChunkingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`abstract/ident`, `OK`},	

@@ -11,6 +11,8 @@ import (
 func TestItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`assign/type/a`, `OK`},
+		{`fcis`, `OK`},
+		{`for/bound/present`, `OK`},
 		{`global/global`, `OK`},
 		{`global/ident`, `OK`},
 		{`try/return`, `OK`},
@@ -36,10 +38,18 @@ func TestFailingUpward(t *testing.T) {
 		{`true ; 2 == true`, `comp/eq/types`},
 		{`not 2 == true`, `comp/eq/types`},
 		{`unwrap (2 == true)`, `comp/eq/types`},
-		{`2 == true`, `comp/eq/types`},
-		{`2 == true`, `comp/eq/types`},
 		{`len (2 == true)`, `comp/eq/types`},
 		{`f (2 == true)`, `comp/eq/types`},
+		{`clones{z}`, `comp/ident/known`},
+		{`list{z}`, `comp/ident/known`},
+		{`z == 1`, `comp/ident/known`},
+		{`1 == z`, `comp/ident/known`},
+		{`$log_To = z`, `comp/ident/known`},
+		{`-- z |z| z`, `comp/ident/known`},
+		{`z[0]`, `comp/ident/known`},
+		{`"foo"[z]`, `comp/ident/known`},
+		{`valid z`, `comp/ident/known`},
+
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
