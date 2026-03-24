@@ -8,11 +8,15 @@ This is essentially a Pratt parser in which Everything Is An Expression, but wit
 
 * `parser_test` contains the tests for the package.
 
+* `parse_types` deals with parsing type representations, e.g. `list{float/int}`, supplying them with their own specialized AST and parser.
+
 * `precedence` contains constants and functions for dealing with the rules of precedence for parsing.
 
 * `prettyprint` prettyprints an AST.
 
 * `signature` defines a representation of a signature as names of variables paired with abstract types.
+
+* `tchunks` contains a definition of the `TokenisedCodeChunk` type and all the things the parser needs to know about it: there are more functions in a corresponding `tchunks` file in the `initializer` package for initialization time.
 
 * `type_ast` file supplies a seperate AST for representing type expressions such as `list{string/int}` which have their own rules.
 

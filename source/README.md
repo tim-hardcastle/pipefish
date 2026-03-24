@@ -12,7 +12,7 @@ It does this by interacting with the `Service` class defined in the `pf` package
 
 ## The `pf` package
 
-The `pf.Service` class exists to encapsulate services and provide clean public methods for dealing with them. This gives a nice way for other people to embed Pipefish services in Go code, since they can then just import it `pf` as a library.
+The `pf.Service` class exists to encapsulate services and to provide clean public methods for dealing with them. This gives a nice way for other people to embed Pipefish services in Go code, since they can then just import it `pf` as a library.
 
 ## The `initializer` package
 

@@ -10,13 +10,13 @@ It contains all the non-native types that can serve as payloads for `Value`: `Ab
 
 ## Files
 
-* `abstract_type.go` contains the `AbstractType` type which serves as the payload for Pipefish's `TYPE` type.
+* `abstract_type` contains the `AbstractType` type which serves as the payload for Pipefish's `TYPE` type.
 
-* `map.go` contains the `Map` type which serves as the payload for Pipefish's `MAP` type.
+* `map` contains the `Map` type which serves as the payload for Pipefish's `MAP` type.
 
-* `set.go` contains the `Set` type which serves as the payload for Pipefish's `SET` type.
+* `set` contains the `Set` type which serves as the payload for Pipefish's `SET` type.
 
-* `values_test.go` contains the tests for the package.
+* `values_test` contains the tests for the package.
 
-* `values.go` contains the definitions of the `Values` type and associated constants, and a comparison function used by the `Map` and `Set` types.
+* `values` contains the definitions of the `Values` type and associated constants, and a comparison function used by the `Map` and `Set` types.
 
