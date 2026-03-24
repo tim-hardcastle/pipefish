@@ -2,6 +2,21 @@ The `values` package contains definitions of the `Value` type as used by the VM 
 
 It is kept outside of the VM because it may be useful for optimization purposes to be able to import this as a `golang` import and if you put it in the VM that would involve importing the VM and also pretty much everything else (because of `exec` and `external`).
 
-This package also contains some structures in the `map`, and `set` files that serve as the payload for the corresponding `Value`s.
+It contains all the non-native types that can serve as payloads for `Value`: `AbstractType`, `Map`, and `Set`.
 
-`map` and `set` are the payloads for the `MAP` and `SET` types. They were hacked together/cargo-culted from other people's code because I needed persistent data structures that would contain heterogeneous types and whereas I don't know how to hash all my types I do know how to compare any two values (modulo the usual corner cases such as functions). They could presumably be improved by someone who knows what they're doing rewriting them from scratch on a totally different basis.
+`Map` and `Set` were hacked together/cargo-culted from other people's code because I needed persistent data structures that would contain heterogeneous types and whereas I don't know how to hash all my types I do know how to compare any two values. They could presumably be improved by someone who knows what they're doing rewriting them from scratch on a totally different basis.
+
+`AbstractType` is currently implemented as an ordered list of concrete types, for speed in iterating over it, but it will also eventually contain a slice of booleans for speed in checking membership.
+
+## Files
+
+* `abstract_type.go` contains the `AbstractType` type which serves as the payload for Pipefish's `TYPE` type.
+
+* `map.go` contains the `Map` type which serves as the payload for Pipefish's `MAP` type.
+
+* `set.go` contains the `Set` type which serves as the payload for Pipefish's `SET` type.
+
+* `values_test.go` contains the tests for the package.
+
+* `values.go` contains the definitions of the `Values` type and associated constants, and a comparison function used by the `Map` and `Set` types.
+

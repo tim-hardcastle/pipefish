@@ -181,7 +181,7 @@ func (vm *Vm) ToString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 		return "lambda function"
 	case values.INT:
 		return strconv.Itoa(v.V.(int))
-	case values.INT_ARRAY:
+	case values.TUPLE_DATA:
 		var buf strings.Builder
 		buf.WriteString("INT_ARRAY!(")
 		var sep string

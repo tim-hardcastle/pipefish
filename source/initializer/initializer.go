@@ -1530,7 +1530,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		}
 	}
 	if foundTupleOrVarArgs {
-		cpFn.LocOfTupleAndVarargData = iz.cp.Reserve(values.INT_ARRAY, tupleData, &izFn.op)
+		cpFn.LocOfTupleAndVarargData = iz.cp.Reserve(values.TUPLE_DATA, tupleData, &izFn.op)
 	} else {
 		cpFn.LocOfTupleAndVarargData = DUMMY
 	}
