@@ -248,8 +248,7 @@ loop:
 				}
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
 			case AddS:
-				result := vm.Mem[args[1]].V.(values.Set)
-				result.Union(vm.Mem[args[2]].V.(values.Set))
+				result := vm.Mem[args[1]].V.(values.Set).Union(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
 			case Adds:
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(string) + vm.Mem[args[2]].V.(string)}
@@ -1560,8 +1559,7 @@ loop:
 			case Subi:
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(int) - vm.Mem[args[2]].V.(int)}
 			case SubS:
-				result := vm.Mem[args[1]].V.(values.Set)
-				result.Subtract(vm.Mem[args[2]].V.(values.Set))
+				result := vm.Mem[args[1]].V.(values.Set).Subtract(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
 			case Thnk:
 				vm.Mem[args[0]] = values.Value{values.THUNK, values.ThunkValue{args[1], args[2]}}

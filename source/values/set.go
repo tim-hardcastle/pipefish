@@ -24,7 +24,7 @@ func (pm Set) Add(element Value) Set {
 }
 
 // Delete deletes the value for a element.
-func (pm *Set) Delete(element Value) {
+func (pm Set) Delete(element Value) {
 	root := pm.root
 	left, mid, right := setSplit(root, element, true)
 	if mid == nil {
@@ -54,15 +54,17 @@ func (pm Set) Range(f func(element Value)) {
 	})
 }
 
-// We'll subtract sets by combining forEach and Delete, there's probably a better way 
-// but I don't know it. TODO.
-func (pm *Set) Subtract(qm Set) {
-	qm.root.forEach(func(k Value) {
-		pm.Delete(k)
+func (pm Set) Subtract (qm Set) Set {
+	newSet := Set{}
+	pm.root.forEach(func(k Value) {
+		if !qm.Contains(k) {
+			newSet = newSet.Add(k)
+		}
 	})
+	return newSet
 }
 
-func (pm *Set) Intersect (qm Set) Set {
+func (pm Set) Intersect (qm Set) Set {
 	newSet := Set{}
 	pm.root.forEach(func(k Value) {
 		if qm.Contains(k) {
@@ -76,9 +78,8 @@ func (pm Set) Len() int {
 	return pm.root.len()
 }
 
-func (pm *Set) Union(other Set) {
-	root := pm.root
-	pm.root = setUnion(root, other.root, true)
+func (pm Set) Union(other Set) Set {
+	return Set{setUnion(pm.root, other.root, true)}
 }
 
 func newSetNode(element Value) *setNode {
