@@ -1230,7 +1230,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"golang/open/b": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "failed to open Go\n\nError was" + emph(args[0])
+			return "failed to open Go\n\nError was " + emph(args[0])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "A generated Go script has failed to open at initialization time."

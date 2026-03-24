@@ -1,11 +1,13 @@
 package hub
 
 import (
+	"os"
 	"regexp"
 	"strings"
 
 	"github.com/lmorg/readline/v4"
 	"github.com/tim-hardcastle/pipefish/source/text"
+	"golang.org/x/term"
 )
 
 // TODO --- once the highlighting is semantic and not syntactic, we'll
@@ -46,7 +48,7 @@ func (hub *Hub) Repl() {
 			line, err := rline.ReadlineWithDefault(ws)
 			if err == readline.ErrCtrlC {
 				print("\nQuit Pipefish? [Y/n] ")
-				ch := text.ReadChar()
+				ch := ReadChar()
 				println(string(ch))
 				if ch == 'n' || ch == 'N' {
 					println(text.Green("OK"))
@@ -80,6 +82,20 @@ func (hub *Hub) Repl() {
 			break
 		}
 	}
+}
+
+func ReadChar() rune {
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(err.Error())
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+	b := make([]byte, 1)
+	_, err = os.Stdin.Read(b)
+	if err != nil {
+		panic(err.Error())
+	}
+	return rune(b[0])
 }
 
 func makePrompt(hub *Hub, indented bool) string {

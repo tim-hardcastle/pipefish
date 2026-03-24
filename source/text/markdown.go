@@ -17,6 +17,10 @@ func NewMarkdown(leftMargin string, rightMargin int, highlight func(string) stri
 	return &md
 }
 
+func (md *Markdown) RenderString(text string) string {
+	return md.RenderLeftPad("", strings.Split(text, "\n"))
+}
+
 func (md *Markdown) Render(text []string) string {
 	return md.RenderLeftPad("", text)
 }

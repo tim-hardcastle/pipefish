@@ -163,7 +163,7 @@ func (iz *Initializer) compileGo() {
 		// in the common parser bindle. I.e. we are returning our result by mutating the
 		// functions.
 		for _, function := range iz.goBucket.functions[source] {
-			goFunction, _ := plugins.Lookup(text.Capitalize(function.op.Literal))
+			goFunction, _ := plugins.Lookup(capitalize(function.op.Literal))
 			function.body.(*parser.GolangExpression).GoFunction = reflect.ValueOf(goFunction)
 			for i, pair := range function.sig {
 				if _, ok := pair.VarType.(*parser.TypeDotDotDot); ok {

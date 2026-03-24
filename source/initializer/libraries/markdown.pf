@@ -28,5 +28,5 @@ stringify(S snippet) -> string :
         a + string el
 
 goRender(leftMargin string, width int, raw string) -> string : golang {
-    return text.NewMarkdown(leftMargin, width, func(s string) string {return s}).Render([]string{raw})
+    return text.NewMarkdown(leftMargin, width, func(s string) string {return s}).RenderString(raw)
 }

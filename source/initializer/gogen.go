@@ -47,7 +47,7 @@ func (iz *Initializer) generateDeclarations(sb *strings.Builder, userDefinedType
 		case vm.StructType:
 			fmt.Fprint(sb, "type ", name, " struct {\n")
 			for i, lN := range typeInfo.LabelNumbers {
-				fmt.Fprint(sb, "\t", (text.Capitalize(iz.cp.Vm.Labels[lN])), " ", iz.convertFieldTypeFromPfToGo(typeInfo.AbstractStructFields[i]), "\n")
+				fmt.Fprint(sb, "\t", (capitalize(iz.cp.Vm.Labels[lN])), " ", iz.convertFieldTypeFromPfToGo(typeInfo.AbstractStructFields[i]), "\n")
 			}
 			fmt.Fprint(sb, "}\n\n")
 		}
@@ -140,7 +140,7 @@ func (iz *Initializer) convertFieldTypeFromPfToGo(aT values.AbstractType) string
 
 // Since the signatures of each function is written in Pipefish, we must give each one a signature in Go.
 func (iz *Initializer) generateGoFunctionCode(sb *strings.Builder, function *parsedFunction) {
-	fmt.Fprint(sb, "func ", text.Capitalize(function.op.Literal))
+	fmt.Fprint(sb, "func ", capitalize(function.op.Literal))
 	iz.printSig(sb, function.sig, function.op)
 	switch len(function.callInfo.ReturnTypes) {
 	case 0:
@@ -233,3 +233,7 @@ var goTypes = map[string]string{
 }
 
 var INTEROP_TOKEN = &token.Token{Source: "golang interop"}
+
+func capitalize(s string) string {
+	return strings.ToUpper(s[0:1]) + s[1:]
+}

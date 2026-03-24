@@ -7,10 +7,7 @@ package text
 // in the `hub` package, and changes made here may need to be reflected there.
 
 import (
-	"os"
 	"strings"
-
-	"golang.org/x/term"
 )
 
 func Flatten(s string) string {
@@ -24,10 +21,6 @@ func Cyan(s string) string {
 }
 
 func Emph(s string) string {
-	return "`" + s + "`"
-}
-
-func EmphType(s string) string {
 	return "`" + s + "`"
 }
 
@@ -46,9 +39,6 @@ func Yellow(s string) string {
 func ErrorFont(s string) string {
 	return BAD_RED + UNDERLINE + s + RESET
 }
-
-
-
 
 const (
 	RESET                  = "\033[0m"
@@ -77,11 +67,6 @@ const (
 	ORANGE                 = "\033[38;2;255;165;0m"
 )
 
-// What it says.
-func Capitalize(s string) string {
-	return strings.ToUpper(s[0:1]) + s[1:]
-}
-
 func Head(s, substr string) bool {
 	if len(s) < len(substr) {
 		return false
@@ -96,18 +81,3 @@ func Tail(s, substr string) bool {
 	return s[len(s)-len(substr):] == substr
 }
 
-
-
-func ReadChar() rune {
-	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-	if err != nil {
-		panic(err.Error())
-	}
-	defer term.Restore(int(os.Stdin.Fd()), oldState)
-	b := make([]byte, 1)
-	_, err = os.Stdin.Read(b)
-	if err != nil {
-		panic(err.Error())
-	}
-	return rune(b[0])
-}
