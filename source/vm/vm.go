@@ -1591,7 +1591,7 @@ loop:
 				result = result.Conj(values.Value{values.BOOL, conc && vm.ConcreteTypeInfo[ty.Types[0]].IsEnum()})
 				result = result.Conj(values.Value{values.BOOL, conc && vm.ConcreteTypeInfo[ty.Types[0]].IsStruct()})
 				if ct, ok := vm.ConcreteTypeInfo[ty.Types[0]].(CloneType); ok {
-					result = result.Conj(values.Value{values.TYPE, values.MakeAbstractType(ct.Parent)})
+					result = result.Conj(values.Value{values.TYPE, values.AbT(ct.Parent)})
 				} else {
 					result = result.Conj(values.Value{values.NULL, nil})
 				}
@@ -1618,14 +1618,14 @@ loop:
 				case CloneType:
 					for _, v := range typeIs.TypeArguments {
 						pVals = pVals.Conj(v)
-						pTypes = pTypes.Conj(values.Value{values.TYPE, values.MakeAbstractType(v.T)})
+						pTypes = pTypes.Conj(values.Value{values.TYPE, values.AbT(v.T)})
 					}
 					result = result.Conj(values.Value{values.LIST, pVals})
 					result = result.Conj(values.Value{values.LIST, pTypes})
 				case StructType:
 					for _, v := range typeIs.TypeArguments {
 						pVals = pVals.Conj(v)
-						pTypes = pTypes.Conj(values.Value{values.TYPE, values.MakeAbstractType(v.T)})
+						pTypes = pTypes.Conj(values.Value{values.TYPE, values.AbT(v.T)})
 					}
 					result = result.Conj(values.Value{values.LIST, pVals})
 					result = result.Conj(values.Value{values.LIST, pTypes})

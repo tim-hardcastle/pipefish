@@ -96,7 +96,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 		if pfType == values.LIST || isClone && cloneInfo.Parent == values.LIST {
 			arr := goValue.GetArray()
 			vec := vector.Empty
-			insideType := values.MakeAbstractType(values.SUCCESSFUL_VALUE)
+			insideType := values.AbT(values.SUCCESSFUL_VALUE)
 			if isClone && len(cloneInfo.TypeArguments) == 1 && cloneInfo.TypeArguments[0].T == values.TYPE {
 				insideType = cloneInfo.TypeArguments[0].V.(values.AbstractType)
 				isGeneric = true
@@ -121,7 +121,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 			obj := goValue.GetObject()
 			mp := values.Map{}
 			err := values.Value{}
-			insideType := values.MakeAbstractType(values.SUCCESSFUL_VALUE)
+			insideType := values.AbT(values.SUCCESSFUL_VALUE)
 			stringlikeType := values.STRING
 			if isClone && len(cloneInfo.TypeArguments) == 2 &&
 				cloneInfo.TypeArguments[0].T == values.TYPE && cloneInfo.TypeArguments[1].T == values.TYPE {

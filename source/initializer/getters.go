@@ -15,7 +15,7 @@ import (
 // A miscellaneous collection of functions for extracting data from other data.
 
 func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction, tok *token.Token) values.AbstractType {
-	result := values.MakeAbstractType()
+	result := values.AbT()
 	// Check that the sigs are the right length, the return sig being optional.
 	if len(sigToMatch.sig) != len(fnToTry.sig) {
 		return result
@@ -42,7 +42,7 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 				}
 				if twp, ok := fnToTry.sig[i].VarType.(*parser.TypeWithParameters); ok {
 					if paramType == nil || !Equals(paramType, twp) {
-						return values.MakeAbstractType()
+						return values.AbT()
 					}
 				}
 			} else {
@@ -55,13 +55,13 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 		} else {
 			if !iz.cp.GetAbstractTypeFromAstType(sigToMatch.sig[i].VarType.(parser.TypeNode)).IsSubtypeOf(abSig[i].VarType) ||
 				parser.IsAstBling(sigToMatch.sig[i].VarType.(parser.TypeNode)) && sigToMatch.sig[i].VarName != abSig[i].VarName {
-				return values.MakeAbstractType()
+				return values.AbT()
 			}
 		}
 	}
 	if !foundSelf {
 		iz.throw("init/interface/self", tok)
-		return values.MakeAbstractType()
+		return values.AbT()
 	}
 	for i := 0; i < len(sigToMatch.rtnSig); i++ {
 		if t, ok := sigToMatch.rtnSig[i].VarType.(*parser.TypeWithName); ok && t.OperatorName == "self" {
@@ -69,11 +69,11 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 			if paramType == nil && result.Len() != 1 {
 				// To explain. If we have types A and B which are subtypes of C, then having
 				// a function defined (x C) + (y C) -> C doesn't guarantee that A is addable.
-				return values.MakeAbstractType()
+				return values.AbT()
 			}
 		} else {
 			if !abRets[i].VarType.IsSubtypeOf(iz.cp.GetAbstractTypeFromAstType(sigToMatch.rtnSig[i].VarType)) {
-				return values.MakeAbstractType()
+				return values.AbT()
 			}
 		}
 	}

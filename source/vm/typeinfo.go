@@ -118,7 +118,7 @@ func (t EnumType) IsMandatoryImport() bool {
 }
 
 func (EnumType) IsClonedBy() values.AbstractType {
-	return values.MakeAbstractType()
+	return values.AbT()
 }
 
 // Contains the information necessary to perform the runtime checks on type constructors
@@ -180,7 +180,7 @@ func (t CloneType) IsMandatoryImport() bool {
 }
 
 func (CloneType) IsClonedBy() values.AbstractType {
-	return values.MakeAbstractType()
+	return values.AbT()
 }
 
 func (t CloneType) AddValidation(tc *TypeCheck) CloneType {
@@ -242,7 +242,7 @@ func (t StructType) IsMandatoryImport() bool {
 }
 
 func (StructType) IsClonedBy() values.AbstractType {
-	return values.MakeAbstractType()
+	return values.AbT()
 }
 
 func (t StructType) AddLabels(labels []int) StructType {
@@ -309,5 +309,5 @@ func (t WrapperType) IsMandatoryImport() bool {
 }
 
 func (WrapperType) IsClonedBy() values.AbstractType {
-	return values.MakeAbstractType()
+	return values.AbT()
 }

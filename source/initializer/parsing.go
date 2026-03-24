@@ -1085,7 +1085,7 @@ func (iz *Initializer) makeLabelsFromSig(sig parser.AstSig, private bool, indexT
 					Access: acc,
 					Types:  altType(values.LABEL),
 				}
-		case alreadyExists: 
+		case alreadyExists:
 			labelLocation := global.MLoc
 			if iz.cp.Vm.Mem[labelLocation].T != values.LABEL {
 				iz.throw("init/label/exists", indexTok, labelName)
@@ -1183,7 +1183,7 @@ func (iz *Initializer) createAbstractTypes() {
 	for _, tc := range iz.tokenizedCode[abstractDeclaration] {
 		dec := tc.(*tokenizedAbstractDeclaration)
 		newTypename := dec.op.Literal
-		iz.cp.TypeMap[newTypename] = values.MakeAbstractType()
+		iz.cp.TypeMap[newTypename] = values.AbT()
 		iz.cp.P.Typenames = iz.cp.P.Typenames.Add(newTypename)
 		if settings.MandatoryImportSet().Contains(dec.op.Source) {
 			iz.unserializableTypes.Add(newTypename)
@@ -1223,7 +1223,7 @@ func (iz *Initializer) createInterfaceTypes() {
 			typeInfo = append(typeInfo, fnSigInfo{functionName, astSig, retSig})
 			iz.addWordsToParser(sig)
 		}
-		iz.cp.TypeMap[newTypename] = values.MakeAbstractType() // We can't populate the interface types before we've parsed everything.
+		iz.cp.TypeMap[newTypename] = values.AbT() // We can't populate the interface types before we've parsed everything.
 		_, typeExists := iz.getDeclaration(decINTERFACE, &nameTok, DUMMY)
 		if !typeExists {
 			iz.setDeclaration(decINTERFACE, &nameTok, DUMMY, interfaceInfo{typeInfo})
@@ -1242,7 +1242,7 @@ func (iz *Initializer) createAliasTypes() {
 		if settings.MandatoryImportSet().Contains(nameTok.Source) {
 			iz.unserializableTypes.Add(newTypename)
 		}
-		iz.cp.TypeMap[newTypename] = values.MakeAbstractType() // We can't populate the interface types before we've parsed everything.
+		iz.cp.TypeMap[newTypename] = values.AbT() // We can't populate the interface types before we've parsed everything.
 		_, typeExists := iz.getDeclaration(decALIAS, &nameTok, DUMMY)
 		if !typeExists {
 			iz.setDeclaration(decALIAS, &nameTok, DUMMY, nil)

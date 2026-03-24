@@ -2,7 +2,6 @@ package values
 
 import "strconv"
 
-
 func (a AbstractType) String() string {
 	result := "["
 	sep := ""
@@ -18,7 +17,7 @@ type AbstractType struct {
 	Types []ValueType
 }
 
-func MakeAbstractType(args ...ValueType) AbstractType {
+func AbT(args ...ValueType) AbstractType {
 	result := AbstractType{[]ValueType{}}
 	for _, t := range args {
 		result = result.Insert(t)

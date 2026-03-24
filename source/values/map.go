@@ -27,9 +27,9 @@ type MapPair struct {
 func (pm Map) Get(key Value) (Value, bool) {
 	node := pm.root
 	for node != nil {
-		if key.compare(node.key) {
+		if key.Compare(node.key) {
 			node = node.left
-		} else if node.key.compare(key) {
+		} else if node.key.Compare(key) {
 			node = node.right
 		} else {
 			return node.value, true
@@ -146,7 +146,7 @@ func split(n *mapNode, key Value, requireMid bool) (left, mid, right *mapNode) {
 		return nil, nil, nil
 	}
 
-	if n.key.compare(key) {
+	if n.key.Compare(key) {
 		left, mid, right := split(n.right, key, requireMid)
 		if requireMid && mid == nil {
 			return nil, nil, nil
@@ -155,7 +155,7 @@ func split(n *mapNode, key Value, requireMid bool) (left, mid, right *mapNode) {
 		newN.left = n.left
 		newN.right = left
 		return newN, mid, right
-	} else if key.compare(n.key) {
+	} else if key.Compare(n.key) {
 		left, mid, right := split(n.left, key, requireMid)
 		if requireMid && mid == nil {
 			return nil, nil, nil

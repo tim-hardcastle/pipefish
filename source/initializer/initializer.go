@@ -539,10 +539,10 @@ func (iz *Initializer) populateInterfaceTypes() {
 	for _, tc := range iz.tokenizedCode[interfaceDeclaration] {
 		dec := tc.(*tokenizedInterfaceDeclaration)
 		typeInfo, _ := iz.getDeclaration(decINTERFACE, ixPtr(dec), DUMMY)
-		types := values.MakeAbstractType()
+		types := values.AbT()
 		funcsToAdd := map[values.ValueType][]*parsedFunction{}
 		for i, sigToMatch := range typeInfo.(interfaceInfo).sigs {
-			typesMatched := values.MakeAbstractType()
+			typesMatched := values.AbT()
 			for key, fnToTry := range iz.Common.functions {
 				if key.functionName == sigToMatch.name {
 					matches := iz.getMatches(sigToMatch, fnToTry, ixPtr(dec))
@@ -775,7 +775,7 @@ func (iz *Initializer) addSigToTree(tree *compiler.FnTreeNode, fn *parsedFunctio
 		}
 	} else {
 		if tree.CallInfo == nil { // If it is non-nil then a sig of greater specificity has already led us here and we're good.
-			tree.Branch = append(tree.Branch, &compiler.NodeInfo{Type: values.MakeAbstractType(), Bling: bling, Node: &compiler.FnTreeNode{CallInfo: fn.callInfo, Branch: []*compiler.NodeInfo{}}})
+			tree.Branch = append(tree.Branch, &compiler.NodeInfo{Type: values.AbT(), Bling: bling, Node: &compiler.FnTreeNode{CallInfo: fn.callInfo, Branch: []*compiler.NodeInfo{}}})
 		}
 	}
 	return tree
@@ -887,9 +887,9 @@ func (iz *Initializer) addParameterizedTypesToVm() {
 		concreteType := iz.cp.ConcreteTypeNow(ty.astType.String())
 		concreteTypeInfo := iz.cp.Vm.ConcreteTypeInfo[concreteType]
 		if info, ok := iz.P.ParTypes[name]; ok {
-			iz.P.ParTypes[name] = parser.TypeExpressionInfo{info.VmTypeInfo, concreteTypeInfo.IsClone(), iz.P.ParTypes[name].PossibleReturnTypes.Union(values.MakeAbstractType(concreteType))}
+			iz.P.ParTypes[name] = parser.TypeExpressionInfo{info.VmTypeInfo, concreteTypeInfo.IsClone(), iz.P.ParTypes[name].PossibleReturnTypes.Union(values.AbT(concreteType))}
 		} else {
-			iz.P.ParTypes[name] = parser.TypeExpressionInfo{uint32(len(iz.cp.Vm.ParameterizedTypeInfo)), concreteTypeInfo.IsClone(), values.MakeAbstractType(values.ERROR, concreteType)}
+			iz.P.ParTypes[name] = parser.TypeExpressionInfo{uint32(len(iz.cp.Vm.ParameterizedTypeInfo)), concreteTypeInfo.IsClone(), values.AbT(values.ERROR, concreteType)}
 			iz.cp.Vm.ParameterizedTypeInfo = append(iz.cp.Vm.ParameterizedTypeInfo, values.Map{})
 		}
 		iz.cp.Vm.ParameterizedTypeInfo[iz.P.ParTypes[name].VmTypeInfo] = iz.cp.Vm.ParameterizedTypeInfo[iz.P.ParTypes[name].VmTypeInfo].Set(values.Value{values.TUPLE, typeArgs}, values.Value{values.TYPE, values.AbstractType{[]values.ValueType{concreteType}}})
@@ -1643,7 +1643,7 @@ func (iz *Initializer) resolveInterfaceBacktracks() {
 // Adds a concrete type to the parser, and to the common types it falls under (at least `any` and `any?`).
 func (iz *Initializer) addType(name, supertype string, typeNo values.ValueType) {
 	iz.localConcreteTypes = iz.localConcreteTypes.Add(typeNo)
-	iz.cp.TypeMap[name] = values.MakeAbstractType(typeNo)
+	iz.cp.TypeMap[name] = values.AbT(typeNo)
 	iz.cp.P.Typenames = iz.cp.P.Typenames.Add(name)
 	iz.cp.Vm.NamespaceInfo[iz.cp.Number][typeNo] = ""
 	types := []string{}

@@ -21,7 +21,7 @@ type NameAbstractTypePair struct {
 }
 
 func (m NameAbstractTypePair) IsBling() bool {
-	return m.VarType.Equals(values.MakeAbstractType(values.BLING))
+	return m.VarType.Equals(values.AbT(values.BLING))
 }
 
 func (m NameAbstractTypePair) Matches(n NameAbstractTypePair) bool {
@@ -60,4 +60,3 @@ func (ns AstSig) String() (result string) {
 	result = "(" + result + ")"
 	return
 }
-

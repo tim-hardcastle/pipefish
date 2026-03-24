@@ -29,24 +29,24 @@ var BASE_TYPES = map[string]values.ValueType{
 
 func NewCommonTypeMap() TypeSys {
 	result := TypeSys{}
-	anyType := values.MakeAbstractType()
+	anyType := values.AbT()
 	for k, v := range BASE_TYPES {
-		result[k] = values.MakeAbstractType(v)
+		result[k] = values.AbT(v)
 		if v != values.SUCCESSFUL_VALUE && v != values.NULL {
 			anyType = anyType.Insert(v)
 		}
 	}
 	result["any"] = anyType
 	for _, abType := range []string{"enum", "struct"} {
-		result[abType] = values.MakeAbstractType()
+		result[abType] = values.AbT()
 	}
 	for name, baseType := range ClonableTypes {
-		result["clones{"+name+"}"] = values.MakeAbstractType(baseType)
+		result["clones{"+name+"}"] = values.AbT(baseType)
 	}
-	result["tuple"] = values.MakeAbstractType(values.TUPLE)
-	result["ref"] = values.MakeAbstractType(values.REF)
-	result["self"] = values.MakeAbstractType(values.UNDEFINED_TYPE)
-	result["bling"] = values.MakeAbstractType(values.BLING)
+	result["tuple"] = values.AbT(values.TUPLE)
+	result["ref"] = values.AbT(values.REF)
+	result["self"] = values.AbT(values.UNDEFINED_TYPE)
+	result["bling"] = values.AbT(values.BLING)
 	return result
 }
 

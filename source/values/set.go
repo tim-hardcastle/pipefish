@@ -23,13 +23,12 @@ func (pm Set) Add(element Value) Set {
 	return pm
 }
 
-
 func (pm Set) Contains(element Value) bool {
 	node := pm.root
 	for node != nil {
-		if element.compare(node.element) {
+		if element.Compare(node.element) {
 			node = node.left
-		} else if node.element.compare(element) {
+		} else if node.element.Compare(element) {
 			node = node.right
 		} else {
 			return true
@@ -45,7 +44,7 @@ func (pm Set) Range(f func(element Value)) {
 	})
 }
 
-func (pm Set) Subtract (qm Set) Set {
+func (pm Set) Subtract(qm Set) Set {
 	newSet := Set{}
 	pm.root.forEach(func(k Value) {
 		if !qm.Contains(k) {
@@ -55,7 +54,7 @@ func (pm Set) Subtract (qm Set) Set {
 	return newSet
 }
 
-func (pm Set) Intersect (qm Set) Set {
+func (pm Set) Intersect(qm Set) Set {
 	newSet := Set{}
 	pm.root.forEach(func(k Value) {
 		if qm.Contains(k) {
@@ -158,7 +157,7 @@ func setSplit(n *setNode, element Value, requireMid bool) (left, mid, right *set
 		return nil, nil, nil
 	}
 
-	if n.element.compare(element) {
+	if n.element.Compare(element) {
 		left, mid, right := setSplit(n.right, element, requireMid)
 		if requireMid && mid == nil {
 			return nil, nil, nil
@@ -167,7 +166,7 @@ func setSplit(n *setNode, element Value, requireMid bool) (left, mid, right *set
 		newN.left = n.left
 		newN.right = left
 		return newN, mid, right
-	} else if element.compare(n.element) {
+	} else if element.Compare(n.element) {
 		left, mid, right := setSplit(n.left, element, requireMid)
 		if requireMid && mid == nil {
 			return nil, nil, nil
@@ -180,4 +179,3 @@ func setSplit(n *setNode, element Value, requireMid bool) (left, mid, right *set
 	mid = n.shallowClone()
 	return n.left, mid, n.right
 }
-

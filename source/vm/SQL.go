@@ -56,11 +56,11 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 		}
 		innerType := abType.Types[0]
 		secondType := valAbType.Types[0]
-		pointerListA, errorA := vm.getPointers(values.MakeAbstractType(innerType), rows, tok)
+		pointerListA, errorA := vm.getPointers(values.AbT(innerType), rows, tok)
 		if errorA.T == values.ERROR {
 			return errorA
 		}
-		pointerListB, errorB := vm.getPointers(values.MakeAbstractType(secondType), rows, tok)
+		pointerListB, errorB := vm.getPointers(values.AbT(secondType), rows, tok)
 		if errorB.T == values.ERROR {
 			return errorB
 		}
@@ -107,7 +107,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 			return vm.makeError("sql/concrete/list", tok)
 		}
 		innerType := abType.Types[0]
-		pointerList, pfErr := vm.getPointers(values.MakeAbstractType(innerType), rows, tok)
+		pointerList, pfErr := vm.getPointers(values.AbT(innerType), rows, tok)
 		if pfErr.T == values.ERROR {
 			return pfErr
 		}
@@ -139,7 +139,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 			return vm.makeError("sql/concrete/set", tok)
 		}
 		innerType := abType.Types[0]
-		pointerList, pfErr := vm.getPointers(values.MakeAbstractType(innerType), rows, tok)
+		pointerList, pfErr := vm.getPointers(values.AbT(innerType), rows, tok)
 		if pfErr.T == values.ERROR {
 			return pfErr
 		}
@@ -168,7 +168,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 	if !rows.Next() {
 		return vm.makeError("vm/sql/zero", tok)
 	}
-	pointerList, pfErr := vm.getPointers(values.MakeAbstractType(typeNumber), rows, tok)
+	pointerList, pfErr := vm.getPointers(values.AbT(typeNumber), rows, tok)
 	if pfErr.T == values.ERROR {
 		return pfErr
 	}

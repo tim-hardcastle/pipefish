@@ -6,6 +6,45 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
 
+func TestCompare(t *testing.T) {
+	if ! (values.Value{values.FLOAT, 0.2}).Compare(values.Value{values.FLOAT, 0.3}) {
+		t.Fatal("Float comparison failed.")
+	}
+	if (values.Value{values.FLOAT, 0.2}).Compare(values.Value{values.FLOAT, 0.2}) {
+		t.Fatal("Float comparison failed.")
+	}
+	if ! (values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}). 
+			Compare(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 99.9}}}) {
+		t.Fatal("Struct comparison failed.")
+	}
+	if ! (values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}). 
+			Compare(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 99.9}, {values.STRING, "aardvark"}}}) {
+		t.Fatal("Struct comparison failed.")
+	}
+	if (values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}). 
+			Compare(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}) {
+		t.Fatal("Struct comparison failed.")
+	}
+	if ! (values.Value{values.STRING, "aardvark"}).Compare(values.Value{values.STRING, "zebra"}) {
+		t.Fatal("String comparison failed.")
+	}
+	if (values.Value{values.STRING, "aardvark"}).Compare(values.Value{values.STRING, "aardvark"}) {
+		t.Fatal("String comparison failed.")
+	}
+	if ! (values.Value{values.TYPE, values.AbT(values.ValueType(7))}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(8))}) {
+		t.Fatal("Type comparison failed.")
+	}
+	if ! (values.Value{values.TYPE, values.AbT(values.ValueType(7))}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(8))}) {
+		t.Fatal("Type comparison failed.")
+	}
+	if ! (values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(6))}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(8))}) {
+		t.Fatal("Type comparison failed.")
+	}
+	if ! (values.Value{values.TYPE, values.AbT()}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(8))}) {
+		t.Fatal("Type comparison failed.")
+	}
+}
+
 func TestMap(t *testing.T) {
 	m1 := values.Map{}
 	m2 := m1.Set(values.FALSE, values.OK)

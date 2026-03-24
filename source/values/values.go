@@ -60,7 +60,7 @@ type SnippetBindle struct {
 // To implement the set and hash structures.
 // If the type of the value is not comparable, we return that values so we can use it to
 // make an error as required. We return OK for success (this is in fact comparable.)
-func (v Value) compare(w Value) bool {
+func (v Value) Compare(w Value) bool {
 	//It doesn't really matter which order these things are in, so long as there is one.
 	// TODO --- these next few lines will, alas, let us compare things that can't be compared, we need a filter, possibly at the VM end.
 	if v.T < w.T {
@@ -88,7 +88,7 @@ func (v Value) compare(w Value) bool {
 	case []Value:
 		if len(lhs) == len(w.V.([]Value)) {
 			for i, vEl := range lhs {
-				if vEl.compare(w.V.([]Value)[i]) {
+				if vEl.Compare(w.V.([]Value)[i]) {
 					return true
 				}
 			}
@@ -138,4 +138,3 @@ const (
 	C_OK
 	C_EMPTY_TUPLE
 )
-
