@@ -1142,7 +1142,7 @@ loop:
 				loc = args[0]
 				continue
 			case KeyM:
-				vm.Mem[args[0]] = values.Value{values.LIST, vm.Mem[args[1]].V.(values.Map).AsVector()}
+				vm.Mem[args[0]] = values.Value{values.LIST, vm.Mem[args[1]].V.(values.Map).KeysAsVector()}
 			case KeyZ:
 				result := vector.Empty
 				for _, labelNumber := range vm.ConcreteTypeInfo[vm.Mem[args[1]].T].(StructType).LabelNumbers {

@@ -65,7 +65,7 @@ func (pm Map) Len() int {
 	return pm.root.len()
 }
 
-func (pm Map) AsVector() vector.Vector {
+func (pm Map) KeysAsVector() vector.Vector {
 	return pm.root.getVector()
 }
 
