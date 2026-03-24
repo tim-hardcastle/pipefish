@@ -566,7 +566,7 @@ func (iz *Initializer) populateInterfaceTypes() {
 		}
 		// We have created an abstract type from our interface! We put it in the type map.
 		iz.cp.TypeMap[dec.op.Literal] = types
-		iz.addTypeToVm(values.AbstractTypeInfo{dec.op.Literal, iz.P.NamespacePath, types, settings.MandatoryImportSet().Contains(dec.op.Source)})
+		iz.addTypeToVm(vm.AbstractTypeInfo{dec.op.Literal, iz.P.NamespacePath, types, settings.MandatoryImportSet().Contains(dec.op.Source)})
 		// And we add all the implicated functions to the function table.
 		for _, ty := range types.Types {
 			for _, fn := range funcsToAdd[ty] {
@@ -613,7 +613,7 @@ func (iz *Initializer) addAbstractTypesToVm() {
 		if text.Head(typeName, "clones{") && len(iz.cp.GetAbstractTypeFromTypeName(typeName, token.Token{}).Types) == 1 {
 			continue
 		}
-		iz.addTypeToVm(values.AbstractTypeInfo{Name: typeName, Path: iz.P.NamespacePath,
+		iz.addTypeToVm(vm.AbstractTypeInfo{Name: typeName, Path: iz.P.NamespacePath,
 			AT: iz.cp.GetAbstractTypeFromTypeName(typeName, token.Token{}), IsMI: iz.unserializableTypes.Contains(typeName)})
 	}
 	for _, v := range compiler.ClonableTypes { // Clonable types are clones of themselves.
@@ -1662,7 +1662,7 @@ func (iz *Initializer) addType(name, supertype string, typeNo values.ValueType) 
 //
 // For reasons, it's a good idea to have the type info stored as an ordered list rather than a set or hashmap.
 // So we need to do insertion by hand to avoid duplication.
-func (iz *Initializer) addTypeToVm(typeInfo values.AbstractTypeInfo) {
+func (iz *Initializer) addTypeToVm(typeInfo vm.AbstractTypeInfo) {
 	for i, existingTypeInfo := range iz.cp.Vm.AbstractTypes {
 		if typeInfo.Name == existingTypeInfo.Name {
 			if typeInfo.Path == existingTypeInfo.Path {

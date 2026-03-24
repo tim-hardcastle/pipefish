@@ -2122,17 +2122,17 @@ func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt
 				switch { // The case where neither of these is true has been checked for above.
 				case v.Access == LOCAL_FUNCTION_THUNK:
 					cp.Cm("Reassigning local function thunk "+text.Emph(pair.VarName)+" from dummy value.", node.GetToken())
-					cp.Vm.Mem[v.MLoc] = val(values.THUNK, values.ThunkValue{cp.That(), thunkStart})
-					cp.ThunkList = append(cp.ThunkList, ThunkData{v.MLoc, values.ThunkValue{cp.That(), thunkStart}})
+					cp.Vm.Mem[v.MLoc] = val(values.THUNK, values.Thunk{cp.That(), thunkStart})
+					cp.ThunkList = append(cp.ThunkList, ThunkData{v.MLoc, values.Thunk{cp.That(), thunkStart}})
 				case v.Access == LOCAL_FUNCTION_CONSTANT:
 					cp.Cm("Reassigning local function constant "+text.Emph(pair.VarName)+" from dummy value in compileOneGivenChunk.", node.GetToken())
 					cp.Vm.Mem[v.MLoc] = cp.Vm.Mem[cp.That()]
 				}
 			} else {
 				cp.Cm("Reserving local thunk in compileOneGivenChunk.", node.GetToken())
-				cp.Reserve(values.THUNK, values.ThunkValue{cp.That(), thunkStart}, node.GetToken())
+				cp.Reserve(values.THUNK, values.Thunk{cp.That(), thunkStart}, node.GetToken())
 				cp.AddThatAsVariable(ctxt.Env, pair.VarName, LOCAL_VARIABLE_THUNK, typeToUse, node.GetToken())
-				cp.ThunkList = append(cp.ThunkList, ThunkData{cp.That(), values.ThunkValue{cp.That(), thunkStart}})
+				cp.ThunkList = append(cp.ThunkList, ThunkData{cp.That(), values.Thunk{cp.That(), thunkStart}})
 			}
 		}
 	}
@@ -2726,7 +2726,7 @@ func (cp *Compiler) AddThatAsVariable(env *Environment, name string, acc VarAcce
 // This contains what the compiler needs to emit the 'thnk' operations at the start of a function.
 type ThunkData struct {
 	Dest  uint32
-	Value values.ThunkValue
+	Value values.Thunk
 }
 
 type BkRecursion struct{ FunctionNumber, Address uint32 }

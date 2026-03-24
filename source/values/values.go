@@ -10,12 +10,12 @@ const ( // Cross-reference with typeNames in BlankVm()
 
 	UNDEFINED_TYPE          ValueType = iota // For debugging purposes, it is useful to have the zero value be something it should never actually be.
 	TUPLE_DATA                               // Passes data to `CalT` about functions with tuples etc, to help it caputre them properly.`
-	THUNK                                    // V is a ThunkValue which contains the address to call to evaluate the thunk and the memory location where the result ends up.
+	THUNK                                    // V is a `Thunk` which contains the address to call to evaluate the thunk and the memory location where the result ends up.
 	CREATED_THUNK_OR_CONST                   // Returned by the compiler in the TypeScheme when we compile a thunk.
 	BLING                                    // Values representing e.g. the `troz` in `foo (x) troz (y)`.
 	UNSATISFIED_CONDITIONAL                  // An unsatisfied conditional, i.e. what <condition> : <expression> returns if <condition> isn't true.
 	REF                                      // A reference variable. This is always dereferenced when used, so the type is invisible.
-	ITERATOR                                 // V is an Iterator interface as defined in iterator.go in this folder.
+	ITERATOR                                 // V is an Iterator interface as defined in iterator.go in the `vm` package.
 
 	// And now we have types visible to the user.
 
@@ -57,9 +57,13 @@ type SnippetBindle struct {
 	ValueLocs []uint32 // The locations where we put the computed values to inject into SQL or HTML snippets.
 }
 
+// This is the data that goes inside a THUNK value.
+type Thunk struct {
+	MLoc  uint32 // The place in memory where the result of the thunk ends up when you unthunk it.
+	CAddr uint32 // The code address to call to unthunk the thunk.
+}
+
 // To implement the set and hash structures.
-// If the type of the value is not comparable, we return that values so we can use it to
-// make an error as required. We return OK for success (this is in fact comparable.)
 func (v Value) Compare(w Value) bool {
 	//It doesn't really matter which order these things are in, so long as there is one.
 	// TODO --- these next few lines will, alas, let us compare things that can't be compared, we need a filter, possibly at the VM end.

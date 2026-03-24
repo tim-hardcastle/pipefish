@@ -265,7 +265,7 @@ func (vm *Vm) ToString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 		if v.V == nil {
 			return "nil"
 		}
-		return "m" + strconv.Itoa(int(v.V.(values.ThunkValue).MLoc)) + ", @" + strconv.Itoa(int(v.V.(values.ThunkValue).CAddr))
+		return "m" + strconv.Itoa(int(v.V.(values.Thunk).MLoc)) + ", @" + strconv.Itoa(int(v.V.(values.Thunk).CAddr))
 	case values.TUPLE:
 		result := make([]string, len(v.V.([]values.Value)))
 		for i, v := range v.V.([]values.Value) {

@@ -56,7 +56,7 @@ type Vm struct {
 	Tracking                   []TrackingData // Data needed by the 'trak' opcode to produce the live tracking data.
 	InHandle                   InHandler
 	OutHandle                  OutHandler
-	AbstractTypes              []values.AbstractTypeInfo
+	AbstractTypes              []AbstractTypeInfo
 	ExternalCallHandlers       []ExternalCallHandler // The services declared external, whether on the same hub or a different one.
 	UsefulTypes                UsefulTypes
 	UsefulValues               UsefulValues
@@ -90,6 +90,17 @@ type UsefulValues struct {
 // Contains a Go function in the form of a reflect.Value, and, currently, nothing else.
 type GoFn struct {
 	Code reflect.Value
+}
+
+type AbstractTypeInfo struct {
+	Name string
+	Path string
+	AT   values.AbstractType
+	IsMI bool
+}
+
+func (aT AbstractTypeInfo) IsMandatoryImport() bool {
+	return aT.IsMI
 }
 
 // Contains the information to execute a lambda at runtime; i.e. it is the payload of a FUNC type value.
@@ -1562,7 +1573,7 @@ loop:
 				result := vm.Mem[args[1]].V.(values.Set).Subtract(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
 			case Thnk:
-				vm.Mem[args[0]] = values.Value{values.THUNK, values.ThunkValue{args[1], args[2]}}
+				vm.Mem[args[0]] = values.Value{values.THUNK, values.Thunk{args[1], args[2]}}
 			case Tinf:
 				// TODO --- as this is permanent state, much of it could be stuck in the ConcreteTypeInfo.
 				result := vector.Empty
@@ -1697,8 +1708,8 @@ loop:
 					&err.Error{oldErr.ErrorId, oldErr.Message, "", newArgs, newVals, []*token.Token{}, oldErr.Token}}
 			case Untk:
 				if vm.Mem[args[0]].T == values.THUNK {
-					resultLoc := vm.Mem[args[0]].V.(values.ThunkValue).MLoc
-					codeAddr := vm.Mem[args[0]].V.(values.ThunkValue).CAddr
+					resultLoc := vm.Mem[args[0]].V.(values.Thunk).MLoc
+					codeAddr := vm.Mem[args[0]].V.(values.Thunk).CAddr
 					vm.run(codeAddr, ctx)
 					vm.Mem[args[0]] = vm.Mem[resultLoc]
 				}

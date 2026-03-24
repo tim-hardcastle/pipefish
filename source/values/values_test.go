@@ -6,6 +6,84 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
 
+func TestAbstractType(t *testing.T) {
+	numbers := values.AbT(values.FLOAT, values.INT)
+	if numbers.Len() != 2 {
+		t.Fatal("Can't do type creation.")
+	}
+	if ! numbers.Contains(values.INT) {
+		t.Fatal("Can't do type creation.")
+	}
+	containers := values.AbT(values.LIST, values.PAIR, values.MAP)
+	if numbers.Equals(containers) {
+		t.Fatal("Can't check equality.")
+	}
+	both := numbers.Union(containers)
+	if both.Len() != 5 {
+		t.Fatal("Can't do union.")
+	}
+	bothAgain := containers.Union(numbers)
+	if ! bothAgain.Equals(both) {
+		t.Fatal("Union isn't commutative.")
+	}
+	if ! numbers.IsSubtypeOf(both) {
+		t.Fatal("Can't do union.")
+	}
+	if ! containers.IsProperSubtypeOf(both) {
+		t.Fatal("Can't do union.")
+	}
+	if ! both.IsSubtypeOf(both) {
+		t.Fatal("Can't do subtypes.")
+	}
+	if both.IsProperSubtypeOf(both) {
+		t.Fatal("Can't do proper subtypes.")
+	}
+	if both.IsSubtypeOf(numbers) {
+		t.Fatal("Can't do subtypes.")
+	}
+	if both.IsProperSubtypeOf(numbers) {
+		t.Fatal("Can't do proper subtypes.")
+	}
+	bothAndString := both.Insert(values.STRING)
+	if !bothAndString.Contains(values.STRING) {
+		t.Fatal("Can't insert.")
+	}
+	bothAndStringAndString := bothAndString.Insert(values.STRING)
+	if !bothAndStringAndString.Equals(bothAndString) {
+		t.Fatal("Insert is broken.")
+	}
+	withoutStringAgain := bothAndString.Without(values.AbT(values.STRING))
+	if withoutStringAgain.Contains(values.STRING) {
+		t.Fatal("Can't do without.")
+	}
+	if ! withoutStringAgain.Equals(both) {
+		t.Fatal("Can't do equals.")
+	}
+	numbersAndNull := numbers.Insert(values.NULL)
+	if ! (numbersAndNull.Intersect(bothAndString)).Equals(numbers) {
+		t.Fatal("Can't do intersection.")
+	}
+	if ! (numbersAndNull.PartlyIntersects((bothAndString))) {
+		t.Fatal("Can't check partial intersection.")
+	}
+	if  (numbersAndNull.PartlyIntersects((containers))) {
+		t.Fatal("Can't check partial intersection.")
+	}
+	if numbersAndNull.Equals(containers) {
+		t.Fatal("Can't check equality.")
+	}
+	if ! numbers.Without(values.AbT(values.INT)).Is(values.FLOAT) {
+		t.Fatal("Can't check Is.")
+	}
+	if numbers.Is(values.FLOAT) {
+		t.Fatal("Can't check Is.")
+	}
+	if ! (values.AbT(values.ValueType(7), values.ValueType(6)).String() == "[6, 7]") {
+		println(values.AbT(values.ValueType(7), values.ValueType(6)).String())
+		t.Fatal("Can't make string.")
+	}
+}
+
 func TestCompare(t *testing.T) {
 	if ! (values.Value{values.FLOAT, 0.2}).Compare(values.Value{values.FLOAT, 0.3}) {
 		t.Fatal("Float comparison failed.")
