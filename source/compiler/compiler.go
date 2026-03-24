@@ -3040,7 +3040,7 @@ func altType(t ...values.ValueType) AlternateType {
 	return AltType(t...)
 }
 
-func (cp *Compiler) SetEnv(env *values.Map) {
+func (cp *Compiler) SetEnv(env values.Map) {
 	for _, child := range cp.Modules {
 		child.SetEnv(env)
 	}

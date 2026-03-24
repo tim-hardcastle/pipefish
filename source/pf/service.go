@@ -42,7 +42,7 @@ func NewService() *Service {
 
 // Initializes the service with the source code supplied in the string.
 func (sv *Service) InitializeFromCode(code string) error {
-	return sv.initialize("InitializeFromCode", code, &values.Map{})
+	return sv.initialize("InitializeFromCode", code, values.Map{})
 }
 
 // Initializes the service with the source code supplied in the file indicated by the filepath.
@@ -51,7 +51,7 @@ func (sv *Service) InitializeFromFilepath(scriptFilepath string) error {
 	if e != nil {
 		return e
 	}
-	return sv.initialize(scriptFilepath, sourcecode, &values.Map{})
+	return sv.initialize(scriptFilepath, sourcecode, values.Map{})
 }
 
 // The same as the previous two functions, except that we pass in a map of values to initialize
@@ -127,7 +127,7 @@ type TerminalInHandler = vm.StandardInHandler
 type List = vector.Vector
 
 // The representation of a Pipefish map in the `V` field of a `Value` with `T` = `MAP`.
-type Map = *values.Map
+type Map = values.Map
 
 // The representation of a Pipefish set in the `V` field of a `Value` with `T` = `SET`.
 type Set = values.Set
@@ -294,7 +294,7 @@ func (sv *Service) SetVariable(vname string, ty values.ValueType, v any) error {
 	return nil
 }
 
-func (sv *Service) SetEnv(env *values.Map) error {
+func (sv *Service) SetEnv(env values.Map) error {
 	if sv.cp == nil {
 		return errors.New("service is uninitialized")
 	}
@@ -498,7 +498,7 @@ func (sv *Service) SetPostHappened() {
 }
 
 // Gets markdown with appropriate highlighting.
-func (sv *Service) GetMarkdowner(leftMargin string, rightMargin int, fonts *values.Map) func(string) string {
+func (sv *Service) GetMarkdowner(leftMargin string, rightMargin int, fonts values.Map) func(string) string {
 	return sv.cp.GetMarkdowner(leftMargin, rightMargin, fonts)
 }
 
@@ -550,7 +550,7 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 		return goStruct.Interface(), nil
 	}
 	if _, ok := pfTypeInfo.(vm.WrapperType); ok && goType == reflect.TypeOf(pfValue.V) {
-		 return pfValue.V, nil
+		return pfValue.V, nil
 	}
 	pfBaseType := UNDEFINED_TYPE
 	if _, ok := pfTypeInfo.(vm.BuiltinType); ok {
@@ -747,7 +747,7 @@ func (sv *Service) Highlight(code []rune, fonts Map) string {
 // Returns a description of the API in rendered markdown.
 // The `fonts` field is only used for rendering Pipefish code in code blocks, and
 // so may be omitted if you don't want to do that.
-func (sv *Service) Api(title string, fonts *values.Map, width int) string {
+func (sv *Service) Api(title string, fonts values.Map, width int) string {
 	return sv.cp.Api(title, fonts, width)
 }
 

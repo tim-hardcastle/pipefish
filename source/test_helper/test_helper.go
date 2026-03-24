@@ -35,15 +35,16 @@ func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compile
 		}
 		var cp *compiler.Compiler
 		switch filename {
-		case "" : cp, _ = initializer.StartCompilerFromFilepath(filename, map[string]*compiler.Compiler{}, &values.Map{})
-		case "test initialization errors" :
+		case "":
+			cp, _ = initializer.StartCompilerFromFilepath(filename, map[string]*compiler.Compiler{}, values.Map{})
+		case "test initialization errors":
 			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/initialization-error-tests/"+
-			strings.ReplaceAll(test.Input, "/", "_")+".pf", ), map[string]*compiler.Compiler{}, &values.Map{})
-		case "test compiler errors" :
+				strings.ReplaceAll(test.Input, "/", "_")+".pf"), map[string]*compiler.Compiler{}, values.Map{})
+		case "test compiler errors":
 			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/compiler-error-tests/"+
-			strings.ReplaceAll(test.Input, "/", "_")+".pf", ), map[string]*compiler.Compiler{}, &values.Map{})
+				strings.ReplaceAll(test.Input, "/", "_")+".pf"), map[string]*compiler.Compiler{}, values.Map{})
 		default:
-			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/", filename), map[string]*compiler.Compiler{}, &values.Map{})
+			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/", filename), map[string]*compiler.Compiler{}, values.Map{})
 		}
 		got, e := F(cp, test.Input)
 		if e != nil {
@@ -60,7 +61,7 @@ func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compile
 // NOTE: this is here to test some internal workings of the initializer. It only initializes
 // a blank service.
 func RunInitializerTest(t *testing.T, tests []TestItem, F func(iz *initializer.Initializer, s string) string) {
-	iz := initializer.NewInitializer(initializer.NewCommonInitializerBindle(&values.Map{}, map[string]*compiler.Compiler{}))
+	iz := initializer.NewInitializer(initializer.NewCommonInitializerBindle(values.Map{}, map[string]*compiler.Compiler{}))
 	iz.ParseEverythingFromSourcecode(vm.BlankVm(), parser.NewCommonParserBindle(), compiler.NewCommonCompilerBindle(), "", "", "")
 	for _, test := range tests {
 		if settings.SHOW_TESTS {
@@ -98,7 +99,7 @@ func TestValues(cp *compiler.Compiler, s string) (string, error) {
 
 func TestHighlighter(cp *compiler.Compiler, s string) (string, error) {
 	v := cp.Do(`DARK_MODERN`)
-	return cp.Highlight([]rune(s), v.V.(*values.Map)), nil
+	return cp.Highlight([]rune(s), v.V.(values.Map)), nil
 }
 
 func TestOutput(cp *compiler.Compiler, s string) (string, error) {
@@ -134,7 +135,7 @@ func TestInitializationErrors(cp *compiler.Compiler, s string) (string, error) {
 		return "", errors.New("unexpected successful compilation")
 	}
 	topError := cp.P.Common.Errors[0]
-	if "init/" + s == topError.ErrorId {
+	if "init/"+s == topError.ErrorId {
 		// This will at least crash if the explanation mistypes the arguments.
 		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
 			ec.Explanation(topError.Token, topError.Args...)
@@ -149,7 +150,7 @@ func TestInitializationErrorsInCompiler(cp *compiler.Compiler, s string) (string
 		return "", errors.New("unexpected successful compilation")
 	}
 	topError := cp.P.Common.Errors[0]
-	if "comp/" + s == topError.ErrorId {
+	if "comp/"+s == topError.ErrorId {
 		// This will at least crash if the explanation mistypes the arguments.
 		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
 			ec.Explanation(topError.Token, topError.Args...)

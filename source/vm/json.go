@@ -119,7 +119,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 		}
 		if pfType == values.MAP || isClone && cloneInfo.Parent == values.MAP {
 			obj := goValue.GetObject()
-			mp := &values.Map{}
+			mp := values.Map{}
 			err := values.Value{}
 			insideType := values.MakeAbstractType(values.SUCCESSFUL_VALUE)
 			stringlikeType := values.STRING

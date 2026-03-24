@@ -65,7 +65,7 @@ type Vm struct {
 	StringifyCallTo            uint32            // | These are so the vm knows how to call the stringify function.
 	StringifyOutReg            uint32            // |
 	FieldLabelsInMem           map[string]uint32 // Used to turn a string into a label.
-	ParameterizedTypeInfo      []*values.Map     // A list of maps from type parameters (as TUPLE values) to types (as TYPE values). The list is itself keyed by a map from type operators to the position in the list, which is stored in the compiler.
+	ParameterizedTypeInfo      []values.Map      // A list of maps from type parameters (as TUPLE values) to types (as TYPE values). The list is itself keyed by a map from type operators to the position in the list, which is stored in the compiler.
 
 	GoToPipefishTypes map[reflect.Type]values.ValueType
 	GoConverter       [](func(t uint32, v any) any)
@@ -1047,7 +1047,7 @@ loop:
 						break Switch
 					}
 					if containerType == values.MAP {
-						mp := container.V.(*values.Map)
+						mp := container.V.(values.Map)
 						ix := vm.Mem[args[2]]
 						result, ok := mp.Get(ix)
 						if !ok {
@@ -1142,7 +1142,7 @@ loop:
 				loc = args[0]
 				continue
 			case KeyM:
-				vm.Mem[args[0]] = values.Value{values.LIST, vm.Mem[args[1]].V.(*values.Map).AsVector()}
+				vm.Mem[args[0]] = values.Value{values.LIST, vm.Mem[args[1]].V.(values.Map).AsVector()}
 			case KeyZ:
 				result := vector.Empty
 				for _, labelNumber := range vm.ConcreteTypeInfo[vm.Mem[args[1]].T].(StructType).LabelNumbers {
@@ -1160,7 +1160,7 @@ loop:
 			case LenL:
 				vm.Mem[args[0]] = values.Value{values.INT, vm.Mem[args[1]].V.(vector.Vector).Len()}
 			case LenM:
-				vm.Mem[args[0]] = values.Value{values.INT, vm.Mem[args[1]].V.(*values.Map).Len()}
+				vm.Mem[args[0]] = values.Value{values.INT, vm.Mem[args[1]].V.(values.Map).Len()}
 			case Lens:
 				vm.Mem[args[0]] = values.Value{values.INT, len(vm.Mem[args[1]].V.(string))}
 			case LenS:
@@ -1212,7 +1212,7 @@ loop:
 			case Mkit:
 				vm.Mem[args[0]] = vm.NewIterator(vm.Mem[args[1]], args[2] == 1, args[3])
 			case Mkmp:
-				result := &values.Map{}
+				result := values.Map{}
 				for _, p := range vm.Mem[args[1]].V.([]values.Value) {
 					k := p.V.([]values.Value)[0]
 					v := p.V.([]values.Value)[1]
@@ -1744,7 +1744,7 @@ loop:
 				}
 				vm.Mem[args[0]] = result
 			case WthM:
-				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(*values.Map)}
+				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(values.Map)}
 				for it := vm.NewValueIterator(args[3:]); ; {
 					pair, ok := it.get()
 					if !ok {
@@ -1869,7 +1869,7 @@ loop:
 				}
 				vm.Mem[args[0]] = result
 			case WtoM:
-				mp := vm.Mem[args[1]].V.(*values.Map)
+				mp := vm.Mem[args[1]].V.(values.Map)
 				for it := vm.NewValueIterator(args[3:]); ; {
 					key, ok := it.get()
 					if !ok {
@@ -1879,7 +1879,7 @@ loop:
 						vm.Mem[args[0]] = vm.makeError("vm/without", args[2], vm.DescribeType(key.T, LITERAL, 0))
 						break Switch
 					}
-					mp = (*mp).Delete(key)
+					mp = (mp).Delete(key)
 				}
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, mp}
 			case Yeet:
@@ -2032,8 +2032,8 @@ func (vm *Vm) listsAreEqual(v, w values.Value) bool {
 }
 
 func (vm *Vm) mapsAreEqual(v, w values.Value) bool {
-	mapV := v.V.(*values.Map)
-	mapW := w.V.(*values.Map)
+	mapV := v.V.(values.Map)
+	mapW := w.V.(values.Map)
 	if mapV.Len() != mapW.Len() {
 		return false
 	}
@@ -2087,7 +2087,7 @@ func (vm *Vm) with(container values.Value, keys []values.Value, val values.Value
 		container.V = vec.Assoc(keyNumber, vm.with(el.(values.Value), keys[1:], val, errTok))
 		return container
 	case values.MAP:
-		mp := container.V.(*values.Map)
+		mp := container.V.(values.Map)
 		if ((key.T < values.NULL) || (key.T >= values.FUNC && key.T < values.LABEL)) && !vm.ConcreteTypeInfo[key.T].IsEnum() { // Check that the key is orderable.
 			return vm.makeError("vm/with/c", errTok, vm.DescribeType(key.T, LITERAL, 0))
 		}
@@ -2138,7 +2138,7 @@ func (vm *Vm) NewIterator(container values.Value, keysOnly bool, tokLoc uint32) 
 			return values.Value{values.ITERATOR, &ListIterator{VecIt: container.V.(vector.Vector).Iterator()}}
 		}
 	case values.MAP:
-		mapAsSlice := container.V.(*values.Map).AsSlice()
+		mapAsSlice := container.V.(values.Map).AsSlice()
 		return values.Value{values.ITERATOR, &MapIterator{KVPairs: mapAsSlice, Len: len(mapAsSlice)}}
 	case values.PAIR:
 		pair := container.V.([]values.Value)

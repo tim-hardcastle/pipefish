@@ -65,7 +65,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 			return errorB
 		}
 		pointerList := append(pointerListA, pointerListB...)
-		mp := &values.Map{}
+		mp := values.Map{}
 		for rows.Next() {
 			if err := rows.Scan(pointerList...); err != nil {
 				return vm.makeError("vm/sql/scan/b", tok, err.Error())
@@ -188,7 +188,7 @@ func (vm *Vm) getPfRow(rows *sql.Rows, pointerList []any, typeNumber values.Valu
 		return vm.makeError("vm/sql/scan/a", tok, err.Error())
 	}
 	if typeNumber == values.MAP {
-		result := &values.Map{}
+		result := values.Map{}
 		cols, _ := rows.Columns()
 		for i, p := range pointerList {
 			pfKey := values.Value{values.STRING, cols[i]}

@@ -23,15 +23,6 @@ func (pm Set) Add(element Value) Set {
 	return pm
 }
 
-// Delete deletes the value for a element.
-func (pm Set) Delete(element Value) {
-	root := pm.root
-	left, mid, right := setSplit(root, element, true)
-	if mid == nil {
-		return
-	}
-	pm.root = setMerge(left, right)
-}
 
 func (pm Set) Contains(element Value) bool {
 	node := pm.root
@@ -190,21 +181,3 @@ func setSplit(n *setNode, element Value, requireMid bool) (left, mid, right *set
 	return n.left, mid, n.right
 }
 
-func setMerge(left, right *setNode) *setNode {
-	switch {
-	case left == nil:
-		return right
-	case right == nil:
-		return left
-	case left.weight > right.weight:
-		root := left.shallowClone()
-		root.left = left.left
-		root.right = setMerge(left.right, right)
-		return root
-	default:
-		root := right.shallowClone()
-		root.left = setMerge(left, right.left)
-		root.right = right.right
-		return root
-	}
-}

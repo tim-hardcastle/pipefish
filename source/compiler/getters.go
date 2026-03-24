@@ -38,7 +38,7 @@ func (cp *Compiler) ConcreteTypeWithNamespaceNow(name string) values.ValueType {
 	rp := cp
 	ix := strings.LastIndex(name, ".")
 	if ix != -1 {
-		ns := name[0:ix+1]
+		ns := name[0 : ix+1]
 		rp = cp.getResolvingCompiler(&token.Token{Namespace: ns}, DEF)
 		name = name[ix+1:]
 	}
@@ -190,7 +190,7 @@ var (
 
 // We can't just lex it beause we need the whitespace intact. But we can
 // use the lexer logic.
-func (cp *Compiler) Highlight(code []rune, fonts *values.Map) string {
+func (cp *Compiler) Highlight(code []rune, fonts values.Map) string {
 	var out bytes.Buffer
 	brackets := []rune{}
 	runes := lexer.NewRuneSupplier(code, "Highlighter")
@@ -299,7 +299,7 @@ func IsProtectedPunctuation(ch rune) bool {
 	return ch == ',' || ch == ':' || ch == ';' || ch == '.' || ch == '='
 }
 
-func (cp *Compiler) GetMarkdowner(leftMargin string, rightMargin int, fonts *values.Map) func(string) string {
+func (cp *Compiler) GetMarkdowner(leftMargin string, rightMargin int, fonts values.Map) func(string) string {
 	hl := func(s string) string {
 		return cp.Highlight([]rune(s), fonts)
 	}
@@ -309,7 +309,7 @@ func (cp *Compiler) GetMarkdowner(leftMargin string, rightMargin int, fonts *val
 	}
 }
 
-func wrapFont(body, tokenIs string, fonts *values.Map) string {
+func wrapFont(body, tokenIs string, fonts values.Map) string {
 	var out bytes.Buffer
 	out.WriteString(getFont(tokenIs, fonts))
 	out.WriteString(body)
@@ -317,10 +317,7 @@ func wrapFont(body, tokenIs string, fonts *values.Map) string {
 	return out.String()
 }
 
-func getFont(tokenIs string, fonts *values.Map) string {
-	if fonts == nil {
-		return ""
-	}
+func getFont(tokenIs string, fonts values.Map) string {
 	pfFont, colorExists := fonts.Get(values.Value{values.STRING, tokenIs})
 	if !colorExists {
 		return ""
@@ -328,10 +325,7 @@ func getFont(tokenIs string, fonts *values.Map) string {
 	return fontFromFontValue(pfFont)
 }
 
-func getFontForBrackets(depth int, fonts *values.Map) string {
-	if fonts == nil {
-		return ""
-	}
+func getFontForBrackets(depth int, fonts values.Map) string {
 	brackets, bracketsExist := fonts.Get(values.Value{values.STRING, "brackets"})
 	if !bracketsExist {
 		return ""

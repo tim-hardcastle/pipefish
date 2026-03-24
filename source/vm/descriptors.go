@@ -56,7 +56,7 @@ func (vm *Vm) DescribeType(t values.ValueType, flavor descriptionFlavor, cpNumbe
 	}
 	namespace, ok := vm.NamespaceInfo[cpNumber][t]
 	if !ok {
-		return "Unserializable type " + strconv.Itoa(int(t)) 
+		return "Unserializable type " + strconv.Itoa(int(t))
 	}
 	return namespace + plainName
 }
@@ -105,7 +105,7 @@ func (vm *Vm) ToString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 			buf.WriteString(typeInfo.GetName(DEFAULT))
 			buf.WriteByte('(')
 			var sep string
-			(v.V.(*values.Map)).Range(func(k, v values.Value) {
+			(v.V.(values.Map)).Range(func(k, v values.Value) {
 				fmt.Fprintf(&buf, "%s%v::%v", sep, vm.StringifyValue(k, flavor, cpNumber), vm.StringifyValue(v, flavor, cpNumber))
 				sep = ", "
 			})
@@ -208,7 +208,7 @@ func (vm *Vm) ToString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 		var buf strings.Builder
 		buf.WriteString("map(")
 		var sep string
-		(v.V.(*values.Map)).Range(func(k, v values.Value) {
+		(v.V.(values.Map)).Range(func(k, v values.Value) {
 			fmt.Fprintf(&buf, "%s%v::%v", sep, vm.StringifyValue(k, flavor, cpNumber), vm.StringifyValue(v, flavor, cpNumber))
 			sep = ", "
 		})

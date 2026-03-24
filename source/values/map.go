@@ -17,39 +17,55 @@ type mapNode struct {
 	left, right *mapNode
 }
 
-func newNode(key, value Value) *mapNode {
-	return &mapNode{
-		key:    key,
-		value:  value,
-		weight: rand.Uint64(),
-	}
-}
-
-func (node *mapNode) shallowClone() *mapNode {
-	return &mapNode{
-		key:    node.key,
-		value:  node.value,
-		weight: node.weight,
-	}
-}
-
 type MapPair struct {
 	Key Value
 	Val Value
 }
 
+// Get returns the map value associated with the specified key.
+// The ok result indicates whether an entry was found in the map.
+func (pm Map) Get(key Value) (Value, bool) {
+	node := pm.root
+	for node != nil {
+		if key.compare(node.key) {
+			node = node.left
+		} else if node.key.compare(key) {
+			node = node.right
+		} else {
+			return node.value, true
+		}
+	}
+	var zero Value
+	return zero, false
+}
+
+func (pm Map) Set(key, value Value) Map {
+	return Map{union(pm.root, newNode(key, value), true)}
+}
+
+// Delete deletes the value for a key.
+func (pm Map) Delete(key Value) Map {
+	root := pm.root
+	left, mid, right := split(root, key, true)
+	if mid == nil {
+		return pm
+	}
+	root = merge(left, right)
+	return Map{root}
+}
+
 // Range calls f sequentially in ascending key order for all entries in the map.
-func (pm *Map) Range(f func(key, value Value)) {
+func (pm Map) Range(f func(key, value Value)) {
 	pm.root.forEach(func(k, v Value) {
 		f(k, v)
 	})
 }
 
-func (pm *Map) Len() int {
+func (pm Map) Len() int {
 	return pm.root.len()
 }
 
-func (pm *Map) AsVector() vector.Vector {
+func (pm Map) AsVector() vector.Vector {
 	return pm.root.getVector()
 }
 
@@ -68,7 +84,7 @@ func (node *mapNode) getVector() vector.Vector {
 	return new
 }
 
-func (pm *Map) AsSlice() []MapPair {
+func (pm Map) AsSlice() []MapPair {
 	return pm.root.asSlice()
 }
 
@@ -82,70 +98,6 @@ func (node *mapNode) asSlice() []MapPair {
 	lhs = append(lhs, el)
 	lhs = append(lhs, rhs...)
 	return lhs
-}
-
-// It is assumed that we know the map is keyed by strings.
-func (pm *Map) ToEnv() (map[string]uint32, []Value) {
-	return pm.root.toEnv(make(map[string]uint32), []Value{})
-}
-func (node *mapNode) toEnv(env map[string]uint32, mem []Value) (map[string]uint32, []Value) {
-	if node == nil {
-		return env, mem
-	}
-	env, mem = node.left.toEnv(env, mem)
-	k := node.key
-	v := node.value
-	env[k.V.(string)] = uint32(len(mem))
-	mem = append(mem, v)
-	env, mem = node.left.toEnv(env, mem)
-	return env, mem
-}
-
-func (node *mapNode) forEach(f func(key, value Value)) {
-	if node == nil {
-		return
-	}
-	node.left.forEach(f)
-	f(node.key, node.value)
-	node.right.forEach(f)
-}
-
-func (node *mapNode) len() int {
-	if node == nil {
-		return 0
-	}
-	return node.left.len() + 1 + node.right.len()
-}
-
-// Get returns the map value associated with the specified key.
-// The ok result indicates whether an entry was found in the map.
-func (pm *Map) Get(key Value) (Value, bool) {
-	node := pm.root
-	for node != nil {
-		if key.compare(node.key) {
-			node = node.left
-		} else if node.key.compare(key) {
-			node = node.right
-		} else {
-			return node.value, true
-		}
-	}
-	var zero Value
-	return zero, false
-}
-
-// SetAll updates the map with key/value pairs from the other map, overwriting existing keys.
-// It is equivalent to calling Set for each entry in the other map but is more efficient.
-func (pm *Map) SetAll(other *Map) {
-	root := pm.root
-	pm.root = union(root, other.root, true)
-}
-
-func (pm Map) Set(key, value Value) *Map {
-	first := pm.root
-	second := newNode(key, value)
-	pm.root = union(first, second, true)
-	return &pm
 }
 
 // union returns a new tree which is a union of first and second one.
@@ -217,15 +169,36 @@ func split(n *mapNode, key Value, requireMid bool) (left, mid, right *mapNode) {
 	return n.left, mid, n.right
 }
 
-// Delete deletes the value for a key.
-func (pm Map) Delete(key Value) *Map {
-	root := pm.root
-	left, mid, right := split(root, key, true)
-	if mid == nil {
-		return &pm
+func (node *mapNode) forEach(f func(key, value Value)) {
+	if node == nil {
+		return
 	}
-	pm.root = merge(left, right)
-	return &pm
+	node.left.forEach(f)
+	f(node.key, node.value)
+	node.right.forEach(f)
+}
+
+func (node *mapNode) len() int {
+	if node == nil {
+		return 0
+	}
+	return node.left.len() + 1 + node.right.len()
+}
+
+func newNode(key, value Value) *mapNode {
+	return &mapNode{
+		key:    key,
+		value:  value,
+		weight: rand.Uint64(),
+	}
+}
+
+func (node *mapNode) shallowClone() *mapNode {
+	return &mapNode{
+		key:    node.key,
+		value:  node.value,
+		weight: node.weight,
+	}
 }
 
 // merge two trees while preserving the weight invariant.

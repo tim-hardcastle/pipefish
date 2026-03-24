@@ -39,7 +39,7 @@ const ( // Cross-reference with typeNames in BlankVm()
 	FUNC               // V : vm.Lambda
 	PAIR               // V : []values.Value // TODO --- this should be [2]values.Value just for neatness.
 	LIST               // V : vector.Vector
-	MAP                // V : *values.Map
+	MAP                // V : values.Map
 	SET                // V : values.Set
 	LABEL              // V : int
 	SNIPPET            // V : Snippet struct{Data []values.Value, Bindle *SnippetBindle}

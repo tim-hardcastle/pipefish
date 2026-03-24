@@ -28,7 +28,7 @@ func (vm *Vm) pipefishToGo(v values.Value) (any, bool) {
 		return result, true
 	case values.MAP:
 		result := map[any]any{}
-		mapAsSlice := v.V.(*values.Map).AsSlice()
+		mapAsSlice := v.V.(values.Map).AsSlice()
 		for _, pair := range mapAsSlice {
 			goKey, ok := vm.pipefishToGo(pair.Key)
 			if !ok {
@@ -172,7 +172,7 @@ func (vm *Vm) pipefishToGo(v values.Value) (any, bool) {
 				return constructor(uint32(v.T), result), true
 			case values.MAP:
 				result := map[any]any{}
-				mapAsSlice := v.V.(*values.Map).AsSlice()
+				mapAsSlice := v.V.(values.Map).AsSlice()
 				for _, pair := range mapAsSlice {
 					goKey, ok := vm.pipefishToGo(pair.Key)
 					if !ok {
@@ -272,7 +272,7 @@ func (vm *Vm) goToPipefish(goValue reflect.Value) values.Value {
 				return values.Value{values.ValueType(uint32Type), vec}
 			case values.MAP:
 				goMap := goValue.Convert(reflect.TypeFor[map[any]any]()).Interface().(map[any]any)
-				pfMap := &values.Map{}
+				pfMap := values.Map{}
 				for goKey, goEl := range goMap {
 					pfKey := vm.goToPipefish(reflect.ValueOf(goKey))
 					if pfKey.T == values.UNDEFINED_TYPE || pfKey.T == values.ERROR {
@@ -365,7 +365,7 @@ func (vm *Vm) goToPipefish(goValue reflect.Value) values.Value {
 			return values.Value{values.SET, pfSet}
 		} else { // We have a map.
 			iterator := goValue.MapRange()
-			pfMap := &values.Map{}
+			pfMap := values.Map{}
 			for iterator.Next() {
 				goKey := iterator.Key()
 				pfKey := vm.goToPipefish(goKey)

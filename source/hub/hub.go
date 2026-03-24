@@ -118,17 +118,17 @@ func (hub *Hub) setSV(sv string, ty pf.Type, v any) {
 // This converts a string identifying the color of a token (e.g. `type`,
 // `number`, to Linux control codes giving the correct coloring according
 // to the color theme of the hub.)
-func (hub *Hub) getFonts() *values.Map {
+func (hub *Hub) getFonts() values.Map {
 	theme := hub.getSV("theme")
 	if theme.V == nil {
-		return nil
+		return values.Map{}
 	}
-	mapOfThemes := hub.getSV("THEMES").V.(*values.Map)
+	mapOfThemes := hub.getSV("THEMES").V.(values.Map)
 	mapForTheme, themeExists := mapOfThemes.Get(theme)
 	if !themeExists {
-		return nil
+		return values.Map{}
 	}
-	fonts := mapForTheme.V.(*values.Map)
+	fonts := mapForTheme.V.(values.Map)
 	return fonts
 }
 
@@ -202,7 +202,7 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 	// *** THIS IS THE BIT WHERE WE DO THE THING!
 	val := ServiceDo(serviceToUse, line)
 	// *** FROM ALL THAT LOGIC, WE EXTRACT ONE PIPEFISH VALUE !!!
-	
+
 	errorsExist, _ := serviceToUse.ErrorsExist()
 	if errorsExist { // Any lex-parse-compile errors should end up in the parser of the compiler of the service, returned in p.
 		hub.GetAndReportErrors(serviceToUse)
@@ -219,7 +219,7 @@ func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external b
 			e = err.CreateErr(e.ErrorId, e.Token, e.Args...)
 		}
 		hub.WriteString("\n")
-		hub.WritePretty("[0] " + text.ERROR + e.Message + err.DescribePos(e.Token)+".")
+		hub.WritePretty("[0] " + text.ERROR + e.Message + err.DescribePos(e.Token) + ".")
 		hub.WriteString("\n\n")
 		hub.ers = []*pf.Error{val.V.(*pf.Error)}
 		if len(val.V.(*pf.Error).Values) > 0 {
@@ -246,7 +246,7 @@ func (hub *Hub) update() {
 func (hub *Hub) DoHubCommand(line string) { // TODO --- this is where we need to pass in whether it's external.
 	hubService := hub.Services["hub"]
 	hubReturn := ServiceDo(hubService, line)
-	if errorsExist, _ := hubService.ErrorsExist(); errorsExist { 
+	if errorsExist, _ := hubService.ErrorsExist(); errorsExist {
 		hub.GetAndReportErrors(hubService)
 		return
 	}
@@ -311,18 +311,18 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			break
 		}
 		if h.Db == nil {
-		h.WriteError("database has not been configured: edit the `hub.usr` file of this hub to specify a database and a mailer.")
-		break
-	}
-	err := database.AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4], h.currentServiceName(), settings.PipefishHomeDirectory)
-	if err != nil {
-		h.WriteError(err.Error())
-		break
-	}
-	h.TerminalUsername = args[0]
-	h.TerminalPassword = args[4]
-	h.WritePretty("You are logged on as " + h.TerminalUsername + ".\n")
-	h.administered = true
+			h.WriteError("database has not been configured: edit the `hub.usr` file of this hub to specify a database and a mailer.")
+			break
+		}
+		err := database.AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4], h.currentServiceName(), settings.PipefishHomeDirectory)
+		if err != nil {
+			h.WriteError(err.Error())
+			break
+		}
+		h.TerminalUsername = args[0]
+		h.TerminalPassword = args[4]
+		h.WritePretty("You are logged on as " + h.TerminalUsername + ".\n")
+		h.administered = true
 	case "create":
 		err := database.AddGroup(h.Db, args[0])
 		if err != nil {
@@ -332,7 +332,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-		
+
 	case "edit":
 		command := exec.Command("vim", args[0])
 		command.Stdin = os.Stdin
@@ -344,12 +344,12 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	case "env":
 		// $_env has been updated by hub.pf. This is called by both `env` and `env delete`.
 		env, _ := h.Services["hub"].GetVariable("$_env")
-		h.store = *env.V.(*values.Map)
+		h.store = env.V.(values.Map)
 		h.SaveAndPropagateHubStore()
-		
+
 	case "env-key":
 		cur := args[0]
-		new := args[1]	
+		new := args[1]
 		if cur != h.storekey {
 			h.WriteError("incorrect environment key.")
 			break
@@ -361,7 +361,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.storekey = ""
 		h.store = values.Map{}
 		h.SaveAndPropagateHubStore()
-		
+
 	case "errors":
 		r, _ := h.Services[h.currentServiceName()].GetErrorReport()
 		h.WritePretty(r)
@@ -391,7 +391,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError("the hub doesn't know what you want to stop.")
 		}
 		delete(h.Services, name)
-		
+
 		if name == h.currentServiceName() {
 			h.makeEmptyServiceCurrent()
 		}
@@ -420,7 +420,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-		
+
 	case "live-on":
 		h.setLive(true)
 	case "live-off":
@@ -601,13 +601,13 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if h.currentServiceName() != "#snap" {
 			h.WriteError("you aren't taking a snap.")
 		}
-		
+
 		h.setServiceName(h.oldServiceName)
 	case "switch":
 		sname := args[0]
 		_, ok := h.Services[sname]
 		if ok {
-			
+
 			if h.administered {
 				access, err := database.DoesUserHaveAccess(h.Db, username, sname)
 				if err != nil {
@@ -758,13 +758,13 @@ func (hub *Hub) makeWriter() io.Writer {
 }
 
 // Things that only make sense if we have RBAM set up.
-var rbamVerbs = dtypes.From[string]("add", "create", "log-on", "log-off", "let", 
-"register", "groups", "groups-of-user", "groups-of-service", "services of group", 
-"services-of-user", "users-of-service", "users-of-group", "let-use", "let-own")
+var rbamVerbs = dtypes.From[string]("add", "create", "log-on", "log-off", "let",
+	"register", "groups", "groups-of-user", "groups-of-service", "services of group",
+	"services-of-user", "users-of-service", "users-of-group", "let-use", "let-own")
 
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
-var greenList = dtypes.From[string]("api", "errors", "help", "log-on", "log-off", 
-"groups", "register", "service", "switch", "values", "why", "quit")
+var greenList = dtypes.From[string]("api", "errors", "help", "log-on", "log-off",
+	"groups", "register", "service", "switch", "values", "why", "quit")
 
 func getUnusedTestFilename(scriptFilepath string) string {
 	fname := filepath.Base(scriptFilepath)
@@ -833,7 +833,7 @@ func (hub *Hub) WriteError(s string) {
 
 func (hub *Hub) WriteString(s string) {
 	io.WriteString(hub.Out, s)
-	hub.Services["hub"].SetPostHappened() 
+	hub.Services["hub"].SetPostHappened()
 }
 
 var helpStrings = map[string]string{}
@@ -892,7 +892,7 @@ func (hub *Hub) createService(name, scriptFilepath string) bool {
 	if text.Head(scriptFilepath, "!") {
 		scriptFilepath = filepath.Join(settings.PipefishHomeDirectory, scriptFilepath[1:])
 	}
-	e := newService.InitializeFromFilepathWithStore(scriptFilepath, &hub.store) // We get an error only if it completely fails to open the file, otherwise there'll be errors in the Common Parser Bindle as usual.
+	e := newService.InitializeFromFilepathWithStore(scriptFilepath, hub.store) // We get an error only if it completely fails to open the file, otherwise there'll be errors in the Common Parser Bindle as usual.
 	hub.Sources, _ = newService.GetSources()
 	if newService.IsBroken() {
 		if name == "hub" {
@@ -928,7 +928,7 @@ func StartServiceFromCli() {
 	newService := pf.NewService()
 	// This ought to get the `$_env` settings.
 	// Then we could do proper markdown in the errors.
-	newService.InitializeFromFilepathWithStore(filename, &values.Map{})
+	newService.InitializeFromFilepathWithStore(filename, values.Map{})
 	if newService.IsBroken() {
 		fmt.Println("\nThere were errors running the script <C>\"" + filename + "\"</>.")
 		s, _ := newService.GetErrorReport()
@@ -1063,7 +1063,7 @@ func (h *Hub) OpenHubFile(hubFilepath string) {
 		bits := strings.Split(strings.TrimSpace(s), "\n")[1:]
 		for _, bit := range bits {
 			pair, _ := h.Services["hub"].Do(bit)
-			h.store = *h.store.Set(pair.V.([]pf.Value)[0], pair.V.([]pf.Value)[1])
+			h.store = h.store.Set(pair.V.([]pf.Value)[0], pair.V.([]pf.Value)[1])
 		}
 	}
 	hubService := h.Services["hub"]
@@ -1100,7 +1100,7 @@ func (h *Hub) OpenHubFile(hubFilepath string) {
 
 func (hub *Hub) SaveAndPropagateHubStore() {
 	for _, srv := range hub.Services {
-		srv.SetEnv(&hub.store)
+		srv.SetEnv(hub.store)
 	}
 	storePath := hub.hubFilepath[0:len(hub.hubFilepath)-len(filepath.Ext(hub.hubFilepath))] + ".env"
 	storeDump := hub.Services["hub"].WriteSecret(hub.store, hub.storekey)

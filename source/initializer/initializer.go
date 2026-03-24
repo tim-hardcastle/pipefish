@@ -78,11 +78,11 @@ type commonInitializerBindle struct {
 	// This is a map of the compilers of all the (potential) external services on the same hub.
 	// They're stored as compilers because the initializer can't see the `Service` class.
 	serviceCompilers map[string]*compiler.Compiler
-	hubStore         *values.Map // The hub store --- see wiki.
+	hubStore         values.Map // The hub store --- see wiki.
 }
 
 // Initializes the `CommonInitializerBindle`.
-func NewCommonInitializerBindle(store *values.Map, services map[string]*compiler.Compiler) *commonInitializerBindle {
+func NewCommonInitializerBindle(store values.Map, services map[string]*compiler.Compiler) *commonInitializerBindle {
 	b := commonInitializerBindle{
 		functions:        make(map[funcSource]*parsedFunction),
 		declarationMap:   make(map[decKey]any),
@@ -126,7 +126,7 @@ func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompiler
 }
 
 // Initializes a compiler given the filepath.
-func StartCompilerFromFilepath(filepath string, svs map[string]*compiler.Compiler, store *values.Map) (*compiler.Compiler, error) {
+func StartCompilerFromFilepath(filepath string, svs map[string]*compiler.Compiler, store values.Map) (*compiler.Compiler, error) {
 	sourcecode, e := GetSourceCode(filepath)
 	if e != nil {
 		return nil, e
@@ -134,7 +134,7 @@ func StartCompilerFromFilepath(filepath string, svs map[string]*compiler.Compile
 	return StartCompiler(filepath, sourcecode, svs, store), nil
 }
 
-func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*compiler.Compiler, store *values.Map) *compiler.Compiler {
+func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*compiler.Compiler, store values.Map) *compiler.Compiler {
 	// We begin by creating an initializer and injecting a new CommonInitializerBindle into it.
 	iz := NewInitializer(NewCommonInitializerBindle(store, hubServices))
 	// We carry out several phases of initialization each of which is performed recursively on
@@ -890,7 +890,7 @@ func (iz *Initializer) addParameterizedTypesToVm() {
 			iz.P.ParTypes[name] = parser.TypeExpressionInfo{info.VmTypeInfo, concreteTypeInfo.IsClone(), iz.P.ParTypes[name].PossibleReturnTypes.Union(values.MakeAbstractType(concreteType))}
 		} else {
 			iz.P.ParTypes[name] = parser.TypeExpressionInfo{uint32(len(iz.cp.Vm.ParameterizedTypeInfo)), concreteTypeInfo.IsClone(), values.MakeAbstractType(values.ERROR, concreteType)}
-			iz.cp.Vm.ParameterizedTypeInfo = append(iz.cp.Vm.ParameterizedTypeInfo, &values.Map{})
+			iz.cp.Vm.ParameterizedTypeInfo = append(iz.cp.Vm.ParameterizedTypeInfo, values.Map{})
 		}
 		iz.cp.Vm.ParameterizedTypeInfo[iz.P.ParTypes[name].VmTypeInfo] = iz.cp.Vm.ParameterizedTypeInfo[iz.P.ParTypes[name].VmTypeInfo].Set(values.Value{values.TUPLE, typeArgs}, values.Value{values.TYPE, values.AbstractType{[]values.ValueType{concreteType}}})
 	}
