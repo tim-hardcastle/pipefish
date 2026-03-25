@@ -13,7 +13,7 @@ import (
 //
 // Errors in the map are in alphabetical order of their identifers.
 //
-// Major categories are built, err, init, lex, parse, repl, serve, and vm.
+// Major categories are comp, init, lex, parse, and vm.
 //
 // Two otherwise identical errors thrown in different places in the Go code must be assigned
 // different identifiers, if only by suffixing /a, /b, etc to the identifier, with the following exception:
@@ -373,26 +373,6 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/for/bound/a": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "malformed declaration of bound variables"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Pipefish was expecting a declaration of variable names, and optionally their types " +
-				"on the left hand side of the `=` sign, but insted has found something it can't make sense of."
-		},
-	},
-
-	"comp/for/bound/b": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "malformed declaration of bound variables"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Pipefish was expecting a declaration of variable names, and optionally their types " +
-				"on the left hand side of the `=` sign, but insted has found something it can't make sense of."
-		},
-	},
-
 	"comp/for/bound/exists": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "bound variable " + emph(args[0]) + " already exists"
@@ -505,31 +485,6 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting either a function declaration or an assignment, and " +
 				"this is neither."
-		},
-	},
-
-	"comp/given/cycle": {
-		Message: func(tok *token.Token, args ...any) string {
-			cycle := args[0].([]string)
-			var description string
-			if len(cycle) == 1 {
-				description = emph(cycle[0]) + " is defined in terms of itself"
-			} else {
-				sep := ""
-				for _, name := range cycle {
-					description = description + sep + emph(name)
-					if sep == "" {
-						sep = " is defined in terms of "
-					} else {
-						sep = ", which is defined in terms of "
-					}
-				}
-				description = description + ", which is defined in terms of " + emph(cycle[0])
-			}
-			return description + " in " + emph("given") + " block"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "It isn't possible to define variables in terms of each other because how would that even work?"
 		},
 	},
 
@@ -3261,15 +3216,6 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The only types you can index are enum types.")
-		},
-	},
-
-	"vm/index/type/b": {
-		Message: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("index %v out of range for type %v", emph(args[1]), emph(args[0]))
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("An enum type is indexed over a range from and including 0 up to and excluding the length of the type.")
 		},
 	},
 

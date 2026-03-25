@@ -1,13 +1,43 @@
+import 
+
+golang "database/sql"
+
 newtype
 
 SqlDriver = enum COCKROACHDB, FIREBIRD_SQL, MARIADB, MICROSOFT_SQL_SERVER, MYSQL, ORACLE, 
               .. POSTGRESQL, SNOWFLAKE, SQLITE, TIDB
 
-SqlDb = struct(driver SqlDriver, hostpath string, port int, hostname, username, password string)
-
 Varchar = clone{i int} string :
     len that <= i 
 
+SqlDb = wrapper *sql.DB
+
+def
+
+SqlDb(driver SqlDriver, hostpath string, port int, hostname, username, password string) :
+    goMakeSqlConnection(string(driver), "host="+hostpath + " port=" + string(port) + " dbname=" + hostname ..
+                              + " user=" + username + " password=" + password + "sslmode=disable")
+
+SqlDb(driver SqlDriver) :
+    driver != SQLITE : // Someone might make another one.
+        error "only Sqlite can be used in-memory"
+    else :
+        goMakeSqlConnection(string(driver), ":memory:")
+
+goMakeSqlConnection(driver string, connectionString string) -> SqlDb/error : golang {
+    var driversMap = map[string]string{"COCKROACHDB": "postgres", "FIREBIRD_SQL": "firebirdsql", "MARIADB": "mysql", "MICROSOFT_SQL_SERVER": "sqlserver", "MYSQL": "mysql",
+	"ORACLE": "oracle", "POSTGRESQL": "postgres", "SNOWFLAKE": "snowflake", "SQLITE": "sqlite", "TIDB": "mysql"}
+    sqlObj, connectionError := sql.Open(driversMap[driver], connectionString)
+    if connectionError != nil {
+        return connectionError
+    }
+    pingError := sqlObj.Ping()
+    if pingError != nil {
+        return pingError
+    }
+    return sqlObj
+}  
+				
 cmd
 
 get(x ref) as (t type) from (y SqlDb, z snippet) : builtin "get_sql_as"
@@ -23,5 +53,4 @@ ping (db SqlDb) :
     get _ as int from db -- SELECT 1
 
 post to (sql SqlDb, S snippet) : builtin "post_sql"
-
 

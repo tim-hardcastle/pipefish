@@ -126,7 +126,12 @@ func TestCompilerErrors(cp *compiler.Compiler, s string) (string, error) {
 	if !cp.ErrorsExist() {
 		return "", errors.New("unexpected successful evaluation returned " + text.Emph(cp.Vm.Literal(v, 0)))
 	} else {
-		return cp.P.Common.Errors[0].ErrorId, nil
+		topError := cp.P.Common.Errors[0]
+		// This will at least crash if the explanation mistypes the arguments.
+		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
+			ec.Explanation(topError.Token, topError.Args...)
+		}
+		return topError.ErrorId, nil
 	}
 }
 

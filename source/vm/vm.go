@@ -15,7 +15,6 @@ import (
 
 	"src.elv.sh/pkg/persistent/vector"
 
-	"github.com/tim-hardcastle/pipefish/source/database"
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/text"
@@ -795,7 +794,7 @@ loop:
 				// 0: the destination, which ends up as OK or an error, i.e. it's what the command returns.
 				// 1: the address of the reference variable: where we put what we get from SQL.
 				// 2: the desired type of the result
-				// 3: the database
+				// 3: the database connection
 				// 4: the snippet
 				// 5: 0 for `as`, 1 for `like`.
 				// 6: the token
@@ -805,27 +804,8 @@ loop:
 					break Switch
 				}
 				cType := rType.Types[0]
-				dbValue := vm.Mem[args[3]].V.([]values.Value)
-				driverNo := dbValue[0].V.(int)
-				host := dbValue[1].V.(string)
-				port := dbValue[2].V.(int)
-				name := dbValue[3].V.(string)
-				user := dbValue[4].V.(string)
-				password := dbValue[5].V.(string)
-				connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
-					host, port, name, user, password)
-				sqlObj, connectionError := sql.Open(database.SqlDrivers[driverNo], connectionString)
-				if connectionError != nil {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/connect/a", args[6], connectionError.Error())
-					vm.Mem[args[1]] = vm.Mem[args[0]]
-					break Switch
-				}
-				pingError := sqlObj.Ping()
-				if pingError != nil {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/ping/a", args[6], pingError.Error())
-					vm.Mem[args[1]] = vm.Mem[args[0]]
-					break Switch
-				}
+				sqlObj := vm.Mem[args[3]].V.(*sql.DB)
+				
 				snippet := vm.Mem[args[4]].V.(values.Snippet).Data
 				buf := strings.Builder{}
 				vals := make([]values.Value, 0, len(snippet)/2)
@@ -1295,25 +1275,7 @@ loop:
 					fmt.Println(vm.DefaultDescription(vm.Mem[args[0]]))
 				}
 			case Psql:
-				dbValue := vm.Mem[args[1]].V.([]values.Value)
-				driverNo := dbValue[0].V.(int)
-				host := dbValue[1].V.(string)
-				port := dbValue[2].V.(int)
-				name := dbValue[3].V.(string)
-				user := dbValue[4].V.(string)
-				password := dbValue[5].V.(string)
-				connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
-					host, port, name, user, password)
-				sqlObj, connectionError := sql.Open(database.SqlDrivers[driverNo], connectionString)
-				if connectionError != nil {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/connect/b", args[3], connectionError.Error())
-					break Switch
-				}
-				pingError := sqlObj.Ping()
-				if pingError != nil {
-					vm.Mem[args[0]] = vm.makeError("vm/sql/ping/b", args[3], pingError.Error())
-					break Switch
-				}
+				sqlObj := vm.Mem[args[1]].V.(*sql.DB)
 				snippet := vm.Mem[args[2]].V.(values.Snippet).Data
 				buf := strings.Builder{}
 				vals := make([]values.Value, 0, len(snippet)/2)

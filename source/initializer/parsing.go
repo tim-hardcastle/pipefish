@@ -464,6 +464,7 @@ loop:
 // Most boilerplate (constructors of types) can be generated and compiled along the same path
 // as builtin functions. However, here we want to write the body of the function in Pipefish.
 func (iz *Initializer) createBoilerplate() {
+	//return
 	thingsToAdd := []tokenizedCode{}
 	for _, dec := range iz.tokenizedCode[commandDeclaration] {
 		cmd := dec.(*tokenizedFunctionDeclaration)
@@ -490,8 +491,11 @@ func (iz *Initializer) createBoilerplate() {
 			newBody.Append(cmd.op)
 		}
 		refNames := []token.Token{}
-		for _, pair := range cmd.sig {
+		for i, pair := range cmd.sig {
 			newBody.Append(pair.Name)
+			if i+1 < len(cmd.sig) && !(pair.IsBling() || cmd.sig[i+1].IsBling()) {
+				newBody.Append(token.Token{Type: token.COMMA})
+			}
 			if len(pair.Typename) == 1 && pair.Typename[0].Literal == "ref" {
 				refNames = append(refNames, pair.Name)
 				newSig = append(newSig, parser.TokPair{pair.Name,
