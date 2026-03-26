@@ -1030,8 +1030,8 @@ func (iz *Initializer) createStructLabels() {
 		dec := tc.(*tokenizedStructDeclaration)
 		name := dec.op.Literal
 		indexToken := ixPtr(dec)
-		labelsForStruct := iz.makeLabelsFromSig(iz.makeAstSigFromTokenizedSig(dec.sig), dec.private, indexToken)
 		sig := iz.makeAstSigFromTokenizedSig(dec.sig)
+		labelsForStruct := iz.makeLabelsFromSig(sig, dec.private, indexToken)
 		if len(dec.params) > 0 {
 			ty := iz.makeTypeWithParameters(dec.op, dec.params)
 			argIndex := iz.paramTypeExists(ty)
@@ -1129,7 +1129,7 @@ func (iz *Initializer) registerParameterizedType(name string, ty *parser.TypeWit
 	thingToAdd := parameterInfo{iz.astParamsToNames(ty.Parameters),
 		iz.astParamsToValueTypes(ty.Parameters), opList,
 		typeCheck, parentType, nil, private, supertype, tok}
-	iz.cp.TypeMap[supertype] = values.AbstractType{}
+	iz.cp.AbstractTypesByName[supertype] = values.AbstractType{}
 	if ok {
 		info = append(info, thingToAdd)
 		iz.parameterizedTypes[name] = info
@@ -1187,7 +1187,7 @@ func (iz *Initializer) createAbstractTypes() {
 	for _, tc := range iz.tokenizedCode[abstractDeclaration] {
 		dec := tc.(*tokenizedAbstractDeclaration)
 		newTypename := dec.op.Literal
-		iz.cp.TypeMap[newTypename] = values.AbT()
+		iz.cp.AbstractTypesByName[newTypename] = values.AbT()
 		iz.cp.P.Typenames = iz.cp.P.Typenames.Add(newTypename)
 		if settings.MandatoryImportSet().Contains(dec.op.Source) {
 			iz.unserializableTypes.Add(newTypename)
@@ -1199,7 +1199,7 @@ func (iz *Initializer) createAbstractTypes() {
 				iz.throw("init/type/known", &typeTok)
 				break
 			}
-			iz.cp.TypeMap[newTypename] = iz.cp.TypeMap[newTypename].Union(iz.cp.GetAbstractTypeFromTypeName(tname, dec.op))
+			iz.cp.AbstractTypesByName[newTypename] = iz.cp.AbstractTypesByName[newTypename].Union(iz.cp.GetAbstractTypeFromTypeName(tname, dec.op))
 		}
 		_, typeExists := iz.getDeclaration(decABSTRACT, ixPtr(dec), DUMMY)
 		if !typeExists {
@@ -1227,7 +1227,7 @@ func (iz *Initializer) createInterfaceTypes() {
 			typeInfo = append(typeInfo, fnSigInfo{functionName, astSig, retSig})
 			iz.addWordsToParser(sig)
 		}
-		iz.cp.TypeMap[newTypename] = values.AbT() // We can't populate the interface types before we've parsed everything.
+		iz.cp.AbstractTypesByName[newTypename] = values.AbT() // We can't populate the interface types before we've parsed everything.
 		_, typeExists := iz.getDeclaration(decINTERFACE, &nameTok, DUMMY)
 		if !typeExists {
 			iz.setDeclaration(decINTERFACE, &nameTok, DUMMY, interfaceInfo{typeInfo})
@@ -1246,7 +1246,7 @@ func (iz *Initializer) createAliasTypes() {
 		if settings.MandatoryImportSet().Contains(nameTok.Source) {
 			iz.unserializableTypes.Add(newTypename)
 		}
-		iz.cp.TypeMap[newTypename] = values.AbT() // We can't populate the interface types before we've parsed everything.
+		iz.cp.AbstractTypesByName[newTypename] = values.AbT() // We can't populate the interface types before we've parsed everything.
 		_, typeExists := iz.getDeclaration(decALIAS, &nameTok, DUMMY)
 		if !typeExists {
 			iz.setDeclaration(decALIAS, &nameTok, DUMMY, nil)

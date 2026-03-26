@@ -1,0 +1,31 @@
+import
+
+NULL::"database/sql"
+
+newtype 
+
+Data = struct(aString string, anInt int, aBool bool?)
+
+const 
+
+SQL = SqlDb(SQLITE)
+
+cmd 
+
+init : 
+    post to SQL -- CREATE TABLE IF NOT EXISTS Data |Data|
+
+add(aString string, anInt int, aBool bool?) :
+    post to SQL -- INSERT INTO Data VALUES(|aString|, |anInt|, |aBool|)
+
+gnorbi(anInt int) :
+    get result like list{Data} from SQL --
+        SELECT * FROM Data
+        WHERE anInt = |anInt|
+    post len result
+
+testA :
+    add "foo", 42, true 
+    add "bar", 42, false
+    add "qux", 99, NULL 
+    gnorbi 42 

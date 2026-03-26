@@ -44,7 +44,7 @@ type Compiler struct {
 	DocString                string                             // Doctring for the module.
 	API                      string                             // If the compiler is the root of the service, this will contain the serialized API of the service.
 	ApiDescription           [][]ApiItem                        // Data used to generate a description of the API.
-	TypeMap                  TypeSys                            // Abstract types indexed by name.
+	AbstractTypesByName      TypeSys                            // Abstract types indexed by name.
 
 	// Temporary state.
 	ThunkList          []ThunkData                   // Records what thunks we made so we know what to unthunk at the top of the function.
@@ -72,7 +72,7 @@ func NewCompiler(p *parser.Parser, ccb *CommonCompilerBindle) *Compiler {
 		Common:                   ccb,
 		GeneratedAbstractTypes:   make(dtypes.Set[string]),
 		FunctionForest:           make(map[string]*FunctionTree),
-		TypeMap:                  TypeSys{},
+		AbstractTypesByName:      TypeSys{},
 	}
 	for name := range ClonableTypes {
 		newC.GeneratedAbstractTypes.Add("clones{" + name + "}")
@@ -89,7 +89,7 @@ type CommonCompilerBindle struct {
 	IsRangeable              AlternateType
 	CodeGeneratingTypes      dtypes.Set[values.ValueType]
 	LabelIsPrivate           []bool
-	Types                    TypeSys
+	AbstractTypesByName      TypeSys
 	CompilerCount            uint32
 }
 
@@ -102,7 +102,7 @@ func NewCommonCompilerBindle() *CommonCompilerBindle {
 		AnyTypeScheme:       AlternateType{},
 		AnyTuple:            AlternateType{},
 		CodeGeneratingTypes: (make(dtypes.Set[values.ValueType])).Add(values.FUNC),
-		Types:               NewCommonTypeMap(),
+		AbstractTypesByName: NewCommonTypeMap(),
 	}
 	for _, name := range AbstractTypesOtherThanAny {
 		newBindle.SharedTypenameToTypeList[name] = AltType()

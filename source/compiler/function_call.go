@@ -558,7 +558,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 				// It could be the alias of a parameterized type constructor.
 				if text.Head(builtinTag, "$a_") {
 					alias := builtinTag[3:]
-					aliasedTypeNumber := cp.TypeMap[alias].Types[0]
+					aliasedTypeNumber := cp.AbstractTypesByName[alias].Types[0]
 					cp.Reserve(values.TYPE, values.AbstractType{Types: []values.ValueType{aliasedTypeNumber}}, b.tok)
 					b.valLocs = append([]uint32{cp.That()}, b.valLocs...)
 					builtinTag = strings.Split(cp.Vm.ConcreteTypeInfo[aliasedTypeNumber].GetName(vm.DEFAULT), "{")[0] + "{}" // TODO --- yuck.
@@ -579,10 +579,10 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 							functionAndType.T = functionAndType.T.Union(cp.TypeToCloneGroup[st])
 							functionAndType.T = functionAndType.T.Union(AltType(st))
 							if st == values.INT { // If it's an int we may be casting it to an enum.
-								functionAndType.T = functionAndType.T.Union(AbstractTypeToAlternateType(cp.Common.Types["enum"]))
+								functionAndType.T = functionAndType.T.Union(AbstractTypeToAlternateType(cp.Common.AbstractTypesByName["enum"]))
 							}
 							if st == values.LIST { // If it's a list we may be casting it to a struct.
-								functionAndType.T = functionAndType.T.Union(AbstractTypeToAlternateType(cp.Common.Types["struct"]))
+								functionAndType.T = functionAndType.T.Union(AbstractTypeToAlternateType(cp.Common.AbstractTypesByName["struct"]))
 							}
 						}
 						// TODO --- if the rhs is const, as it often will be, we can infer further.

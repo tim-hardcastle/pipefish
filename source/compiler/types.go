@@ -136,11 +136,11 @@ func (cp *Compiler) MakeAbstractSigFromStringSig(sig parser.AstSig) parser.Abstr
 
 func (cp *Compiler) TypeExists(name string) bool {
 	// Check if it's a shared type: 'int', 'struct', 'like{list}', 'any?' etc.
-	if _, ok := cp.Common.Types[name]; ok {
+	if _, ok := cp.Common.AbstractTypesByName[name]; ok {
 		return true
 	}
 	// ... or the result should just be in the parser's own type map.
-	_, ok := cp.TypeMap[name]
+	_, ok := cp.AbstractTypesByName[name]
 	return ok
 }
 
@@ -186,11 +186,11 @@ func (cp *Compiler) GetAbstractTypeFromAstType(typeNode parser.TypeNode) values.
 
 func (cp *Compiler) GetAbstractTypeFromTypeName(name string, tok token.Token) values.AbstractType {
 	// Check if it's a shared type: 'int', 'struct', 'clones{list}', 'any?' etc.
-	if result, ok := cp.Common.Types[name]; ok {
+	if result, ok := cp.Common.AbstractTypesByName[name]; ok {
 		return result
 	}
 	// ... or the result should just be in the parser's own type map.
-	if result, ok := cp.TypeMap[name]; ok {
+	if result, ok := cp.AbstractTypesByName[name]; ok {
 		return result
 	}
 	if name != "" {

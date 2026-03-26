@@ -981,7 +981,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 
 	"comp/type/concrete": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "abstract type" + emph(tok) + " used as prefix"
+			return "abstract type " + emph(tok) + " used as prefix"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "When a type is used as a prefix, it is always a type constructor, a function that " +

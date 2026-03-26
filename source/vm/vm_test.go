@@ -698,6 +698,12 @@ func TestSnippet(t *testing.T) {
 	}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
 }
+func TestSql(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`testA`, `2`},
+	}
+	test_helper.RunTest(t, "sql_test.pf", tests, test_helper.TestOutput)
+}
 func TestStructs(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`doug`, `Person with (name::"Douglas", age::42)`},

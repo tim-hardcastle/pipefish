@@ -323,14 +323,20 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		// We find the corresponding parameterized type.
 		argIndex := iz.findParameterizedType(ty.Name, Values(ty))
 		parTypeInfo := iz.parameterizedTypes[ty.Name][argIndex]
+		// We want to add the type to the common types if the parameterized type is
+		// declared in the builtins.
+		typeMap := iz.cp.AbstractTypesByName
+		if settings.MandatoryImportSet().Contains(parTypeInfo.Token.Source) {
+			typeMap = iz.cp.Common.AbstractTypesByName
+		}
 
 		ultratype := ty.Name + "{_}"
 		iz.cp.GeneratedAbstractTypes.Add(ultratype)
-		if _, ok := iz.cp.TypeMap[ultratype]; !ok {
-			iz.cp.TypeMap[ultratype] = values.AbstractType{}
+		if _, ok := typeMap[ultratype]; !ok {
+			typeMap[ultratype] = values.AbstractType{}
 		}
-		if _, ok := iz.cp.TypeMap[parTypeInfo.Supertype]; !ok {
-			iz.cp.TypeMap[parTypeInfo.Supertype] = values.AbstractType{}
+		if _, ok := typeMap[parTypeInfo.Supertype]; !ok {
+			typeMap[parTypeInfo.Supertype] = values.AbstractType{}
 		}
 		private := parTypeInfo.IsPrivate
 		isClone := !(parTypeInfo.ParentType == "struct")
@@ -366,9 +372,9 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 			stT = stT.AddLabels(labelsForStruct)
 			iz.cp.Vm.ConcreteTypeInfo[typeNo] = stT
 		}
-		iz.cp.TypeMap[ty.String()] = values.AbstractType{[]values.ValueType{typeNo}}
-		iz.cp.TypeMap[parTypeInfo.Supertype] = iz.cp.TypeMap[parTypeInfo.Supertype].Insert(typeNo)
-		iz.cp.TypeMap[ultratype] = iz.cp.TypeMap[ultratype].Insert(typeNo)
+		typeMap[ty.String()] = values.AbstractType{[]values.ValueType{typeNo}}
+		typeMap[parTypeInfo.Supertype] = typeMap[parTypeInfo.Supertype].Insert(typeNo)
+		typeMap[ultratype] = typeMap[ultratype].Insert(typeNo)
 		iz.cp.P.Typenames = iz.cp.P.Typenames.Add(ty.Token.Literal)
 		var opInfo typeOperatorInfo
 		if opInfo, ok = operatorSpecificInfo[ty.Name]; ok {
@@ -381,7 +387,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 			operatorSpecificInfo[ty.Name] = opInfo
 		}
 		iz.parameterizedInstanceMap[newTypeName] = parameterizedTypeInstance{ty, newEnv, parTypeInfo.Typecheck, sig, vals}
-		iz.cp.TypeMap[parTypeInfo.Supertype] = iz.cp.TypeMap[parTypeInfo.Supertype].Insert(typeNo)
+		typeMap[parTypeInfo.Supertype] = typeMap[parTypeInfo.Supertype].Insert(typeNo)
 		// If the type has aliases, each of them will need its own constructor.
 		if aliases, ok := iz.reverseAliasMap[ty.String()]; ok {
 			for _, alias := range aliases {
@@ -468,7 +474,7 @@ func (iz *Initializer) finishMakingAliasTypes() {
 			iz.throw("init/alias/type", &tc.op, aliasedTypeName)
 			continue
 		}
-		iz.cp.TypeMap[tc.op.Literal] = values.AbstractType{Types: []values.ValueType{typeNumber}}
+		iz.cp.AbstractTypesByName[tc.op.Literal] = values.AbstractType{Types: []values.ValueType{typeNumber}}
 	}
 	iz.P.ParTypeInstances = nil // Having to keep this in the parser is an annoying kludge, so we remove the data manually now we've used it.
 }
@@ -565,7 +571,7 @@ func (iz *Initializer) populateInterfaceTypes() {
 			}
 		}
 		// We have created an abstract type from our interface! We put it in the type map.
-		iz.cp.TypeMap[dec.op.Literal] = types
+		iz.cp.AbstractTypesByName[dec.op.Literal] = types
 		iz.addTypeToVm(vm.AbstractTypeInfo{dec.op.Literal, iz.P.NamespacePath, types, settings.MandatoryImportSet().Contains(dec.op.Source)})
 		// And we add all the implicated functions to the function table.
 		for _, ty := range types.Types {
@@ -602,10 +608,10 @@ func (iz *Initializer) populateAbstractTypes() {
 func (iz *Initializer) addAbstractTypesToVm() {
 	// For consistent results for tests, it is desirable that the types should be listed in a fixed order.
 	keys := []string{}
-	for typeName, _ := range iz.cp.TypeMap {
+	for typeName, _ := range iz.cp.AbstractTypesByName {
 		keys = append(keys, typeName)
 	}
-	for typeName, _ := range iz.cp.Common.Types {
+	for typeName, _ := range iz.cp.Common.AbstractTypesByName {
 		keys = append(keys, typeName)
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
@@ -642,10 +648,10 @@ func (iz *Initializer) addAbstractTypesToVm() {
 // entirely finished generating the data in the parsers.
 func (iz *Initializer) makeAlternateTypesFromAbstractTypes() {
 	iz.cp.TypeNameToTypeScheme = make(map[string]compiler.AlternateType)
-	for typename, abType := range iz.cp.TypeMap {
+	for typename, abType := range iz.cp.AbstractTypesByName {
 		iz.cp.TypeNameToTypeScheme[typename] = compiler.AbstractTypeToAlternateType(abType)
 	}
-	for typename, abType := range iz.cp.Common.Types {
+	for typename, abType := range iz.cp.Common.AbstractTypesByName {
 		iz.cp.TypeNameToTypeScheme[typename] = compiler.AbstractTypeToAlternateType(abType)
 	}
 }
@@ -1643,18 +1649,18 @@ func (iz *Initializer) resolveInterfaceBacktracks() {
 // Adds a concrete type to the parser, and to the common types it falls under (at least `any` and `any?`).
 func (iz *Initializer) addType(name, supertype string, typeNo values.ValueType) {
 	iz.localConcreteTypes = iz.localConcreteTypes.Add(typeNo)
-	iz.cp.TypeMap[name] = values.AbT(typeNo)
+	iz.cp.AbstractTypesByName[name] = values.AbT(typeNo)
 	iz.cp.P.Typenames = iz.cp.P.Typenames.Add(name)
 	iz.cp.Vm.NamespaceInfo[iz.cp.Number][typeNo] = ""
 	types := []string{}
 	if supertype != "wrapper" {
 		types = []string{supertype}
-		iz.cp.TypeMap[supertype] = iz.cp.TypeMap[supertype].Insert(typeNo)
+		iz.cp.AbstractTypesByName[supertype] = iz.cp.AbstractTypesByName[supertype].Insert(typeNo)
 		iz.cp.Common.AddTypeNumberToSharedAlternateTypes(typeNo, types...)
 	}
 	types = append(types, "any")
 	for _, sT := range types {
-		iz.cp.Common.Types[sT] = iz.cp.Common.Types[sT].Insert(typeNo)
+		iz.cp.Common.AbstractTypesByName[sT] = iz.cp.Common.AbstractTypesByName[sT].Insert(typeNo)
 	}
 }
 
