@@ -193,6 +193,7 @@ func (l *lexer) getTokens() []token.Token {
 		if _, err := strconv.ParseFloat(numString, 64); err == nil {
 			return []token.Token{l.NewToken(token.FLOAT, numString)}
 		}
+		l.runes.Next()
 		return []token.Token{l.Throw("lex/num", numString)}
 	}
 
@@ -622,7 +623,7 @@ func IsUnderscore(ch rune) bool {
 }
 
 func IsDigit(ch rune) bool {
-	return unicode.IsNumber(ch)
+	return ('0' <= ch && ch <= '9')
 }
 
 func IsBinaryDigit(ch rune) bool {
