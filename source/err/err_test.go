@@ -255,7 +255,6 @@ func TestMiscellaneousCtes(t *testing.T) {
 		{`"foo" ...`, `comp/splat/type`},
 		{`42 >> that`, `comp/pipe/mf/list`},
 		{`[1, 2, 3] ?> 2 * that`, `comp/pipe/filter/bool`},
-		{`-- foo |(1, 2, 3)| bar`, `comp/snippet/tuple`},
 		{`1 given : 2`, `comp/expect/given`},
 		{`zwub 5`, `comp/known/prefix`},
 	}

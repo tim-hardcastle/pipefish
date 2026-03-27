@@ -8,6 +8,21 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestSql(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`testA`, `2`},
+		{`testB`, `2`},
+		{`testC`, `2`},
+		{`testD`, `2`},
+		{`testE`, `Dragon with (name::"Smaug", color::RED)`},
+		{`testF`, `"Puff"::GREEN`},
+		{`testG`, `map("Puff"::GREEN)`},
+		{`testH`, `2`},
+		{`testI`, `OtherData with (neString::NonEmptyString("foo"), nzInt::NonZeroInt(42))`},
+	}
+	test_helper.RunTest(t, "sql_test.pf", tests, test_helper.TestOutput)
+}
+
 func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`x`, `'q'`},
@@ -698,12 +713,7 @@ func TestSnippet(t *testing.T) {
 	}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
 }
-func TestSql(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`testA`, `2`},
-	}
-	test_helper.RunTest(t, "sql_test.pf", tests, test_helper.TestOutput)
-}
+
 func TestStructs(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`doug`, `Person with (name::"Douglas", age::42)`},

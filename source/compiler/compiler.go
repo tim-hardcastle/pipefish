@@ -2434,7 +2434,8 @@ func (cp *Compiler) compileSnippet(tok *token.Token, newEnv *Environment, nodes 
 				return nil
 			}
 			val := cp.That()
-			if cResult.Types.Contains(values.TUPLE) {
+			lens := lengths(cResult.Types)
+			if lens.Contains(-1) || len(lens) != 1 {
 				cp.Throw("comp/snippet/tuple", tok)
 				return nil
 			}

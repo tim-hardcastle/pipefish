@@ -633,7 +633,6 @@ func TestMiscellaneousCompilerErrors(t *testing.T) {
 		{`"foo" ...`, `comp/splat/type`},
 		{`42 >> that`, `comp/pipe/mf/list`},
 		{`[1, 2, 3] ?> 2 * that`, `comp/pipe/filter/bool`},
-		{`-- foo |(1, 2, 3)| bar`, `comp/snippet/tuple`},
 		{`1 given : 2`, `comp/expect/given`},
 		{`zwub 5`, `comp/known/prefix`},
 	}
@@ -698,6 +697,12 @@ func TestSnippets(t *testing.T) {
 		{`len snippet(1, "q", true)`, `3`},
 	}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
+}
+func TestSql(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`testE`, `Dragon with (name::"Smaug", color::RED)`},
+	}
+	test_helper.RunTest(t, "sql_test.pf", tests, test_helper.TestOutput)
 }
 func TestStructs(t *testing.T) {
 	tests := []test_helper.TestItem{

@@ -1278,12 +1278,13 @@ loop:
 				sqlObj := vm.Mem[args[1]].V.(*sql.DB)
 				snippet := vm.Mem[args[2]].V.(values.Snippet).Data
 				buf := strings.Builder{}
-				vals := make([]values.Value, 0, len(snippet)/2)
+				vals := []values.Value{}
 				for i, v := range snippet {
 					if i%2 == 0 {
 						buf.WriteString(v.V.(string))
 					} else {
-						if v.T == values.TYPE {
+						switch v.T {
+						case values.TYPE : // We're turning a Pipefish type into the signature of a SQL table.
 							if v.V.(values.AbstractType).Len() != 1 {
 								vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/d", args[3], vm.DescribeAbstractType(v.V.(values.AbstractType), LITERAL, 0))
 								break Switch
@@ -1295,10 +1296,20 @@ loop:
 								break Switch
 							}
 							buf.WriteString(sqlSig)
-						} else {
+						case values.TUPLE:
+							valsToAdd :=  v.V.([]values.Value)
+							sep := ""
+							for i := len(vals) + 1; i < len(vals) + 1 + len(valsToAdd); i++ {
+								buf.WriteString(sep)
+								buf.WriteString("$")
+								buf.WriteString(strconv.Itoa(i))
+								sep = ", "
+							}
+							vals = append(vals, valsToAdd...)
+						default:
 							vals = append(vals, v)
 							buf.WriteString("$")
-							buf.WriteString(strconv.Itoa(1 + i/2))
+							buf.WriteString(strconv.Itoa(len(vals)))
 						}
 					}
 				}

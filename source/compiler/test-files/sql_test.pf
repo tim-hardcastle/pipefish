@@ -4,7 +4,16 @@ NULL::"database/sql"
 
 newtype 
 
+NonEmptyString = clone string :
+    that != ""
+
+NonZeroInt = clone int :
+    that != 0
+
 Data = struct(aString string, anInt int, aBool bool?)
+OtherData = struct(neString NonEmptyString, nzInt NonZeroInt)
+Color = enum RED, YELLOW, GREEN, BLUE
+Dragon = struct(name string, color Color)
 
 const 
 
@@ -13,19 +22,119 @@ SQL = SqlDb(SQLITE)
 cmd 
 
 init : 
-    post to SQL -- CREATE TABLE IF NOT EXISTS Data |Data|
+    post to SQL --
+        CREATE TABLE IF NOT EXISTS Data |Data|;
+        CREATE TABLE IF NOT EXISTS OtherData |OtherData|;
+        CREATE TABLE IF NOT EXISTS Dragons |Dragon|
 
 add(aString string, anInt int, aBool bool?) :
     post to SQL -- INSERT INTO Data VALUES(|aString|, |anInt|, |aBool|)
 
-gnorbi(anInt int) :
+addO(neString NonEmptyString, nzInt NonZeroInt) :
+    post to SQL -- INSERT INTO OtherData VALUES(|neString, nzInt|)
+
+addT(aString string, anInt int, aBool bool?) :
+    post to SQL -- INSERT INTO Data VALUES(|aString, anInt, aBool|)
+
+addDragon(name string, color Color) :
+    post to SQL -- INSERT INTO Dragons VALUES(|name|, |color|)
+
+gnorbiA(anInt int) :
     get result like list{Data} from SQL --
         SELECT * FROM Data
         WHERE anInt = |anInt|
     post len result
 
+gnorbiB(anInt int) :
+    get result as list{Data} from SQL --
+        SELECT * FROM Data
+        WHERE anInt = |anInt|
+    post len result
+
+gnorbiC(anInt int) :
+    get result like set{Data} from SQL --
+        SELECT * FROM Data
+        WHERE anInt = |anInt|
+    post len result
+
+gnorbiD(anInt int) :
+    get result like list{map} from SQL --
+        SELECT * FROM Data
+        WHERE anInt = |anInt|
+    post len result
+
+
+
 testA :
     add "foo", 42, true 
     add "bar", 42, false
     add "qux", 99, NULL 
-    gnorbi 42 
+    gnorbiA 42 
+
+testB :
+    add "foo", 42, true 
+    add "bar", 42, false
+    add "qux", 99, NULL 
+    gnorbiB 42 
+
+testC :
+    add "foo", 42, true 
+    add "bar", 42, false
+    add "qux", 99, NULL 
+    gnorbiC 42
+    
+testD :
+    add "foo", 42, true 
+    add "bar", 42, false
+    add "qux", 99, NULL 
+    gnorbiD 42 
+
+testE :
+    addDragon "Smaug", RED
+    addDragon "Puff", GREEN
+    gdbnE("Smaug")
+
+testF :
+    addDragon "Smaug", RED
+    addDragon "Puff", GREEN
+    gdbnF("Puff")
+
+testG :
+    addDragon "Smaug", RED
+    addDragon "Puff", GREEN
+    gdbnG("Puff")
+
+testH :
+    addT "foo", 42, true 
+    addT "bar", 42, false
+    addT "qux", 99, NULL 
+    gnorbiD 42 
+
+testI :
+    addO NonEmptyString("foo"), NonZeroInt(42)
+    get result like OtherData from SQL --
+        SELECT * FROM OtherData
+        WHERE neString = 'foo'
+    post result
+
+gdbnE(name string) :
+    get result like Dragon from SQL --
+        SELECT * FROM Dragons
+        WHERE name = |name|
+    post result
+
+gdbnF(name string) :
+    get result like pair{string, Color} from SQL --
+        SELECT * FROM Dragons
+        WHERE name = |name|
+    post result
+
+gdbnG(name string) :
+    get result like map{string, Color} from SQL --
+        SELECT * FROM Dragons
+        WHERE name = |name|
+    post result
+
+
+
+
