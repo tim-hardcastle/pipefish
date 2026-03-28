@@ -96,8 +96,9 @@ type TypeExpressionInfo struct {
 }
 
 // Parses one line of code supplied as a string.
+// Note that this is also used by the snippet parser, which might be confusing.
 func (p *Parser) ParseLine(source, input string) Node {
-	p.ResetAfterError()
+	p.ResetParser()
 	rl := lexer.NewRelexer(source, input)
 	p.TokenizedCode = rl
 	result := p.ParseTokenizedChunk()
@@ -340,6 +341,9 @@ func (p *Parser) ParseExpression(precedence int) Node {
 
 	if p.PeekToken.Type == token.EMDASH {
 		right := p.parseSnippetExpression(p.PeekToken)
+		if right == nil {
+			return nil
+		}
 		tok := token.Token{token.COMMA, ",", p.PeekToken.Line, p.PeekToken.ChStart,
 			p.PeekToken.ChEnd, p.PeekToken.Source, ""}
 		children := []Node{leftExp, &Bling{tok, ","}, right}

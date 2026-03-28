@@ -2675,7 +2675,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return "`|` symbol in snippet left unclosed by end of snippet"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "Within a snipped, the `|` characters are meant to come in pairs aorund Pipefish expressions."
+			return "Within a snippet, the `|` characters are meant to come in pairs around Pipefish expressions."
 		},
 	},
 
