@@ -42,7 +42,6 @@ type Hub struct {
 	snap                   *Snap
 	oldServiceName         string // Somewhere to keep the old service name while taking a snap. TODO --- you can now take snaps on their own dedicated hub, saving a good deal of faffing around.
 	Sources                map[string][]string
-	lastRun                []string
 	Db                     *sql.DB
 	administered           bool
 	listeningToHttpOrHttps bool
@@ -60,7 +59,6 @@ func New(path string, out io.Writer) *Hub {
 	h := Hub{
 		Services: make(map[string]*pf.Service),
 		Out:      out,
-		lastRun:  []string{},
 	}
 	h.OpenHubFile(filepath.Join(path, "hub.hub"))
 	return &h
@@ -497,16 +495,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.WritePretty("Restarting script <C>\"" + filepath +
 			"\"</> as service <C>\"" + h.currentServiceName() + "\"</>.\n")
 		h.StartAndMakeCurrent(username, h.currentServiceName(), filepath)
-		h.lastRun = []string{h.currentServiceName()}
-	case "rerun":
-		if len(h.lastRun) == 0 {
-			h.WriteError("nothing to rerun.")
-		}
-		filepath, _ := h.Services[h.lastRun[0]].GetFilepath()
-		h.WritePretty("Rerunning script <C>\"" + filepath +
-			"</>\" as service <C>\"" + h.lastRun[0] + "\"</>.\n")
-		h.StartAndMakeCurrent(username, h.lastRun[0], filepath)
-		h.tryMain()
 	case "run":
 		fname := args[0]
 		sname := args[1]
@@ -517,7 +505,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			dir, _ := os.Getwd()
 			fname = filepath.Join(dir, fname)
 		}
-		h.lastRun = []string{fname, sname}
 		h.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.")
 		h.StartAndMakeCurrent(username, sname, fname)
 		h.tryMain()
@@ -853,7 +840,6 @@ func (hub *Hub) StartAndMakeCurrent(username, serviceName, scriptFilepath string
 func (hub *Hub) tryMain() { // Guardedly tries to run the `main` command.
 	if !hub.Services[hub.currentServiceName()].IsBroken() {
 		val, _ := hub.Services[hub.currentServiceName()].CallMain()
-		hub.lastRun = []string{hub.currentServiceName()}
 		switch val.T {
 		case pf.ERROR:
 			hub.WritePretty("\n[0] " + valToString(hub.Services[hub.currentServiceName()], val))
