@@ -11,10 +11,12 @@
 <a href="https://github.com/tim-hardcastle/pipefish/actions?query=workflow%3A%22Tests%22">
     <img src="https://github.com/tim-hardcastle/pipefish/actions/workflows/Tests.yml/badge.svg?branch=main">
 </a>
-[![codecov](https://codecov.io/gh/tim-hardcastle/pipefish/branch/main/graph/badge.svg)](https://codecov.io/gh/tim-hardcastle/pipefish)
+
 <a href="https://dune.fandom.com/wiki/Butlerian_Jihad">
     <img src="https://img.shields.io/badge/🚫_No_AI-Handbuilt_from_'if'_statements-blue">
 </a>
+
+[![codecov](https://codecov.io/gh/tim-hardcastle/pipefish/branch/main/graph/badge.svg)](https://codecov.io/gh/tim-hardcastle/pipefish)
 
 ## Welcome to Pipefish!
 
