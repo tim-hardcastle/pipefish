@@ -12,7 +12,7 @@
     <img src="https://github.com/tim-hardcastle/pipefish/actions/workflows/Tests.yml/badge.svg?branch=main">
 </a>
 
-<a href="https://raw.githubusercontent.com/tim-hardcastle/pipefish/main/badge.svg">
+<a href="https://github.com/tim-hardcastle/pipefish/actions?query=workflow%3A%22Tests%22">
     <img src="https://raw.githubusercontent.com/tim-hardcastle/pipefish/main/badge.svg">
 </a>
 
