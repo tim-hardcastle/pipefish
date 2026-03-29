@@ -17,8 +17,6 @@ jobs:
       contents: write
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -28,15 +26,8 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Run tests with merged coverage
-      run: |
-        echo "mode: atomic" > coverage.out
-        for pkg in $(go list ./...); do
-          go test -coverprofile=profile.out -covermode=atomic $pkg
-          if [ -f profile.out ]; then
-            tail -n +2 profile.out >> coverage.out
-          fi
-        done
+    - name: Run and generate coverage report
+      run: go test -p 1 ./... -coverprofile=./coverage.out
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4
