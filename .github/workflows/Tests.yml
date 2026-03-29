@@ -13,8 +13,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    env:
-      CGO_ENABLED: 0
     permissions:
       contents: write
     steps:
