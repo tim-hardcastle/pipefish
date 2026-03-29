@@ -1,3 +1,9 @@
+coverage:
+  status:
+    project:
+      default:
+        enabled: no
+
 ignore:
   - "*_test.go"
 
