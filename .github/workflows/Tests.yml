@@ -37,5 +37,5 @@ jobs:
     - name: Upload coverage
       uses: codecov/codecov-action@v4
       with:
-        files: coverage_filtered.out
+        files: ./coverage_filtered.out
 
