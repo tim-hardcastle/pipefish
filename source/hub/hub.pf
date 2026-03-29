@@ -42,9 +42,6 @@ config admin(username, firstName, lastName, email, password string):
 create(grp string) :
     do("create", [grp])
 
-edit(filename string) :
-    do("edit", [filename])
-
 env (p pair) :
     global $_env 
     $_env = $_env with p
@@ -138,12 +135,6 @@ register :
 register (username, firstName, lastName, email, password string):
     do("register", [username, firstName, lastName, email, password])
 
-replay (filename string) :
-    do("replay", [filename])
-
-replay diff (filename string) :
-    do("replay-with-diff", [filename])
-
 reset :
     do("reset", [])
 
@@ -155,24 +146,6 @@ run(filename string) as (srv string) :
 
 serialize(srv string) :
     do("serialize", [srv])
-
-snap(filename string) :
-    do("snap", [filename, ""])
-
-snap(filename string) as (testName string) :
-    do("snap", [filename, testName])
-
-snap bad :
-    do("snap-bad", [])
-
-snap discard :
-    do("snap-discard", []) 
-
-snap good :
-    do("snap-good", [])
-    
-snap record :
-    do("snap-record", []) 
 
 services :
     do("services", [])

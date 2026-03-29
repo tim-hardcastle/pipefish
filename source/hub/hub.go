@@ -1,7 +1,6 @@
 package hub
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
@@ -39,8 +38,6 @@ type Hub struct {
 	Services               map[string]*pf.Service // The services the hub knows about.
 	ers                    []*pf.Error            // The errors produced by the latest compilation/execution of one of the hub's services.
 	Out                    io.Writer
-	snap                   *Snap
-	oldServiceName         string // Somewhere to keep the old service name while taking a snap. TODO --- you can now take snaps on their own dedicated hub, saving a good deal of faffing around.
 	Sources                map[string][]string
 	Db                     *sql.DB
 	administered           bool
@@ -179,11 +176,6 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 		hub.WriteString(string(out))
 		return passedServiceName, false
 	}
-
-	if hub.currentServiceName() == "#snap" {
-		hub.snap.AddInput(line)
-	}
-
 	hub.Sources["REPL input"] = []string{line}
 	hub.update()
 	serviceToUse = hub.Services[hub.currentServiceName()]
@@ -226,9 +218,6 @@ func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external b
 		}
 	} else if !serviceToUse.PostHappened() {
 		serviceToUse.Output(val)
-		if hub.currentServiceName() == "#snap" {
-			hub.snap.AddOutput(serviceToUse.ToLiteral(val))
-		}
 	}
 }
 
@@ -330,21 +319,11 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-
-	case "edit":
-		command := exec.Command("vim", args[0])
-		command.Stdin = os.Stdin
-		command.Stdout = os.Stdout
-		err := command.Run()
-		if err != nil {
-			h.WriteError(err.Error())
-		}
 	case "env":
 		// $_env has been updated by hub.pf. This is called by both `env` and `env delete`.
 		env, _ := h.Services["hub"].GetVariable("$_env")
 		h.store = env.V.(values.Map)
 		h.SaveAndPropagateHubStore()
-
 	case "env-key":
 		cur := args[0]
 		new := args[1]
@@ -359,7 +338,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.storekey = ""
 		h.store = values.Map{}
 		h.SaveAndPropagateHubStore()
-
 	case "errors":
 		r, _ := h.Services[h.currentServiceName()].GetErrorReport()
 		h.WritePretty(r)
@@ -389,7 +367,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError("the hub doesn't know what you want to stop.")
 		}
 		delete(h.Services, name)
-
 		if name == h.currentServiceName() {
 			h.makeEmptyServiceCurrent()
 		}
@@ -418,7 +395,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-
 	case "live-on":
 		h.setLive(true)
 	case "live-off":
@@ -467,22 +443,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.TerminalUsername = args[0]
 		h.TerminalPassword = args[4]
 		h.WriteString("You are logged in as " + h.TerminalUsername + ".\n")
-	case "replay":
-		h.oldServiceName = h.currentServiceName()
-		h.playTest(args[0], false)
-		h.setServiceName(h.oldServiceName)
-		_, ok := h.Services["#test"]
-		if ok {
-			delete(h.Services, "#test")
-		}
-	case "replay-diff":
-		h.oldServiceName = h.currentServiceName()
-		h.playTest(args[0], true)
-		h.setServiceName(h.oldServiceName)
-		_, ok := h.Services["#test"]
-		if ok {
-			delete(h.Services, "#test")
-		}
 	case "reset":
 		serviceToReset, ok := h.Services[h.currentServiceName()]
 		if !ok {
@@ -539,57 +499,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		} else {
 			h.WriteString(result)
 		}
-	case "snap":
-		scriptFilepath := args[0]
-		if filepath.IsLocal(scriptFilepath) {
-			dir, _ := os.Getwd()
-			scriptFilepath = filepath.Join(dir, scriptFilepath)
-		}
-		testFilepath := args[1]
-		if testFilepath == "" {
-			testFilepath = getUnusedTestFilename(scriptFilepath) // If no filename is given, we just generate one.
-		}
-		h.snap = NewSnap(scriptFilepath, testFilepath)
-		h.oldServiceName = h.currentServiceName()
-		if h.StartAndMakeCurrent(username, "#snap", scriptFilepath) {
-			snapService := h.Services["#snap"]
-			ty, _ := snapService.TypeNameToType("$_OutputAs")
-			snapService.SetVariable("$_outputAs", ty, 0)
-			h.WriteString("Serialization is ON.\n")
-			in, out := MakeSnapIo(snapService, h.Out, h.snap)
-			currentService := snapService
-			currentService.SetInHandler(in)
-			currentService.SetOutHandler(out)
-		} else {
-			h.WriteError("failed to start snap")
-		}
-	case "snap-good":
-		if h.currentServiceName() != "#snap" {
-			h.WriteError("you aren't taking a snap.")
-		}
-		result := h.snap.Save(GOOD)
-		h.WriteString(result + "\n")
-		h.setServiceName(h.oldServiceName)
-	case "snap-bad":
-		if h.currentServiceName() != "#snap" {
-			h.WriteError("you aren't taking a snap.")
-		}
-		result := h.snap.Save(BAD)
-		h.WriteString(result + "\n")
-		h.setServiceName(h.oldServiceName)
-	case "snap-record":
-		if h.currentServiceName() != "#snap" {
-			h.WriteError("you aren't taking a snap.")
-		}
-		result := h.snap.Save(RECORD)
-		h.WriteString(result + "\n")
-		h.setServiceName(h.oldServiceName)
-	case "snap-discard":
-		if h.currentServiceName() != "#snap" {
-			h.WriteError("you aren't taking a snap.")
-		}
-
-		h.setServiceName(h.oldServiceName)
 	case "switch":
 		sname := args[0]
 		_, ok := h.Services[sname]
@@ -610,37 +519,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			break
 		}
 		h.WriteError("service <C>\"" + sname + "\"</> doesn't exist.")
-	case "test":
-		fname := args[0]
-		if filepath.IsLocal(fname) {
-			dir, _ := os.Getwd()
-			fname = filepath.Join(dir, fname)
-		}
-		file, err := os.Open(fname)
-		if err != nil {
-			h.WriteError(strings.TrimSpace(err.Error()) + "\n")
-			break
-		}
-		defer file.Close()
-		fileInfo, err := file.Stat()
-		if err != nil {
-			h.WriteError(strings.TrimSpace(err.Error()) + "\n")
-			break
-		}
-		if fileInfo.IsDir() {
-			files, err := file.Readdir(0)
-			if err != nil {
-				h.WriteError(strings.TrimSpace(err.Error()) + "\n")
-				break
-			}
-			for _, potentialPfFile := range files {
-				if filepath.Ext(potentialPfFile.Name()) == ".pf" {
-					h.TestScript(fname+"/"+potentialPfFile.Name(), ERROR_CHECK)
-				}
-			}
-		} else {
-			h.TestScript(fname, ERROR_CHECK)
-		}
 	case "trace":
 		if len(h.ers) == 0 {
 			h.WriteError("there are no recent errors.")
@@ -1114,145 +992,6 @@ func (hub *Hub) list() {
 		hub.WriteString("\n")
 	}
 	hub.WriteString("\n")
-}
-
-func (hub *Hub) TestScript(scriptFilepath string, testOutputType TestOutputType) {
-
-	fname := filepath.Base(scriptFilepath)
-	fname = fname[:len(fname)-len(filepath.Ext(fname))]
-	dname := filepath.Dir(scriptFilepath)
-	directoryName := dname + "/-tests/" + fname
-
-	hub.oldServiceName = hub.currentServiceName()
-	files, _ := os.ReadDir(directoryName)
-	for _, testFileInfo := range files {
-		testFilepath := directoryName + "/" + testFileInfo.Name()
-		hub.RunTest(scriptFilepath, testFilepath, testOutputType)
-	}
-	_, ok := hub.Services["#test"]
-	if ok {
-		delete(hub.Services, "#test")
-	}
-	hub.setServiceName(hub.oldServiceName)
-
-}
-
-func (hub *Hub) RunTest(scriptFilepath, testFilepath string, testOutputType TestOutputType) {
-
-	f, err := os.Open(testFilepath)
-	if err != nil {
-		hub.WriteError(strings.TrimSpace(err.Error()) + "\n")
-		return
-	}
-
-	scanner := bufio.NewScanner(f)
-	scanner.Scan()
-	testType := strings.Split(scanner.Text(), ": ")[1]
-	if testType == RECORD {
-		f.Close() // TODO --- shouldn't this do something?
-		return
-	}
-	scanner.Scan()
-	if !hub.StartAndMakeCurrent("", "#test", scriptFilepath) {
-		hub.WriteError("Can't initialize script <C>\"" + scriptFilepath + "\"</>")
-		return
-	}
-	testService := hub.Services["#test"]
-	in, out := MakeTestIoHandler(testService, hub.Out, scanner, testOutputType)
-	testService.SetInHandler(in)
-	testService.SetOutHandler(out)
-	if testOutputType == ERROR_CHECK {
-		hub.WritePretty("Running test <C>\"" + testFilepath + "\"</>.\n")
-	}
-	ty, _ := testService.TypeNameToType("$_OutputAs")
-	testService.SetVariable("$_outputAs", ty, 0)
-	_ = scanner.Scan() // eats the newline
-	executionMatchesTest := true
-	for scanner.Scan() {
-		lineIn := scanner.Text()[3:]
-		if testOutputType == SHOW_ALL {
-			hub.WriteString("-> " + lineIn + "\n")
-		}
-		result := ServiceDo(testService, lineIn)
-		if errorsExist, _ := testService.ErrorsExist(); errorsExist {
-			report, _ := testService.GetErrorReport()
-			hub.WritePretty(report)
-			f.Close()
-			continue
-		}
-		scanner.Scan()
-		lineOut := scanner.Text()
-		if valToString(testService, result) != lineOut {
-			executionMatchesTest = false
-			if testOutputType == SHOW_DIFF {
-				hub.WriteString("-> " + lineIn + "\n" + WAS + lineOut + "\n" + GOT + valToString(testService, result) + "\n")
-			}
-			if testOutputType == SHOW_ALL {
-				hub.WriteString(WAS + lineOut + "\n" + GOT + valToString(testService, result) + "\n")
-			}
-		} else {
-			if testOutputType == SHOW_ALL {
-				hub.WriteString(lineOut + "\n")
-			}
-		}
-	}
-	if testOutputType == ERROR_CHECK {
-		if executionMatchesTest && testType == BAD {
-			hub.WriteError("bad behavior reproduced by test" + "\n")
-			f.Close()
-			hub.RunTest(scriptFilepath, testFilepath, SHOW_ALL)
-			return
-		}
-		if !executionMatchesTest && testType == GOOD {
-			hub.WriteError("good behavior not reproduced by test" + "\n")
-			f.Close()
-			hub.RunTest(scriptFilepath, testFilepath, SHOW_ALL)
-			return
-		}
-		hub.WriteString(TEST_PASSED)
-	}
-	f.Close()
-}
-
-func (hub *Hub) playTest(testFilepath string, diffOn bool) {
-	f, err := os.Open(testFilepath)
-	if err != nil {
-		hub.WriteError(strings.TrimSpace(err.Error()) + "\n")
-		return
-	}
-	scanner := bufio.NewScanner(f)
-	scanner.Scan()
-	_ = scanner.Text() // test type doesn't matter
-	scanner.Scan()
-	scriptFilepath := (scanner.Text())[8:]
-	scanner.Scan()
-	hub.StartAndMakeCurrent("", "#test", scriptFilepath)
-	testService := (*hub).Services["#test"]
-	ty, _ := testService.TypeNameToType("$_OutputAs")
-	testService.SetVariable("$_outputAs", ty, 0)
-	in, out := MakeTestIoHandler(testService, hub.Out, scanner, SHOW_ALL)
-	testService.SetInHandler(in)
-	testService.SetOutHandler(out)
-	_ = scanner.Scan() // eats the newline
-	for scanner.Scan() {
-		lineIn := scanner.Text()[3:]
-		scanner.Scan()
-		lineOut := scanner.Text()
-		result := ServiceDo(testService, lineIn)
-		if errorsExist, _ := testService.ErrorsExist(); errorsExist {
-			report, _ := testService.GetErrorReport()
-			hub.WritePretty(report)
-			f.Close()
-			return
-		}
-		hub.WriteString("#test → " + lineIn + "\n")
-
-		if valToString(testService, result) == lineOut || !diffOn {
-			hub.WriteString(valToString(testService, result) + "\n")
-		} else {
-			hub.WriteString(WAS + lineOut + "\n" + GOT + valToString(testService, result) + "\n")
-		}
-	}
 }
 
 func valToString(srv *pf.Service, val pf.Value) string {
