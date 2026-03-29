@@ -37,7 +37,7 @@ jobs:
     - name: Show uncovered files
       run: |
         go tool cover -func=coverage.out | awk -F: '{print $1}' | sort -u > covered_files.txt
-        find . -name "*.go" -not -path "./vendor/*" | sort > all_files.txt
+        find . -name "*.go" -not -path "./vendor/*" | sed 's|^./|github.com/tim-hardcastle/pipefish/|' | sort > all_files.txt
         comm -13 covered_files.txt all_files.txt
 
     - name: Upload coverage
