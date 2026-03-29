@@ -31,6 +31,12 @@ jobs:
     - name: Run and generate coverage report
       run: go test -p 1 -count=1 ./... -coverprofile=./coverage.out -covermode=atomic
 
+    - name: Show uncovered files
+      run: |
+        go tool cover -func=coverage.out | awk -F: '{print $1}' | sort -u > covered_files.txt
+        find . -name "*.go" -not -path "./vendor/*" | sort > all_files.txt
+        comm -13 covered_files.txt all_files.txt
+
     - name: Upload coverage
       uses: codecov/codecov-action@v4
       with:
