@@ -28,6 +28,9 @@ jobs:
 
     - name: Run and generate coverage report
       run: go test -p 1 -count=1 ./... -coverprofile=./coverage.out -covermode=atomic
+    
+    - name: Show coverage breakdown (CI)
+      run: go tool cover -func=coverage.out | tee ci.txt
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4
