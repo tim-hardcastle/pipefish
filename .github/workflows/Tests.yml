@@ -29,8 +29,7 @@ jobs:
       run: go build -v ./...
 
     - name: Run and generate coverage report
-      working-directory: .
-      run: go test -p 1 ./... -coverprofile=./coverage.out 
+      run: cd $GITHUB_WORKSPACE && go test -p 1 ./... -coverprofile=./coverage.out
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4
