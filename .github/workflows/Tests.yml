@@ -38,6 +38,9 @@ jobs:
           fi
         done
 
+    - name: Show which tests are runnable
+      run: go test ./... -list .
+
     - name: Upload coverage
       uses: codecov/codecov-action@v4
       with:
