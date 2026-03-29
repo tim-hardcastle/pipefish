@@ -27,7 +27,8 @@ jobs:
       run: go build -v ./...
 
     - name: Run and generate coverage report
-      run: go test -p 1 ./... -coverprofile=./coverage.out -coverpkg=./...
+      working-directory: .
+      run: go test -p 1 ./... -coverprofile=./coverage.out 
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4
