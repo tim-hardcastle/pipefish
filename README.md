@@ -16,6 +16,8 @@
     <img src="https://img.shields.io/badge/🚫_No_AI-Handbuilt_from_'if'_statements-blue">
 </a>
 
+[![codecov](https://codecov.io/gh/tim-hardcastle/pipefish/branch/main/graph/badge.svg)](https://codecov.io/gh/tim-hardcastle/pipefish)
+
 ## Welcome to Pipefish!
 
 Pipefish is a delightful general-purpose language particularly suitable for rapid development of CRUD apps, middleware, and DSLs to wrap them in. With the semantics of a functional language, with syntax borrowed from mainstream productivity languages (specifically Python and Go), and with [inspiration mainly from SQL and Excel](https://github.com/tim-hardcastle/pipefish/blob/main/docs/pipefish-a-high-level-view.md) — Pipefish is not *quite* like anything you've ever seen. But it is also a very practical language that exists to solve some very ordinary "white-collar" problems.
