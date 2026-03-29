@@ -32,6 +32,12 @@ jobs:
     - name: Show coverage breakdown (CI)
       run: go tool cover -func=coverage.out | tee ci.txt
 
+    - name: Upload CI coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: ci-coverage
+        path: ci.txt
+
     - name: Upload coverage
       uses: codecov/codecov-action@v4
       with:
