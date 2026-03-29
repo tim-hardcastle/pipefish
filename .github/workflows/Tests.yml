@@ -31,17 +31,11 @@ jobs:
     - name: Run and generate coverage report
       run: go test -p 1 -count=1 ./... -coverprofile=./coverage.out -covermode=atomic
 
-    - name: Show coverage file paths
-      run: "go tool cover -func=coverage.out | awk -F: '{print $1}' | sort -u"
-
-    - name: Show uncovered files
-      run: |
-        go tool cover -func=coverage.out | awk -F: '{print $1}' | sort -u > covered_files.txt
-        find . -name "*.go" -not -path "./vendor/*" | sed 's|^./|github.com/tim-hardcastle/pipefish/|' | sort > all_files.txt
-        comm -13 covered_files.txt all_files.txt
+    - name: Filter test files from coverage
+      run: grep -v "_test.go" coverage.out > coverage_filtered.out
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4
       with:
-        files: coverage.out
+        files: coverage_filtered.out
 
