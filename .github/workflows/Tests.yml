@@ -13,6 +13,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: 0
     permissions:
       contents: write
     steps:
@@ -29,8 +31,10 @@ jobs:
     - name: Run and generate coverage report
       run: go test -p 1 -count=1 ./... -coverprofile=./coverage.out -covermode=atomic
     
-    - name: Show coverage breakdown (CI)
-      run: go tool cover -func=coverage.out | tee ci.txt
+    - name: Debug Go environment
+      run: |
+        go version
+        go env | sort
 
     - name: Upload CI coverage report
       uses: actions/upload-artifact@v4
