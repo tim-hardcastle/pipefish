@@ -32,7 +32,12 @@ jobs:
       run: go test -p 1 -count=1 ./... -coverprofile=./coverage.out -covermode=atomic
 
     - name: Filter test files from coverage
-      run: grep -v "_test.go" coverage.out > coverage_filtered.out
+      run: |
+        grep -v "_test.go" coverage.out > coverage_filtered.out
+        echo "Lines in original:"
+        wc -l coverage.out
+        echo "Lines in filtered:"
+        wc -l coverage_filtered.out
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4
