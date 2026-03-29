@@ -25,14 +25,18 @@ jobs:
       with:
         go-version: '1.25.0'
 
-    - name: List packages
-      run: go list ./...
-
     - name: Build
       run: go build -v ./...
 
-    - name: Run and generate coverage report
-      run: cd $GITHUB_WORKSPACE && go test -p 1 ./... -coverprofile=./coverage.out
+    - name: Run tests with merged coverage
+      run: |
+        echo "mode: atomic" > coverage.out
+        for pkg in $(go list ./...); do
+          go test -coverprofile=profile.out -covermode=atomic $pkg
+          if [ -f profile.out ]; then
+            tail -n +2 profile.out >> coverage.out
+          fi
+        done
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4
