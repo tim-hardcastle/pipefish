@@ -12,7 +12,7 @@
     <img src="https://github.com/tim-hardcastle/pipefish/actions/workflows/Tests.yml/badge.svg?branch=main">
 </a>
 
-![Coverage]()
+![Coverage](https://img.shields.io)
 
 <a href="https://dune.fandom.com/wiki/Butlerian_Jihad">
     <img src="https://img.shields.io/badge/🚫_No_AI-Handbuilt_from_'if'_statements-blue">
