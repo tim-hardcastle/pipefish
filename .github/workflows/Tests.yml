@@ -32,7 +32,7 @@ jobs:
       run: go test -p 1 -count=1 ./... -coverprofile=./coverage.out -covermode=atomic
 
     - name: Show covered files
-      run: go tool cover -func=coverage.out | awk -F: '{print $1}' | sort -u
+      run: "go tool cover -func=coverage.out | awk -F: '{print $1}' | sort -u"
 
     - name: Upload coverage
       uses: codecov/codecov-action@v4
