@@ -16,7 +16,7 @@
     <img src="https://img.shields.io/badge/🚫_No_AI-Handbuilt_from_'if'_statements-blue">
 </a>
 
-[![codecov](https://codecov.io/gh/tim-hardcastle/pipefish/branch/main/graph/badge.svg)](https://codecov.io/gh/tim-hardcastle/pipefish)
+![Coverage](./badge.svg)
 
 ## Welcome to Pipefish!
 
