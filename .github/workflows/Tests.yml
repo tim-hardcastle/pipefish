@@ -38,7 +38,7 @@ jobs:
     - name: Generate coverage badge
       run: |
         COVERAGE=$(go tool cover -func=coverage.out | grep "^total" | awk '{print $3}' | tr -d '%')
-        curl -s "https://img.shields.io/badge/coverage-${COVERAGE}%25-brightgreen" > badge.svg
+        curl -s "https://img.shields.io/badge/Coverage-${COVERAGE}%25-green" > badge.svg
         
     - name: Commit badge
       run: |
