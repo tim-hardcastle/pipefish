@@ -24,6 +24,7 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Run coverage
-      run: go test ./... -coverprofile=./cover.out
+    - name: Run and generate coverage report
+      run: go test -p 1 ./... -coverprofile=./cover.out
+
       
