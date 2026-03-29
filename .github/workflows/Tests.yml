@@ -43,4 +43,5 @@ jobs:
       uses: codecov/codecov-action@v4
       with:
         files: ./coverage_filtered.out
+        codecov_yml_path: ./codecov.yml
 
