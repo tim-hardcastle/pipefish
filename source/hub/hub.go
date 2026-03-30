@@ -42,7 +42,6 @@ type Hub struct {
 	Db                     *sql.DB
 	administered           bool
 	listeningToHttpOrHttps bool
-	port                   string
 	// The username and password of the person logged into the terminal.
 	TerminalUsername string
 	TerminalPassword string
@@ -238,12 +237,6 @@ func (hub *Hub) DoHubCommand(line string) { // TODO --- this is where we need to
 		return
 	}
 	hub.outputVal(hubReturn, hubService, false)
-	return
-}
-
-// Quick and dirty auxilliary function for when we know the value is in fact a string.
-func toStr(v pf.Value) string {
-	return v.V.(string)
 }
 
 type hubWriter struct {
@@ -385,11 +378,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError("list of domain names cannot be empty")
 		}
 		h.WriteString(GREEN_OK)
-		domains := []string{}
-		for _, arg := range args {
-			domains = append(domains, arg)
-		}
-		go h.StartHttp(domains, true)
+		go h.StartHttp(args, true)
 	case "let":
 		err = database.LetGroupUseService(h.Db, args[0], args[1])
 		if err != nil {
@@ -630,26 +619,6 @@ var rbamVerbs = dtypes.From[string]("add", "create", "log-on", "log-off", "let",
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
 var greenList = dtypes.From[string]("api", "errors", "help", "log-on", "log-off",
 	"groups", "register", "service", "switch", "values", "why", "quit")
-
-func getUnusedTestFilename(scriptFilepath string) string {
-	fname := filepath.Base(scriptFilepath)
-	fname = fname[:len(fname)-len(filepath.Ext(fname))]
-	dname := filepath.Dir(scriptFilepath)
-	directoryName := dname + "/-tests/" + fname
-	name := FlattenedFilename(scriptFilepath) + "_"
-
-	tryNumber := 1
-	tryName := ""
-
-	for ; ; tryNumber++ {
-		tryName = name + strconv.Itoa(tryNumber) + ".tst"
-		_, error := os.Stat(directoryName + "/" + tryName)
-		if os.IsNotExist(error) {
-			break
-		}
-	}
-	return tryName
-}
 
 func (hub *Hub) Quit() {
 	hub.saveHubFile()

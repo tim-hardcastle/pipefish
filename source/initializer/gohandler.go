@@ -53,11 +53,6 @@ type goBucket struct {
 	types     map[string][]values.ValueType
 }
 
-type wrappedType struct {
-	pfType string
-	goType string
-}
-
 func (iz *Initializer) newGoBucket() {
 	gb := goBucket{
 		sources:   make(dtypes.Set[string]),

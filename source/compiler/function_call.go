@@ -593,11 +593,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 							functionAndType.T = typesAtIndex(b.types[0], 0)
 						}
 					case "tuple_of_varargs":
-						ft := FiniteTupleType{}
-						for _, ty := range b.types {
-							ft = append(ft, ty)
-						}
-						functionAndType.T = AlternateType{ft}
+						functionAndType.T = AlternateType{b.types}
 					case "type_with":
 						functionAndType.T = cp.TypeNameToTypeScheme["struct"].Union(AltType(values.ERROR))
 					case "struct_with":

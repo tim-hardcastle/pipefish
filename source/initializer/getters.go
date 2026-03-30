@@ -53,8 +53,8 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 				}
 			}
 		} else {
-			if !iz.cp.GetAbstractTypeFromAstType(sigToMatch.sig[i].VarType.(parser.TypeNode)).IsSubtypeOf(abSig[i].VarType) ||
-				parser.IsAstBling(sigToMatch.sig[i].VarType.(parser.TypeNode)) && sigToMatch.sig[i].VarName != abSig[i].VarName {
+			if !iz.cp.GetAbstractTypeFromAstType(sigToMatch.sig[i].VarType).IsSubtypeOf(abSig[i].VarType) ||
+				parser.IsAstBling(sigToMatch.sig[i].VarType) && sigToMatch.sig[i].VarName != abSig[i].VarName {
 				return values.AbT()
 			}
 		}

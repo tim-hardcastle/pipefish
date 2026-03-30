@@ -3170,7 +3170,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("trying to index a struct by something of type %v`", emph(args[0]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A struct can only be indexed by something of type `label`.")
+			return "A struct can only be indexed by something of type `label`."
 		},
 	},
 
@@ -3179,7 +3179,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("index %v is out of range `0::%v`", emph(args[0]), args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A list is indexed over a range from and including 0 up to and excluding the length of the list.")
+			return "A list is indexed over a range from and including 0 up to and excluding the length of the list."
 		},
 	},
 
@@ -3197,7 +3197,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A string is indexed over a range from and including 0 up to and excluding the length of the string.")
+			return "A string is indexed over a range from and including 0 up to and excluding the length of the string."
 		},
 	},
 
@@ -3206,7 +3206,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A tuple is indexed over a range from and including 0 up to and excluding the arity of the tuple.")
+			return "A tuple is indexed over a range from and including 0 up to and excluding the arity of the tuple."
 		},
 	},
 
@@ -3215,7 +3215,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("can't index type %v", emph(args[0]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("The only types you can index are enum types.")
+			return "The only types you can index are enum types."
 		},
 	},
 
@@ -3224,7 +3224,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
+			return "A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer."
 		},
 	},
 
@@ -3233,7 +3233,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("lower bound of slice should be of type %v, not type %v", emph("int"), emph(args[0]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
+			return "A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer."
 		},
 	},
 
@@ -3242,7 +3242,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("lower bound of slice %v is less than %v", emph(args[0]), emph(0))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("Nothing can be indexed by a negative number.")
+			return "Nothing can be indexed by a negative number."
 		},
 	},
 
@@ -3251,7 +3251,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("upper bound of slice %v is less than lower bound %v", emph(args[1]), emph(args[0]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer.")
+			return "A slice ranges from and including a lower bound which is an integer, up to and excluding an upper bound which must also be an integer."
 		},
 	},
 
@@ -3260,7 +3260,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("upper bound %v of list slice is strictly greater than list length %v", emph(args[0]), args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
+			return "The greatest value the upper bound of a slice can have is the length of the thing being sliced."
 		},
 	},
 
@@ -3269,7 +3269,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("upper bound %v of string slice is strictly greater than string length %v", emph(args[0]), args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
+			return "The greatest value the upper bound of a slice can have is the length of the thing being sliced."
 		},
 	},
 
@@ -3278,8 +3278,8 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("can't slice value of type %v by a pair", emph(args[0]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("You can slice things of type `tuple`, `list`, and `string`, plus the clones of lists and strings if " +
-				"you requested this by declaring the clone type.")
+			return "You can slice things of type `tuple`, `list`, and `string`, plus the clones of lists and strings if " +
+				"you requested this with `using slice` when you declared the clone type."
 		},
 	},
 
@@ -3288,7 +3288,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("key not found in map")
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("It is an error to try and get a value from a map using a key that is not in fact in the map.")
+			return "It is an error to try and get a value from a map using a key that is not in fact in the map."
 		},
 	},
 
@@ -3306,7 +3306,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A list is indexed over a range from and including 0 up to and excluding the length of the list.")
+			return "A list is indexed over a range from and including 0 up to and excluding the length of the list."
 		},
 	},
 
@@ -3324,7 +3324,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A string is indexed over a range from and including 0 up to and excluding the length of the string.")
+			return "A string is indexed over a range from and including 0 up to and excluding the length of the string."
 		},
 	},
 
@@ -3333,7 +3333,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("index %v is out of range 0::%v", emph(args[0]), args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("A tuple is indexed over a range from and including 0 up to and excluding the arity of the tuple.")
+			return "A tuple is indexed over a range from and including 0 up to and excluding the length of the tuple."
 		},
 	},
 
@@ -3342,7 +3342,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("can't index value of type %v by %v", emph(args[0]), emph(args[1]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("Pipefish just can't make sense of that at all.")
+			return "Pipefish just can't make sense of that at all."
 		},
 	},
 
@@ -3351,7 +3351,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("upper bound %v of tuple slice is strictly greater than string length %v", emph(args[0]), args[1])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
+			return "The greatest value the upper bound of a slice can have is the length of the thing being sliced."
 		},
 	},
 
@@ -3360,7 +3360,7 @@ var ErrorCreatorMap = map[string]ErrorCreator{
 			return fmt.Sprintf("index %v of snippet is out of range", emph(args[0]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("The greatest value the index of a snippet can have is the length of the thing being indexed.")
+			return "The greatest value the index of a snippet can have is the length of the thing being indexed."
 		},
 	},
 

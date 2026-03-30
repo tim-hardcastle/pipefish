@@ -272,7 +272,7 @@ func (sv *Service) GetVariable(vname string) (values.Value, error) {
 	}
 	v, ok := sv.cp.GlobalVars.GetVar(vname)
 	if !ok {
-		return Value{}, errors.New("Variable does not exist")
+		return Value{}, errors.New("variable does not exist")
 	}
 	return sv.cp.Vm.Mem[v.MLoc], nil
 }
@@ -288,7 +288,7 @@ func (sv *Service) SetVariable(vname string, ty values.ValueType, v any) error {
 	}
 	_, ok := sv.cp.GlobalVars.GetVar(vname)
 	if !ok {
-		return errors.New("Variable does not exist")
+		return errors.New("variable does not exist")
 	}
 	sv.cp.Vm.Mem[sv.cp.GlobalVars.Data[vname].MLoc] = values.Value{ty, v}
 	return nil
