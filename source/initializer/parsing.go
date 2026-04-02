@@ -289,7 +289,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 		if text.Head(path, "http:") || text.Head(path, "https:") {
 			pos := strings.LastIndex(path, "/")
 			if pos == -1 {
-				iz.throw("init/external/path/a", &dec.path)
+				iz.throw("init/external/path.a", &dec.path)
 				return
 			}
 			hostpath := path[0:pos]
@@ -302,7 +302,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 			serviceName := path[pos+1:]
 			pos = strings.LastIndex(hostpath, "/")
 			if pos == -1 {
-				iz.throw("init/external/path/b", &dec.path)
+				iz.throw("init/external/path.b", &dec.path)
 				return
 			}
 			rline := readline.NewInstance()
@@ -807,7 +807,7 @@ func (iz *Initializer) addCloneTypeAndConstructor(name, typeToClone string, priv
 func (iz *Initializer) addCloneType(name, typeToClone string, private bool, decTok *token.Token) (values.ValueType, bool) {
 	parentTypeNo, ok := compiler.ClonableTypes[typeToClone]
 	if !ok {
-		iz.throw("init/clone/type/b", decTok, typeToClone)
+		iz.throw("init/clone/type.b", decTok, typeToClone)
 		return DUMMY, false
 	}
 	supertype := "clones{" + typeToClone + "}"
@@ -977,7 +977,7 @@ func (iz *Initializer) makeCloneFunction(fnName string, sig parser.AstSig, built
 	iz.Common.functions[funcSource{tok.Source, tok.Line, fnName, pos}] = fn
 	conflictingFunction := iz.Add(fnName, fn)
 	if conflictingFunction != nil && conflictingFunction != fn {
-		iz.throw("init/overload/c", tok, fnName, &conflictingFunction.op)
+		iz.throw("init/overload.c", tok, fnName, &conflictingFunction.op)
 	}
 }
 

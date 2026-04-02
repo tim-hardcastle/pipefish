@@ -16,13 +16,13 @@ import (
 
 // The 'error' type.
 type Error struct {
-	ErrorId string
-	Message string
+	ErrorId     string
+	Message     string
 	Explanation string // We fill this in on request (`hub why`) from the args.
-	Args    []any
-	Values  []values.Value
-	Trace   []*token.Token
-	Token   *token.Token
+	Args        []any
+	Values      []values.Value
+	Trace       []*token.Token
+	Token       *token.Token
 }
 
 func (e *Error) AddToTrace(tok *token.Token) {
@@ -75,18 +75,27 @@ func Throw(errorId string, ers Errors, tok *token.Token, args ...any) Errors {
 	return ers
 }
 
+func GetErrorCreator(id string) (ErrorCreator, bool) {
+	lookUp := id
+	if id[len(id)-2] == '.' {
+		lookUp = id[0 : len(id)-2]
+	}
+	errorCreator, ok := errorCreatorMap[lookUp]
+	return errorCreator, ok
+}
+
 // We create the error message now. But we store the args to create the explanation (i.e. what you get if
-// you do 'hub why <error number>' because the generation of the explanation may refer to other errors,
-// perhaps not thrown at this point.)
+// you do 'hub why <error number>' because we may not need it.
 func CreateErr(errorId string, tok *token.Token, args ...any) *Error {
-	errorCreator, ok := ErrorCreatorMap[errorId]
+
+	errorCreator, ok := GetErrorCreator(errorId)
 	if !ok {
 		return CreateErr("err/misdirect", tok, errorId)
 	}
 	return &Error{ErrorId: errorId,
-		          Message: errorCreator.Message(tok, args...),
-				  Token: tok,
-				  Args: args,
+		Message: errorCreator.Message(tok, args...),
+		Token:   tok,
+		Args:    args,
 	}
 }
 

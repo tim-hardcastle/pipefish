@@ -116,7 +116,7 @@ func (iz *Initializer) compileGo() {
 			soFile := settings.PipefishHomeDirectory + "source/initializer/gobucket/" + text.Flatten(source) + "_" + strconv.Itoa(int(sourceCodeModified)) + ".so"
 			plugins, err = plugin.Open(soFile)
 			if err != nil {
-				iz.throw("golang/open/b", sourceToken, err.Error())
+				iz.throw("golang/open.b", sourceToken, err.Error())
 				return
 			}
 		}
@@ -284,7 +284,7 @@ func (iz *Initializer) makeNewSoFile(source string, newTime int64) *plugin.Plugi
 	}
 	plugins, err := plugin.Open(soFile)
 	if err != nil {
-		iz.throw("golang/open/a", sourceToken, err.Error())
+		iz.throw("golang/open.a", sourceToken, err.Error())
 		return nil
 	}
 	// We do this here and not earlier with defer because a .go file that doesn't compile should

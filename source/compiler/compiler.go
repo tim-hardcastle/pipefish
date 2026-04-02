@@ -1566,13 +1566,13 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			if leftId, ok := pairOfIdentifiers.Args[0].(*parser.Identifier); ok {
 				leftName = leftId.Value
 			} else {
-				cp.Throw("comp/for/range/a", node.GetToken())
+				cp.Throw("comp/for/range.a", node.GetToken())
 				return FAIL
 			}
 			if rightId, ok := pairOfIdentifiers.Args[2].(*parser.Identifier); ok {
 				rightName = rightId.Value
 			} else {
-				cp.Throw("comp/for/range/b", node.GetToken())
+				cp.Throw("comp/for/range.b", node.GetToken())
 				return FAIL
 			}
 			keysOnly = rightName == "_"
@@ -1620,7 +1620,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 				}
 			}
 		} else {
-			cp.Throw("comp/for/range/c", node.GetToken())
+			cp.Throw("comp/for/range.c", node.GetToken())
 			return FAIL
 		}
 	default:
@@ -1997,6 +1997,7 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 	nameToNode := map[string]*parser.AssignmentExpression{}
 	nameGraph := dtypes.NewDigraph()
 	chunks := cp.SplitOnNewlines(given)
+	namesUsed := dtypes.Set[string]{}
 	for _, chunk := range chunks {
 		if chunk.GetToken().Type != token.GVN_ASSIGN {
 			cp.Throw("comp/given/assign", chunk.GetToken())
@@ -2014,6 +2015,11 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 				cp.Throw("comp/given/exists", chunk.GetToken(), pair.VarName)
 				return false
 			}
+			if namesUsed.Contains(pair.VarName) {
+				cp.Throw("comp/given/redeclared", chunk.GetToken(), pair.VarName)
+				return false
+			} 
+			namesUsed = namesUsed.Add(pair.VarName)
 			nameToNode[pair.VarName] = assEx
 			if reflect.TypeOf(assEx.Right) == reflect.TypeFor[*parser.FuncExpression]() {
 				if len(rhs) == 0 { // Then the lambda has no captures and so is a constant.
@@ -2035,7 +2041,9 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 		}
 	}
 	order := dtypes.Tarjan(nameGraph)
-	used := dtypes.Set[string]{} // If we have a multiple assignment, we only want to compile the rhs once.
+	// If we have a multiple assignment, we only want to compile the rhs once. We keep track of
+	// the variables already used on the lhs so we won't repeat ourselves.
+	used := dtypes.Set[string]{} 
 	for _, partition := range order {
 		if len(partition) > 1 {
 			cp.Throw("comp/given/order", given.GetToken(), partition)
@@ -2045,7 +2053,7 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 		node, ok := nameToNode[v]
 		if ok && !used.Contains(v) {
 			used.AddSet(dtypes.MakeFromSlice(cp.P.GetVariablesFromSig(node.Left)))
-			if !cp.compileOneGivenChunk(node, ctxt) {
+			if !cp.compileOneGivenChunk(node, &ctxt) {
 				return false
 			}
 		}
@@ -2071,7 +2079,7 @@ func (cp *Compiler) SplitOnNewlines(block parser.Node) []parser.Node {
 }
 
 // As it says, compiles one expression from the `given` block. Called by `CompileGivenBlock`.
-func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt Context) bool {
+func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt *Context) bool {
 	cp.Cm("Compiling one 'given' block assignment.", node.GetToken())
 	oldThis, thisExists := ctxt.Env.GetVar("this")
 	sig, ok := cp.P.ReparseSig(node.Left, parser.ANY_NULLABLE_TYPE_AST)
@@ -2088,20 +2096,11 @@ func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt
 	}
 	resultLocation := cp.That()
 	if result.Types.isOnly(values.ERROR) {
-		cp.Throw("comp/assign/error", node.Left.GetToken())
+		cp.Throw("comp/given/error", node.Left.GetToken())
 		return false
 	}
 	for i, pair := range sig {
-		v, alreadyExists := ctxt.Env.GetVar(pair.VarName) // In that case we (should) have an inner function declaration and the sig will have length 1.
-		// We check that it isn't just the user redefining a variable.
-		if alreadyExists && pair.VarName != "_" {
-			if v.Access == LOCAL_FUNCTION_THUNK && cp.Vm.Mem[v.MLoc].V == nil || v.Access == LOCAL_FUNCTION_CONSTANT && cp.Vm.Mem[v.MLoc].V == nil {
-				ctxt.Env.Data["this"] = *v
-			} else {
-				cp.Throw("comp/given/redeclared", node.GetToken(), pair.VarName)
-				return false
-			}
-		}
+		v, alreadyExists := ctxt.Env.GetVar(pair.VarName) // In that case we have an inner function declaration and the sig will have length 1.
 		var typeToUse AlternateType // TODO: we can extract more meaningful information about the tuple from the types.
 		if t, ok := pair.VarType.(*parser.TypeWithName); ok && t.OperatorName == "tuple" {
 			typeToUse = cp.Common.AnyTuple

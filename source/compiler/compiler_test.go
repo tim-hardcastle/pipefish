@@ -13,12 +13,12 @@ func TestForLoopCtes(t *testing.T) {
 		{`from a, a = 0, 0 for _::i = range z : a + i, a`, `comp/for/bound/exists`},
 		{`from a = 0 for i == 0; i < 5; i + 1 : a + i`, `comp/for/assign/b`},
 		{`from a = 0 for i, i = 0, 0; i < 5; i + 1 : a + i`, `comp/for/index/exists`},
-		{`from a = 0 for true::i = range 0::5 : a + i`, `comp/for/range/a`},
-		{`from a = 0 for i::true = range 0::5 : a + i`, `comp/for/range/b`},
+		{`from a = 0 for true::i = range 0::5 : a + i`, `comp/for/range.a`},
+		{`from a = 0 for i::true = range 0::5 : a + i`, `comp/for/range.b`},
 		{`from a = 0 for i::j = range true : a + i`, `comp/for/range/types`},
 		{`from a = 0 for a::j = range 5 : a + i`, `comp/for/exists/key`},
 		{`from a = 0 for i::a = range 5 : a + i`, `comp/for/exists/value`},
-		{`from a = 0 for i+j = range 5 : a + i`, `comp/for/range/c`},
+		{`from a = 0 for i+j = range 5 : a + i`, `comp/for/range.c`},
 		{`from a = 0 for i = 0; 1/0; i + 1 : a + i`, `comp/for/condition`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
@@ -358,8 +358,8 @@ func TestForLoopRtes(t *testing.T) {
 		{`foo 4`, `vm/typecheck/bound/update`},
 		{`zort 3`, `vm/typecheck/index/init`},
 		{`qux 3`, `vm/typecheck/index/update`},
-		{`rozt 3`, `vm/types/a`},
-		{`zrot 3`, `vm/types/a`},
+		{`rozt 3`, `vm/types.a`},
+		{`zrot 3`, `vm/types.a`},
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
@@ -418,6 +418,15 @@ func TestFunctionSyntaxCalls(t *testing.T) {
 		{`qux`, `"qux"`},
 	}
 	test_helper.RunTest(t, "function_call_test.pf", tests, test_helper.TestValues)
+}
+func TestGivenErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`func(x) : x given: 42`, `comp/given/assign`},
+		{`func(x) : x given: y = 1 div 0`, `comp/given/error`},
+		{`func(x) : x given: x = 42`, `comp/given/exists`},
+		//{"func(x) : x given:\n\ty = 42\n\ty = 42", `comp/given/redeclared`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
 func TestGocode(t *testing.T) {
 	// no t.Parallel()

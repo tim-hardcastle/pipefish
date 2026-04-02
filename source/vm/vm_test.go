@@ -252,8 +252,8 @@ func TestForLoopRtes(t *testing.T) {
 		{`foo 4`, `vm/typecheck/bound/update`},
 		{`zort 3`, `vm/typecheck/index/init`},
 		{`qux 3`, `vm/typecheck/index/update`},
-		{`rozt 3`, `vm/types/a`},
-		{`zrot 3`, `vm/types/a`},
+		{`rozt 3`, `vm/types.a`},
+		{`zrot 3`, `vm/types.a`},
 		{`merp 3`, `vm/for/condition`},
 		{`count any`, `vm/for/type/a`},
 		{`count int`, `vm/for/type/b`},
@@ -818,7 +818,6 @@ func TestValidation(t *testing.T) {
 	}
 	test_helper.RunTest(t, "validation_test.pf", tests, test_helper.TestValues)
 }
-
 
 func TestVariablesAndConsts(t *testing.T) {
 	tests := []test_helper.TestItem{

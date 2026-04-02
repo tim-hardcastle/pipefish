@@ -177,7 +177,7 @@ type ParserData struct {
 func (p *Parser) ParseExpression(precedence int) Node {
 
 	if literals.Contains(p.CurToken.Type) && literalsAndLParen.Contains(p.PeekToken.Type) {
-		p.Throw("parse/before/a", &p.CurToken, &p.PeekToken)
+		p.Throw("parse/before.a", &p.CurToken, &p.PeekToken)
 	}
 	var leftExp Node
 	noNativePrefix := false
@@ -372,7 +372,7 @@ func (p *Parser) ParseExpression(precedence int) Node {
 				break
 			}
 			if p.CurToken.Type == token.NOT || p.CurToken.Type == token.IDENT && p.CurToken.Literal == "-" || p.CurToken.Type == token.ELSE {
-				p.Throw("parse/before/b", &p.CurToken, &p.PeekToken)
+				p.Throw("parse/before.b", &p.CurToken, &p.PeekToken)
 				return nil
 			}
 			p.NextToken()
@@ -706,7 +706,7 @@ func (p *Parser) parseLambdaExpression() Node {
 	RHS := p.ParseExpression(FUNC)
 	// At this point the root of the RHS should be the colon dividing the function sig from its body.
 	root := RHS
-	var given Node 
+	var given Node
 	if root.GetToken().Type == token.GIVEN {
 		root = RHS.(*InfixExpression).Args[0]
 		given = RHS.(*InfixExpression).Args[2]
@@ -719,7 +719,7 @@ func (p *Parser) parseLambdaExpression() Node {
 	var returns Node
 	sig := LHS
 	if LHS.GetToken().Type == token.PIPE {
-		sig = LHS.(*PipingExpression).Left 
+		sig = LHS.(*PipingExpression).Left
 		returns = LHS.(*PipingExpression).Right
 	}
 	expression.NameSig, _ = p.ReparseSig(sig, ANY_NULLABLE_TYPE_AST)

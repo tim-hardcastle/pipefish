@@ -132,7 +132,7 @@ func (iz *Initializer) convertFieldTypeFromPfToGo(aT values.AbstractType) string
 	typeName := info.GetName(vm.DEFAULT)
 	goType, ok := getGoType(typeName)
 	if !ok {
-		iz.throw("golang/type/c", INTEROP_TOKEN, typeName)
+		iz.throw("golang/type.c", INTEROP_TOKEN, typeName)
 		return ""
 	}
 	return goType
@@ -148,7 +148,7 @@ func (iz *Initializer) generateGoFunctionCode(sb *strings.Builder, function *par
 	case 1:
 		goType, ok := iz.getGoTypeFromTypeAst(function.callInfo.ReturnTypes[0].VarType)
 		if !ok {
-			iz.throw("golang/type/a", &function.op, function.callInfo.ReturnTypes[0].VarType)
+			iz.throw("golang/type.a", &function.op, function.callInfo.ReturnTypes[0].VarType)
 		}
 		fmt.Fprint(sb, goType, " ")
 	default:
@@ -163,7 +163,7 @@ func (iz *Initializer) printSig(sb *strings.Builder, sig parser.AstSig, tok toke
 	for _, param := range sig {
 		goType, ok := iz.getGoTypeFromTypeAst(param.VarType)
 		if !ok {
-			iz.throw("golang/type/b", &tok, param.VarType)
+			iz.throw("golang/type.b", &tok, param.VarType)
 		}
 		fmt.Fprint(sb, sep, param.VarName)
 		if param.VarName != "" { // In which case it would be a return signature.

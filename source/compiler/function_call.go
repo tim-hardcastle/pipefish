@@ -235,12 +235,12 @@ func (cp *Compiler) generateFromTopBranchDown(b *bindle) (AlternateType, bool) {
 func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 	cp.cmP("Called generateBranch.", b.tok)
 	if b.branchNo >= len(b.treePosition.Branch) { // We've tried all the alternatives and have some left over.
-		cp.ReserveError("vm/types/a", b.tok)
+		cp.ReserveError("vm/types.a", b.tok)
 		for _, loc := range b.valLocs {
 			cp.Vm.Mem[cp.That()].V.(*err.Error).Args = append(cp.Vm.Mem[cp.That()].V.(*err.Error).Args, loc)
 		}
 		cp.Vm.Mem[cp.That()].V.(*err.Error).Message = "no implementation of function `" + b.tok.Literal + "` exists for the given types"
-		cp.cmP("Unthunking error 'vm/types/a'.", b.tok) // Unthunking it populates the values.
+		cp.cmP("Unthunking error 'vm/types.a'.", b.tok) // Unthunking it populates the values.
 		cp.Emit(vm.UntE, b.outLoc, cp.That())
 		return AltType(values.ERROR), false
 	}
@@ -334,12 +334,12 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 		case len(acceptedSingleTypes) > 0 && len(acceptedTuples) == 0:
 			cp.cmP("Nothing but single types", b.tok)
 			if acceptedTypes.Contains(values.TUPLE) {
-				cp.ReserveError("vm/types/b", b.tok)
+				cp.ReserveError("vm/types.b", b.tok)
 				for _, loc := range b.valLocs {
 					cp.Vm.Mem[cp.That()].V.(*err.Error).Args = append(cp.Vm.Mem[cp.That()].V.(*err.Error).Args, loc)
 				}
 				cp.Vm.Mem[cp.That()].V.(*err.Error).Message = "no implementation of function `" + b.tok.Literal + "` exists for the given types"
-				cp.cmP("Unthunking error 'vm/types/b'.", b.tok)
+				cp.cmP("Unthunking error 'vm/types.b'.", b.tok)
 				cp.Emit(vm.UntE, b.outLoc, cp.That())
 				return AltType(values.ERROR), false
 			}
@@ -719,12 +719,12 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 		}
 	}
 	cp.cmP("Returning error.", b.tok)
-	cp.ReserveError("vm/types/c", b.tok)
+	cp.ReserveError("vm/types.c", b.tok)
 	for _, loc := range b.valLocs {
 		cp.Vm.Mem[cp.That()].V.(*err.Error).Args = append(cp.Vm.Mem[cp.That()].V.(*err.Error).Args, loc)
 	}
 	cp.Vm.Mem[cp.That()].V.(*err.Error).Message = "no implementation of function `" + b.tok.Literal + "` exists for the given types"
-	cp.cmP("Unthunking error 'vm/types/c'.", b.tok)
+	cp.cmP("Unthunking error 'vm/types.c'.", b.tok)
 	cp.Emit(vm.UntE, b.outLoc, cp.That())
 	return AltType(values.ERROR), false
 }

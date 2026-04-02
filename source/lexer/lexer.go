@@ -426,12 +426,12 @@ func (l *lexer) readSnippet() (string, int) {
 			}
 			if langIndent == "" { // Then this is the first time around.
 				if currentWhitespace == "" {
-					l.Throw("lex/emdash/indent/a", l.NewToken(token.ILLEGAL, "bad emdash"))
+					l.Throw("lex/emdash/indent.a", l.NewToken(token.ILLEGAL, "bad emdash"))
 					return result, -1
 				}
 				langIndent = currentWhitespace
 				if langIndent == stackTop {
-					l.Throw("lex/emdash/indent/b", l.NewToken(token.ILLEGAL, "bad emdash"))
+					l.Throw("lex/emdash/indent.b", l.NewToken(token.ILLEGAL, "bad emdash"))
 					return result, -1
 				}
 			}
@@ -449,7 +449,7 @@ func (l *lexer) readSnippet() (string, int) {
 				return result, outdent
 			}
 			if !strings.HasPrefix(currentWhitespace, stackTop) && !(currentWhitespace == "\n") {
-				l.Throw("lex/emdash/indent/c", l.NewToken(token.ILLEGAL, "bad emdash"))
+				l.Throw("lex/emdash/indent.c", l.NewToken(token.ILLEGAL, "bad emdash"))
 				return result, -1
 			}
 			for l.runes.PeekRune() != '\n' && l.runes.PeekRune() != '\r' && l.runes.PeekRune() != 0 {
@@ -641,7 +641,7 @@ func IsHexDigit(ch rune) bool {
 func IsProtectedPunctuationBracketOrWhitespace(ch rune) bool {
 	return ch == '(' || ch == ')' || ch == '[' || ch == ']' || ch == '{' || ch == '}' || ch == ' ' || ch == ',' ||
 		ch == ':' || ch == ';' || ch == '.' || ch == '\t' || ch == '\n' || ch == '\r' || ch == '\'' || ch == '"' ||
-		ch == '`' ||ch == 0
+		ch == '`' || ch == 0
 }
 
 func IsSymbol(ch rune) bool {

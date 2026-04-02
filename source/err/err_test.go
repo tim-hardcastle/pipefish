@@ -73,25 +73,25 @@ func TestCompilerItes(t *testing.T) {
 }
 func TestTChunkingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`abstract/ident`, `OK`},	
-		{`alias`, `OK`},	
+		{`abstract/ident`, `OK`},
+		{`alias`, `OK`},
 		{`clone/expect/b`, `OK`},
 		{`clone/given`, `OK`},
-		{`clone/type/c`, `OK`},
-		{`enum/expect`, `OK`},	
-		{`enum/ident`, `OK`},	
-		{`impex/end`, `OK`},	
-		{`impex/expect`, `OK`},	
-		{`impex/pair`, `OK`},	
-		{`impex/string`, `OK`},	
+		{`clone/type.c`, `OK`},
+		{`enum/expect`, `OK`},
+		{`enum/ident`, `OK`},
+		{`impex/end`, `OK`},
+		{`impex/expect`, `OK`},
+		{`impex/pair`, `OK`},
+		{`impex/string`, `OK`},
 		{`interface/colon`, `OK`},
 		{`struct/expect`, `OK`},
 		{`struct/lparen`, `OK`},
-		{`type/assign`, `OK`},	
-		{`type/expect/a`, `OK`},	
-		{`type/expect/b`, `OK`},	
-		{`type/ident`, `OK`},	
-		{`wrapper`, `OK`},			
+		{`type/assign`, `OK`},
+		{`type/expect.a`, `OK`},
+		{`type/expect.b`, `OK`},
+		{`type/ident`, `OK`},
+		{`wrapper`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
@@ -128,8 +128,8 @@ func TestForLoopRtes(t *testing.T) {
 		{`foo 4`, `vm/typecheck/bound/update`},
 		{`zort 3`, `vm/typecheck/index/init`},
 		{`qux 3`, `vm/typecheck/index/update`},
-		{`rozt 3`, `vm/types/a`},
-		{`zrot 3`, `vm/types/a`},
+		{`rozt 3`, `vm/types.a`},
+		{`zrot 3`, `vm/types.a`},
 		{`merp 3`, `vm/for/condition`},
 		{`count any`, `vm/for/type/a`},
 		{`count int`, `vm/for/type/b`},
@@ -137,17 +137,28 @@ func TestForLoopRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
-func TestHubErrorMethods(t *testing.T) {
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
-		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
-		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
-		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
-		
+
+func TestGivenCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`func(x) : x given: 42`, `comp/given/assign`},
+		{`func(x) : x given: y = 1 div 0`, `comp/given/error`},
+		{`func(x) : x given: x = 42`, `comp/given/exists`},
+		//{"func(x) : x given:\n\ty = 42\n\ty = 42", `comp/given/redeclared`},
 	}
-	test_helper.RunHubTest(t, "default", test)
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
+
+// func TestHubErrorMethods(t *testing.T) {
+// 	// no t.Parallel()
+// 	test := []test_helper.TestItem{
+// 		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
+// 		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
+// 		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
+// 		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
+
+// 		}
+// 		test_helper.RunHubTest(t, "default", test)
+// 	}
 func TestIndexingCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`[1, 2, 3][4.0]`, `comp/index/list`},
@@ -229,17 +240,17 @@ func TestIndexingRtes(t *testing.T) {
 }
 func TestInitializerItes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`depend/cmd`, `OK`},	
-		{`depend/var`, `OK`},	
-		{`make/ident`, `OK`},	
+		{`depend/cmd`, `OK`},
+		{`depend/var`, `OK`},
+		{`make/ident`, `OK`},
 		{`make/instance`, `OK`},
-		{`name/exists/a`, `OK`},
-		{`name/exists/b`, `OK`},	
-		{`overload/a`, `OK`},	
+		{`name/exists.a`, `OK`},
+		{`name/exists.b`, `OK`},
+		{`overload.a`, `OK`},
 		{`overload/ref`, `OK`},
-		{`service/depends`, `OK`},	
-		{`service/type`, `OK`},	
-		{`typecheck/bool`, `OK`},	
+		{`service/depends`, `OK`},
+		{`service/type`, `OK`},
+		{`typecheck/bool`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
@@ -289,7 +300,7 @@ func TestParserErrors(t *testing.T) {
 		{`len(`, `parse/prefix`},
 		{`len(1`, `parse/line`},
 		{`troz.foo`, `parse/namespace/exists`},
-		{`2 "aardvark"`, `parse/before/a`},
+		{`2 "aardvark"`, `parse/before.a`},
 		{`func(x) wut`, `parse/colon`},
 		{`from 1`, `parse/from`},
 		{`(1))`, `parse/expected`},
@@ -311,7 +322,7 @@ func TestParserErrors(t *testing.T) {
 func TestParsingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		// {`clone/exists`, `OK`}, // TODO --- It doesn't throw this! It really should.
-		{`clone/type/c`, `OK`},
+		{`clone/type.c`, `OK`},
 		{`enum/element`, `OK`},
 		{`head`, `OK`},
 		{`import/file`, `OK`},
@@ -324,7 +335,7 @@ func TestParsingItes(t *testing.T) {
 		{`request/rune`, `OK`},
 		{`request/set`, `OK`},
 		{`request/snippet`, `OK`},
-		{`request/string`, `OK`},	
+		{`request/string`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }

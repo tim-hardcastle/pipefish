@@ -92,7 +92,7 @@ func TestFancyFunctionSyntax(t *testing.T) {
 		{`spong()`, `(spong ())`},
 	}
 	test_helper.RunTest(t, "fancy_function_test.pf", tests, test_helper.TestParserOutput)
-} 
+}
 func TestForLoops(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`for : post "Hello world!"`, `for : (post "Hello world!")`},
@@ -113,7 +113,7 @@ func TestFunctionSyntax(t *testing.T) {
 	test_helper.RunTest(t, "function_syntax_test.pf", tests, test_helper.TestParserOutput)
 }
 
-// TODO --- this and `TestLogging` are a bit of a nothingburger, it only checks that the thing does 
+// TODO --- this and `TestLogging` are a bit of a nothingburger, it only checks that the thing does
 // in fact parse rather than going spoing.
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
@@ -177,7 +177,7 @@ func TestParserErrors(t *testing.T) {
 		{`len(`, `parse/prefix`},
 		{`len(1`, `parse/line`},
 		{`troz.foo`, `parse/namespace/exists`},
-		{`2 "aardvark"`, `parse/before/a`},
+		{`2 "aardvark"`, `parse/before.a`},
 		{`func(x) wut`, `parse/colon`},
 		{`from 1`, `parse/from`},
 		{`(1))`, `parse/expected`},
@@ -194,7 +194,7 @@ func TestParserErrors(t *testing.T) {
 		{`try e @`, `parse/try/colon`},
 		{`try 86 `, `parse/try/ident`},
 		// {`2 + 2)`, `parse/close`}, Probably blocked by `parse/expected`.
-		// {`not suf`, `parse/before/b`}, TODO --- why isn't this an error? 
+		// {`not suf`, `parse/before.b`}, TODO --- why isn't this an error?
 	}
 	test_helper.RunTest(t, "parser_error_test.pf", tests, test_helper.TestParserErrors)
 }

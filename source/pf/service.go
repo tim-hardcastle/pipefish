@@ -383,7 +383,14 @@ func ExplainError(es []*Error, i int) (string, error) { // TODO --- at this poin
 	if i >= len(es) {
 		return "", errors.New("index too big for list")
 	}
-	return (err.ErrorCreatorMap[es[i].ErrorId].Explanation(es[i].Token, es[i].Args...)), nil
+	if es[i].Explanation != "" {
+		return es[i].Explanation, nil
+	}
+	ec, ok := err.GetErrorCreator(es[i].ErrorId)
+	if !ok {
+		return "no explanation has been supplied for this error", nil
+	}
+	return (ec.Explanation(es[i].Token, es[i].Args...)), nil
 }
 
 // GetFilepath to the root file of the service.

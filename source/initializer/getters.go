@@ -267,7 +267,7 @@ func TweakNameAndPath(name, path, source string) (string, string) {
 		name = ExtractFileName(path)
 	}
 	if StandardLibraries.Contains(path) {
-		path = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries", path) + ".pf"
+		path = filepath.Join(settings.PipefishHomeDirectory, "source/initializer/libraries/", path) + ".pf"
 	}
 	if !text.Head(path, "http:") && filepath.IsLocal(path) {
 		path = filepath.Join(filepath.Dir(source), path)

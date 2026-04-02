@@ -457,7 +457,7 @@ func (iz *Initializer) ChunkTypeDeclaration(private bool, docString string) (tok
 	}
 	iz.P.NextToken()
 	if !iz.P.CurTokenIs(token.IDENT) {
-		iz.throw("init/type/expect/a", &iz.P.CurToken)
+		iz.throw("init/type/expect.a", &iz.P.CurToken)
 		iz.finishChunk()
 		return &tokenizedEnumDeclaration{}, false
 	}
@@ -479,7 +479,7 @@ func (iz *Initializer) ChunkTypeDeclaration(private bool, docString string) (tok
 	case "struct":
 		return iz.chunkStruct(opTok, private, docString)
 	default:
-		iz.throw("init/type/expect/b", &iz.P.CurToken, decliteral)
+		iz.throw("init/type/expect.b", &iz.P.CurToken, decliteral)
 		iz.finishChunk()
 		return &tokenizedEnumDeclaration{}, false
 	}
@@ -576,7 +576,7 @@ func (iz *Initializer) chunkClone(opTok token.Token, private bool, docString str
 	typeTok := iz.P.CurToken
 	_, ok := compiler.ClonableTypes[typeTok.Literal]
 	if !ok {
-		iz.throw("init/clone/type/c", &iz.P.CurToken, typeTok.Literal)
+		iz.throw("init/clone/type.c", &iz.P.CurToken, typeTok.Literal)
 		iz.finishChunk()
 		return &tokenizedCloneDeclaration{}, false
 	}

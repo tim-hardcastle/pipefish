@@ -9,7 +9,7 @@ import (
 )
 
 // Auxiliary functions that extract data from data.
-func (p *Parser) CanParse(tok token.Token, pos IdentifierPosition) (bool, *Parser) {	
+func (p *Parser) CanParse(tok token.Token, pos IdentifierPosition) (bool, *Parser) {
 	resolvingParser := p.getParserFromNamespace(tok)
 	if resolvingParser == nil {
 		return false, nil
@@ -58,7 +58,6 @@ func (p *Parser) GetVariablesFromAstSig(sig AstSig) []string {
 	return result
 }
 
-
 func (p *Parser) RecursivelySlurpReturnTypes(node Node) AstSig {
 	if node == nil {
 		return AstSig{}
@@ -71,7 +70,7 @@ func (p *Parser) RecursivelySlurpReturnTypes(node Node) AstSig {
 			RHS := p.RecursivelySlurpReturnTypes(typednode.Args[2])
 			return append(LHS, RHS...)
 		default:
-			p.Throw("parse/ret/a", typednode.GetToken())
+			p.Throw("parse/ret.a", typednode.GetToken())
 		}
 	case *TypeExpression:
 		if typednode.TypeArgs == nil {
@@ -84,7 +83,7 @@ func (p *Parser) RecursivelySlurpReturnTypes(node Node) AstSig {
 		}
 	default:
 		println("node is", typednode.String(), reflect.TypeOf(typednode).String())
-		p.Throw("parse/ret/b", typednode.GetToken())
+		p.Throw("parse/ret.b", typednode.GetToken())
 	}
 	return nil
 }
@@ -217,7 +216,7 @@ func (p *Parser) typeIsFunctional() bool {
 		p.PeekToken.Type == token.MAPPING || p.PeekToken.Type == token.FILTER ||
 		p.PeekToken.Type == token.COLON || p.PeekToken.Type == token.MAGIC_COLON ||
 		p.PeekToken.Type == token.COMMA || p.PeekToken.Type == token.RBRACK ||
-		p.PeekToken.Type == token.RBRACE || p.PeekToken.Literal == "?"  ||
+		p.PeekToken.Type == token.RBRACE || p.PeekToken.Literal == "?" ||
 		p.PeekToken.Type == token.AND || p.PeekToken.Type == token.OR {
 		return false
 	}
@@ -275,7 +274,7 @@ func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
 			}
 			for i := len(left) - 1; i >= 0 && left[i].VarType == dflt; i-- {
 				left[i].VarType = right[0].VarType
-			} 
+			}
 			return append(left, right...), true
 		}
 	case *PrefixExpression:
@@ -283,14 +282,14 @@ func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
 		for _, arg := range node.Args {
 			reparsedArg, ok := p.ReparseSig(arg, dflt)
 			if !ok {
-				return nil, false 
+				return nil, false
 			}
 			if reparsedArg[0].VarName == "" {
 				result[len(result)-1].VarType = reparsedArg[0].VarType
 				reparsedArg = reparsedArg[1:]
 			}
 			result = append(result, reparsedArg...)
-		}	
+		}
 		return result, true
 	case *TypeExpression:
 		return AstSig{NameTypeAstPair{"", p.ToAstType(node)}}, true

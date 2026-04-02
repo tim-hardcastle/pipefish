@@ -15,29 +15,27 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-
-
 func TestInitializerItes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`depend/cmd`, `OK`},	
-		{`depend/var`, `OK`},	
-		{`make/ident`, `OK`},	
+		{`depend/cmd`, `OK`},
+		{`depend/var`, `OK`},
+		{`make/ident`, `OK`},
 		{`make/instance`, `OK`},
-		{`name/exists/a`, `OK`},
-		{`name/exists/b`, `OK`},	
-		{`overload/a`, `OK`},	
+		{`name/exists.a`, `OK`},
+		{`name/exists.b`, `OK`},
+		{`overload.a`, `OK`},
 		{`overload/ref`, `OK`},
-		{`service/depends`, `OK`},	
-		{`service/type`, `OK`},	
-		{`typecheck/bool`, `OK`},	
+		{`service/depends`, `OK`},
+		{`service/type`, `OK`},
+		{`typecheck/bool`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
 func TestParsingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		
+
 		// {`clone/exists`, `OK`}, // TODO --- It doesn't throw this! It really should.
-		{`clone/type/c`, `OK`},
+		{`clone/type.c`, `OK`},
 		{`enum/element`, `OK`},
 		{`head`, `OK`},
 		{`import/file`, `OK`},
@@ -50,42 +48,42 @@ func TestParsingItes(t *testing.T) {
 		{`request/rune`, `OK`},
 		{`request/set`, `OK`},
 		{`request/snippet`, `OK`},
-		{`request/string`, `OK`},	
+		{`request/string`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
 
 func TestTChunkingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`abstract/ident`, `OK`},	
-		{`alias`, `OK`},	
+		{`abstract/ident`, `OK`},
+		{`alias`, `OK`},
 		// {`assign`, `OK`},	This may be unreachable because it's looking for a `=` to end the sig, which will otherwise be malformed.
 		{`clone/expect/b`, `OK`},
 		{`clone/given`, `OK`},
-		// {`clone/ident`, `OK`},	May be forestalled by `init/type/expect/b`.	
-		// {`clone/op`, `OK`}, 	May be forestalled by `init/type/expect/b`.	
+		// {`clone/ident`, `OK`},	May be forestalled by `init/type/expect.b`.
+		// {`clone/op`, `OK`}, 	May be forestalled by `init/type/expect.b`.
 		// {`clone/params`, `OK`},	May be forestalled by `sigs/params`
 		// {`clone/rbrace`, `OK`},	 May be forestalled by `sigs/params`
-		{`clone/type/c`, `OK`},
-		// {`enum/empty`, `OK`}, Got `enum/ident` instead, may be inaccessible.		
-		{`enum/expect`, `OK`},	
-		{`enum/ident`, `OK`},	
-		// {`golang`, `OK`},	The `relex/indent` error may forestall this one.   
-		{`impex/end`, `OK`},	
-		{`impex/expect`, `OK`},	
-		{`impex/pair`, `OK`},	
-		{`impex/string`, `OK`},	
+		{`clone/type.c`, `OK`},
+		// {`enum/empty`, `OK`}, Got `enum/ident` instead, may be inaccessible.
+		{`enum/expect`, `OK`},
+		{`enum/ident`, `OK`},
+		// {`golang`, `OK`},	The `relex/indent` error may forestall this one.
+		{`impex/end`, `OK`},
+		{`impex/expect`, `OK`},
+		{`impex/pair`, `OK`},
+		{`impex/string`, `OK`},
 		{`interface/colon`, `OK`},
 		{`struct/expect`, `OK`},
 		{`struct/lparen`, `OK`},
 		// {`struct/params`, `OK`},	 May be forestalled by `sigs/params`
-		// {`struct/rbrace`, `OK`},	 May be forestalled by `sigs/params`	
+		// {`struct/rbrace`, `OK`},	 May be forestalled by `sigs/params`
 		// {`struct/rparen`, `OK`},	 May be forestalled by `sigs/params`
-		{`type/assign`, `OK`},	
-		{`type/expect/a`, `OK`},	
-		{`type/expect/b`, `OK`},	
-		{`type/ident`, `OK`},	
-		{`wrapper`, `OK`},			
+		{`type/assign`, `OK`},
+		{`type/expect.a`, `OK`},
+		{`type/expect.b`, `OK`},
+		{`type/ident`, `OK`},
+		{`wrapper`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
@@ -367,5 +365,3 @@ func TestExternalOrImportChunking(t *testing.T) {
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestExternalOrImportChunking)
 }
-
-

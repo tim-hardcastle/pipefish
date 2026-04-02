@@ -384,7 +384,7 @@ func (vm *Vm) makeError(errCode string, tokenOrdinal uint32, args ...any) values
 			result.Args = append(result.Args, arg)
 		}
 	}
-	errorCreator, ok := err.ErrorCreatorMap[errCode]
+	errorCreator, ok := err.GetErrorCreator(errCode)
 	if !ok {
 		return values.Value{values.ERROR, err.CreateErr("err/misdirect", tok, errCode)}
 	}

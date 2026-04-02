@@ -350,7 +350,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		newTypeName := ty.String()
 		parentTypeNo, ok := compiler.ClonableTypes[parTypeInfo.ParentType]
 		if !(ok || parTypeInfo.ParentType == "struct") {
-			iz.throw("init/clone/type/a", &ty.Token)
+			iz.throw("init/clone/type.a", &ty.Token)
 			return
 		}
 		var (
@@ -578,7 +578,7 @@ func (iz *Initializer) populateInterfaceTypes() {
 			for _, fn := range funcsToAdd[ty] {
 				conflictingFunction := iz.Add(fn.op.Literal, fn)
 				if conflictingFunction != nil && conflictingFunction != fn {
-					iz.throw("init/overload/b", &fn.op, fn.op.Literal, &conflictingFunction.op)
+					iz.throw("init/overload.b", &fn.op, fn.op.Literal, &conflictingFunction.op)
 				}
 			}
 		}
@@ -688,7 +688,7 @@ func (iz *Initializer) makeFunctionTable() {
 			iz.parsedCode[j][i].(*parsedFunction).callInfo = functionToAdd.callInfo
 			conflictingFunction := iz.Add(functionName, functionToAdd)
 			if conflictingFunction != nil && conflictingFunction != functionToAdd {
-				iz.throw("init/overload/a", &fn.op, functionName, &conflictingFunction.op)
+				iz.throw("init/overload.a", &fn.op, functionName, &conflictingFunction.op)
 				return
 			}
 		}
@@ -1019,7 +1019,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			for _, name := range names {
 				existingName, alreadyExists := namesToDeclarations[name]
 				if alreadyExists {
-					iz.throw("init/name/exists/a", parsedDec.indexTok, existingName[0].chunk.getToken(), name)
+					iz.throw("init/name/exists.a", parsedDec.indexTok, existingName[0].chunk.getToken(), name)
 					return nil
 				}
 				namesToDeclarations[name] = []labeledParsedCodeChunk{{parsedDec, dT, i, name, parsedDec.indexTok}}
@@ -1036,10 +1036,10 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 				names := namesToDeclarations[name]
 				for _, existingName := range names {
 					if existingName.decType == variableDeclaration || existingName.decType == constantDeclaration { // We can't redeclare variables or constants.
-						iz.throw("init/name/exists/b", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
+						iz.throw("init/name/exists.b", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
 					}
 					if existingName.decType == functionDeclaration && dT == commandDeclaration { // We don't want to overload anything so it can be both a command and a function 'cos that would be weird.
-						iz.throw("init/name/exists/c", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
+						iz.throw("init/name/exists.c", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
 					}
 				}
 				namesToDeclarations[name] = append(names, labeledParsedCodeChunk{izFn, dT, i, name, ixPtr(iz.tokenizedCode[dT][i])})
@@ -1307,15 +1307,15 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 		tupleLen = len(result.V.([]values.Value))
 	}
 	if !lastIsTuple && tupleLen > len(sig) {
-		iz.throw("comp/assign/a", asgn.indexTok, tupleLen, len(sig))
+		iz.throw("comp/assign/excess", asgn.indexTok, tupleLen, len(sig))
 		return
 	}
 	if !lastIsTuple && tupleLen < len(sig) {
-		iz.throw("comp/assign/b", asgn.indexTok, tupleLen, len(sig))
+		iz.throw("comp/assign/deficit.a", asgn.indexTok, tupleLen, len(sig))
 		return
 	}
 	if lastIsTuple && tupleLen < len(sig)-1 {
-		iz.throw("comp/assign/c", asgn.indexTok, tupleLen, len(sig))
+		iz.throw("comp/assign/deficit.b", asgn.indexTok, tupleLen, len(sig))
 		return
 	}
 	loopTop := len(sig)

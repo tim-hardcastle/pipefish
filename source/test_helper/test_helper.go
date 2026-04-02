@@ -39,10 +39,10 @@ func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compile
 			cp, _ = initializer.StartCompilerFromFilepath(filename, map[string]*compiler.Compiler{}, values.Map{})
 		case "test initialization errors":
 			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/initialization-error-tests/"+
-				strings.ReplaceAll(test.Input, "/", "_")+".pf"), map[string]*compiler.Compiler{}, values.Map{})
+				text.Flatten(test.Input)+".pf"), map[string]*compiler.Compiler{}, values.Map{})
 		case "test compiler errors":
 			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/compiler-error-tests/"+
-				strings.ReplaceAll(test.Input, "/", "_")+".pf"), map[string]*compiler.Compiler{}, values.Map{})
+				text.Flatten(test.Input)+".pf"), map[string]*compiler.Compiler{}, values.Map{})
 		default:
 			cp, _ = initializer.StartCompilerFromFilepath(filepath.Join(wd, "../compiler/test-files/", filename), map[string]*compiler.Compiler{}, values.Map{})
 		}
@@ -57,6 +57,7 @@ func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compile
 		}
 	}
 }
+
 
 // NOTE: this is here to test some internal workings of the initializer. It only initializes
 // a blank service.
@@ -89,7 +90,7 @@ func TestValues(cp *compiler.Compiler, s string) (string, error) {
 	if v.T == values.ERROR {
 		e := v.V.(*err.Error)
 		// This will at least crash if the explanation mistypes the arguments.
-		if ec, ok := err.ErrorCreatorMap[e.ErrorId]; ok {
+		if ec, ok := err.GetErrorCreator(e.ErrorId); ok {
 			ec.Explanation(e.Token, e.Args...)
 		}
 		return e.ErrorId, nil
@@ -128,7 +129,7 @@ func TestCompilerErrors(cp *compiler.Compiler, s string) (string, error) {
 	} else {
 		topError := cp.P.Common.Errors[0]
 		// This will at least crash if the explanation mistypes the arguments.
-		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
+		if ec, ok := err.GetErrorCreator(topError.ErrorId); ok {
 			ec.Explanation(topError.Token, topError.Args...)
 		}
 		return topError.ErrorId, nil
@@ -142,7 +143,7 @@ func TestInitializationErrors(cp *compiler.Compiler, s string) (string, error) {
 	topError := cp.P.Common.Errors[0]
 	if "init/"+s == topError.ErrorId {
 		// This will at least crash if the explanation mistypes the arguments.
-		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
+		if ec, ok := err.GetErrorCreator(topError.ErrorId); ok {
 			ec.Explanation(topError.Token, topError.Args...)
 		}
 		return "OK", nil
@@ -157,7 +158,7 @@ func TestInitializationErrorsInCompiler(cp *compiler.Compiler, s string) (string
 	topError := cp.P.Common.Errors[0]
 	if "comp/"+s == topError.ErrorId {
 		// This will at least crash if the explanation mistypes the arguments.
-		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
+		if ec, ok := err.GetErrorCreator(topError.ErrorId); ok {
 			ec.Explanation(topError.Token, topError.Args...)
 		}
 		return "OK", nil
@@ -320,7 +321,7 @@ func TestParserErrors(cp *compiler.Compiler, s string) (string, error) {
 	if cp.P.ErrorsExist() {
 		topError := cp.P.Common.Errors[0]
 		// This will at least crash if the explanation mistypes the arguments.
-		if ec, ok := err.ErrorCreatorMap[topError.ErrorId]; ok {
+		if ec, ok := err.GetErrorCreator(topError.ErrorId); ok {
 			ec.Explanation(topError.Token, topError.Args...)
 		}
 		return topError.ErrorId, nil
