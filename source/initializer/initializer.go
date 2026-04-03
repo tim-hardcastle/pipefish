@@ -1604,9 +1604,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		iz.cp.Emit(vm.Ret)
 	}
 	iz.cp.Fns = append(iz.cp.Fns, &cpFn)
-	if ac == compiler.DEF && !cpFn.RtnTypes.IsLegalDefReturn() {
-		iz.throw("comp/return/def", &izFn.op)
-	}
+	// The equivalent checks for functions happen elsewhere, for Reasons.
 	if ac == compiler.CMD && !cpFn.RtnTypes.IsLegalCmdReturn() {
 		iz.throw("comp/return/cmd", &izFn.op)
 	}

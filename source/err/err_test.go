@@ -6,10 +6,29 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestHubErrorMethods(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
+		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
+		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
+		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
 func TestAssignmentItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`assign/type/a`, `OK`},
 		{`assign/immutable`, `OK`},
+	}
+test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+}
+
+func TestFcisItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`return/cmd`, `OK`},
+		{`fcis`, `OK`},
 	}
 test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
@@ -65,7 +84,7 @@ func TestCastRtes(t *testing.T) {
 func TestCompilerItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`assign/type/a`, `OK`},
-		{`fcis`, `OK`},
+		{`given/redeclared`, `OK`},
 		{`for/bound/present`, `OK`},
 		{`global/global`, `OK`},
 		{`global/ident`, `OK`},
@@ -135,10 +154,14 @@ func TestForLoopCtes(t *testing.T) {
 		{`from a = 0 for true::i = range 0::5 : a + i`, `comp/for/range.a`},
 		{`from a = 0 for i::true = range 0::5 : a + i`, `comp/for/range.b`},
 		{`from a = 0 for i::j = range true : a + i`, `comp/for/range/types`},
+		{`from a = 0 for _::_ = range true : a + i`, `comp/for/range/discard`},
 		{`from a = 0 for a::j = range 5 : a + i`, `comp/for/exists/key`},
 		{`from a = 0 for i::a = range 5 : a + i`, `comp/for/exists/value`},
 		{`from a = 0 for i+j = range 5 : a + i`, `comp/for/range.c`},
 		{`from a = 0 for i = 0; 1/0; i + 1 : a + i`, `comp/for/condition`},
+		{`from a, b = 0, 1 for i::v = range 5 : 1`, `comp/types/length/for`},
+		{`from a, b = 0, 1 for i::v = range 5 : 1, 2, 3`, `comp/types/for`},
+		{`from a = 0 for i::v = range 5 : "foo"`, `comp/types/for`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
@@ -163,22 +186,12 @@ func TestGivenCtes(t *testing.T) {
 		{`func(x) : x given: 42`, `comp/given/assign`},
 		{`func(x) : x given: y = 1 div 0`, `comp/given/error`},
 		{`func(x) : x given: x = 42`, `comp/given/exists`},
-		//{"func(x) : x given:\n\ty = 42\n\ty = 42", `comp/given/redeclared`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
 
-func TestHubErrorMethods(t *testing.T) {
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
-		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
-		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
-		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
 
-		}
-		test_helper.RunHubTest(t, "default", test)
-	}
+
 func TestIndexingCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`[1, 2, 3][4.0]`, `comp/index/list`},
@@ -188,6 +201,7 @@ func TestIndexingCtes(t *testing.T) {
 		{`SN[4.0]`, `comp/index/snippet`},
 		{`JOHN[lives]`, "comp/index/struct/a"},
 		{`JOHN[42]`, "comp/index/struct/b"},
+		{`animal[foo]`, "comp/index/struct/c"},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
@@ -367,6 +381,13 @@ func TestParsingItes(t *testing.T) {
 		{`request/string`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+func TestReturnCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`func(i int) -> int : 1, 2`, `comp/types/return`},
+		{`func(i int) -> int, int : 1`, `comp/types/length/return`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
 func TestTypeAccessCtes(t *testing.T) {
 	tests := []test_helper.TestItem{

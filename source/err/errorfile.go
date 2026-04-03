@@ -597,15 +597,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/return/def": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "mixture of imperative and functional code"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Despite this being defined as a function, it carries out some imperative behavior."
-		},
-	},
-
 	"comp/types/length/for": {
 		Message: func(tok *token.Token, args ...any) string {
 			return redescribeType(args[0].(string)) + " of bound variables specified at line " +
@@ -636,7 +627,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The types of bound variables in the declaration of your `for` loop doesn't match " +
-				"the number of values returned by this branch of the body of the `for` loop."
+				"the types of the values returned by this branch of the body of the `for` loop."
 		},
 	},
 
@@ -844,15 +835,15 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/unreachable": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "unreachable code"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "You have written code which can't be reached because one of the previous branches " +
-				"must be taken. As there is never any point in doing this, Pipefish assumes that this is a mistake."
-		},
-	},
+	// "comp/unreachable": {
+	// 	Message: func(tok *token.Token, args ...any) string {
+	// 		return "unreachable code"
+	// 	},
+	// 	Explanation: func(tok *token.Token, args ...any) string {
+	// 		return "You have written code which can't be reached because one of the previous branches " +
+	// 			"must be taken. As there is never any point in doing this, Pipefish assumes that this is a mistake."
+	// 	},
+	// },
 
 	"err/misdirect": {
 		Message: func(tok *token.Token, args ...any) string {

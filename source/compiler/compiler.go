@@ -1213,7 +1213,7 @@ NodeTypeSwitch:
 	} else {
 		cp.Cm("Expression "+node.String()+" is unfoldable with return types "+result.Types.describe(cp.Vm)+".", node.GetToken())
 	}
-	if !result.Types.IsLegalCmdReturn() && !result.Types.IsLegalDefReturn() {
+    if !result.Types.IsLegalCmdReturn() && !result.Types.IsLegalDefReturn() {
 		cp.Throw("comp/sanity", node.GetToken())
 		return FAIL
 	}

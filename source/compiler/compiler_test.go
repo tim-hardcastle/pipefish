@@ -15,11 +15,15 @@ func TestForLoopCtes(t *testing.T) {
 		{`from a = 0 for i, i = 0, 0; i < 5; i + 1 : a + i`, `comp/for/index/exists`},
 		{`from a = 0 for true::i = range 0::5 : a + i`, `comp/for/range.a`},
 		{`from a = 0 for i::true = range 0::5 : a + i`, `comp/for/range.b`},
+		{`from a = 0 for _::_ = range true : a + i`, `comp/for/range/discard`},
 		{`from a = 0 for i::j = range true : a + i`, `comp/for/range/types`},
 		{`from a = 0 for a::j = range 5 : a + i`, `comp/for/exists/key`},
 		{`from a = 0 for i::a = range 5 : a + i`, `comp/for/exists/value`},
 		{`from a = 0 for i+j = range 5 : a + i`, `comp/for/range.c`},
 		{`from a = 0 for i = 0; 1/0; i + 1 : a + i`, `comp/for/condition`},
+		{`from a, b = 0, 1 for i::v = range 5 : 1`, `comp/types/length/for`},
+		{`from a, b = 0, 1 for i::v = range 5 : 1, 2, 3`, `comp/types/for`},
+		{`from a = 0 for i::v = range 5 : "foo"`, `comp/types/for`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
@@ -362,6 +366,13 @@ func TestFancyFunctions(t *testing.T) {
 	}
 	test_helper.RunTest(t, "fancy_function_test.pf", tests, test_helper.TestValues)
 }
+func TestFcisItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`return/cmd`, `OK`},
+		{`fcis`, `OK`},
+	}
+	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+}
 func TestForLoopRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`bar 5`, `vm/typecheck/bound/init`},
@@ -505,7 +516,7 @@ func TestHighlighter(t *testing.T) {
 func TestItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`assign/type/a`, `OK`},
-		{`fcis`, `OK`},
+		{`given/redeclared`, `OK`},
 		{`for/bound/present`, `OK`},
 		{`global/global`, `OK`},
 		{`global/ident`, `OK`},
@@ -715,6 +726,15 @@ func TestRef(t *testing.T) {
 	}
 	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestValues)
 }
+
+func TestReturnCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`func(i int) -> int : 1, 2`, `comp/types/return`},
+		{`func(i int) -> int, int : 1`, `comp/types/length/return`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
+}
+
 func TestSnippets(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`(qux 5)[0]`, `"foo "`},
@@ -797,6 +817,7 @@ func TestTypeAccessErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
 func TestTypeExpressionCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`clones{string, int}`, `comp/clones/arguments`},
