@@ -1,0 +1,7 @@
+def 
+
+foo(i) :
+    i 
+given :
+    y = 42
+    y = 99
