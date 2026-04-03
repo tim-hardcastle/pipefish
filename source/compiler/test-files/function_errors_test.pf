@@ -1,0 +1,4 @@
+newtype 
+
+Varchar = clone(i int) string :
+    len(that) <= i 
