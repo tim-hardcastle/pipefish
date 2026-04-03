@@ -23,16 +23,6 @@ import (
 
 var errorCreatorMap = map[string]ErrorCreator{
 
-	// TEMPLATE
-	"": {
-		Message: func(tok *token.Token, args ...any) string {
-			return ""
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return ""
-		},
-	},
-
 	"comp/apply/func": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to apply a value " + emph(args[0]) + " which can't be a function"
@@ -59,17 +49,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The only variables that can be redefined are global variables, and local variables defined in the body of a command."
-		},
-	},
-
-	"comp/assign/lhs/a": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "malformed left-hand side of assignment"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Pipefish presumes from the `=` in the expression that you're " +
-				"trying to assign to a variable or variables, but it can't make sense " +
-				"of the left-hand side of the expression, where the variables should be."
 		},
 	},
 
@@ -292,17 +271,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/for/assign/a": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "expected assignment of bound variables"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Pipefish was expecting you to define the bound variables of the `for` " +
-				"loop here, but instead has found something else."
-		},
-	},
-
-	"comp/for/assign/b": {
+	"comp/for/assign": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected assignment of bound variables"
 		},

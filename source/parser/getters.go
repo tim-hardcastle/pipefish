@@ -262,7 +262,7 @@ func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
 	case *InfixExpression:
 		if node.Token.Type == token.COMMA {
 			if len(node.GetArgs()) != 3 {
-				p.Throw("comp/assign/lhs/a", node.GetToken())
+				panic("This should be unreachable; if not, now we know.")
 			}
 			left, ok := p.ReparseSig(node.GetArgs()[0], dflt)
 			if !ok {

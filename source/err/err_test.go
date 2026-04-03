@@ -6,7 +6,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-func TestAssignmentIetes(t *testing.T) {
+func TestAssignmentItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`assign/type/a`, `OK`},
 		{`assign/immutable`, `OK`},
@@ -125,6 +125,23 @@ func TestEqualityRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "equality_test", tests, test_helper.TestValues)
 }
+func TestForLoopCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`break 2 == true`, `comp/break/a`},
+		{`from a == 0 for _::i = range 0::5 : a + i`, `comp/for/assign.a`},
+		{`from a, a = 0, 0 for _::i = range z : a + i, a`, `comp/for/bound/exists`},
+		{`from a = 0 for i == 0; i < 5; i + 1 : a + i`, `comp/for/assign.b`},
+		{`from a = 0 for i, i = 0, 0; i < 5; i + 1 : a + i`, `comp/for/index/exists`},
+		{`from a = 0 for true::i = range 0::5 : a + i`, `comp/for/range.a`},
+		{`from a = 0 for i::true = range 0::5 : a + i`, `comp/for/range.b`},
+		{`from a = 0 for i::j = range true : a + i`, `comp/for/range/types`},
+		{`from a = 0 for a::j = range 5 : a + i`, `comp/for/exists/key`},
+		{`from a = 0 for i::a = range 5 : a + i`, `comp/for/exists/value`},
+		{`from a = 0 for i+j = range 5 : a + i`, `comp/for/range.c`},
+		{`from a = 0 for i = 0; 1/0; i + 1 : a + i`, `comp/for/condition`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
+}
 func TestForLoopRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`bar 5`, `vm/typecheck/bound/init`},
@@ -151,17 +168,17 @@ func TestGivenCtes(t *testing.T) {
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
 
-// func TestHubErrorMethods(t *testing.T) {
-// 	// no t.Parallel()
-// 	test := []test_helper.TestItem{
-// 		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
-// 		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
-// 		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
-// 		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
+func TestHubErrorMethods(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
+		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
+		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
+		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
 
-// 		}
-// 		test_helper.RunHubTest(t, "default", test)
-// 	}
+		}
+		test_helper.RunHubTest(t, "default", test)
+	}
 func TestIndexingCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`[1, 2, 3][4.0]`, `comp/index/list`},
@@ -263,6 +280,14 @@ func TestLabelRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "labels_test.pf", tests, test_helper.TestValues)
 }
+
+func TestLambdaCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`func(x) : x * y`, `comp/body/known`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
+}
+
 func TestLoggingCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`42 \\ | forty-two`, `comp/log/close`},
@@ -282,6 +307,7 @@ func TestMiscellaneousCtes(t *testing.T) {
 		{`[1, 2, 3] ?> 2 * that`, `comp/pipe/filter/bool`},
 		{`1 given : 2`, `comp/expect/given`},
 		{`zwub 5`, `comp/known/prefix`},
+		{`len(1/0)`, `comp/error/arg`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }

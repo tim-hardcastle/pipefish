@@ -9,9 +9,9 @@ import (
 func TestForLoopCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`break 2 == true`, `comp/break/a`},
-		{`from a == 0 for _::i = range 0::5 : a + i`, `comp/for/assign/a`},
+		{`from a == 0 for _::i = range 0::5 : a + i`, `comp/for/assign.a`},
 		{`from a, a = 0, 0 for _::i = range z : a + i, a`, `comp/for/bound/exists`},
-		{`from a = 0 for i == 0; i < 5; i + 1 : a + i`, `comp/for/assign/b`},
+		{`from a = 0 for i == 0; i < 5; i + 1 : a + i`, `comp/for/assign.b`},
 		{`from a = 0 for i, i = 0, 0; i < 5; i + 1 : a + i`, `comp/for/index/exists`},
 		{`from a = 0 for true::i = range 0::5 : a + i`, `comp/for/range.a`},
 		{`from a = 0 for i::true = range 0::5 : a + i`, `comp/for/range.b`},
@@ -79,12 +79,12 @@ func TestAssignment(t *testing.T) {
 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
 }
 
-func TestAssignmentIetes(t *testing.T) {
+func TestAssignmentItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`assign/type/a`, `OK`},
 		{`assign/immutable`, `OK`},
 	}
-test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
 
 func TestAssignmentErrors(t *testing.T) {
@@ -610,6 +610,12 @@ func TestLambdas(t *testing.T) {
 	}
 	test_helper.RunTest(t, "lambda_test.pf", tests, test_helper.TestValues)
 }
+func TestLambdaCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`func(x) : x * y`, `comp/body/known`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
+}
 func TestLiterals(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`"foo"`, `"foo"`},
@@ -654,6 +660,7 @@ func TestMiscellaneousCompilerErrors(t *testing.T) {
 		{`[1, 2, 3] ?> 2 * that`, `comp/pipe/filter/bool`},
 		{`1 given : 2`, `comp/expect/given`},
 		{`zwub 5`, `comp/known/prefix`},
+		{`len(1/0)`, `comp/error/arg`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }

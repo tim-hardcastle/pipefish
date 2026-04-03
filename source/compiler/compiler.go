@@ -1475,7 +1475,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		hasBoundVariables = true
 		// We set up the bound variables. Note that type checking happens *inside* the 'for' loop, not up here.
 		if node.BoundVariables.GetToken().Type != token.ASSIGN {
-			cp.Throw("comp/for/assign/a", &node.Token)
+			cp.Throw("comp/for/assign.a", &node.Token)
 			return FAIL
 		}
 		lhsOfBoundVariables := node.BoundVariables.(*parser.AssignmentExpression).Left
@@ -1520,7 +1520,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		// For the initializer we have to do something very un-DRYly like what we just did with the bound variables; TODO ---
 		// is there any way to DRY it up that doesn't obfuscate the code?
 		if node.Initializer.GetToken().Type != token.ASSIGN {
-			cp.Throw("comp/for/assign/b", &node.Token)
+			cp.Throw("comp/for/assign.b", &node.Token)
 			return FAIL
 		}
 		lhsOfInitVariables := node.Initializer.(*parser.AssignmentExpression).Left
@@ -2018,7 +2018,7 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 			if namesUsed.Contains(pair.VarName) {
 				cp.Throw("comp/given/redeclared", chunk.GetToken(), pair.VarName)
 				return false
-			} 
+			}
 			namesUsed = namesUsed.Add(pair.VarName)
 			nameToNode[pair.VarName] = assEx
 			if reflect.TypeOf(assEx.Right) == reflect.TypeFor[*parser.FuncExpression]() {
@@ -2043,7 +2043,7 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 	order := dtypes.Tarjan(nameGraph)
 	// If we have a multiple assignment, we only want to compile the rhs once. We keep track of
 	// the variables already used on the lhs so we won't repeat ourselves.
-	used := dtypes.Set[string]{} 
+	used := dtypes.Set[string]{}
 	for _, partition := range order {
 		if len(partition) > 1 {
 			cp.Throw("comp/given/order", given.GetToken(), partition)
@@ -2101,7 +2101,7 @@ func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt
 	}
 	for i, pair := range sig {
 		v, alreadyExists := ctxt.Env.GetVar(pair.VarName) // In that case we have an inner function declaration and the sig will have length 1.
-		var typeToUse AlternateType // TODO: we can extract more meaningful information about the tuple from the types.
+		var typeToUse AlternateType                       // TODO: we can extract more meaningful information about the tuple from the types.
 		if t, ok := pair.VarType.(*parser.TypeWithName); ok && t.OperatorName == "tuple" {
 			typeToUse = cp.Common.AnyTuple
 		} else {
