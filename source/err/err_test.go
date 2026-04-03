@@ -19,6 +19,8 @@ func TestAssignmentErrors(t *testing.T) {
 		{`y = "foo"`, `comp/typecheck/type`},
 		{`y string = "foo"`, `comp/assign/type/b`},
 		{`A string = "orange"`, `comp/assign/const`},
+		{`x, y = 'q'`, `comp/typecheck/values/b`},
+		{`x, y = 'q', 2, 3`, `comp/typecheck/values/b`},
 	}
 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestCompilerErrors)
 }

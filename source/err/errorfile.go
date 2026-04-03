@@ -44,26 +44,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/assign/excess": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "too many values on right-hand side of assignment"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "An assignment which has more values on the " +
-				"right-hand side than it has variables on the left is an error."
-		},
-	},
-
-	"comp/assign/deficit": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "too few values on right-hand side of assignment"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "An assignment which has fewer values on the " +
-				"right-hand side than it has variables on the left is an error."
-		},
-	},
-
 	"comp/assign/const": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "assigning to constant " + emph(args[0])

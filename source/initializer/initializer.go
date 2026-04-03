@@ -1306,18 +1306,6 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 	if rhsIsTuple {
 		tupleLen = len(result.V.([]values.Value))
 	}
-	if !lastIsTuple && tupleLen > len(sig) {
-		iz.throw("comp/assign/excess", asgn.indexTok, tupleLen, len(sig))
-		return
-	}
-	if !lastIsTuple && tupleLen < len(sig) {
-		iz.throw("comp/assign/deficit.a", asgn.indexTok, tupleLen, len(sig))
-		return
-	}
-	if lastIsTuple && tupleLen < len(sig)-1 {
-		iz.throw("comp/assign/deficit.b", asgn.indexTok, tupleLen, len(sig))
-		return
-	}
 	loopTop := len(sig)
 	head := []values.Value{result}
 	if lastIsTuple {
