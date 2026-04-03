@@ -79,12 +79,22 @@ func TestAssignment(t *testing.T) {
 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
 }
 
+func TestAssignmentIetes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`assign/type/a`, `OK`},
+		{`assign/immutable`, `OK`},
+	}
+test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+}
+
 func TestAssignmentErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`x = true`, `comp/typecheck/type`},
 		{`y = "foo"`, `comp/typecheck/type`},
 		{`y string = "foo"`, `comp/assign/type/b`},
 		{`A string = "orange"`, `comp/assign/const`},
+		{`x, y = 'q'`, `comp/typecheck/values/b`},
+		{`x, y = 'q', 2, 3`, `comp/typecheck/values/b`},
 	}
 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestCompilerErrors)
 }

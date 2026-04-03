@@ -6,11 +6,12 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-func TestAssignmentCtes(t *testing.T) {
+func TestAssignmentIetes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`assign/type/a`, `OK`},
+		{`assign/immutable`, `OK`},
 	}
-	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
 
 func TestAssignmentErrors(t *testing.T) {

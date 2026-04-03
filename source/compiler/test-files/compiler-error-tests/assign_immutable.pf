@@ -1,0 +1,4 @@
+cmd 
+
+foo(i int) :
+    i = 42
