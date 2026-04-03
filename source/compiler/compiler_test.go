@@ -410,6 +410,13 @@ func TestForLoops(t *testing.T) {
 	}
 	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
 }
+func TestFunctionErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Varchar{8}(42)`, `comp/types.a`},
+		{`len(42)`, `comp/types.b`},
+	}
+	test_helper.RunTest(t, "function_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
 func TestFunctionOverloading(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 42`, `"int"`},
@@ -523,6 +530,7 @@ func TestItes(t *testing.T) {
 		{`global/ident`, `OK`},
 		{`try/return`, `OK`},
 		{`try/var`, `OK`},
+		{`type/known`, `OK`},
 		// Tests for failing upwards.
 		{`break fail`, `comp/eq/types`},
 		{`try fail`, `comp/eq/types`},

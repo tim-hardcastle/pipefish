@@ -786,16 +786,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/types/a": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "function " + emph(args[0]) + " cannot accept arguments of type " + args[1].(string)
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "While this function or command does exist, there is no version of it accepting the types you have supplied."
-		},
-	},
-
-	"comp/types/b": {
+	"comp/types": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "function " + emph(args[0]) + " cannot accept arguments of type " + args[1].(string)
 		},

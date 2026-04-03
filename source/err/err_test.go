@@ -91,6 +91,7 @@ func TestCompilerItes(t *testing.T) {
 		{`global/ident`, `OK`},
 		{`try/return`, `OK`},
 		{`try/var`, `OK`},
+		{`type/known`, `OK`},
 	}
 	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
@@ -181,7 +182,13 @@ func TestForLoopRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
-
+func TestFunctionCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Varchar{8}(42)`, `comp/types.a`},
+		{`len(42)`, `comp/types.b`},
+	}
+	test_helper.RunTest(t, "function_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
 func TestGivenCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`func(x) : x given: 42`, `comp/given/assign`},
@@ -190,9 +197,6 @@ func TestGivenCtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
-
-
-
 func TestIndexingCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`[1, 2, 3][4.0]`, `comp/index/list`},
