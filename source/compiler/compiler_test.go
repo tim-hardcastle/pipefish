@@ -727,6 +727,14 @@ func TestRef(t *testing.T) {
 	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestValues)
 }
 
+func TestRefCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`42 ++`, `comp/ref/ident`},
+		{`z ++`, `comp/ref/var`},
+	}
+	test_helper.RunTest(t, "ref_test.pf", tests, test_helper.TestCompilerErrors)
+}
+
 func TestReturnCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`func(i int) -> int : 1, 2`, `comp/types/return`},

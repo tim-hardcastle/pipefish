@@ -394,7 +394,7 @@ func (vL AlternateType) without(t TypeScheme) AlternateType {
 	return x
 }
 
-func (aT AlternateType) isOnly(vt values.ValueType) bool {
+func (aT AlternateType) IsOnly(vt values.ValueType) bool {
 	t := SimpleType(vt)
 	if len(aT) == 1 {
 		switch el := aT[0].(type) {

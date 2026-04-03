@@ -707,19 +707,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/typecheck/error": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "expression can only have error type"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "When Pipefish typechecks something, it is permissible at compile-time " +
-				"for that thing to contain an error not declared in the type annotations: " +
-				"that would be a runtime error. However, it is a compile-time error for this " +
-				"always to be the case, and the typechecker has determined that this is " +
-				"one of those situations."
-		},
-	},
-
 	"comp/typecheck/type": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "wrong number of arguments"

@@ -116,7 +116,7 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node parser.Callab
 			}
 			cst = cst && argResult.Foldable
 			b.valLocs[i] = cp.That()
-			if b.types[i].(AlternateType).isOnly(values.ERROR) {
+			if b.types[i].(AlternateType).IsOnly(values.ERROR) {
 				cp.Throw("comp/error/arg", arg.GetToken(), cp.P.PrettyPrint(arg))
 				return FAIL
 			}
@@ -136,7 +136,7 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node parser.Callab
 	}
 	cp.cmP("Returned from initial call into generateNewArgument", b.tok)
 	cp.Put(vm.Asgm, b.outLoc)
-	if returnTypes.isOnly(values.ERROR) && node.GetToken().Literal != "error" {
+	if returnTypes.IsOnly(values.ERROR) && node.GetToken().Literal != "error" {
 		if text.Tail(b.tok.Literal, "{}") {
 			cp.Throw("comp/types/a", b.tok, b.tok.Literal, (b.types[1:]).describeWithPotentialInfix(cp.Vm, b.tok.Literal))
 			return FAIL
@@ -567,7 +567,9 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 				functionAndType, ok := BUILTINS[builtinTag]
 				if ok {
 					switch builtinTag { // Then for these we need to special-case their return types.
-					case "get_from_sql":
+					// TODO --- can we do something better with the JSON?
+					case "get_from_sql", "get_pf_from_json", "get_pf_from_json_as", "get_pf_from_json_like":
+						println(builtinTag)
 						functionAndType.T = cp.Common.AnyTypeScheme
 					case "cast":
 						cp.Cm("Builtin is cast", b.tok)
