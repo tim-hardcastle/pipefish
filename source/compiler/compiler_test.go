@@ -97,6 +97,7 @@ func TestAssignmentErrors(t *testing.T) {
 		{`y = "foo"`, `comp/typecheck/type`},
 		{`y string = "foo"`, `comp/assign/type/b`},
 		{`A string = "orange"`, `comp/assign/const`},
+		{`x = 'q', 'q'`, `comp/typecheck/values/a`},
 		{`x, y = 'q'`, `comp/typecheck/values/b`},
 		{`x, y = 'q', 2, 3`, `comp/typecheck/values/b`},
 	}

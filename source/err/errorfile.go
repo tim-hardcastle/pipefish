@@ -678,15 +678,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/snippet/tuple": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "can't inject tuple of indeterminate length into SQL"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "To inject a tuple into SQL, the compiler needs to be able to figure out in advance how many elements the tuple will have, and in this case it can't."
-		},
-	},
-
 	"comp/splat/type": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "argument of `...` must be a list or clone of list, not " + emph(args[0])
@@ -771,15 +762,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are trying to concatenate together two values one of which is certainly of type " + emph("error") + ". As this will only return the error, Pipefish assumes this is a mistake."
-		},
-	},
-
-	"comp/typecheck/var": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "unknown variable " + emph(args[0])
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "The typechecker has found itself trying to typecheck a variable which doesn't exist."
 		},
 	},
 
@@ -2342,7 +2324,17 @@ var errorCreatorMap = map[string]ErrorCreator{
 			return "can't convert Pipefish struct to SQL table"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "Recall that only a limited number of types have been implemented for demonstration purposes."
+			return "Only a limited number of types can be converted to " +
+			"Pipefish and this struct contains a field with a type which isn't one of them."
+		},
+	},
+
+	"sql/tuple": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "can't inject tuple of indeterminate length into SQL"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "To inject a tuple into SQL, the compiler needs to be able to figure out in advance how many elements the tuple will have, and in this case it can't."
 		},
 	},
 

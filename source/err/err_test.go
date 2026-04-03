@@ -6,16 +6,16 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-// func TestHubErrorMethods(t *testing.T) {
-// 	// no t.Parallel()
-// 	test := []test_helper.TestItem{
-// 		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
-// 		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
-// 		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
-// 		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
-// 	}
-// 	test_helper.RunHubTest(t, "default", test)
-// }
+func TestHubErrorMethods(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
+		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
+		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
+		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
 
 func TestAssignmentItes(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -39,6 +39,7 @@ func TestAssignmentErrors(t *testing.T) {
 		{`y = "foo"`, `comp/typecheck/type`},
 		{`y string = "foo"`, `comp/assign/type/b`},
 		{`A string = "orange"`, `comp/assign/const`},
+		{`x = 'q', 'q'`, `comp/typecheck/values/a`},
 		{`x, y = 'q'`, `comp/typecheck/values/b`},
 		{`x, y = 'q', 2, 3`, `comp/typecheck/values/b`},
 	}

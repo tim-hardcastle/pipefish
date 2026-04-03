@@ -2435,7 +2435,7 @@ func (cp *Compiler) compileSnippet(tok *token.Token, newEnv *Environment, nodes 
 			val := cp.That()
 			lens := lengths(cResult.Types)
 			if lens.Contains(-1) || len(lens) != 1 {
-				cp.Throw("comp/snippet/tuple", tok)
+				cp.Throw("sql/tuple", tok)
 				return nil
 			}
 			bindle.ValueLocs = append(bindle.ValueLocs, val)
@@ -2698,11 +2698,7 @@ func (cp *Compiler) EmitTypeChecks(
 		errorCheck = cp.vmEarlyReturn(errorLocation)
 	case flavor == CHECK_LOCAL_CMD_ASSIGNMENTS || flavor == CHECK_GIVEN_ASSIGNMENTS:
 		for i := 0; i < len(sig); i++ {
-			vr, ok := env.GetVar(sig[i].VarName)
-			if !ok {
-				cp.Throw("comp/typecheck/var", typeToken, sig[i].VarName)
-				return BkEarlyReturn(DUMMY)
-			}
+			vr, _ := env.GetVar(sig[i].VarName)
 			cp.Emit(vm.Asgm, vr.MLoc, errorLocation)
 		}
 	default:
