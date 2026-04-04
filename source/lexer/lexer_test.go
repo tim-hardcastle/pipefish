@@ -1,8 +1,10 @@
-package lexer
+package lexer_test
 
 import (
 	"testing"
 
+	"github.com/tim-hardcastle/pipefish/source/lexer"
+	"github.com/tim-hardcastle/pipefish/source/test_helper"
 	"github.com/tim-hardcastle/pipefish/source/token"
 )
 
@@ -121,7 +123,7 @@ else : 6
 		{token.IDENT, "threeandthreequarters", 5},
 		{token.NEWLINE, ";", 5},
 		{token.COMMENT, "This is a comment", 6},
-		{token.ILLEGAL, "lex/wsp", 7},
+		{token.ILLEGAL, `lex/wsp`, 7},
 		{token.IDENT, "line", 7},
 		{token.IDENT, "four", 7},
 		{token.NEWLINE, ";", 7}, //20
@@ -206,7 +208,25 @@ golang {
 	testLexingString(t, input, items)
 }
 
-
+func TestLexingErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`0b456`, `lex/bin`},
+		{`0o890`, `lex/oct`},
+		{`golang 42`, `lex/golang`},
+		{`0xxyz`, `lex/hex`},
+		{`"foo`, `lex/quote.a`},
+		{`'q`, `lex/quote/rune`},
+		{`true.foo`, `lex/namespace/left`},
+		{`foo.true`, `lex/namespace/right`},
+		{`foo .`, `lex/dot`},
+		{"0.0.0", `lex/num`},
+		{"true :\n\t42\n  else:\n   99", `lex/wsp`},
+		{"fee, fie,\nfo, fum", `lex/comma`},
+		{"fee, fie ..\nfo, fum", `lex/cont/a`},
+		{"fee, fie\n.. fo, fum", `lex/cont/b`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
+}
 
 type testItem struct {
 	expectedType    token.TokenType
@@ -215,12 +235,12 @@ type testItem struct {
 }
 
 func testLexingString(t *testing.T, input string, items []testItem) {
-	l := NewLexer("dummy source", input)
-	mt := chain(l)
+	l := lexer.NewLexer("dummy source", input)
+	mt := lexer.Chain(l)
 	runTest(t, mt, items)
 }
 
-func runTest(t *testing.T, ts TokenSupplier, items []testItem) {
+func runTest(t *testing.T, ts lexer.TokenSupplier, items []testItem) {
 	for i, tt := range items {
 		tok := ts.NextToken()
 		if tok.Type != tt.expectedType {
@@ -250,7 +270,7 @@ func TestWhiteSpaceDescriptors(t *testing.T) {
 		{"", "empty string"},
 	}
 	for i, item := range items {
-		got := describeWhitespace(item.input)
+		got := lexer.DescribeWhitespace(item.input)
 		if item.output != got {
 			t.Fatalf("tests[%d] - description wrong. expected=%q, got=%q",
 				i, item.output, got)

@@ -19,7 +19,7 @@ import (
 
 // The chain is assembled by the following function.
 func makeChain(ts tokensSupplier) *monotokenizer {
-	return chain(
+	return Chain(
 		ts,
 		&removeCommentsAndIllegalTokens{},
 		&removeColonAndLoggingAfterGiven{},
@@ -149,4 +149,3 @@ func (r *removeTrailingCommas) getTokens() []token.Token {
 	r.acc.next()
 	return result
 }
-

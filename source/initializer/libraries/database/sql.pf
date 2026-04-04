@@ -16,7 +16,7 @@ def
 
 SqlDb(driver SqlDriver, hostpath string, port int, hostname, username, password string) :
     goMakeSqlConnection(string(driver), "host="+hostpath + " port=" + string(port) + " dbname=" + hostname ..
-                              + " user=" + username + " password=" + password + "sslmode=disable")
+                            ..  + " user=" + username + " password=" + password + "sslmode=disable")
 
 SqlDb(driver SqlDriver) :
     driver != SQLITE : // Someone might make another one.

@@ -139,6 +139,7 @@ type Error = err.Error
 const (
 	UNDEFINED_TYPE Type = values.UNDEFINED_TYPE
 	BLING          Type = values.BLING
+	UNSATISFIED_CONDITIONAL Type = values.UNSATISFIED_CONDITIONAL
 	OK             Type = values.SUCCESSFUL_VALUE
 	TUPLE          Type = values.TUPLE
 	ERROR          Type = values.ERROR

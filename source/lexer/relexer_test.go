@@ -1,8 +1,9 @@
-package lexer
+package lexer_test
 
 import (
 	"testing"
 
+	"github.com/tim-hardcastle/pipefish/source/lexer"
 	"github.com/tim-hardcastle/pipefish/source/token"
 )
 
@@ -111,6 +112,6 @@ golang {
 }
 
 func testRelexingString(t *testing.T, input string, items []testItem) {
-	rl := NewRelexer("dummy source", input)
+	rl := lexer.NewRelexer("dummy source", input)
 	runTest(t, rl, items)
 }

@@ -26,7 +26,7 @@ type keepTrack struct {
 type Relexer struct {
 	stack                  *dtypes.Stack[keepTrack]
 	source                 string
-	lexer                  lexer
+	lexer                  *lexer
 	mt                     *monotokenizer
 	preTok, curTok, nexTok token.Token
 	ifLogHappened          bool
@@ -35,8 +35,8 @@ type Relexer struct {
 }
 
 func NewRelexer(source, input string) *Relexer {
-	l := *NewLexer(source, input)
-	mt := makeChain(&l)
+	l := NewLexer(source, input)
+	mt := makeChain(l)
 	rl := &Relexer{lexer: l,
 		mt:     mt,
 		source: source,

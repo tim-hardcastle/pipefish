@@ -79,7 +79,7 @@ func (mt *monotokenizer) NextToken() token.Token {
 	return result
 }
 
-func chain(ts tokensSupplier, relexers ...relexer) *monotokenizer {
+func Chain(ts tokensSupplier, relexers ...relexer) *monotokenizer {
 	sup := ts
 	for _, rl := range relexers {
 		rl.chain(sup)

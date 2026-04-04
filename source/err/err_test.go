@@ -17,6 +17,26 @@ func TestHubErrorMethods(t *testing.T) {
 	test_helper.RunHubTest(t, "default", test)
 }
 
+func TestLexingErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`0b456`, `lex/bin`},
+		{`0o890`, `lex/oct`},
+		{`golang 42`, `lex/golang`},
+		{`0xxyz`, `lex/hex`},
+		{`"foo`, `lex/quote.a`},
+		{`'q`, `lex/quote/rune`},
+		{`true.foo`, `lex/namespace/left`},
+		{`foo.true`, `lex/namespace/right`},
+		{`foo .`, `lex/dot`},
+		{"0.0.0", `lex/num`},
+		{"true :\n\t42\n  else:\n   99", `lex/wsp`},
+		{"fee, fie,\nfo, fum", `lex/comma`},
+		{"fee, fie ..\nfo, fum", `lex/cont/a`},
+		{"fee, fie\n.. fo, fum", `lex/cont/b`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
+}
+
 func TestAssignmentItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`assign/type/a`, `OK`},

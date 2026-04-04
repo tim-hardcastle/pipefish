@@ -202,6 +202,10 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 }
 
 func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external bool) {
+	if val.T == pf.UNSATISFIED_CONDITIONAL {
+		hub.WriteError("call returned unsatisfied conditional.")
+		return
+	}
 	if val.T == pf.ERROR && !external {
 		e := val.V.(*pf.Error)
 		if e.Message == "" {

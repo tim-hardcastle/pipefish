@@ -11,11 +11,10 @@ NULL::"files"
 const 
 
 ~~ Things that have the right format to be error codes but aren't (or in the case of
-~~ 'vm/user', shouldn't have an error message, or in the case of 'lex/wsp' appears
-~~ in a '_test.go' file).
+~~ 'vm/user', shouldn't have an error message.
 FALSE_POSITIVES = set(`"database/sql"`, `"encoding/json"`, `"math/rand"`, `"net/http"`, 
                    .. `"os/exec"`, `"path/filepath"`, `"html/template"`, `"vm/user"`,
-                   .. `"lex/wsp"`, `"crypto/aes"`, `"crypto/cipher"`, `"crypto/rand"`,
+                   .. `"crypto/aes"`, `"crypto/cipher"`, `"crypto/rand"`,
                    .. `"crypto/bcrypt"`, `"crypto/rsa"`, `"encoding/csv"`, `"math/big"`, 
                    .. `"math/cmplx"`, `"net/mail"`, `"net/smtp"`, `"net/url"`, `"os/signal"`,
                    .. `"source/initializer/gobucket/"`, `"source/initializer/libraries/"`)

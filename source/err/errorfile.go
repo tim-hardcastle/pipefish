@@ -1652,7 +1652,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects a token begining with `0b` to represent a number in binary notation, so " +
-				"that the remaining characters should all be 0s and 1s. You are seeing this error " +
+				"and that the remaining characters should therefore all be 0s and 1s. You are seeing this error " +
 				"because Pipefish was unable to parse the token in this way."
 		},
 	},
@@ -1718,32 +1718,12 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"lex/emdash/indent": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "bad indentation in snippet"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "The `--` operator, followed by a snippet, obeys the same sort of whitespace rules as a `:` followed by a block of code. Either the snippet is all one line, in which case it may go on the same line as the `--`; or it is a block defined by indentation."
-		},
-	},
-
 	"lex/golang": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "no `{` after `golang"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish expects the `golang` token to be followed by `{` to introduce the Go code, to be terminated by a matching `}`."
-		},
-	},
-
-	"lex/oct": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "invalid octal token"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Pipefish expects a token begining with `0o` to represent a number in octal notation, so " +
-				"that the remaining characters should all be digits between 0 and 7. You are seeing this error " +
-				"because Pipefish was unable to parse the token in this way."
 		},
 	},
 
@@ -1755,15 +1735,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 			return "Pipefish expects a token begining with `0x` to represent a number in binary notation, so " +
 				"that the remaining characters should all be digits or letters (of either case) between A and F inclusive. " +
 				"You are seeing this error because Pipefish was unable to parse the token in this way."
-		},
-	},
-
-	"lex/ill": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "illegal character"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "You have used an illegal character or combination of characters in an identifier."
 		},
 	},
 
@@ -1797,37 +1768,18 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"lex/quote/a": {
+	"lex/oct": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "string unterminated by end of line"
+			return "invalid octal token"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "Having begun a string literal with an opening quote, you haven't concluded it with a matching " +
-				"closing quote before the end of your line of code."
+			return "Pipefish expects a token begining with `0o` to represent a number in octal notation, so " +
+				"that the remaining characters should all be digits between 0 and 7. You are seeing this error " +
+				"because Pipefish was unable to parse the token in this way."
 		},
 	},
 
-	"lex/quote/b": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "string unterminated by end of line"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Having begun a string literal with an opening quote, you haven't concluded it with a matching " +
-				"closing quote before the end of your line of code."
-		},
-	},
-
-	"lex/quote/c": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "string unterminated by end of line"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Having begun a string literal with an opening quote, you haven't concluded it with a matching " +
-				"closing quote before the end of your line of code."
-		},
-	},
-
-	"lex/quote/d": {
+	"lex/quote": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "string unterminated by end of line"
 		},
@@ -1849,7 +1801,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"lex/wsp": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "whitespace is inconsistent with previous indentation levels"
+			return "whitespace (" + args[0].(string) + ") is inconsistent with previous indentation levels"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "When you outdent your code, it should end up with the same indentation " +
@@ -2316,7 +2268,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Only a limited number of types can be converted to " +
-			"Pipefish and this struct contains a field with a type which isn't one of them."
+				"Pipefish and this struct contains a field with a type which isn't one of them."
 		},
 	},
 

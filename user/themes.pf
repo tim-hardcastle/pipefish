@@ -23,7 +23,7 @@ DARK_MODERN_OR_PLUS = map( ..
     .. "string"::Font(0xCE, 0x91, 0x78, REGULAR),
     .. "type"::Font(0x4E, 0xC9, 0xB0, REGULAR),
     .. "variable"::Font(0x9C, 0xDC, 0xFE, REGULAR),
-    .. "brackets"::DEFAULT_DARK_BRACKETS),
+    .. "brackets"::DEFAULT_DARK_BRACKETS)
 
 THEMES = map( ..
 .. ABYSS::map( ..

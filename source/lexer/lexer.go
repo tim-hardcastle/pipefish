@@ -117,14 +117,14 @@ func (l *lexer) getTokens() []token.Token {
 	case '"':
 		s, ok := l.runes.ReadFormattedString()
 		if !ok {
-			return []token.Token{l.Throw("lex/quote/a")}
+			return []token.Token{l.Throw("lex/quote.a")}
 		}
 		return []token.Token{l.NewToken(token.STRING, s)}
 	// Or a plaintext string.
 	case '`':
 		s, ok := l.runes.ReadPlaintextString('`')
 		if !ok {
-			return []token.Token{l.Throw("lex/quote/b")}
+			return []token.Token{l.Throw("lex/quote.b")}
 		}
 		return []token.Token{l.NewToken(token.STRING, s)}
 	// Or a rune.
@@ -197,54 +197,53 @@ func (l *lexer) getTokens() []token.Token {
 		return []token.Token{l.Throw("lex/num", numString)}
 	}
 
-	// We may have an identifier, a golang block, or a snippet.
-	if IsLegalStart(l.runes.CurrentRune()) {
-		lit := l.runes.ReadIdentifier()
-		var tType token.TokenType
-		var ok bool
-		if tType, ok = token.Keywords[lit]; !ok {
-			tType = token.IDENT
+	// Otherwise we may have an identifier, a golang block, or a snippet.
+	lit := l.runes.ReadIdentifier()
+	var tType token.TokenType
+	var ok bool
+	if tType, ok = token.Keywords[lit]; !ok {
+		tType = token.IDENT
+	}
+	switch tType {
+	case token.GOLANG:
+		text := l.readGolang()
+		return []token.Token{l.NewToken(tType, text), l.NewToken(token.NEWLINE, ";")}
+	case token.EMDASH:
+		str, outdent := l.readSnippet()
+		if outdent <= 0 {
+			return []token.Token{l.MakeToken(tType, strings.TrimSpace(str)),
+				l.MakeToken(token.NEWLINE, ";")}
+		} else {
+			result := []token.Token{l.MakeToken(tType, strings.TrimSpace(str))}
+			result = append(result, l.makeEnds(outdent)...)
+			result = append(result, l.MakeToken(token.NEWLINE, ";"))
+			return result
 		}
-		switch tType {
-		case token.GOLANG:
-			text := l.readGolang()
-			return []token.Token{l.NewToken(tType, text), l.NewToken(token.NEWLINE, ";")}
-		case token.EMDASH:
-			str, outdent := l.readSnippet()
-			if outdent <= 0 {
-				return []token.Token{l.MakeToken(tType, strings.TrimSpace(str)),
-					l.MakeToken(token.NEWLINE, ";")}
-			} else {
-				result := []token.Token{l.MakeToken(tType, strings.TrimSpace(str))}
-				result = append(result, l.makeEnds(outdent)...)
-				result = append(result, l.MakeToken(token.NEWLINE, ";"))
-				return result
+	default:
+		tok := token.Token{}
+		if l.runes.PeekRune() == '.' {
+			if tType != token.IDENT {
+				tok = l.Throw("lex/namespace/left")
+				l.runes.Next()
+				l.runes.Next()
+				return []token.Token{tok}
 			}
-		default:
-			if l.runes.PeekRune() == '.' {
+			l.currentNamespace = l.currentNamespace + lit + "."
+			l.runes.Next()
+			l.runes.Next()
+			return []token.Token{}
+		} else {
+			tokenIs := l.NewToken(tType, lit)
+			if l.currentNamespace != "" {
 				if tType != token.IDENT {
-					l.Throw("lex/namespace/left")
+					tokenIs = l.Throw("lex/namespace/right")
 				}
-				l.currentNamespace = l.currentNamespace + lit + "."
-				l.runes.Next()
-				l.runes.Next()
-				return []token.Token{}
-			} else {
-				tokenIs := l.NewToken(tType, lit)
-				if l.currentNamespace != "" {
-					if tType != token.IDENT {
-						l.Throw("lex/namespace/right")
-					}
-					tokenIs.Namespace = l.currentNamespace
-					l.currentNamespace = ""
-				}
-				return []token.Token{tokenIs}
+				tokenIs.Namespace = l.currentNamespace
+				l.currentNamespace = ""
 			}
+			return []token.Token{tokenIs}
 		}
 	}
-
-	// Or we have nothing recognizable.
-	return []token.Token{l.Throw("lex/ill", l.runes.CurrentRune())}
 }
 
 func (l *lexer) interpretWhitespace() []token.Token {
@@ -283,12 +282,12 @@ func (l *lexer) interpretWhitespace() []token.Token {
 		result := append(l.makeEnds(level), l.MakeToken(token.NEWLINE, ";"))
 		return result
 	}
-	return []token.Token{l.Throw("lex/wsp", describeWhitespace(whitespace))}
+	return []token.Token{l.Throw("lex/wsp", DescribeWhitespace(whitespace))}
 }
 
 var whitespaceDescriptions = map[rune]string{' ': "space", '\n': "newline", '\t': "tab"}
 
-func describeWhitespace(s string) string {
+func DescribeWhitespace(s string) string {
 	if len(s) == 0 {
 		return "empty string"
 	}
@@ -424,17 +423,6 @@ func (l *lexer) readSnippet() (string, int) {
 				l.runes.Next()
 				currentWhitespace = currentWhitespace + string(l.runes.CurrentRune())
 			}
-			if langIndent == "" { // Then this is the first time around.
-				if currentWhitespace == "" {
-					l.Throw("lex/emdash/indent.a", l.NewToken(token.ILLEGAL, "bad emdash"))
-					return result, -1
-				}
-				langIndent = currentWhitespace
-				if langIndent == stackTop {
-					l.Throw("lex/emdash/indent.b", l.NewToken(token.ILLEGAL, "bad emdash"))
-					return result, -1
-				}
-			}
 			if strings.HasPrefix(stackTop, currentWhitespace) || currentWhitespace == string(rune(0)) { // Then we've unindented. Dobby is free!
 				if currentWhitespace == string(rune(0)) {
 					currentWhitespace = ""
@@ -464,6 +452,7 @@ func (l *lexer) readSnippet() (string, int) {
 			}
 			l.runes.Next()
 			result = result + "\n"
+			l.continuation = true
 		}
 	} else {
 		for l.runes.PeekRune() != '\n' && l.runes.PeekRune() != '\r' && l.runes.PeekRune() != 0 {
@@ -489,7 +478,7 @@ func (l *lexer) readGolang() string {
 		l.runes.Next()
 		s, ok := l.runes.ReadFormattedString()
 		if !ok {
-			l.Throw("lex/quote/c", l.NewToken(token.ILLEGAL, "bad quote"))
+			l.Throw("lex/quote.c", l.NewToken(token.ILLEGAL, "bad quote"))
 		}
 		return s
 	}
@@ -497,7 +486,7 @@ func (l *lexer) readGolang() string {
 		l.runes.Next()
 		s, ok := l.runes.ReadPlaintextString('`')
 		if !ok {
-			l.Throw("lex/quote/d", l.NewToken(token.ILLEGAL, "bad quote"))
+			l.Throw("lex/quote.d", l.NewToken(token.ILLEGAL, "bad quote"))
 		}
 		return s
 	}
