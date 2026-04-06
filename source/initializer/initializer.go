@@ -274,7 +274,6 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		dec := tc.(*tokenizedMakeDeclaration)
 		typeAst := iz.makeTypeAstFromTokens(dec.typeToks)
 		if typeAst == nil {
-			iz.throw("init/make/type", &dec.typeToks[0])
 			continue
 		}
 		ty, ok := typeAst.(*parser.TypeWithArguments)
@@ -288,7 +287,6 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		dec := tc.(*tokenizedAliasDeclaration)
 		typeAst := iz.makeTypeAstFromTokens(dec.typeAliased)
 		if typeAst == nil {
-			iz.throw("init/alias/type", &dec.typeAliased[0])
 			continue
 		}
 		ty, ok := typeAst.(*parser.TypeWithArguments)
@@ -469,11 +467,7 @@ func (iz *Initializer) finishMakingAliasTypes() {
 		tc := dec.(*tokenizedAliasDeclaration)
 		aliasedType := iz.makeTypeAstFromTokens(tc.typeAliased)
 		aliasedTypeName := aliasedType.String()
-		typeNumber, ok := iz.cp.GetConcreteType(aliasedTypeName)
-		if !ok {
-			iz.throw("init/alias/type", &tc.op, aliasedTypeName)
-			continue
-		}
+		typeNumber, _ := iz.cp.GetConcreteType(aliasedTypeName)
 		iz.cp.AbstractTypesByName[tc.op.Literal] = values.AbstractType{Types: []values.ValueType{typeNumber}}
 	}
 	iz.P.ParTypeInstances = nil // Having to keep this in the parser is an annoying kludge, so we remove the data manually now we've used it.

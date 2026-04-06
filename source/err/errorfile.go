@@ -938,15 +938,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/alias/type": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "trying to alias unknown type " + emph(args[0])
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "You can't alias a type unless it exists."
-		},
-	},
-
 	"init/assign": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected assignment"
@@ -1051,7 +1042,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 			return "missing type in parameterized struct declaration"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "The tyes of the parameters in a parameterized struct declaration must be given explicitly."
+			return "The types of the parameters in a parameterized struct declaration must be given explicitly."
 		},
 	},
 
@@ -1225,15 +1216,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/import/found": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "can't find file " + emph(args[0])
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "What it says. Pipefish is trying to import something from the given filepath and can't find it."
-		},
-	},
-
 	"init/interface/colon": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + emph(tok.Literal)
@@ -1248,7 +1230,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 			return "`self` missing in clause of interface"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "The parts of an interface define what types fit it b referring to the " +
+			return "The parts of an interface define what types fit it by referring to the " +
 				"behavior of a pseudotype called `self`. Any clause of this definition that " +
 				"doesn't refer to `self` would not in fact contribute to the definition of " +
 				"the interface."
@@ -1271,15 +1253,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "After `make`, Pipefish expects a series of instances of parameterized types separated by commas; the names of the parameterized types must be valid identifiers."
-		},
-	},
-
-	"init/make/type": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "trying to `make` something which is not a type"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "After `make`, Pipefish expects a series of instances of parameterized types separated by commas."
 		},
 	},
 

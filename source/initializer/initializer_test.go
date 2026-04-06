@@ -52,11 +52,12 @@ func TestParsingItes(t *testing.T) {
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
 
-func TestTChunkingItes(t *testing.T) {
+func TestChunkingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`abstract/ident`, `OK`},
 		{`alias`, `OK`},
 		{`assign`, `OK`},	
+		{`clone/expect/a`, `OK`},
 		{`clone/expect/b`, `OK`},
 		{`clone/given`, `OK`},
 		{`clone/ident`, `OK`},
@@ -64,6 +65,7 @@ func TestTChunkingItes(t *testing.T) {
 		{`clone/params`, `OK`},
 		{`clone/rbrace`, `OK`},
 		{`clone/type.c`, `OK`},
+		{`clone/typed`, `OK`},
 		{`enum/expect`, `OK`},
 		{`enum/ident`, `OK`},
 		{`impex/end`, `OK`},
@@ -71,12 +73,14 @@ func TestTChunkingItes(t *testing.T) {
 		{`impex/pair`, `OK`},
 		{`impex/string`, `OK`},
 		{`interface/colon`, `OK`},
+		{`interface/self`, `OK`},
 		{`param/exists`, `OK`},
 		{`struct/expect`, `OK`},
 		{`struct/lparen`, `OK`},
 		{`struct/params`, `OK`},
 		{`struct/rbrace`, `OK`},
-		{`struct/rparen`, `OK`},	
+		{`struct/rparen`, `OK`},
+		{`struct/type`, `OK`},		
 		{`type/assign`, `OK`},
 		{`type/expect.a`, `OK`},
 		{`type/expect.b`, `OK`},

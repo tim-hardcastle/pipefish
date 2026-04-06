@@ -207,14 +207,10 @@ func (iz *Initializer) addToNameSpace(thingsToImport []*tokenizedExternalOrImpor
 		_, path = TweakNameAndPath("", path, dec.path.Source)
 		iz.cmI("Adding '" + path + "' to namespace")
 		var libDat []byte
-		var err error
 		if len(path) >= 7 && path[:7] == "rsc-pf/" {
-			libDat, err = folder.ReadFile(path)
+			libDat, _ = folder.ReadFile(path)
 		} else {
-			libDat, err = os.ReadFile(path)
-		}
-		if err != nil {
-			iz.throw("init/import/found", &token.Token{}, path)
+			libDat, _ = os.ReadFile(path)
 		}
 		stdImp := strings.TrimRight(string(libDat), "\n") + "\n"
 		iz.cmI("Making new relexer with filepath '" + path + "'")

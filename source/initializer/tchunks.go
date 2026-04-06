@@ -25,6 +25,7 @@ import (
 // * So do abstract type definitions.
 // * The parent type of a clone is cloneable.
 // * Every argument of a sig has been assigned a type.
+// * Every defining clause of an interface has `self` at least once as a call type.
 
 // This then allows us to set up the parser with information about what things are functions,
 // what things are types, etc.
@@ -684,6 +685,16 @@ func (iz *Initializer) chunkInterface(opTok token.Token, private bool, docString
 		if !ok {
 			iz.finishChunk()
 			return &tokenizedInterfaceDeclaration{}, false
+		}
+		hasSelf := false 
+		for _, pair := range sig.sig {
+			if len(pair.Typename) == 1 && pair.Typename[0].Literal == "self" {
+				hasSelf = true 
+				break
+			}
+		}
+		if !hasSelf {
+			iz.throw("init/interface/self", &sig.op)
 		}
 		sigs = append(sigs, sig)
 		if iz.P.CurTokenIs(token.EOF) {

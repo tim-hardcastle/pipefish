@@ -59,10 +59,6 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 			}
 		}
 	}
-	if !foundSelf {
-		iz.throw("init/interface/self", tok)
-		return values.AbT()
-	}
 	for i := 0; i < len(sigToMatch.rtnSig); i++ {
 		if t, ok := sigToMatch.rtnSig[i].VarType.(*parser.TypeWithName); ok && t.OperatorName == "self" {
 			result = result.Intersect(abRets[i].VarType)

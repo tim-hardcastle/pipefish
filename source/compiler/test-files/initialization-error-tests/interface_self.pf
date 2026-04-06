@@ -1,0 +1,4 @@
+newtype 
+
+Fooable = interface :
+    foo(i int)
