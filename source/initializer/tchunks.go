@@ -542,14 +542,14 @@ func (iz *Initializer) chunkClone(opTok token.Token, private bool, docString str
 	params := parser.TokSig{}
 	if iz.P.CurTokenIs(token.LBRACE) {
 		iz.P.NextToken()
-		var ok bool
-		params, ok = iz.P.ChunkNameTypePairs(parser.MISSING_TYPE_ERROR)
-		if !ok {
+		if iz.P.CurTokenIs(token.RBRACE) {
+			iz.throw("init/clone/params", &iz.P.CurToken)
 			iz.finishChunk()
 			return &tokenizedCloneDeclaration{}, false
 		}
-		if len(params) == 0 {
-			iz.throw("init/clone/params", &iz.P.CurToken)
+		var ok bool
+		params, ok = iz.P.ChunkNameTypePairs(parser.MISSING_TYPE_ERROR)
+		if !ok {
 			iz.finishChunk()
 			return &tokenizedCloneDeclaration{}, false
 		}
@@ -635,13 +635,7 @@ func (iz *Initializer) chunkEnum(opTok token.Token, private bool, docString stri
 		}
 		iz.P.NextToken()
 		if iz.P.CurTokenIs(token.NEWLINE) || iz.P.CurTokenIs(token.EOF) {
-			if len(toks) == 0 {
-				iz.throw("init/enum/empty", &iz.P.CurToken)
-				iz.finishChunk()
-				return &tokenizedEnumDeclaration{}, false
-			} else {
-				return &tokenizedEnumDeclaration{private: private, op: opTok, elements: toks, docString: docString}, true
-			}
+			return &tokenizedEnumDeclaration{private: private, op: opTok, elements: toks, docString: docString}, true
 		}
 		if iz.P.CurTokenIs(token.COMMA) {
 			iz.P.NextToken()
@@ -749,14 +743,14 @@ func (iz *Initializer) chunkStruct(opTok token.Token, private bool, docString st
 	params := parser.TokSig{}
 	if iz.P.CurTokenIs(token.LBRACE) {
 		iz.P.NextToken()
-		var ok bool
-		params, ok = iz.P.ChunkNameTypePairs(parser.MISSING_TYPE_ERROR)
-		if !ok {
+		if iz.P.CurTokenIs(token.RBRACE) {
+			iz.throw("init/struct/params", &iz.P.CurToken)
 			iz.finishChunk()
 			return &tokenizedStructDeclaration{}, false
 		}
-		if len(params) == 0 {
-			iz.throw("init/struct/params", &iz.P.CurToken)
+		var ok bool
+		params, ok = iz.P.ChunkNameTypePairs(parser.MISSING_TYPE_ERROR)
+		if !ok {
 			iz.finishChunk()
 			return &tokenizedStructDeclaration{}, false
 		}

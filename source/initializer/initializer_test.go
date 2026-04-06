@@ -33,8 +33,7 @@ func TestInitializerItes(t *testing.T) {
 }
 func TestParsingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
-
-		// {`clone/exists`, `OK`}, // TODO --- It doesn't throw this! It really should.
+		{`clone/exists`, `OK`},
 		{`clone/type.c`, `OK`},
 		{`enum/element`, `OK`},
 		{`head`, `OK`},
@@ -57,28 +56,27 @@ func TestTChunkingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`abstract/ident`, `OK`},
 		{`alias`, `OK`},
-		// {`assign`, `OK`},	This may be unreachable because it's looking for a `=` to end the sig, which will otherwise be malformed.
+		{`assign`, `OK`},	
 		{`clone/expect/b`, `OK`},
 		{`clone/given`, `OK`},
-		// {`clone/ident`, `OK`},	May be forestalled by `init/type/expect.b`.
-		// {`clone/op`, `OK`}, 	May be forestalled by `init/type/expect.b`.
-		// {`clone/params`, `OK`},	May be forestalled by `sigs/params`
-		// {`clone/rbrace`, `OK`},	 May be forestalled by `sigs/params`
+		{`clone/ident`, `OK`},
+		{`clone/op`, `OK`},
+		{`clone/params`, `OK`},
+		{`clone/rbrace`, `OK`},
 		{`clone/type.c`, `OK`},
-		// {`enum/empty`, `OK`}, Got `enum/ident` instead, may be inaccessible.
 		{`enum/expect`, `OK`},
 		{`enum/ident`, `OK`},
-		// {`golang`, `OK`},	The `relex/indent` error may forestall this one.
 		{`impex/end`, `OK`},
 		{`impex/expect`, `OK`},
 		{`impex/pair`, `OK`},
 		{`impex/string`, `OK`},
 		{`interface/colon`, `OK`},
+		{`param/exists`, `OK`},
 		{`struct/expect`, `OK`},
 		{`struct/lparen`, `OK`},
-		// {`struct/params`, `OK`},	 May be forestalled by `sigs/params`
-		// {`struct/rbrace`, `OK`},	 May be forestalled by `sigs/params`
-		// {`struct/rparen`, `OK`},	 May be forestalled by `sigs/params`
+		{`struct/params`, `OK`},
+		{`struct/rbrace`, `OK`},
+		{`struct/rparen`, `OK`},	
 		{`type/assign`, `OK`},
 		{`type/expect.a`, `OK`},
 		{`type/expect.b`, `OK`},

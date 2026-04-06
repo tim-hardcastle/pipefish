@@ -732,12 +732,17 @@ func (iz *Initializer) createClones() {
 			astType := iz.makeTypeWithParameters(dec.op, dec.params)
 			ok := iz.registerParameterizedType(name, astType, dec.requests, dec.body, typeToClone, dec.private, ixPtr(dec))
 			if !ok {
-				iz.throw("init/clone/exists", ixPtr(dec))
 				continue
-			}
+			} 
 			iz.setDeclaration(decPARAMETERIZED, ixPtr(dec), DUMMY, DUMMY)
 			continue
+		} else {
+			if iz.cp.TypeExists(name) {
+				iz.throw("init/clone/exists", ixPtr(dec), name)
+				continue
+			}
 		}
+
 		typeNo, fn := iz.addCloneTypeAndConstructor(name, typeToClone, dec.private, ixPtr(dec))
 		sig := parser.AstSig{parser.NameTypeAstPair{VarName: "x", VarType: MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
 		fn.callInfo.Number = iz.addToBuiltins(sig, name, altType(typeNo), dec.private, ixPtr(dec))
@@ -1117,8 +1122,8 @@ func (iz *Initializer) makeLabelsFromSig(sig parser.AstSig, private bool, indexT
 func (iz *Initializer) registerParameterizedType(name string, ty *parser.TypeWithParameters, opList []token.Token, typeCheck *parser.TokenizedCodeChunk, parentType string, private bool, tok *token.Token) bool {
 	info, ok := iz.parameterizedTypes[name]
 	if ok {
-		if iz.paramTypeExists(ty) == DUMMY {
-			iz.throw("init/param/types", &ty.Token, ty.String(), len(info))
+		if iz.paramTypeExists(ty) != DUMMY {
+			iz.throw("init/param/exists", &ty.Token, ty.String(), len(info))
 			return false
 		}
 	}

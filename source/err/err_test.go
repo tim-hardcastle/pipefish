@@ -17,6 +17,95 @@ func TestHubErrorMethods(t *testing.T) {
 	test_helper.RunHubTest(t, "default", test)
 }
 
+// These are errors which are thrown by the compiler but only at intialization time. They may
+// also contain a few things which just seemed easier to test this way.
+func TestCompilerItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`assign/immutable`, `OK`},
+		{`assign/type/a`, `OK`},
+		{`fcis`, `OK`},
+		{`for/bound/present`, `OK`},
+		{`given/redeclared`, `OK`},
+		{`global/global`, `OK`},
+		{`global/ident`, `OK`},
+		{`return/cmd`, `OK`},
+		{`try/return`, `OK`},
+		{`try/var`, `OK`},
+		{`type/known`, `OK`},
+	}
+	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
+}
+// This apparent tautology refers to errors from the `intializer.go` file specifically.
+func TestInitializerItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`depend/cmd`, `OK`},
+		{`depend/var`, `OK`},
+		{`make/ident`, `OK`},
+		{`make/instance`, `OK`},
+		{`name/exists.a`, `OK`},
+		{`name/exists.b`, `OK`},
+		{`overload.a`, `OK`},
+		{`overload/ref`, `OK`},
+		{`service/depends`, `OK`},
+		{`service/type`, `OK`},
+		{`typecheck/bool`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+// Whereas these are from `parsing.go`.
+func TestParsingItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`clone/exists`, `OK`},
+		{`clone/type.c`, `OK`},
+		{`enum/element`, `OK`},
+		{`head`, `OK`},
+		{`import/file`, `OK`},
+		{`label/exists`, `OK`},
+		{`request/float`, `OK`},
+		{`request/int`, `OK`},
+		{`request/list`, `OK`},
+		{`request/map`, `OK`},
+		{`request/pair`, `OK`},
+		{`request/rune`, `OK`},
+		{`request/set`, `OK`},
+		{`request/snippet`, `OK`},
+		{`request/string`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+func TestTChunkingItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`abstract/ident`, `OK`},
+		{`alias`, `OK`},
+		{`assign`, `OK`},	
+		{`clone/expect/b`, `OK`},
+		{`clone/given`, `OK`},
+		{`clone/ident`, `OK`},
+		{`clone/op`, `OK`},
+		{`clone/params`, `OK`},
+		{`clone/rbrace`, `OK`},
+		{`clone/type.c`, `OK`},
+		{`enum/expect`, `OK`},
+		{`enum/ident`, `OK`},
+		{`impex/end`, `OK`},
+		{`impex/expect`, `OK`},
+		{`impex/pair`, `OK`},
+		{`impex/string`, `OK`},
+		{`interface/colon`, `OK`},
+		{`param/exists`, `OK`},
+		{`struct/expect`, `OK`},
+		{`struct/lparen`, `OK`},
+		{`struct/params`, `OK`},
+		{`struct/rbrace`, `OK`},
+		{`struct/rparen`, `OK`},	
+		{`type/assign`, `OK`},
+		{`type/expect.a`, `OK`},
+		{`type/expect.b`, `OK`},
+		{`type/ident`, `OK`},
+		{`wrapper`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
 func TestLexingErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`0b456`, `lex/bin`},
@@ -35,22 +124,6 @@ func TestLexingErrors(t *testing.T) {
 		{"fee, fie\n.. fo, fum", `lex/cont/b`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
-}
-
-func TestAssignmentItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`assign/type/a`, `OK`},
-		{`assign/immutable`, `OK`},
-	}
-test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
-}
-
-func TestFcisItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`return/cmd`, `OK`},
-		{`fcis`, `OK`},
-	}
-test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
 
 func TestAssignmentErrors(t *testing.T) {
@@ -102,43 +175,7 @@ func TestCastRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
 }
-func TestCompilerItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`assign/type/a`, `OK`},
-		{`given/redeclared`, `OK`},
-		{`for/bound/present`, `OK`},
-		{`global/global`, `OK`},
-		{`global/ident`, `OK`},
-		{`try/return`, `OK`},
-		{`try/var`, `OK`},
-		{`type/known`, `OK`},
-	}
-	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
-}
-func TestTChunkingItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`abstract/ident`, `OK`},
-		{`alias`, `OK`},
-		{`clone/expect/b`, `OK`},
-		{`clone/given`, `OK`},
-		{`clone/type.c`, `OK`},
-		{`enum/expect`, `OK`},
-		{`enum/ident`, `OK`},
-		{`impex/end`, `OK`},
-		{`impex/expect`, `OK`},
-		{`impex/pair`, `OK`},
-		{`impex/string`, `OK`},
-		{`interface/colon`, `OK`},
-		{`struct/expect`, `OK`},
-		{`struct/lparen`, `OK`},
-		{`type/assign`, `OK`},
-		{`type/expect.a`, `OK`},
-		{`type/expect.b`, `OK`},
-		{`type/ident`, `OK`},
-		{`wrapper`, `OK`},
-	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
-}
+
 func TestCloneRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`getClones 42`, `vm/clones/type`},
@@ -297,22 +334,7 @@ func TestIndexingRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
 }
-func TestInitializerItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`depend/cmd`, `OK`},
-		{`depend/var`, `OK`},
-		{`make/ident`, `OK`},
-		{`make/instance`, `OK`},
-		{`name/exists.a`, `OK`},
-		{`name/exists.b`, `OK`},
-		{`overload.a`, `OK`},
-		{`overload/ref`, `OK`},
-		{`service/depends`, `OK`},
-		{`service/type`, `OK`},
-		{`typecheck/bool`, `OK`},
-	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
-}
+
 func TestLabelRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`label "blerp"`, `vm/label/exists`},
@@ -387,26 +409,7 @@ func TestParserErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "parser_error_test.pf", tests, test_helper.TestParserErrors)
 }
-func TestParsingItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		// {`clone/exists`, `OK`}, // TODO --- It doesn't throw this! It really should.
-		{`clone/type.c`, `OK`},
-		{`enum/element`, `OK`},
-		{`head`, `OK`},
-		{`import/file`, `OK`},
-		{`label/exists`, `OK`},
-		{`request/float`, `OK`},
-		{`request/int`, `OK`},
-		{`request/list`, `OK`},
-		{`request/map`, `OK`},
-		{`request/pair`, `OK`},
-		{`request/rune`, `OK`},
-		{`request/set`, `OK`},
-		{`request/snippet`, `OK`},
-		{`request/string`, `OK`},
-	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
-}
+
 func TestRefCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`42 ++`, `comp/ref/ident`},

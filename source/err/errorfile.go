@@ -1021,7 +1021,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 			return "parameterized type has no parameters"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "Your use of `{` in this type declaration suggests that you're trying to make a " +
+			return "Your use of `{}` in this type declaration suggests that you're trying to make a " +
 				"parameterized type declaration, but it doesn't have any parameters."
 		},
 	},
@@ -1101,15 +1101,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/enum/empty": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "enum definition has no elements"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "An enum deifnition must have at least one element."
-		},
-	},
-
 	"init/enum/ident": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected identifier, got " + DescribeTok(tok)
@@ -1166,15 +1157,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return `Pipefish expects the path to an http service to be of the form <url>:<port>/<hostname>/<name of external service>.`
-		},
-	},
-
-	"init/golang": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "unexpected " + emph(tok) + " after `golang` definition"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "The only thing that should come after the final brace in a `golang` declaration is a new line or the end of the file."
 		},
 	},
 
@@ -1372,7 +1354,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/param/types": {
+	"init/param/exists": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't instantiate parameterized type " + emph(args[0]) + "; bad parameter types"
 		},
@@ -1389,13 +1371,23 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"init/param/var": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "re-use of type parameter " + emph(args[0])
+			return "improper re-use of type parameter " + emph(args[0])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can't use the same identifier as the name of a type parameter and " +
 				"an ordinary parameter of a function."
 		},
 	},
+
+	"init/private/abstract": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "public abstract type " + emph(tok.Literal) + " cannot contain private type " + emph(args[0])
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "A public abstract type cannot contain a private type."
+		},
+	},
+
 
 	"init/private/struct": {
 		Message: func(tok *token.Token, args ...any) string {
@@ -1493,15 +1485,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "A clone of " + emph("string") + " can only request the native operations suitable to that type, i.e. " +
 				emph("+") + " and " + emph("slice") + "."
-		},
-	},
-
-	"init/private/abstract": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "public abstract type " + emph(tok.Literal) + " cannot contain private type " + emph(args[0])
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "A public abstract type cannot contain a private type."
 		},
 	},
 
