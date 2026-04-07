@@ -6,15 +6,6 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-func TestExternalItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`external/exist`, `OK`},
-		{`external/file`, `OK`},
-		{`external/path`, `OK`},
-	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
-}
-
 func TestHubErrorMethods(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
@@ -24,6 +15,15 @@ func TestHubErrorMethods(t *testing.T) {
 		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
 	}
 	test_helper.RunHubTest(t, "default", test)
+}
+
+func TestExternalItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`external/exist`, `OK`},
+		{`external/file`, `OK`},
+		{`external/path`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
 
 // These are errors which are thrown by the compiler but only at intialization time. They may
