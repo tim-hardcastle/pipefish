@@ -18,7 +18,7 @@ func TestExternalItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`external/exist`, `OK`},
 		{`external/file`, `OK`},
-		{`external/file`, `OK`},
+		{`external/path`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }

@@ -276,7 +276,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 		if path == "" { // Then this will work only if there's already an instance of a service of that name running on the hub.
 			externalCP, ok := iz.Common.serviceCompilers[name]
 			if !ok {
-				iz.throw("init/external/exist/a", &dec.name)
+				iz.throw("init/external/exist", &dec.name)
 				return
 			}
 			iz.addExternalOnSameHub(externalCP.ScriptFilepath, name)
