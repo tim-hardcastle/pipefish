@@ -15,6 +15,13 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestGettersItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`param/missing`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+// This apparent tautology refers to errors from the `intializer.go` file specifically.
 func TestInitializerItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`depend/cmd`, `OK`},
@@ -25,12 +32,18 @@ func TestInitializerItes(t *testing.T) {
 		{`name/exists.b`, `OK`},
 		{`overload.a`, `OK`},
 		{`overload/ref`, `OK`},
+		{`param/type`, `OK`},
+		{`param/var`, `OK`},
+		{`private/abstract`, `OK`},
+		{`private/struct`, `OK`},
 		{`service/depends`, `OK`},
 		{`service/type`, `OK`},
+		{`type/known`, `OK`},
 		{`typecheck/bool`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
+// Whereas these are from `parsing.go`.
 func TestParsingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`clone/exists`, `OK`},

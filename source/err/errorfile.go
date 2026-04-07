@@ -1329,16 +1329,11 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"init/param/exists": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "can't instantiate parameterized type " + emph(args[0]) + "; bad parameter types"
+			return "redeclaring type template " + emph(args[0])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			if args[1].(int) == 1 {
-				return "While there is a parameterized type called " + emph(tok) + ", its parameters " +
-					"are of the wrong types for you to instantiate it using the values you supplied."
-			} else {
-				return "While there are parameterized types called " + emph(tok) + ", their parameters " +
-					"are of the wrong types for you to instantiate any of them using the values you supplied."
-			}
+			return "You can have type templates iwth the same names, but not also with the same types for " +
+			"their parameters."
 		},
 	},
 
@@ -1477,15 +1472,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The fact that you can redeclare service variables doesn't mean you can change their type."
-		},
-	},
-
-	"init/source": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "unable to get source " + emph(args[0])
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "The initializer can't retrieve the source code for the given file. Check that it exists."
 		},
 	},
 

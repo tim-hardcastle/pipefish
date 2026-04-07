@@ -250,11 +250,7 @@ func (iz *Initializer) ParseEverythingFromSourcecode(mc *vm.Vm, cpb *parser.Comm
 	if !(scriptFilepath == "" || scriptFilepath == "InitializeFromCode" ||
 		(len(scriptFilepath) >= 5 && scriptFilepath[0:5] == "http:")) &&
 		!(len(scriptFilepath) >= 11 && scriptFilepath[:11] == "test-files/") {
-		file, err := os.Stat(MakeFilepath(scriptFilepath))
-		if err != nil {
-			iz.throw("init/source", LINKING_TOKEN, scriptFilepath)
-			return nil
-		}
+		file, _ := os.Stat(MakeFilepath(scriptFilepath))
 		iz.cp.Timestamp = file.ModTime().UnixMilli()
 	}
 	iz.P.Common.Sources[scriptFilepath] = strings.Split(sourcecode, "\n")
