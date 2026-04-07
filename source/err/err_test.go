@@ -17,15 +17,6 @@ func TestHubErrorMethods(t *testing.T) {
 	test_helper.RunHubTest(t, "default", test)
 }
 
-func TestExternalItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`external/exist`, `OK`},
-		{`external/file`, `OK`},
-		{`external/path`, `OK`},
-	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
-}
-
 // These are errors which are thrown by the compiler but only at intialization time. They may
 // also contain a few things which just seemed easier to test this way.
 func TestCompilerItes(t *testing.T) {
@@ -44,7 +35,14 @@ func TestCompilerItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
-
+func TestExternalItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`external/exist`, `OK`},
+		{`external/file`, `OK`},
+		{`external/path`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
 func TestGettersItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`param/missing`, `OK`},
@@ -70,6 +68,12 @@ func TestInitializerItes(t *testing.T) {
 		{`service/type`, `OK`},
 		{`type/known`, `OK`},
 		{`typecheck/bool`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+func TestParserItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`block/empty`, `parse/block/empty`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }

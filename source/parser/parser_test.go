@@ -198,6 +198,13 @@ func TestParserErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "parser_error_test.pf", tests, test_helper.TestParserErrors)
 }
+func TestParserItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`block/empty`, `parse/block/empty`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
 func TestPrettyPrint(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`func(x int) : x`, "func(x int) :\n    x"},
