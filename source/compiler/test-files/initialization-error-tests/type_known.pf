@@ -1,0 +1,4 @@
+newtype 
+
+Qux = abstract Foo 
+

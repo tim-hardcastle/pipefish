@@ -1,0 +1,8 @@
+newtype 
+
+Qux = clone{i int} list 
+
+def
+
+foo(x int, q Qux{x int}) :
+    "foo"

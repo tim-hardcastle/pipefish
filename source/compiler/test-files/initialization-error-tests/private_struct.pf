@@ -1,0 +1,7 @@
+newtype 
+
+Foo = struct(x Qux) 
+
+private 
+
+Qux = clone int

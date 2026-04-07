@@ -1,0 +1,7 @@
+newtype 
+
+Foo = abstract Qux 
+
+private 
+
+Qux = clone int

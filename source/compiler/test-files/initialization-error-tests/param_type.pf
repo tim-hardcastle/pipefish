@@ -1,0 +1,12 @@
+newtype 
+
+Qux = clone{i int} list 
+
+Zort = clone{x float} list 
+
+def
+
+foo(q Qux{x int}, z Zort{x float}) :
+    "foo"
+
+
