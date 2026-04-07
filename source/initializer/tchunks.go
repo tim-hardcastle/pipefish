@@ -407,6 +407,9 @@ func (iz *Initializer) ChunkImportOrExternalDeclaration(isExternal, private bool
 		golang = true
 	case token.IDENT:
 		name = iz.P.CurToken
+		if decType == externalDeclaration && (iz.P.PeekTokenIs(token.NEWLINE) || iz.P.PeekTokenIs(token.EOF)) {
+			break
+		}
 		iz.P.NextToken()
 		if !(iz.P.CurTokenIs(token.IDENT) && iz.P.CurToken.Literal == "::") {
 			iz.throw("init/impex/pair", &iz.P.CurToken)

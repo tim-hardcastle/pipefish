@@ -6,6 +6,15 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestExternalItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`external/exist`, `OK`},
+		{`external/file`, `OK`},
+		{`external/file`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
 func TestHubErrorMethods(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
@@ -35,6 +44,7 @@ func TestCompilerItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
+
 func TestGettersItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`param/missing`, `OK`},

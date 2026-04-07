@@ -1114,7 +1114,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/external/exist/a": {
+	"init/external/exist": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "service " + emph(tok.Literal) + " does not exist"
 		},
@@ -1123,7 +1123,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/external/exist/b": {
+	"init/external/conflict": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "source conflict for external service " + emph(tok.Literal)
 		},
@@ -1147,7 +1147,8 @@ var errorCreatorMap = map[string]ErrorCreator{
 			return "malformed path to external service"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return `Pipefish expects the path to an http service to be of the form <url>:<port>/<hostname>/<name of external service>.`
+			return "Pipefish expects the path to an http service to be of the form `<url>/<name of external service>`, " +
+				"optionally followed by `:<port number>`."
 		},
 	},
 
@@ -1333,7 +1334,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "You can have type templates iwth the same names, but not also with the same types for " +
-			"their parameters."
+				"their parameters."
 		},
 	},
 
@@ -1355,7 +1356,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 			return "A public abstract type cannot contain a private type."
 		},
 	},
-
 
 	"init/private/struct": {
 		Message: func(tok *token.Token, args ...any) string {

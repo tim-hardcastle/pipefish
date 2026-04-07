@@ -285,7 +285,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 		if text.Head(path, "http:") || text.Head(path, "https:") {
 			pos := strings.LastIndex(path, "/")
 			if pos == -1 {
-				iz.throw("init/external/path.a", &dec.path)
+				iz.throw("init/external/path", &dec.path)
 				return
 			}
 			hostpath := path[0:pos]
@@ -296,11 +296,6 @@ func (iz *Initializer) initializeExternals(startAt int) {
 			portIsAt := strings.LastIndex(hostpath, ":")
 			pathWithoutPort := hostpath[:portIsAt]
 			serviceName := path[pos+1:]
-			pos = strings.LastIndex(hostpath, "/")
-			if pos == -1 {
-				iz.throw("init/external/path.b", &dec.path)
-				return
-			}
 			rline := readline.NewInstance()
 			println("\n\nPlease enter your username and password for hub at " + text.CYAN + "'" + pathWithoutPort + "'" + text.RESET + ".")
 			rline.SetPrompt("Username: ")
@@ -315,7 +310,7 @@ func (iz *Initializer) initializeExternals(startAt int) {
 		hubServiceCp, ok := iz.Common.serviceCompilers[name] // If the service already exists, then we just need to check that it uses the same source file.
 		if ok {
 			if hubServiceCp.ScriptFilepath != path {
-				iz.throw("init/external/exist/b", &dec.path, hubServiceCp.ScriptFilepath)
+				iz.throw("init/external/conflict", &dec.path, hubServiceCp.ScriptFilepath)
 			} else {
 				iz.addExternalOnSameHub(path, name)
 			}
@@ -729,7 +724,7 @@ func (iz *Initializer) createClones() {
 			ok := iz.registerParameterizedType(name, astType, dec.requests, dec.body, typeToClone, dec.private, ixPtr(dec))
 			if !ok {
 				continue
-			} 
+			}
 			iz.setDeclaration(decPARAMETERIZED, ixPtr(dec), DUMMY, DUMMY)
 			continue
 		} else {
