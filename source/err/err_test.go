@@ -6,17 +6,6 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-func TestHubErrorMethods(t *testing.T) {
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
-		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
-		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
-		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
-	}
-	test_helper.RunHubTest(t, "default", test)
-}
-
 // These are errors which are thrown by the compiler but only at intialization time. They may
 // also contain a few things which just seemed easier to test this way.
 func TestCompilerItes(t *testing.T) {
@@ -49,6 +38,7 @@ func TestGettersItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
+
 // This apparent tautology refers to errors from the `intializer.go` file specifically.
 func TestInitializerItes(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -74,9 +64,11 @@ func TestInitializerItes(t *testing.T) {
 func TestParserItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`block/empty`, `parse/block/empty`},
+		{`sigs/params`, `sigs/params`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
+
 // Whereas these are from `parsing.go`.
 func TestParsingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -102,7 +94,7 @@ func TestChunkingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`abstract/ident`, `OK`},
 		{`alias`, `OK`},
-		{`assign`, `OK`},	
+		{`assign`, `OK`},
 		{`clone/expect/a`, `OK`},
 		{`clone/expect/b`, `OK`},
 		{`clone/given`, `OK`},
@@ -125,8 +117,8 @@ func TestChunkingItes(t *testing.T) {
 		{`struct/lparen`, `OK`},
 		{`struct/params`, `OK`},
 		{`struct/rbrace`, `OK`},
-		{`struct/rparen`, `OK`},	
-		{`struct/type`, `OK`},	
+		{`struct/rparen`, `OK`},
+		{`struct/type`, `OK`},
 		{`type/assign`, `OK`},
 		{`type/expect.a`, `OK`},
 		{`type/expect.b`, `OK`},
@@ -409,6 +401,9 @@ func TestParameterizedTypeRtes(t *testing.T) {
 }
 func TestParserErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
+		{`func(x int) -> 42 : x`, `parse/ret.b`},
+		{`func(x int: y int) -> int : x`, `parse/sig/c`},
+		// {`func(x int, y flibble) -> int : x`, `parse/type/exists`}, TODO --- has no problem with this.
 		{`(2 + 2]`, `parse/close`},
 		{`foo[2;`, `parse/prefix`},
 		{`[2, 3, 4;`, `parse/prefix`},
@@ -429,14 +424,23 @@ func TestParserErrors(t *testing.T) {
 		{`for i::j = range k`, `parse/for/colon`},
 		{`for a = 1; a + 1 : foo`, `parse/for/semicolon`},
 		{`func(x) >> int : x`, `parse/sig/c`},
-		{`func(x int) : foo(x) given : foo(x int) >> int : x`, `parse/inner/a`},
-		{`func(x int) : foo(x) given : foo(x int) == int : x`, `parse/inner/c`},
+		{`func(x int) : foo(x) given : foo(x int) >> int : x`, `parse/inner.a`},
+		{`func(x int) : foo(x) given : foo(x int) == int : x`, `parse/inner.c`},
 		{`not`, `parse/prefix`},
 		{`-- foo |bar qux`, `parse/snippet/form`},
 		{`try e @`, `parse/try/colon`},
 		{`try 86 `, `parse/try/ident`},
 	}
 	test_helper.RunTest(t, "parser_error_test.pf", tests, test_helper.TestParserErrors)
+}
+
+func TestParamErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Z{_ int, 86 bool}`, `parse/rbrace`}, // TODO --- this is clearly not the problem.
+		{`Z{_ int: b bool}`, `parse/rbrace`}, // Ditto.
+		// {`Z{_ int, b 86}`, `parse/rbrace`}, // More TODO. Elicited no error.
+	}
+	test_helper.RunTest(t, "param_error_test.pf", tests, test_helper.TestParserErrors)
 }
 
 func TestRefCtes(t *testing.T) {

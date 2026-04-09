@@ -19,7 +19,6 @@ type Parser struct {
 	// Temporary state: things that are used to parse one line.
 
 	TokenizedCode lexer.TokenSupplier
-	nesting       dtypes.Stack[token.Token]
 	CurToken      token.Token
 	PeekToken     token.Token
 	Logging       bool
@@ -61,7 +60,6 @@ type Parser struct {
 func New(common *CommonParserBindle, source, sourceCode, namespacePath string) *Parser {
 	p := &Parser{
 		Logging:            true,
-		nesting:            *dtypes.NewStack[token.Token](),
 		Functions:          make(dtypes.Set[string]),
 		Forefixes:          make(dtypes.Set[string]),
 		Midfixes:           make(dtypes.Set[string]),
@@ -98,7 +96,6 @@ type TypeExpressionInfo struct {
 // Parses one line of code supplied as a string.
 // Note that this is also used by the snippet parser, which might be confusing.
 func (p *Parser) ParseLine(source, input string) Node {
-	p.ResetParser()
 	rl := lexer.NewRelexer(source, input)
 	p.TokenizedCode = rl
 	result := p.ParseTokenizedChunk()
@@ -108,11 +105,10 @@ func (p *Parser) ParseLine(source, input string) Node {
 
 // Sets the parser up with the appropriate relexer and position to parse a string.
 func (p *Parser) PrimeWithString(source, input string) {
-	p.ResetParser()
 	rl := lexer.NewRelexer(source, input)
 	p.TokenizedCode = rl
-	p.SafeNextToken()
-	p.SafeNextToken()
+	p.NextToken()
+	p.NextToken()
 }
 
 // Sets the parser up with the appropriate relexer and position to parse a string.
@@ -121,8 +117,8 @@ func (p *Parser) PrimeWithTokenSupplier(source lexer.TokenSupplier) {
 		tcc.ToStart()
 	}
 	p.TokenizedCode = source
-	p.SafeNextToken()
-	p.SafeNextToken()
+	p.NextToken()
+	p.NextToken()
 }
 
 // Parses a type supplied as a string, for use in 'parser_test.go'.
@@ -440,8 +436,6 @@ func (p *Parser) ParseExpression(precedence int) Node {
 			p.Throw("parse/close", &p.CurToken)
 			return nil
 		}
-		p.Throw("parse/missing", &p.CurToken)
-		return nil
 	}
 	return leftExp
 }
@@ -649,7 +643,7 @@ func (p *Parser) parseInfixExpression(left Node) Node {
 		switch left := left.(type) {
 		case *PipingExpression:
 			if left.GetToken().Literal != "->" {
-				p.Throw("parse/inner/a", left.GetToken())
+				p.Throw("parse/inner.a", left.GetToken())
 			}
 			fn.NameRets = p.RecursivelySlurpReturnTypes(left.Right)
 			switch newLeft := left.Left.(type) {
@@ -657,13 +651,13 @@ func (p *Parser) parseInfixExpression(left Node) Node {
 				expression.Left = &Identifier{Token: *newLeft.GetToken(), Value: newLeft.GetToken().Literal}
 				fn.NameSig, _ = p.getSigFromArgs(newLeft.Args, ANY_NULLABLE_TYPE_AST)
 			default:
-				p.Throw("parse/inner/b", newLeft.GetToken())
+				p.Throw("parse/inner.b", newLeft.GetToken())
 			}
 		case *PrefixExpression:
 			expression.Left = &Identifier{Token: *left.GetToken(), Value: left.GetToken().Literal}
 			fn.NameSig, _ = p.getSigFromArgs(left.Args, ANY_NULLABLE_TYPE_AST)
 		default:
-			p.Throw("parse/inner/c", left.GetToken())
+			p.Throw("parse/inner.c", left.GetToken())
 			return nil
 		}
 		if right.GetToken().Type == token.GIVEN {
@@ -854,7 +848,6 @@ func (p *Parser) recursivelyDesugarAst(exp Node) Node {
 
 func (p *Parser) parseSnippetExpression(tok token.Token) Node {
 	codeTokens := p.TokenizedCode
-	nesting := p.nesting.Copy()
 	cT := p.CurToken
 	pT := p.PeekToken
 	nodes := []Node{}
@@ -870,12 +863,10 @@ func (p *Parser) parseSnippetExpression(tok token.Token) Node {
 		if i%2 == 0 {
 			nodes = append(nodes, &StringLiteral{tok, bit})
 		} else {
-			p.nesting = dtypes.Stack[token.Token]{}
 			node := p.ParseLine("embedded Pipefish in snippet", bit[1:len(bit)-1])
 			nodes = append(nodes, node)
 		}
 	}
-	p.nesting = *nesting
 	p.TokenizedCode = codeTokens
 	p.CurToken = cT
 	p.PeekToken = pT
@@ -995,60 +986,11 @@ func (p *Parser) getParserFromNamespace(tok token.Token) *Parser {
 // Some functions for interacting with a `TokenSupplier`.
 
 func (p *Parser) NextToken() {
-	p.checkNesting()
-	p.SafeNextToken()
-}
-
-// This is used to prime the parser without triggering 'checkNesting'.
-func (p *Parser) SafeNextToken() {
 	if settings.SHOW_RELEXER && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(p.CurToken.Source)) {
 		println(text.PURPLE+p.CurToken.Type, p.CurToken.Literal+text.RESET)
 	}
 	p.CurToken = p.PeekToken
 	p.PeekToken = p.TokenizedCode.NextToken()
-}
-
-// Function auxiliary to `NextToken` which will throw an error if the rules for nesting brackets are violated.
-func (p *Parser) checkNesting() {
-	if p.CurToken.Type == token.LPAREN || p.CurToken.Type == token.LBRACE ||
-		p.CurToken.Type == token.LBRACK {
-		p.nesting.Push(p.CurToken)
-	}
-	if p.CurToken.Type == token.RPAREN || p.CurToken.Type == token.RBRACE ||
-		p.CurToken.Type == token.RBRACK {
-		popped, poppable := p.nesting.Pop()
-		if !poppable {
-			p.Throw("parse/match", &p.CurToken)
-			return
-		}
-		if !checkConsistency(popped, p.CurToken) {
-			p.Throw("parse/nesting", &p.CurToken, &popped)
-		}
-	}
-	if p.CurToken.Type == token.EOF {
-		for popped, poppable := p.nesting.Pop(); poppable; popped, poppable = p.nesting.Pop() {
-			p.Throw("parse/eol", &p.CurToken, &popped)
-		}
-	}
-}
-
-// A function auxiliary to the previous one to check whether a puported pair of brackets matches up.
-func checkConsistency(left, right token.Token) bool {
-	if left.Type == token.LPAREN && left.Literal == "(" &&
-		right.Type == token.RPAREN && right.Literal == ")" {
-		return true
-	}
-	if left.Type == token.LPAREN && left.Literal == "|->" &&
-		right.Type == token.RPAREN && right.Literal == "<-|" {
-		return true
-	}
-	if left.Type == token.LBRACK && right.Type == token.RBRACK {
-		return true
-	}
-	if left.Type == token.LBRACE && right.Type == token.RBRACE {
-		return true
-	}
-	return false
 }
 
 func (p *Parser) CurTokenIs(t token.TokenType) bool {
@@ -1076,8 +1018,8 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 }
 
 func (p *Parser) ParseTokenizedChunk() Node {
-	p.SafeNextToken()
-	p.SafeNextToken()
+	p.NextToken()
+	p.NextToken()
 	expn := p.ParseExpression(LOWEST)
 	p.NextToken()
 	if p.CurToken.Type != token.EOF {
@@ -1106,9 +1048,6 @@ func (p *Parser) ReturnErrors() string {
 
 func (p *Parser) ResetAfterError() {
 	p.Common.Errors = []*err.Error{}
-	p.ResetParser()
 }
 
-func (p *Parser) ResetParser() {
-	p.nesting = dtypes.Stack[token.Token]{}
-}
+

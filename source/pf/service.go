@@ -243,7 +243,11 @@ func (sv *Service) Do(line string) (Value, error) {
 	cT := sv.cp.CodeTop()
 	node := sv.cp.P.ParseLine("REPL input", line)
 	if settings.SHOW_PARSER {
-		fmt.Println("Parsed line:", node.String())
+		if node == nil {
+			println("Parsing failed, node is nil.")
+		} else {
+			fmt.Println("Parsed line:", node.String())
+		}
 	}
 	if sv.cp.P.ErrorsExist() {
 		return Value{}, errors.New("error parsing input")

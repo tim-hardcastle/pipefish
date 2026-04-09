@@ -141,11 +141,12 @@ func TestInitializationErrors(cp *compiler.Compiler, s string) (string, error) {
 		return "", errors.New("unexpected successful compilation")
 	}
 	topError := cp.P.Common.Errors[0]
-	if "init/"+s == topError.ErrorId {
+	
 		// This will at least crash if the explanation mistypes the arguments.
-		if ec, ok := err.GetErrorCreator(topError.ErrorId); ok {
-			ec.Explanation(topError.Token, topError.Args...)
-		}
+	if ec, ok := err.GetErrorCreator(topError.ErrorId); ok {
+		ec.Explanation(topError.Token, topError.Args...)
+	}
+	if "init/"+s == topError.ErrorId {
 		return "OK", nil
 	}
 	return cp.P.Common.Errors[0].ErrorId, nil

@@ -1791,19 +1791,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"parse/eol": {
-		Message: func(tok *token.Token, args ...any) string {
-			return DescribeTok(args[0].(*token.Token)) + DescribePos(args[0].(*token.Token)) +
-				" unclosed by " + DescribeTok(tok)
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			opposite := oppositeOf[args[0].(*token.Token).Literal]
-			return "You've reached the end of an expression and the " +
-				DescribeTok(args[0].(*token.Token)) + DescribePos(args[0].(*token.Token)) +
-				"hasn't been supplied with a corresponding " + opposite + "."
-		},
-	},
-
 	"parse/expected": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "Pipefish wasn't expecting " + DescribeTok(tok)
@@ -1811,16 +1798,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "This error occurs when an otherwise well-formed expression " +
 				"is followed by some stray bit of code that shouldn't be there, e.g. `(2 + 2) \"wombat\"`."
-		},
-	},
-
-	"parse/float64": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "Couldn't parse " + emph(tok) + " as float"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Something about the form of " + emph(tok) + " has persuaded Pipefish to try and parse it " +
-				"as a floating-point number, and yet it is not a floating-point number so Pipefish has failed."
 		},
 	},
 
@@ -1853,45 +1830,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"parse/instance/form": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "malformed instance of parameterized type"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Pipefish thinks you're trying to make an instance of a parameterized type, " +
-				"but in that case we'd expect a comma or a closing brace here."
-		},
-	},
-
-	"parse/instance/value": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "bad value in instance of parameterized type"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "The arguments you use to instantiate a parameterized type should be " +
-				"of type `bool`, `float`, `int`, `rune`, `string`, `type`, or an enum type."
-		},
-	},
-
-	"parse/inner/a": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "malformed inner function declaration: unexpected occurrence of " + emph(tok.Literal)
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Pipefish thinks you're trying to declare an inner function here but is unable to parse it as such."
-		},
-	},
-
-	"parse/inner/b": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "malformed inner function declaration: unexpected occurrence of " + emph(tok.Literal)
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Pipefish thinks you're trying to declare an inner function here but is unable to parse it as such."
-		},
-	},
-
-	"parse/inner/c": {
+	"parse/inner": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed inner function declaration: unexpected occurrence of " + emph(tok.Literal)
 		},
@@ -1910,27 +1849,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"parse/match": {
-		Message: func(tok *token.Token, args ...any) string {
-			return DescribeTok(tok) + " doesn't close anything"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			opposite := oppositeOf[args[0].(*token.Token).Literal]
-			return "The " + DescribeTok(tok) + " at " + DescribePos(tok) + " doesn't " +
-				"correspond to  any " + opposite + "that needs closing."
-		},
-	},
-
-	"parse/missing": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "Pipefish expected an expression on either side of " + DescribeTok(tok)
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "This error is typically returned when a binary operator is missing its left-hand side, e.g. if " +
-				"you ask the REPL to evaluate `and false`."
-		},
-	},
-
 	"parse/namespace/exists": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't find namespace " + emph(tok.Namespace)
@@ -1940,26 +1858,12 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"parse/nesting": {
-		Message: func(tok *token.Token, args ...any) string {
-			return DescribeTok(args[0].(*token.Token)) + DescribePos(args[0].(*token.Token)) +
-				" unclosed by " + DescribeTok(tok)
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			opposite := oppositeOf[args[0].(*token.Token).Literal]
-			return "The " + DescribeTok(args[0].(*token.Token)) + DescribePos(args[0].(*token.Token)) +
-				" hasn't been supplied with a corresponding " + opposite +
-				" by the time the parser reaches the unmatching nesting closure " + DescribeTok(tok) +
-				DescribePos(tok) + "."
-		},
-	},
-
 	"parse/param/form": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "malformed parameterized type declaration"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "At this point PIpefish was expecting either a comma or a closing brace."
+			return "At this point Pipefish was expecting either a comma or a closing brace."
 		},
 	},
 
@@ -1973,7 +1877,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"parse/param/type": {
+	"parse/param/typename": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "unnecceptable type in parameters of parameterized type"
 		},
@@ -2102,10 +2006,12 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"sigs/params": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "found " + DescribeTok(tok) + " in function declaration, expected `,` or `)`"
+			return "found " + DescribeTok(tok) + " in signature, expected `,` or `)` or `}`"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "A function's call parameters should be seperated by commas and terminated by a closing parenthesis."
+			return "Pipefish thinks that it's parsing a signature, which has a standard form `name type, name type` etc, " +
+			" where the type names are optional in a function signature, which ends in a `)`, and mandatory in " +
+			"the parameters of a parameterized type, which end with a `}`."
 		},
 	},
 

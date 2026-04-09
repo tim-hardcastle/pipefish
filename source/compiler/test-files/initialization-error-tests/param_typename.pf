@@ -1,0 +1,4 @@
+newtype 
+
+Z = clone{i int, b 52} list
+

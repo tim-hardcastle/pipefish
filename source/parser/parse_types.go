@@ -101,7 +101,7 @@ func (p *Parser) parseParamsOrArgs() TypeNode {
 	return result
 }
 
-var acceptableTypes = dtypes.From[string]("float", "int", "string", "rune", "bool", "type")
+var acceptableTypes = dtypes.From("float", "int", "string", "rune", "bool", "type")
 
 func (p *Parser) parseParams(nameTok token.Token) TypeNode {
 	indexTok := p.CurToken
@@ -124,7 +124,7 @@ func (p *Parser) parseParams(nameTok token.Token) TypeNode {
 					}
 				}
 			} else {
-				p.Throw("parse/param/type", tok)
+				p.Throw("parse/param/typename", tok)
 			}
 			p.NextToken()
 		}
@@ -172,7 +172,7 @@ func (p *Parser) parseArgs(nameTok token.Token) TypeNode {
 		case token.TRUE:
 			newArg = &Argument{tok, values.BOOL, true}
 		default:
-			p.Throw("parse/instance/value", &tok)
+			panic("This seems to be unreachable, but if you see this error message, please let me know how.")
 		}
 		result.Arguments = append(result.Arguments, newArg)
 		if tok.Type != token.IDENT || p.EnumElementNames.Contains(tok.Literal) { // In which case parsing the type will have moved us on to the next token.
@@ -185,8 +185,7 @@ func (p *Parser) parseArgs(nameTok token.Token) TypeNode {
 		if p.PeekToken.Type == token.RBRACE {
 			break
 		}
-		p.Throw("parse/instance/form", &tok)
-		break
+		panic("This seems to be unreachable, but if you see this error message, please let me know how.")
 	}
 	return &result
 }

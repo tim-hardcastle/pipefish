@@ -1,3 +1,4 @@
 newtype 
 
-Foo = clone{} int 
+Z = clone{i int: b bool} list
+

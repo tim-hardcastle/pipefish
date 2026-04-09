@@ -611,7 +611,7 @@ func (iz *Initializer) chunkClone(opTok token.Token, private bool, docString str
 	}
 	validation := parser.NewCodeChunk()
 	if iz.P.CurTokenIs(token.COLON) {
-		validation, ok = iz.P.SlurpBlock(false)
+		validation, ok = iz.P.SlurpBlock()
 	}
 	if iz.P.CurTokenIs(token.GIVEN) {
 		iz.throw("init/clone/given", &iz.P.CurToken)
@@ -807,7 +807,7 @@ func (iz *Initializer) chunkStruct(opTok token.Token, private bool, docString st
 	iz.P.NextToken()
 	validation := parser.NewCodeChunk()
 	if iz.P.CurTokenIs(token.COLON) {
-		validation, ok = iz.P.SlurpBlock(false)
+		validation, ok = iz.P.SlurpBlock()
 	}
 	if !ok {
 		return &tokenizedStructDeclaration{}, false
@@ -829,12 +829,12 @@ func (iz *Initializer) finishChunk() {
 			return
 		}
 		if iz.P.CurTokenIs(token.COLON) {
-			iz.P.SlurpBlock(true)
+			iz.P.SlurpBlock()
 			if iz.P.CurTokenIs(token.GIVEN) {
-				iz.P.SlurpBlock(true)
+				iz.P.SlurpBlock()
 			}
 		}
-		iz.P.SafeNextToken()
+		iz.P.NextToken()
 	}
 }
 
@@ -846,11 +846,11 @@ func (iz *Initializer) ChunkFunction(cmd, private bool, docString string) (*toke
 	if !ok {
 		return &tokenizedFunctionDeclaration{}, false
 	}
-	if fn.body, ok = iz.P.SlurpBlock(false); !ok {
+	if fn.body, ok = iz.P.SlurpBlock(); !ok {
 		return &tokenizedFunctionDeclaration{}, false
 	}
 	if iz.P.CurTokenIs(token.GIVEN) {
-		if fn.given, ok = iz.P.SlurpBlock(false); !ok {
+		if fn.given, ok = iz.P.SlurpBlock(); !ok {
 			return &tokenizedFunctionDeclaration{}, false
 		}
 	}

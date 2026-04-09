@@ -384,10 +384,10 @@ func (iz *Initializer) getTokenizedCode(forcePrivate bool) { // `forceprivate`` 
 	headword = token.ILLEGAL
 	private := forcePrivate
 	if iz.P.CurToken.Type == token.EOF {
-		iz.P.SafeNextToken()
+		iz.P.NextToken()
 	}
 	if iz.P.CurToken.Type == token.EOF {
-		iz.P.SafeNextToken()
+		iz.P.NextToken()
 	}
 	docString := ""
 loop:
@@ -1275,7 +1275,6 @@ func (iz *Initializer) parseEverythingElse() {
 		iz.parsedCode[decType] = make([]parsedCode, len(iz.tokenizedCode[decType]))
 		for i, _ := range iz.tokenizedCode[decType] {
 			iz.parsedCode[decType][i] = iz.parse(decType, i)
-			iz.P.ResetParser()
 		}
 	}
 }

@@ -1,0 +1,6 @@
+newtype 
+
+Z = clone{i int, b bool} list
+
+
+

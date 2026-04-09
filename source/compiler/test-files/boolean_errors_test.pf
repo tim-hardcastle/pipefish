@@ -1,0 +1,5 @@
+var
+
+T bool? = true 
+F bool? = false 
+Q bool? = NULL

@@ -14,6 +14,7 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
+
 func TestExternalItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`external/exist`, `OK`},
@@ -28,6 +29,7 @@ func TestGettersItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
+
 // This apparent tautology refers to errors from the `intializer.go` file specifically.
 func TestInitializerItes(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -50,6 +52,7 @@ func TestInitializerItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
+
 // Whereas these are from `parsing.go`.
 func TestParsingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -76,7 +79,7 @@ func TestChunkingItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`abstract/ident`, `OK`},
 		{`alias`, `OK`},
-		{`assign`, `OK`},	
+		{`assign`, `OK`},
 		{`clone/expect/a`, `OK`},
 		{`clone/expect/b`, `OK`},
 		{`clone/given`, `OK`},
@@ -100,7 +103,7 @@ func TestChunkingItes(t *testing.T) {
 		{`struct/params`, `OK`},
 		{`struct/rbrace`, `OK`},
 		{`struct/rparen`, `OK`},
-		{`struct/type`, `OK`},		
+		{`struct/type`, `OK`},
 		{`type/assign`, `OK`},
 		{`type/expect.a`, `OK`},
 		{`type/expect.b`, `OK`},

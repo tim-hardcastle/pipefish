@@ -187,12 +187,14 @@ func TestParserErrors(t *testing.T) {
 		{`for i::j = range k`, `parse/for/colon`},
 		{`for a = 1; a + 1 : foo`, `parse/for/semicolon`},
 		{`func(x) >> int : x`, `parse/sig/c`},
-		{`func(x int) : foo(x) given : foo(x int) >> int : x`, `parse/inner/a`},
-		{`func(x int) : foo(x) given : foo(x int) == int : x`, `parse/inner/c`},
+		{`func(x int) : foo(x) given : foo(x int) >> int : x`, `parse/inner.a`},
+		{`func(x int) : foo(x) given : foo(x int) == int : x`, `parse/inner.c`},
 		{`not`, `parse/prefix`},
 		{`-- foo |bar qux`, `parse/snippet/form`},
 		{`try e @`, `parse/try/colon`},
 		{`try 86 `, `parse/try/ident`},
+		{`func(x int) -> 42 : x`, `parse/ret.b`},
+		{`func(x int: y int) -> int : x`, `parse/sig/c`},
 		// {`2 + 2)`, `parse/close`}, Probably blocked by `parse/expected`.
 		// {`not suf`, `parse/before.b`}, TODO --- why isn't this an error?
 	}

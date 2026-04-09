@@ -117,15 +117,11 @@ func (p *Parser) ChunkReturns() (TokReturns, bool) {
 // At this point the current token should be the colon that introduces the block.
 // If we've given up on processing the block and we're calling this from 'finishChunk' then
 // 'safe' is turned on so that we don't produce bracket-matching errors.
-func (p *Parser) SlurpBlock(safe bool) (*TokenizedCodeChunk, bool) {
+func (p *Parser) SlurpBlock() (*TokenizedCodeChunk, bool) {
 	var getToken func()
-	if safe {
-		getToken = p.SafeNextToken
-	} else {
-		getToken = p.NextToken
-	}
-	if !(p.CurTokenIs(token.COLON) || p.CurTokenIs(token.GIVEN)) && !safe {
-		return p.SlurpBlock(true)
+	getToken = p.NextToken
+	if !(p.CurTokenIs(token.COLON) || p.CurTokenIs(token.GIVEN)) {
+		return p.SlurpBlock()
 	}
 	indexToken := p.CurToken
 	code := []token.Token{}
