@@ -224,6 +224,8 @@ func TestLexingErrors(t *testing.T) {
 		{"fee, fie,\nfo, fum", `lex/comma`},
 		{"fee, fie ..\nfo, fum", `lex/cont/a`},
 		{"fee, fie\n.. fo, fum", `lex/cont/b`},
+		{"fee, fie\n\tfo, fum", `relex/indent`},
+		{"fee, fie , \\\\ Logging here.", `relex/log`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }

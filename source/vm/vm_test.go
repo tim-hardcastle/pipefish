@@ -33,6 +33,29 @@ func TestAssignment(t *testing.T) {
 	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
 }
 
+func TestBooleans(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`F or T`, `true`},
+		{`T or F`, `true`},
+		{`T or T`, `true`},
+		{`F or F`, `false`},
+		{`T and F`, `false`},
+		{`F and T`, `false`},
+		{`F and F`, `false`},
+		{`T and T`, `true`},
+		{`T : 5`, `5`},
+		{`not T`, `false`},
+		{`not F`, `true`},
+		{`Q or T`, `vm/bool/or/left`},
+		{`F or Q`, `vm/bool/or/right`},
+		{`Q and F`, `vm/bool/and/left`},
+		{`T and Q`, `vm/bool/and/right`},
+		{`Q : 5`, `vm/bool/cond`},
+		{`not Q`, `vm/bool/not`},
+	}
+	test_helper.RunTest(t, "boolean_errors_test.pf", tests, test_helper.TestValues)
+}
+
 func TestBuiltins(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`5.0 + 2.0`, `7.0`},

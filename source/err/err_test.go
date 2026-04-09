@@ -6,6 +6,17 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestHubErrorMethods(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
+		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
+		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
+		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
 // These are errors which are thrown by the compiler but only at intialization time. They may
 // also contain a few things which just seemed easier to test this way.
 func TestCompilerItes(t *testing.T) {
@@ -143,6 +154,8 @@ func TestLexingErrors(t *testing.T) {
 		{"fee, fie,\nfo, fum", `lex/comma`},
 		{"fee, fie ..\nfo, fum", `lex/cont/a`},
 		{"fee, fie\n.. fo, fum", `lex/cont/b`},
+		{"fee, fie\n\tfo, fum", `relex/indent`},
+		{"fee, fie , \\\\ Logging here.", `relex/log`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
@@ -171,6 +184,19 @@ func TestBooleanCtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
+func TestBooleanRtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Q or T`, `vm/bool/or/left`},
+		{`F or Q`, `vm/bool/or/right`},
+		{`Q and F`, `vm/bool/and/left`},
+		{`T and Q`, `vm/bool/and/right`},
+		{`Q : 5`, `vm/bool/cond`},
+		{`not Q`, `vm/bool/not`},
+	}
+	test_helper.RunTest(t, "boolean_errors_test.pf", tests, test_helper.TestValues)
+}
+
 func TestBuiltinRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`7 / 0`, `vm/div/zero/a`},
