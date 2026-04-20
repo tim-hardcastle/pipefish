@@ -3,13 +3,25 @@ newtype
 Addable = interface :
     (x self) + (y self) -> self
 
+Ltable = interface :
+    (x self) < (y self) -> bool
+
+Lteable = interface :
+    (x self) <= (y self) -> bool
+
+Gtable = interface :
+    (x self) < (y self) -> bool
+
+Gteable = interface :
+    (x self) <= (y self) -> bool
+
 Comparable = interface :
     (x self) < (y self) -> bool
     (x self) <= (y self) -> bool
     (x self) > (y self) -> bool
     (x self) >= (y self) -> bool
 
-Lennable = interface :
+Lenable = interface :
     len(x self) -> int 
 
 Multipliable = interface :

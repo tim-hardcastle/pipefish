@@ -491,6 +491,35 @@ func (iz *Initializer) ChunkTypeDeclaration(private bool, docString string) (tok
 
 // Starts after the word 'abstract', ends on NEWLINE or EOF.
 func (iz *Initializer) chunkAbstract(opTok token.Token, private bool, docString string) (tokenizedCode, bool) {
+	params := parser.TokSig{}
+	if iz.P.CurTokenIs(token.LBRACE) {
+		iz.P.NextToken()
+		if iz.P.CurTokenIs(token.RBRACE) {
+			iz.throw("init/abstract/params", &iz.P.CurToken)
+			iz.finishChunk()
+			return &tokenizedAbstractDeclaration{}, false
+		}
+		var ok bool
+		params, ok = iz.P.ChunkNameTypePairs(parser.MISSING_TYPE_ERROR)
+		if !ok {
+			iz.finishChunk()
+			return &tokenizedAbstractDeclaration{}, false
+		}
+		if !iz.P.PeekTokenIs(token.RBRACE) {
+			iz.throw("init/abstract/rbrace", &iz.P.CurToken)
+			iz.finishChunk()
+			return &tokenizedAbstractDeclaration{}, false
+		}
+		for _, pair := range params {
+			if pair.Typename[0].Literal == "*error*" {
+				iz.throw("init/abstract/typed", &pair.Name)
+				iz.finishChunk()
+				return &tokenizedAbstractDeclaration{}, false
+			}
+		}
+		iz.P.NextToken()
+		iz.P.NextToken()
+	}
 	types := [][]token.Token{}
 	for {
 		if !iz.P.CurTokenIs(token.IDENT) {
@@ -846,6 +875,7 @@ func (iz *Initializer) ChunkFunction(cmd, private bool, docString string) (*toke
 	if !ok {
 		return &tokenizedFunctionDeclaration{}, false
 	}
+	println("We're here!")
 	if fn.body, ok = iz.P.SlurpBlock(); !ok {
 		return &tokenizedFunctionDeclaration{}, false
 	}

@@ -1,8 +1,10 @@
 var
 
-allServices = map(`hub`::`!/user/hub/hub.hub`)
+allServices = map(`hub`::`/home/tim/Pipefish/user/hub/hub.hub`,
+               .. `peano`::`/home/tim/Pipefish/peano.pf`,
+               .. `temp`::`/home/tim/Pipefish/temp.pf`)
 
-currentService string? = NULL
+currentService string? = `temp`
 
 isLive = true
 
@@ -10,4 +12,3 @@ theme Theme? = DARK_MODERN
 
 width = 92
 
-database SqlDb? = NULL

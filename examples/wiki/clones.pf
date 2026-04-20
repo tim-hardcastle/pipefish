@@ -1,8 +1,20 @@
 newtype 
 
+
 Uid = clone int 
-Apples = clone int using + 
-Vec = clone list using slice
+
+Apples = clone int using +, -
+Oranges = clone int using +, -
+
+Vec = clone list 
+
+
+
+Color = enum RED, GREEN, BLUE, PURPLE
+
+Dragon = struct(name string, age int?, color Color)
+
+
 
 def 
 

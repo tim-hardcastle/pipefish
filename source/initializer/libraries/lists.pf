@@ -1,6 +1,6 @@
 def 
 
-binarySearch(L list, x any?) -> int/error :
+binarySearch(L clones{list}, x any?) -> int/error :
     L == [] :
         error "element is not in list"
     x < pivot :
@@ -22,49 +22,49 @@ compact(L list) -> list :
         else :
             K & L[i]
 
-count(L list, x any?) -> int :
+count(L clones{list}, x any?) -> int :
     from a = 0 for _::el = range L :
         type(el) == type(x) and el == x :
             a + 1
         else :
             continue 
 
-count(L list, F func) -> int :
+count(L clones{list}, F func) -> int :
     from a = 0 for _::el = range L :
         F(el) :
             a + 1
         else :
             continue  
 
-find(L list, x any?) -> int? :
+find(L clones{list}, x any?) -> int? :
     from a int? = NULL for i::el = range L :
         type(el) == type(x) and el == x :
             break i
         else :
             continue 
 
-find(L list, F func) -> int? :
+find(L clones{list}, F func) -> int? :
     from a int? = NULL for i::el = range L :
         F el :
             break i
         else :
             continue 
 
-findAll(L list, x any?) -> list :
+findAll(L clones{list}, x any?) -> list :
     from a = [] for i::el = range L :
         type(el) == type(x) and el == x :
             a & i
         else :
             continue 
 
-findAll(L list, F func) -> list :
+findAll(L clones{list}, F func) -> list :
     from a = [] for i::el = range L :
         F el :
             a & i
         else :
             continue
 
-fold(L list, F func) :
+fold(L clones{list}, F func) :
     L == [] :
         error "can't fold empty list"
     else :
@@ -76,7 +76,7 @@ insert(L list, x any?) -> list :
 given :
     ip = findInsertion(L, x)
 
-isSorted(L list) -> bool :
+isSorted(L clones{list}) -> bool :
     len(L) <= 1 :
         true 
     else :
@@ -86,7 +86,7 @@ isSorted(L list) -> bool :
             else :
                 break false 
 
-max(L list) : 
+max(L clones{list}) : 
     L == [] :
         error "can't take maximum of empty list"
     else :
@@ -96,7 +96,7 @@ max(L list) :
             else :
                 continue 
 
-max(L list, F func) : 
+max(L clones{list}, F func) : 
     L == [] :
         error "can't take maximum of empty list"
     else :
@@ -120,7 +120,7 @@ merge(J, K list) -> list :
             else :
                 L & K[k], j, k + 1
 
-min(L list) : 
+min(L clones{list}) : 
     L == [] :
         error "can't take minimum of empty list"
     else :
@@ -130,7 +130,7 @@ min(L list) :
             else :
                 continue 
 
-min(L list, F func) : 
+min(L clones{list}, F func) : 
     L == [] :
         error "can't take minimum of empty list"
     else :
@@ -140,7 +140,7 @@ min(L list, F func) :
             else :
                 continue 
 
-product(L list) :
+product(L clones{list}) :
     L == [] :
         error "can't take product of empty list"
     else :
@@ -163,7 +163,7 @@ sort(L list) -> list :
 given :
     midpoint = len(L) div 2
 
-sum(L list) :
+sum(L clones{list}) :
     L == [] :
         error "can't take sum of empty list"
     else :

@@ -1,6 +1,6 @@
 var
 
-allServices = map(`hub`::`!/source/hub/test-files/default/hub.hub`)
+allServices = map(`hub`::`/home/tim/Pipefish/source/hub/test-files/default/hub.hub`)
 
 currentService string? = NULL
 

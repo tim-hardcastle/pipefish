@@ -115,19 +115,17 @@ func (p *Parser) ChunkReturns() (TokReturns, bool) {
 }
 
 // At this point the current token should be the colon that introduces the block.
-// If we've given up on processing the block and we're calling this from 'finishChunk' then
-// 'safe' is turned on so that we don't produce bracket-matching errors.
 func (p *Parser) SlurpBlock() (*TokenizedCodeChunk, bool) {
-	var getToken func()
-	getToken = p.NextToken
+	success := true
 	if !(p.CurTokenIs(token.COLON) || p.CurTokenIs(token.GIVEN)) {
-		return p.SlurpBlock()
+		p.Throw("parse/block/empty", &p.CurToken)
+		success = false // And we continue to slurp up the block.
 	}
 	indexToken := p.CurToken
 	code := []token.Token{}
 	indentCount := 0
-	getToken()
-	for ; ; getToken() {
+	p.NextToken()
+	for ; ; p.NextToken() {
 		tok := p.CurToken
 		if tok.Type == token.EOF {
 			break
@@ -147,7 +145,11 @@ func (p *Parser) SlurpBlock() (*TokenizedCodeChunk, bool) {
 		p.Throw("parse/block/empty", &indexToken)
 		return NewCodeChunk(), false
 	}
-	return MakeCodeChunk(code, false), true
+	if success {
+		return MakeCodeChunk(code, false), true
+	} else {
+		return NewCodeChunk(), false
+	}
 }
 
 // Sometimes our type signatures will have `any?` as the default, but in assignment signatures
