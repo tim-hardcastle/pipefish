@@ -1,0 +1,94 @@
+import 
+
+"path/filepath"
+NULL::"files"
+"regexp"
+"strings"
+NULL::"terminal"
+
+newtype 
+
+Rule = struct(lhs, rhs string)
+
+var 
+
+rules = [] 
+
+cmd 
+
+main :
+    global rules
+    for :
+        get input from Keyboard("rofl repl → ")
+        input == "quit" :
+            break
+        input == "clear" :
+            rules = []
+        else :
+            do input
+
+private
+
+do(input string) :
+    global rules
+    try e :
+        strings.hasPrefix(input, "import ") :
+            importRofl input[7::len input]
+        else :
+            result = evaluate rules, input 
+            result in Rule :
+                rules = rules & result
+            else :
+                result == "" :
+                    OK 
+                else :
+                    post result
+    else :
+        post "Error: " + (unwrap e)[errorText]
+
+importRofl(filepath string) :
+    get contents from File(filepath.join $_moduleDirectory, filepath)
+    lines = makeLinesFrom contents 
+    for _::line = range lines :
+        do line
+
+def private
+
+evaluate(rules list, exp string) :
+    ruleOrValue from a = exp for :
+        a == newExp :
+            break
+        else :
+            newExp
+    given :
+        newExp = apply(rules, a)
+
+apply(rules list, exp string) :
+    from a = exp for _::rule = range rules :
+        regexp.replaceAll(rule[lhs]::rule[rhs], a)
+
+ruleOrValue(exp string) :
+    arrowPositions == [] :
+        exp 
+    else :
+        Rule(exp[0::arrowPosition], exp[arrowPosition+4::len exp])
+given :
+   arrowPositions = findArrows(exp)
+   mainArrowNumber = len(arrowPositions) div 2
+   arrowPosition = arrowPositions[mainArrowNumber]
+
+findArrows(exp string) :
+    from a = [] for _::i = range len(exp)-4 :
+        exp[i::i+4] == " -> " :
+            a & i 
+        else :
+            continue
+
+def makeLinesFrom(text string) :
+    from a = [] for _::line = range rawLines :
+        regexp.match `^(\s)+`, line :
+            a with (len(a)-1)::a[(len(a)-1)] + " " + line 
+        else :
+            a & line
+given :
+    rawLines = strings.split text, "\n"

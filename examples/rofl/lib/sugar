@@ -1,0 +1,8 @@
+(.*)\s*//.* -> $1
+// Remove redundant whitespace.
+\s(\s)+ ->  
+// Remove whitespace in angle brackets.
+<(.*?) > -> <$1>
+// Overload `|` to use as a delimiter instead of `\b`.
+(^|\s)\| -> $1\b
+\|(\s|$) -> \b$1

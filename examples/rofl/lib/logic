@@ -1,0 +1,13 @@
+import lib/sugar
+
+// We define the boolean type.
+|bool| -> [TF]
+<(bool)> -> $1
+
+// And its operations.
+F and (bool) -> F
+T and (bool) -> $1
+F or (bool) -> $1
+T or (bool) -> T
+not T -> F
+not F -> T

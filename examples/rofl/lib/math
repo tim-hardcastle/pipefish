@@ -1,0 +1,45 @@
+import lib/logic
+
+// We define the `zero` and `nat` types.
+|zero| -> |0|
+|nat| -> |[10]+|
+<0([10]+)> -> <$1> // Strip leading zeros in brackets (for Reasons).
+<(nat)> -> $1
+
+// We use non-ASCII characters to represent "carry one" and
+// "carry -1".
+0₊ -> 1
+1₊ -> ₊0
+0₋ -> ₋1
+1₋ -> 0
+<₊(nat)> -> <1$1>
+
+// `zero` is the additive identity.
+zero \+ (nat) -> $1
+(nat) \+ zero -> $1
+(nat) - zero -> $1
+
+// // Addition and subtraction can then be defined recursively:
+(nat) \+ (nat) -> <${1}₊> + <$2₋>
+(nat) - (nat) -> <${1}₋> - <$2₋>
+
+// Multiplication.
+(nat) \* (nat) -> ×<$1, $2, 0>
+×<0, (nat), (nat)> -> $2
+×<(nat), (nat), (nat)> -> ×<<${1} - 1>, $2, $2 + $3>
+
+// Comparison operations.
+zero == zero -> T
+zero == (nat) -> F
+(nat) == zero -> F
+(nat) == (nat) -> <${1} - 1> == <$2 - 1>
+
+zero <= (nat) -> T
+(nat) <= zero -> F
+(nat) <= (nat) -> <${1} - 1> <= <$2 - 1>
+
+(nat) >= (nat) -> $2 <= $1
+(nat) < (nat) -> <$1 <= $2> and not <$1 == $2>
+(nat) > (nat) -> $1 > $2
+
+(nat) != (nat) -> not <$1 == $2>
