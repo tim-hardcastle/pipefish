@@ -13,7 +13,7 @@ type functionTable map[string][]*parsedFunction
 
 func (iz *Initializer) Add(functionName string, f *parsedFunction) *parsedFunction {
 	// The function name may be the name of an aliased type.
-	aliases := iz.reverseAliasMap[functionName] 
+	aliases := iz.reverseAliasMap[functionName]
 	aliases = append(aliases, functionName)
 	for _, name := range aliases {
 		if functions, ok := iz.functionTable[name]; ok {
@@ -27,9 +27,9 @@ func (iz *Initializer) Add(functionName string, f *parsedFunction) *parsedFuncti
 }
 
 func (iz *Initializer) AddInOrder(S []*parsedFunction, f *parsedFunction) ([]*parsedFunction, *parsedFunction) {
-	fSig := f.callInfo.Compiler.MakeAbstractSigFromStringSig(f.sig)
+	fSig := f.callInfo.Compiler.MakeAbstractSigFromAstSig(f.sig)
 	for i := 0; i < len(S); i++ {
-		gSig := S[i].callInfo.Compiler.MakeAbstractSigFromStringSig(S[i].sig)
+		gSig := S[i].callInfo.Compiler.MakeAbstractSigFromAstSig(S[i].sig)
 		yes, ok := compiler.IsMoreSpecific(fSig, gSig)
 		if !ok {
 			return S, S[i]

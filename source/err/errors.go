@@ -87,7 +87,6 @@ func GetErrorCreator(id string) (ErrorCreator, bool) {
 // We create the error message now. But we store the args to create the explanation (i.e. what you get if
 // you do 'hub why <error number>' because we may not need it.
 func CreateErr(errorId string, tok *token.Token, args ...any) *Error {
-
 	errorCreator, ok := GetErrorCreator(errorId)
 	if !ok {
 		return CreateErr("err/misdirect", tok, errorId)

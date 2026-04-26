@@ -1689,7 +1689,10 @@ loop:
 			case Uwrp:
 				if vm.Mem[args[1]].T == values.ERROR {
 					wrappedErr := vm.Mem[args[1]].V.(*err.Error)
-					errWithMessage := err.CreateErr(wrappedErr.ErrorId, wrappedErr.Token, wrappedErr.Args...)
+					errWithMessage := wrappedErr
+					if wrappedErr.Message == "" {
+						errWithMessage = err.CreateErr(wrappedErr.ErrorId, wrappedErr.Token, wrappedErr.Args...)
+					}
 					vm.Mem[args[0]] = values.Value{vm.UsefulTypes.UnwrappedError, []values.Value{{values.STRING, errWithMessage.ErrorId}, {values.STRING, errWithMessage.Message}}}
 				} else {
 					vm.Mem[args[0]] = vm.makeError("vm/unwrap", args[2], vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0))

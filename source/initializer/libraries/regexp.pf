@@ -1,6 +1,7 @@
 import
 
 golang "regexp"
+golang "errors"
 
 def
 
@@ -36,3 +37,23 @@ findAllIndex(pattern, text string, start int) : golang {
 	indices := regObj.FindAllStringIndex(text, start)
     return indices
 }
+
+replaceAll(pattern pair, text string) -> string/error : golang {
+	var (
+		lhs string
+		rhs string
+		ok bool
+	)
+	if lhs, ok = pattern[0].(string); !ok {
+		return errors.New("lhs of pattern must be string")
+	} 
+	if rhs, ok = pattern[1].(string); !ok {
+		return errors.New("rhs of pattern must be string")
+	} 
+	regObj, err := regexp.Compile(lhs)
+	if err != nil {
+		return err
+	}
+    return regObj.ReplaceAllString(text, rhs)
+}
+

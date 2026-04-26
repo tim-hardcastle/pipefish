@@ -14,7 +14,7 @@ import (
 
 // A miscellaneous collection of functions for extracting data from other data.
 
-func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction, tok *token.Token) values.AbstractType {
+func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction) values.AbstractType {
 	result := values.AbT()
 	// Check that the sigs are the right length, the return sig being optional.
 	if len(sigToMatch.sig) != len(fnToTry.sig) {
@@ -23,8 +23,8 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction,
 	if len(sigToMatch.rtnSig) != 0 && len(sigToMatch.rtnSig) != len(fnToTry.callInfo.ReturnTypes) {
 		return result
 	}
-	abSig := fnToTry.callInfo.Compiler.MakeAbstractSigFromStringSig(fnToTry.sig)
-	abRets := fnToTry.callInfo.Compiler.MakeAbstractSigFromStringSig(fnToTry.callInfo.ReturnTypes)
+	abSig := fnToTry.callInfo.Compiler.MakeAbstractSigFromAstSig(fnToTry.sig)
+	abRets := fnToTry.callInfo.Compiler.MakeAbstractSigFromAstSig(fnToTry.callInfo.ReturnTypes)
 	// Once we have identified one set of types as being 'self' we need to fix that
 	// as 'self' and take its intersection with the other things that appear in the
 	// 'self' position.

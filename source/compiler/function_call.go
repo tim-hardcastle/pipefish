@@ -499,7 +499,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 					args := append([]uint32{DUMMY, DUMMY, DUMMY}, b.valLocs...)
 					cp.Emit(vm.Call, args...) // TODO --- find out from the sig whether this should be CalT.args := append([]uint32{DUMMY, DUMMY, DUMMY}, valLocs...)
 					cp.Emit(vm.Asgm, b.outLoc, DUMMY)
-					return cp.rtnTypesToTypeScheme(branch.Node.CallInfo.Compiler.MakeAbstractSigFromStringSig(branch.Node.CallInfo.ReturnTypes)), true
+					return cp.rtnTypesToTypeScheme(branch.Node.CallInfo.Compiler.MakeAbstractSigFromAstSig(branch.Node.CallInfo.ReturnTypes)), true
 				}
 				// Maybe we're compiling mutually recursive functions and we haven't compiled the
 				// one we're calling.
@@ -516,7 +516,10 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 					cp.emitCallOpcode(fNo, b.valLocs) // As the fNo doesn't exist this will just fill in dummy values for addresses and locations.
 					cp.Emit(vm.Rpop)
 					cp.Emit(vm.Asgm, b.outLoc, DUMMY) // We don't know where the function's output will be yet.
-					return cp.rtnTypesToTypeScheme(branch.Node.CallInfo.Compiler.MakeAbstractSigFromStringSig(branch.Node.CallInfo.ReturnTypes)), true
+					if b.access == CMD { // TODO --- this all seems kludgy.
+						return AltType(values.UNSATISFIED_CONDITIONAL, values.SUCCESSFUL_VALUE, values.ERROR), true
+					}
+					return cp.rtnTypesToTypeScheme(branch.Node.CallInfo.Compiler.MakeAbstractSigFromAstSig(branch.Node.CallInfo.ReturnTypes)), true
 				}
 				// So this exists.
 				F := resolvingCompiler.Fns[fNo]

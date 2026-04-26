@@ -1,0 +1,23 @@
+import lib/math
+import lib/variables
+
+double (@n: nat) ->
+    10 * @n 
+
+size (@n: nat) ->  
+    if @n < 110010 then
+        small
+    else
+        large 
+
+(@k: nat) mod (@n: nat) ->
+    if @k < @n then
+        @k 
+    else 
+        <@k - @n> mod @n 
+
+fac (@n: nat) -> 
+    if @n == 0 then 
+        1 
+    else 
+        @n * fac <@n - 1>

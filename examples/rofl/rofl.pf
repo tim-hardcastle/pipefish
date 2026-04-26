@@ -13,6 +13,7 @@ Rule = struct(lhs, rhs string)
 var 
 
 rules = [] 
+imports = set()
 
 cmd 
 
@@ -24,16 +25,22 @@ main :
             break
         input == "clear" :
             rules = []
+            imports = set()
         else :
             do input
 
 private
 
 do(input string) :
-    global rules
+    global rules, imports
     try e :
         strings.hasPrefix(input, "import ") :
-            importRofl input[7::len input]
+            filename =  input[7::len input]
+            filename in imports :
+                OK 
+            else :
+                importRofl filename
+                imports = imports + set(filename)
         else :
             result = evaluate rules, input 
             result in Rule :

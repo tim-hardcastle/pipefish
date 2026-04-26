@@ -1,10 +1,10 @@
 var
 
 allServices = map(`hub`::`/home/tim/Pipefish/user/hub/hub.hub`,
-               .. `peano`::`/home/tim/Pipefish/peano.pf`,
+               .. `rofl`::`/home/tim/Pipefish/examples/rofl/rofl.pf`,
                .. `temp`::`/home/tim/Pipefish/temp.pf`)
 
-currentService string? = `temp`
+currentService string? = `rofl`
 
 isLive = true
 

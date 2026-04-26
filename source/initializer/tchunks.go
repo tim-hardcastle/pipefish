@@ -875,7 +875,6 @@ func (iz *Initializer) ChunkFunction(cmd, private bool, docString string) (*toke
 	if !ok {
 		return &tokenizedFunctionDeclaration{}, false
 	}
-	println("We're here!")
 	if fn.body, ok = iz.P.SlurpBlock(); !ok {
 		return &tokenizedFunctionDeclaration{}, false
 	}

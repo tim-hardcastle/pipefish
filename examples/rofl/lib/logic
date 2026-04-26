@@ -11,3 +11,9 @@ F or (bool) -> $1
 T or (bool) -> T
 not T -> F
 not F -> T
+
+// And a conditional.
+if T then (.*?) else (.*) -> $1
+if F then (.*?) else (.*) -> $2
+
+

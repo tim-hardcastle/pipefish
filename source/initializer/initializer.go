@@ -541,15 +541,11 @@ func (iz *Initializer) populateInterfaceTypes() {
 			typesMatched := values.AbT()
 			for key, fnToTry := range iz.Common.functions {
 				if key.functionName == sigToMatch.name {
-					matches := iz.getMatches(sigToMatch, fnToTry, ixPtr(dec))
+					matches := iz.getMatches(sigToMatch, fnToTry)
 					typesMatched = typesMatched.Union(matches)
 					if !settings.MandatoryImportSet().Contains(fnToTry.op.Source) {
 						for _, ty := range matches.Types {
-							if _, ok := funcsToAdd[ty]; ok {
-								funcsToAdd[ty] = append(funcsToAdd[ty], fnToTry)
-							} else {
-								funcsToAdd[ty] = []*parsedFunction{fnToTry}
-							}
+							funcsToAdd[ty] = append(funcsToAdd[ty], fnToTry)
 						}
 					}
 				}
@@ -730,7 +726,7 @@ func (iz *Initializer) makeFunctionTrees() {
 // Note that the sigs have already been sorted on their specificity.
 func (iz *Initializer) addSigToTree(tree *compiler.FnTreeNode, fn *parsedFunction, pos int) *compiler.FnTreeNode {
 	nameSig := fn.sig // TODO --- do we really need both of these?
-	sig := fn.callInfo.Compiler.MakeAbstractSigFromStringSig(nameSig)
+	sig := fn.callInfo.Compiler.MakeAbstractSigFromAstSig(nameSig)
 	bling := ""
 	if pos < len(sig) {
 		var currentTypeName string

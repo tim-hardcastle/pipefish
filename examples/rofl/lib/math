@@ -43,3 +43,7 @@ zero <= (nat) -> T
 (nat) > (nat) -> $1 > $2
 
 (nat) != (nat) -> not <$1 == $2>
+
+
+
+
