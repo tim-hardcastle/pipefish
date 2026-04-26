@@ -1,4 +1,5 @@
 import lib/sugar
+import lib/variables
 
 // We define the boolean type.
 |bool| -> [TF]
@@ -6,8 +7,8 @@ import lib/sugar
 
 // And its operations.
 F and (bool) -> F
-T and (bool) -> $1
-F or (bool) -> $1
+T and (@b: bool) -> @b
+F or (@b: bool) -> @b
 T or (bool) -> T
 not T -> F
 not F -> T

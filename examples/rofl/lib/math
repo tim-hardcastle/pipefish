@@ -4,7 +4,7 @@ import lib/logic
 |zero| -> |0|
 |nat| -> |[10]+|
 <0([10]+)> -> <$1> // Strip leading zeros in brackets (for Reasons).
-<(nat)> -> $1
+<(@i: nat)> -> @i
 
 // We use non-ASCII characters to represent "carry one" and
 // "carry -1".
@@ -12,38 +12,34 @@ import lib/logic
 1₊ -> ₊0
 0₋ -> ₋1
 1₋ -> 0
-<₊(nat)> -> <1$1>
+<₊(@i: nat)> -> <1@i>
 
 // `zero` is the additive identity.
-zero \+ (nat) -> $1
-(nat) \+ zero -> $1
-(nat) - zero -> $1
+zero \+ (@i: nat) -> @i
+(@i: nat) \+ zero -> @i
+(@i: nat) - zero -> @i
 
 // // Addition and subtraction can then be defined recursively:
-(nat) \+ (nat) -> <${1}₊> + <$2₋>
-(nat) - (nat) -> <${1}₋> - <$2₋>
+(@i: nat) \+ (@j: nat) -> <@i₊> + <@j₋>
+(@i: nat) - (@j: nat) -> <@i₋> - <@j₋>
 
 // Multiplication.
-(nat) \* (nat) -> ×<$1, $2, 0>
-×<0, (nat), (nat)> -> $2
-×<(nat), (nat), (nat)> -> ×<<${1} - 1>, $2, $2 + $3>
+(@i: nat) \* (@j: nat) -> ×<@i, @j, 0>
+×<0, (nat), (@i: nat)> -> @i
+×<(@i: nat), (@j: nat), (@k: nat)> -> ×<<@i - 1>, @j, @j + @k>
 
 // Comparison operations.
 zero == zero -> T
 zero == (nat) -> F
 (nat) == zero -> F
-(nat) == (nat) -> <${1} - 1> == <$2 - 1>
+(@i: nat) == (@j: nat) -> <@i - 1> == <@j - 1>
 
 zero <= (nat) -> T
 (nat) <= zero -> F
-(nat) <= (nat) -> <${1} - 1> <= <$2 - 1>
+(@i: nat) <= (@j: nat) -> <@i - 1> <= <@j - 1>
 
-(nat) >= (nat) -> $2 <= $1
-(nat) < (nat) -> <$1 <= $2> and not <$1 == $2>
-(nat) > (nat) -> $1 > $2
+(@i: nat) >= (@j: nat) -> @j <= @i
+(@i: nat) < (@j: nat) -> <@i <= @j> and not <@i == @j>
+(@i: nat) > (@j: nat) -> @j < @i
 
-(nat) != (nat) -> not <$1 == $2>
-
-
-
-
+(@i: nat) != (j: nat) -> not <@i == @j>

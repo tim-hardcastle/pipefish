@@ -1,8 +1,8 @@
 var
 
-allServices = map(`hub`::`/home/tim/Pipefish/user/hub/hub.hub`,
-               .. `rofl`::`/home/tim/Pipefish/examples/rofl/rofl.pf`,
-               .. `temp`::`/home/tim/Pipefish/temp.pf`)
+allServices = map(`temp`::`/home/tim/Pipefish/temp.pf`,
+               .. `hub`::`/home/tim/Pipefish/user/hub/hub.hub`,
+               .. `rofl`::`/home/tim/Pipefish/examples/rofl/rofl.pf`)
 
 currentService string? = `rofl`
 
