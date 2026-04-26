@@ -4,7 +4,6 @@ This is a very concise (but very silly) way of defining what is at least superfi
 
 ```
 import lib/math
-import lib/variables
 
 double (@n: nat) ->
     10 * @n 

@@ -1,5 +1,4 @@
 import lib/math
-import lib/variables
 
 double (@n: nat) ->
     10 * @n 
