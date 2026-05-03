@@ -172,7 +172,8 @@ func (p *Parser) parseArgs(nameTok token.Token) TypeNode {
 		case token.TRUE:
 			newArg = &Argument{tok, values.BOOL, true}
 		default:
-			panic("This seems to be unreachable, but if you see this error message, please let me know how.")
+			p.Throw("sigs/unfinished.b", &p.PeekToken)
+			return nil
 		}
 		result.Arguments = append(result.Arguments, newArg)
 		if tok.Type != token.IDENT || p.EnumElementNames.Contains(tok.Literal) { // In which case parsing the type will have moved us on to the next token.
@@ -185,7 +186,8 @@ func (p *Parser) parseArgs(nameTok token.Token) TypeNode {
 		if p.PeekToken.Type == token.RBRACE {
 			break
 		}
-		panic("This seems to be unreachable, but if you see this error message, please let me know how.")
+		p.Throw("sigs/unfinished.c", &p.PeekToken)
+		return nil
 	}
 	return &result
 }

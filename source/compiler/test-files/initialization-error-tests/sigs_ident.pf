@@ -1,0 +1,6 @@
+def 
+
+foo (x int) -> ==, int :
+    x
+
+
