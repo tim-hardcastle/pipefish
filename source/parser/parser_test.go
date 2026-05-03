@@ -203,6 +203,10 @@ func TestParserErrors(t *testing.T) {
 func TestParserItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`block/empty`, `parse/block/empty`},
+		{`sigs/params`, `sigs/params`}, 
+		{`param/name`, `parse/param/name`},
+		{`param/typename`, `parse/param/typename`},
+		{`param/form`, `parse/param/form`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }

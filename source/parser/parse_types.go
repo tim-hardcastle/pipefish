@@ -89,7 +89,7 @@ func (p *Parser) peekTypePrecedence() typePrecedence {
 func (p *Parser) parseParamsOrArgs() TypeNode {
 	nameTok := p.CurToken
 	p.NextToken() // The one with the name in.
-	// So we're now at the token with the `{}`, which we won't skip over because sluriping
+	// So we're now at the token with the `{`, which we won't skip over because sluriping
 	// the type needs to be done with a peek first and a NextToken afterwards.
 	if p.PeekToken.Type == token.IDENT && !(p.IsTypePrefix(p.PeekToken.Literal)) &&
 		!(p.IsEnumElement(p.PeekToken.Literal)) {
@@ -136,7 +136,7 @@ func (p *Parser) parseParams(nameTok token.Token) TypeNode {
 			break
 		}
 		p.Throw("parse/param/form", tok)
-		break
+		return nil
 	}
 	if blank {
 		return &TypeWithName{indexTok, result.String()}
