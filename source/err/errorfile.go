@@ -2090,15 +2090,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"sql/": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "unable to parse Pipefish in SQL snippet"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Your SQL contains an expression of the form `|...|`, which Pipefish is attempting to interpret as being in the Pipefish language. However, the parser isn't able to parse it."
-		},
-	},
-
 	"sql/sig": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "can't convert Pipefish struct to SQL table"

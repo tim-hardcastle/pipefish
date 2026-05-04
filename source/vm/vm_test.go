@@ -8,6 +8,17 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestSqlErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`mapKeyError`, `sql/concrete/map/key`},
+		{`mapValueError`, `sql/concrete/map/value`},
+		{`mapConflictError`, `sql/map/exists`},
+		{`listError`, `sql/concrete/list`},
+		{`setError`, `sql/concrete/set`},
+		{`sigError`, `sql/sig`},
+	}
+	test_helper.RunTest(t, "sql_error_test.pf", tests, test_helper.TestValues)
+}
 func TestSql(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`testA`, `2`},

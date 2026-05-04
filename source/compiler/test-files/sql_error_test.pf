@@ -1,0 +1,60 @@
+import
+
+NULL::"database/sql"
+
+newtype 
+
+Data = struct(aString string, anInt int, aBool bool?)
+Color = enum RED, YELLOW, GREEN, BLUE
+Dragon = struct(name string, color Color)
+BadData = struct(x func)
+
+const 
+
+SQL = SqlDb(SQLITE)
+
+cmd 
+
+init : 
+    post to SQL --
+        CREATE TABLE IF NOT EXISTS Data |Data|;
+        CREATE TABLE IF NOT EXISTS Dragons |Dragon|
+
+add(aString string, anInt int, aBool bool?) :
+    post to SQL -- INSERT INTO Data VALUES(|aString|, |anInt|, |aBool|)
+
+addDragon(name string, color Color) :
+    post to SQL -- INSERT INTO Dragons VALUES(|name|, |color|)
+
+mapConflictError :
+    add "foo", 42, true 
+    add "bar", 42, false
+    get result like map{int, bool} from SQL --
+        SELECT anInt, aBool FROM Data
+    post result
+
+mapKeyError :
+    get result like map{struct, Color} from SQL --
+        SELECT * FROM Dragons
+    post result
+
+mapValueError :
+    get result like map{string, struct} from SQL --
+        SELECT * FROM Dragons
+    post result
+
+
+listError :
+    get result like list{struct} from SQL --
+        SELECT * FROM Dragons
+    post result
+
+setError :
+    get result like set{struct} from SQL --
+        SELECT * FROM Dragons
+    post result
+
+sigError :
+    post to SQL --
+        CREATE TABLE IF NOT EXISTS BadData |BadData|;
+

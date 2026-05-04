@@ -525,6 +525,17 @@ func TestReturnCtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
+func TestSqlErrors(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`mapKeyError`, `sql/concrete/map/key`},
+		{`mapValueError`, `sql/concrete/map/value`},
+		{`mapConflictError`, `sql/map/exists`},
+		{`listError`, `sql/concrete/list`},
+		{`setError`, `sql/concrete/set`},
+		{`sigError`, `sql/sig`},
+	}
+	test_helper.RunTest(t, "sql_error_test.pf", tests, test_helper.TestValues)
+}
 func TestTypeAccessCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Pair 1, 2`, `comp/private`},
