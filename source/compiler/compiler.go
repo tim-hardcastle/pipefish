@@ -2434,11 +2434,6 @@ func (cp *Compiler) compileSnippet(tok *token.Token, newEnv *Environment, nodes 
 				return nil
 			}
 			val := cp.That()
-			lens := lengths(cResult.Types)
-			if lens.Contains(-1) || len(lens) != 1 {
-				cp.Throw("sql/tuple", tok)
-				return nil
-			}
 			bindle.ValueLocs = append(bindle.ValueLocs, val)
 		} else {
 			cp.Reserve(values.STRING, node.(*parser.StringLiteral).Value, tok)

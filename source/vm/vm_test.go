@@ -615,6 +615,14 @@ func TestLabels(t *testing.T) {
 	}
 	test_helper.RunTest(t, "labels_test.pf", tests, test_helper.TestValues)
 }
+func TestLambdas(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`apply DOUBLE, 1`, `2`},
+		{`apply double, 1`, `2`},
+		{`apply foo, 1`, `vm/apply/func`},
+	}
+	test_helper.RunTest(t, "lambda_test.pf", tests, test_helper.TestValues)
+}
 func TestLiterals(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`"foo"`, `"foo"`},

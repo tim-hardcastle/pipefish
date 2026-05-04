@@ -2,6 +2,12 @@ const
 
 DOUBLE = func(x) : 2 * x
 
+var
+
+foo any = 42
+
+double any = func(x) : 2 * x
+
 def
 
 apply(f, x) :

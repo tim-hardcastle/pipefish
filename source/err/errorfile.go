@@ -2109,15 +2109,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"sql/tuple": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "can't inject tuple of indeterminate length into SQL"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "To inject a tuple into SQL, the compiler needs to be able to figure out in advance how many elements the tuple will have, and in this case it can't."
-		},
-	},
-
 	"vm/apply/func": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "value is not of type `func`"

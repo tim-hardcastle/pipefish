@@ -430,6 +430,13 @@ func TestLambdaCtes(t *testing.T) {
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
 
+func TestLambdaRTEs(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`apply foo, 1`, `vm/apply/func`},
+	}
+	test_helper.RunTest(t, "lambda_test.pf", tests, test_helper.TestValues)
+}
+
 func TestLoggingCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`42 \\ | forty-two`, `comp/log/close`},
