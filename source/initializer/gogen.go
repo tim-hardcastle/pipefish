@@ -149,6 +149,7 @@ func (iz *Initializer) generateGoFunctionCode(sb *strings.Builder, function *par
 		goType, ok := iz.getGoTypeFromTypeAst(function.callInfo.ReturnTypes[0].VarType)
 		if !ok {
 			iz.throw("golang/type.a", &function.op, function.callInfo.ReturnTypes[0].VarType)
+			return
 		}
 		fmt.Fprint(sb, goType, " ")
 	default:

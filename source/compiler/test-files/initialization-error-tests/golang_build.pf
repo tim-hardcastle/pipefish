@@ -1,0 +1,5 @@
+def
+
+foo(x int) : golang {
+   flibble wibbble wurble gurble
+}

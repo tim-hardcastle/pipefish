@@ -820,7 +820,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 			return "external service is broken"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "Pipefish has been able to contact the service but it is currently in a non-functional state."
+			return "Pipefish has been able to contact the service but it is currently in a non-functioning state."
 		},
 	},
 
@@ -854,7 +854,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"golang/concrete/b": {
+	"golang/concrete": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "abstract type " + emph(args[0]) + " in field " + emph(args[2]) + " of struct type " + emph(args[1]) + " being converted to golang"
 		},
@@ -905,17 +905,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Not all types can be passed to Go. This isn't one of them."
-		},
-	},
-
-	"golang/variadic": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "non-final parameter of golang function can't be variadic"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Such signatures don't make sense in Go and in fact since a golang " +
-				"function can only have a vanilla sig, it wouldn't make sense in" +
-				"Pipefish either."
 		},
 	},
 
@@ -2010,8 +1999,8 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish thinks that it's parsing a signature, which has a standard form `name type, name type` etc, " +
-			" where the type names are optional in a function signature, which ends in a `)`, and mandatory in " +
-			"the parameters of a parameterized type, which end with a `}`."
+				" where the type names are optional in a function signature, which ends in a `)`, and mandatory in " +
+				"the parameters of a parameterized type, which end with a `}`."
 		},
 	},
 

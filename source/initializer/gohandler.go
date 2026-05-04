@@ -160,13 +160,6 @@ func (iz *Initializer) compileGo() {
 		for _, function := range iz.goBucket.functions[source] {
 			goFunction, _ := plugins.Lookup(capitalize(function.op.Literal))
 			function.body.(*parser.GolangExpression).GoFunction = reflect.ValueOf(goFunction)
-			for i, pair := range function.sig {
-				if _, ok := pair.VarType.(*parser.TypeDotDotDot); ok {
-					if i < len(function.sig)-1 {
-						iz.throw("golang/variadic", &function.op)
-					}
-				}
-			}
 		}
 	}
 }
@@ -311,7 +304,7 @@ func (iz *Initializer) transitivelyCloseTypes(userDefinedTypes types) {
 			structInfo := iz.cp.Vm.ConcreteTypeInfo[ty].(vm.StructType)
 			for i, fieldType := range structInfo.AbstractStructFields {
 				if fieldType.Len() != 1 {
-					iz.throw("golang/concrete/b", INTEROP_TOKEN, iz.cp.Vm.DescribeAbstractType(fieldType, vm.LITERAL, 0), structInfo.Name, i)
+					iz.throw("golang/concrete", INTEROP_TOKEN, iz.cp.Vm.DescribeAbstractType(fieldType, vm.LITERAL, 0), structInfo.Name, i)
 					structsToCheck = newStructsToCheck
 					continue
 				}

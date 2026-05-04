@@ -1,0 +1,9 @@
+newtype
+
+Qux = struct(t type)
+
+def
+
+foo(x Qux) : golang {
+    println("Oopsie!")
+}

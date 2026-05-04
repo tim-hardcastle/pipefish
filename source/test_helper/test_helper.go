@@ -224,24 +224,26 @@ var LogToFileResult = `- Log at line 7 : We're here.
 - Log at line 11 : And we return "odd".
 `
 
-func Teardown(nameOfTestFile string) {
-	currentDirectory, _ := os.Getwd()
-	absolutePathToGobucket, _ := filepath.Abs(currentDirectory + "/../../source/initializer/gobucket/")
-	locationOfGoTimes := absolutePathToGobucket + "/gotimes.dat"
-	absoluteLocationOfPipefishTestFile, _ := filepath.Abs(currentDirectory + "/../compiler/test-files/" + nameOfTestFile)
-	temp, _ := os.ReadFile(locationOfGoTimes)
-	timeList := strings.Split(strings.TrimRight(string(temp), "\n"), "\n")
-	newTimes := ""
-	for i := 0; i+1 < len(timeList); i = i + 2 {
-		if timeList[i] != absoluteLocationOfPipefishTestFile {
-			newTimes = newTimes + timeList[i] + "\n" + timeList[i+1] + "\n"
+func Teardown(testFiles ... string) {
+	for _, nameOfTestFile := range testFiles {
+		currentDirectory, _ := os.Getwd()
+		absolutePathToGobucket, _ := filepath.Abs(currentDirectory + "/../../source/initializer/gobucket/")
+		locationOfGoTimes := absolutePathToGobucket + "/gotimes.dat"
+		absoluteLocationOfPipefishTestFile, _ := filepath.Abs(currentDirectory + "/../compiler/test-files/" + nameOfTestFile)
+		temp, _ := os.ReadFile(locationOfGoTimes)
+		timeList := strings.Split(strings.TrimRight(string(temp), "\n"), "\n")
+		newTimes := ""
+		for i := 0; i+1 < len(timeList); i = i + 2 {
+			if timeList[i] != absoluteLocationOfPipefishTestFile {
+				newTimes = newTimes + timeList[i] + "\n" + timeList[i+1] + "\n"
+			}
 		}
+		file, _ := os.Stat(absoluteLocationOfPipefishTestFile)
+		timestamp := file.ModTime().UnixMilli()
+		goTestFile := absolutePathToGobucket + "/" + text.Flatten(absoluteLocationOfPipefishTestFile) + "_" + strconv.Itoa(int(timestamp)) + ".so"
+		os.Remove(goTestFile)
+		os.WriteFile(locationOfGoTimes, []byte(newTimes), 0644)
 	}
-	file, _ := os.Stat(absoluteLocationOfPipefishTestFile)
-	timestamp := file.ModTime().UnixMilli()
-	goTestFile := absolutePathToGobucket + "/" + text.Flatten(absoluteLocationOfPipefishTestFile) + "_" + strconv.Itoa(int(timestamp)) + ".so"
-	os.Remove(goTestFile)
-	os.WriteFile(locationOfGoTimes, []byte(newTimes), 0644)
 }
 
 type capturingWriter struct{ capture string }

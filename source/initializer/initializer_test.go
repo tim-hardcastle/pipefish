@@ -10,8 +10,12 @@ package initializer_test
 // which those bits are.
 
 import (
+	"os"
+	"path/filepath"
+	"strconv"
 	"testing"
 
+	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
@@ -28,6 +32,30 @@ func TestGettersItes(t *testing.T) {
 		{`param/missing`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
+func TestGolangItes(t *testing.T) {
+	// no t.Parallel()
+	tests := []test_helper.TestItem{
+		{`golang/type_a`, `golang/type.a`},
+		{`golang/type_b`, `golang/type.b`},
+		{`golang/type_c`, `golang/type.c`},
+		{`golang/concrete`, `golang/concrete`},
+		{`golang/build`, `golang/build`},
+
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+	test_helper.Teardown(
+		"initialization-error-tests/golang_type_a.pf", 
+		"initialization-error-tests/golang_type_b.pf", 
+		"initialization-error-tests/golang_type_c.pf",
+		"initialization-error-tests/golang_concrete.pf",
+		"initialization-error-tests/golang_build.pf",
+	)
+	for counter := 1; counter <= 4; counter++ {
+		goFile := filepath.Join(settings.PipefishHomeDirectory, "gocode_"+strconv.Itoa(counter)+".go")
+		os.Remove(goFile)
+	}
 }
 
 // This apparent tautology refers to errors from the `intializer.go` file specifically.

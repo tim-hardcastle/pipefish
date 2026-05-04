@@ -1,0 +1,5 @@
+def
+
+foo(x type) : golang {
+    println("Oopsie!")
+}
