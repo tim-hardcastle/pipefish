@@ -137,26 +137,26 @@ type Error = err.Error
 
 // Constants representing Pipefish types.
 const (
-	UNDEFINED_TYPE Type = values.UNDEFINED_TYPE
-	BLING          Type = values.BLING
+	UNDEFINED_TYPE          Type = values.UNDEFINED_TYPE
+	BLING                   Type = values.BLING
 	UNSATISFIED_CONDITIONAL Type = values.UNSATISFIED_CONDITIONAL
-	OK             Type = values.SUCCESSFUL_VALUE
-	TUPLE          Type = values.TUPLE
-	ERROR          Type = values.ERROR
-	NULL           Type = values.NULL
-	INT            Type = values.INT
-	BOOL           Type = values.BOOL
-	STRING         Type = values.STRING
-	RUNE           Type = values.RUNE
-	FLOAT          Type = values.FLOAT
-	TYPE           Type = values.TYPE
-	FUNC           Type = values.FUNC
-	PAIR           Type = values.PAIR
-	LIST           Type = values.LIST
-	MAP            Type = values.MAP
-	SET            Type = values.SET
-	LABEL          Type = values.LABEL
-	SNIPPET        Type = values.SNIPPET
+	OK                      Type = values.SUCCESSFUL_VALUE
+	TUPLE                   Type = values.TUPLE
+	ERROR                   Type = values.ERROR
+	NULL                    Type = values.NULL
+	INT                     Type = values.INT
+	BOOL                    Type = values.BOOL
+	STRING                  Type = values.STRING
+	RUNE                    Type = values.RUNE
+	FLOAT                   Type = values.FLOAT
+	TYPE                    Type = values.TYPE
+	FUNC                    Type = values.FUNC
+	PAIR                    Type = values.PAIR
+	LIST                    Type = values.LIST
+	MAP                     Type = values.MAP
+	SET                     Type = values.SET
+	LABEL                   Type = values.LABEL
+	SNIPPET                 Type = values.SNIPPET
 )
 
 // Makes an InHandler which does nothing but get a string from terminal
@@ -514,6 +514,15 @@ func (sv *Service) GetMarkdowner(leftMargin string, rightMargin int, fonts value
 	return sv.cp.GetMarkdowner(leftMargin, rightMargin, fonts)
 }
 
+// Wraps ToGoWithType for better ergonomics.
+func ToGo[T any](sv *Service, pfValue Value) (T, error) {
+	goVal, e := sv.ToGoWithType(pfValue, reflect.TypeFor[T]()) 
+	if e != nil {
+		var zero T
+		return zero, e
+	}
+	return goVal.(T), nil
+}
 // Tries to turn a given Pipefish value into a given Go type. As it necessarily has return
 // type `any` (plus an error if the coercion is impossible) the value returned will then
 // still need downcasting to the type it was coerced to.
@@ -522,23 +531,25 @@ func (sv *Service) GetMarkdowner(leftMargin string, rightMargin int, fonts value
 //
 //	func TwoPlusTwo() int {
 //	    v, _ := fooService.Do(`2 + 2`)                   // `v` has type `Value`.
-//	    i := fooService.ToGo(v, reflect.TypeFor[int]())  // `i` has type `any`.
+//	    i := fooService.ToGoWithType(v, reflect.TypeFor[int]())  // `i` has type `any`.
 //	    return i.(int)                                   // We return an integer as required.
 //	}
 //
 // The error will be non-nil if the coercion is impossible.
-func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
+func (sv *Service) ToGoWithType(pfValue Value, goType reflect.Type) (any, error) {
 	pfTypeInfo := sv.cp.Vm.ConcreteTypeInfo[pfValue.T]
 	pfTypeName := pfTypeInfo.GetName(vm.LITERAL)
 	goTypeName := goType.String()
 	myError := errors.New("cannot coerce Pipefish value of type '" + pfTypeName +
 		"' to Go value of type '" + goTypeName + "'")
 	if goType.Kind() == reflect.Pointer {
-		goDatum, e := sv.ToGo(pfValue, goType.Elem())
+		goDatum, e := sv.ToGoWithType(pfValue, goType.Elem())
 		if e != nil {
 			return nil, e
 		}
-		return &goDatum, nil
+		ptr := reflect.New(goType.Elem())
+		ptr.Elem().Set(reflect.ValueOf(goDatum))
+		return ptr.Interface(), nil
 	}
 	if goType == reflect.TypeFor[any]() {
 		var ok bool
@@ -553,7 +564,7 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 		}
 		goStruct := reflect.New(goType).Elem()
 		for i, pfFieldValue := range pfValue.V.([]Value) {
-			goFieldDatum, e := sv.ToGo(pfFieldValue, goType.FieldByIndex([]int{i}).Type)
+			goFieldDatum, e := sv.ToGoWithType(pfFieldValue, goType.FieldByIndex([]int{i}).Type)
 			if e != nil {
 				return nil, e
 			}
@@ -645,7 +656,7 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 			}
 			goArray := reflect.New(goType).Elem()
 			for i, pfElement := range pfValues {
-				goFieldDatum, e := sv.ToGo(pfElement, goType.Elem())
+				goFieldDatum, e := sv.ToGoWithType(pfElement, goType.Elem())
 				if e != nil {
 					return nil, e
 				}
@@ -655,7 +666,7 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 		case reflect.Slice:
 			goSlice := reflect.MakeSlice(goType, len(pfValues), len(pfValues))
 			for i, pfElement := range pfValues {
-				goElement, e := sv.ToGo(pfElement, goType.Elem())
+				goElement, e := sv.ToGoWithType(pfElement, goType.Elem())
 				if e != nil {
 					return nil, e
 				}
@@ -670,11 +681,11 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 		pfMap := pfValue.V.(Map)
 		goMap := reflect.MakeMap(goType)
 		for _, pfKeyValuePair := range pfMap.AsSlice() {
-			goKeyDatum, keyError := sv.ToGo(pfKeyValuePair.Key, goType.Key())
+			goKeyDatum, keyError := sv.ToGoWithType(pfKeyValuePair.Key, goType.Key())
 			if keyError != nil {
 				return nil, keyError
 			}
-			goValDatum, valError := sv.ToGo(pfKeyValuePair.Val, goType.Elem())
+			goValDatum, valError := sv.ToGoWithType(pfKeyValuePair.Val, goType.Elem())
 			if valError != nil {
 				return nil, valError
 			}
@@ -688,7 +699,7 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 		pfSet := pfValue.V.(Set)
 		goSet := reflect.MakeMap(goType)
 		for _, pfElement := range pfSet.AsSlice() {
-			goElementDatum, elementError := sv.ToGo(pfElement, goType.Key())
+			goElementDatum, elementError := sv.ToGoWithType(pfElement, goType.Key())
 			if elementError != nil {
 				return nil, elementError
 			}

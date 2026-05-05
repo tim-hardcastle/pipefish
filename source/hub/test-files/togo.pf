@@ -1,0 +1,8 @@
+newtype
+
+Person = struct(name string, age int)
+
+RuneClone = clone rune 
+
+Color = enum RED, GREEN, BLUE 
+
