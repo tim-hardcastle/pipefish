@@ -268,11 +268,11 @@ func RunHubTest(t *testing.T, hubName string, test []TestItem) {
 		h.Do(item.Input, "", "", "", false)
 		result := strings.TrimSpace(h.Out.(*capturingWriter).get())
 		if result != item.Want {
-			for i := 0; i < len(strconv.Quote(item.Want)); i++ {
-				if strconv.Quote(result)[i] != strconv.Quote(item.Want)[i] {
-					println(i, string(strconv.Quote(result)[i]), string(strconv.Quote(item.Want)[i]))
-				}
-			}
+			// for i := 0; i < len(strconv.Quote(item.Want)); i++ {
+			// 	if strconv.Quote(result)[i] != strconv.Quote(item.Want)[i] {
+			// 		println(i, string(strconv.Quote(result)[i]), string(strconv.Quote(item.Want)[i]))
+			// 	}
+			// }
 			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : '" + strconv.Quote(item.Want) + "'\n    Got : '" + strconv.Quote(result) + "'")
 		}
 	}

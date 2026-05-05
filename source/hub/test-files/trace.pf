@@ -1,0 +1,4 @@
+def 
+
+foo(i int) :
+    12 div i 

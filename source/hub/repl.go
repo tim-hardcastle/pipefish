@@ -10,8 +10,6 @@ import (
 	"golang.org/x/term"
 )
 
-// TODO --- once the highlighting is semantic and not syntactic, we'll
-// need a different highlighter for each service.
 func (hub *Hub) Repl() {
 	colonOrEmdash, _ := regexp.Compile(`.*[\w\s]*(:|--)[\s]*$`)
 	rline := readline.NewInstance()

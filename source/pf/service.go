@@ -283,7 +283,7 @@ func (sv *Service) GetVariable(vname string) (values.Value, error) {
 }
 
 // Sets the value of a global variable given its name. Unlike using `Do` for the
-// same purpose, this can get the value of private variables.
+// same purpose, this can set the value of private variables.
 func (sv *Service) SetVariable(vname string, ty values.ValueType, v any) error {
 	if sv.cp == nil {
 		return errors.New("service is uninitialized")
