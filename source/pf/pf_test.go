@@ -110,6 +110,12 @@ func TestMisc(t *testing.T) {
 	if srv.UnderlyingType(runeClone) != pf.RUNE {
 		t.Fatal("Can't get underlying type.")
 	}
+	if srv.ToString(green) != "GREEN" {
+		t.Fatal("ToString is broken.")
+	}
+	if srv.ToLiteral(green) != "GREEN" {
+		t.Fatal("ToLiteral is broken.")
+	}
 }
 
 func TestToGo(t *testing.T) {
