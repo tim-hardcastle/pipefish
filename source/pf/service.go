@@ -631,17 +631,16 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 		var pfValues []Value
 		if pfValue.T == LIST {
 			vec := pfValue.V.(List)
-			for i := 0; i <= vec.Len(); i++ {
+			for i := 0; i < vec.Len(); i++ {
 				pfElement, _ := vec.Index(i)
 				pfValues = append(pfValues, pfElement.(Value))
 			}
 		} else {
 			pfValues = pfValue.V.([]Value)
 		}
-		goElements := pfValue.V.([]Value)
 		switch goType.Kind() {
 		case reflect.Array:
-			if goType.Len() != len(goElements) {
+			if goType.Len() != len(pfValues) {
 				return nil, myError
 			}
 			goArray := reflect.New(goType).Elem()
@@ -654,10 +653,8 @@ func (sv *Service) ToGo(pfValue Value, goType reflect.Type) (any, error) {
 			}
 			goDatum = goArray.Interface()
 		case reflect.Slice:
-			goSlice := reflect.New(goType).Elem()
-			goSlice.SetCap(len(goElements))
-			goSlice.SetLen(len(goElements))
-			for i, pfElement := range pfValue.V.([]Value) {
+			goSlice := reflect.MakeSlice(goType, len(pfValues), len(pfValues))
+			for i, pfElement := range pfValues {
 				goElement, e := sv.ToGo(pfElement, goType.Elem())
 				if e != nil {
 					return nil, e

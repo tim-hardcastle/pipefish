@@ -11,7 +11,7 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
-// We can mostly test the `pf` package by rerunning the tests for the hub, since the hub wraps
+// We can test the `pf` package by rerunning the tests for the hub, since the hub wraps
 // around the `pf` package.
 
 func TestServices(t *testing.T) {
@@ -62,12 +62,44 @@ func TestToGo(t *testing.T) {
 	pfVal, _ := srv.Do(`42`)
 	goVal, _ := srv.ToGo(pfVal, reflect.TypeFor[int]())
 	if goVal.(int) != 42 {
-		t.Fatal("Can't convert 42.")
+		t.Fatal("Can't convert 42 to int.")
+	}
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[int16]())
+	if goVal.(int16) != 42 {
+		t.Fatal("Can't convert 42 to int16.")
+	}
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[int32]())
+	if goVal.(int32) != 42 {
+		t.Fatal("Can't convert 42 to int32.")
+	}
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[int64]())
+	if goVal.(int64) != 42 {
+		t.Fatal("Can't convert 42 to int64.")
+	}
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[uint]())
+	if goVal.(uint) != 42 {
+		t.Fatal("Can't convert 42 to uint.")
+	}
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[uint16]())
+	if goVal.(uint16) != 42 {
+		t.Fatal("Can't convert 42 to uint16.")
+	}
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[uint32]())
+	if goVal.(uint32) != 42 {
+		t.Fatal("Can't convert 42 to uint32.")
+	}
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[uint64]())
+	if goVal.(uint64) != 42 {
+		t.Fatal("Can't convert 42 to uint64.")
 	}
 	pfVal, _ = srv.Do(`42.0`)
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[float32]())
+	if goVal.(float32) != 42.0 {
+		t.Fatal("Can't convert 42.0 to float32.")
+	}
 	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[float64]())
 	if goVal.(float64) != 42.0 {
-		t.Fatal("Can't convert 42.0.")
+		t.Fatal("Can't convert 42.0 to float64.")
 	}
 	pfVal, _ = srv.Do(`"foo"`)
 	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[string]())
@@ -78,5 +110,46 @@ func TestToGo(t *testing.T) {
 	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[bool]())
 	if goVal.(bool) != true {
 		t.Fatal("Can't convert true.")
+	}
+	pfVal, _ = srv.Do(`'q'`)
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[rune]())
+	if goVal.(rune) != 'q' {
+		t.Fatal("Can't convert rune.")
+	}
+	pfVal, _ = srv.Do(`("fee", "fie", "fo", "fum")`)
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[[]string]())
+	if len(goVal.([]string)) != 4 {
+		t.Fatal("Can't convert tuple to slice.")
+	}
+	if (goVal.([]string))[2] != "fo" {
+		t.Fatal("Can't convert tuple to slice.")
+	}
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[[4]string]())
+	if (goVal.([4]string))[2] != "fo" {
+		t.Fatal("Can't convert tuple to array.")
+	}
+	pfVal, _ = srv.Do(`["fee", "fie", "fo", "fum"]`)
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[[]string]())
+	if len(goVal.([]string)) != 4 {
+		t.Fatal("Can't convert list to slice.")
+	}
+	if (goVal.([]string))[2] != "fo" {
+		t.Fatal("Can't convert list to slice.")
+	}
+	pfVal, _ = srv.Do(`map("a"::5, "b"::6)`)
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[map[string]int]())
+	if len(goVal.(map[string]int)) != 2 {
+		t.Fatal("Can't convert map.")
+	}
+	if (goVal.(map[string]int))["a"] != 5 {
+		t.Fatal("Can't convert map.")
+	}
+	pfVal, _ = srv.Do(`set("a", "b", "c")`)
+	goVal, _ = srv.ToGo(pfVal, reflect.TypeFor[map[string]struct{}]())
+	if len(goVal.(map[string]struct{})) != 3 {
+		t.Fatal("Can't convert set.")
+	}
+	if _, ok := (goVal.(map[string]struct{}))["b"]; !ok {
+		t.Fatal("Can't convert set.")
 	}
 }
