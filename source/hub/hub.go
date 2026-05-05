@@ -1083,13 +1083,6 @@ func Logo() string {
 	return logoString
 }
 
-func FlattenedFilename(s string) string {
-	base := filepath.Base(s)
-	withoutSuffix := strings.TrimSuffix(base, filepath.Ext(base))
-	flattened := strings.Replace(withoutSuffix, ".", "_", -1)
-	return flattened
-}
-
 func (h *Hub) MakeFilepath(scriptFilepath string) string {
 	doctoredFilepath := strings.Clone(scriptFilepath)
 	if len(scriptFilepath) >= 4 && scriptFilepath[0:4] == "hub/" {

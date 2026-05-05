@@ -72,3 +72,15 @@ func TestTrace(t *testing.T) {
 	}
 	test_helper.RunHubTest(t, "default", test)
 }
+
+func TestValues(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub values`, "\x1b[31mHub error\x1b[39m: there are no recent errors."},
+		{`flibble`, "[0] \x1b[31mError\x1b[39m: identifier \x1b[0m\x1b[48;2;0;0;64m\x1b[97mflibble\x1b[0m is undeclared at line \x1b[33m1:0-7\x1b[39m of REPL input."},
+		{`hub values`, "\x1b[31mHub error\x1b[39m: no values were passed."},
+		{`"foo"[3]`, "[0] \x1b[31mError\x1b[39m: index \x1b[0m\x1b[48;2;0;0;64m\x1b[97m3\x1b[0m is out of range 0::3 at line \x1b[33m1:5-6\x1b[39m of REPL input. \n\nValues are available with \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub values\x1b[0m."},
+		{`hub values`, "Values passed were:\n\n  ▪ \"foo\"\n  ▪ 3"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
