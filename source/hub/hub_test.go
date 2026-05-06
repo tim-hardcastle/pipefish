@@ -22,6 +22,7 @@ func TestServices(t *testing.T) {
 		{`foo 2`, `4`},
 		{`hub halt "foo"`, `OK`},
 		{`hub halt "bar"`, `OK`},
+		{`hub http`, "\x1b[32mOK\x1b[0m"},
 		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
