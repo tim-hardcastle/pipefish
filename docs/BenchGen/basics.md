@@ -30,7 +30,7 @@ def qux(x string) :
     <body of function>
 ```
 
-[Wiki: headwords](https://github.com/tim-hardcastle/Pipefish/wiki/Comments,-continuations,-and-headwords)
+* [Wiki: headwords](https://github.com/tim-hardcastle/Pipefish/wiki/Comments,-continuations,-and-headwords)
 
 ## Functions and conditionals
 
@@ -87,7 +87,7 @@ Note that locals are evaluated by need.
 
 Functions can be overloaded and have multiple dispatch.
 
-[Wiki: introducing functions](https://github.com/tim-hardcastle/Pipefish/wiki/Introducing-functions)
+* [Wiki: introducing functions](https://github.com/tim-hardcastle/Pipefish/wiki/Introducing-functions)
 
 ## For loops
 
@@ -157,7 +157,7 @@ evaluate(rules list, exp string) :
 
 This means that unlike most other functional languages we can use a `for` loop whenever we would in an imperative language, but with fewer footguns. We only need to use recursion when we have data-structures like trees, and higher-order-functions if we're doing something extremely clever.
 
-[Wiki: for loops](https://github.com/tim-hardcastle/pipefish/wiki/For-loops)
+* [Wiki: for loops](https://github.com/tim-hardcastle/pipefish/wiki/For-loops)
 
 ## Data types
 
@@ -173,9 +173,9 @@ Structs are indexed with square brackets (`joe[name]`), like everything else, be
 
 All values are immutable, so you can't assign to the fields. Instead you use the `with` construction to clone-and-modify the value: `joe with age::23`. (The same syntax copy-and-modfies lists, `myList with 3::"foo"`.)
 
-[Wiki: container types](https://github.com/tim-hardcastle/Pipefish/wiki/Container-types)
-[Wiki: structs](https://github.com/tim-hardcastle/Pipefish/wiki/Structs)
-[Wiki: with and without](https://github.com/tim-hardcastle/Pipefish/wiki/With-and-without)
+* [Wiki: container types](https://github.com/tim-hardcastle/Pipefish/wiki/Container-types)
+* [Wiki: structs](https://github.com/tim-hardcastle/Pipefish/wiki/Structs)
+* [Wiki: with and without](https://github.com/tim-hardcastle/Pipefish/wiki/With-and-without)
 
 ## The RNG
 
@@ -200,10 +200,10 @@ postTenRandomNumbers :
 
 (Usually you'd want to do something with your random numbers by passing them to your business logic in the functions, but here we just post them to output.)
 
-[Wiki: imports](https://github.com/tim-hardcastle/Pipefish/wiki/Imports-and-libraries)
-[Wiki: the rand library](https://github.com/tim-hardcastle/Pipefish/wiki/The-rand-library)
-[Wiki: imperative Pipefish](github.com/tim-hardcastle/Pipefish/wiki/Imperative-Pipefish)
+* [Wiki: imports](https://github.com/tim-hardcastle/Pipefish/wiki/Imports-and-libraries)
+* [Wiki: the rand library](https://github.com/tim-hardcastle/Pipefish/wiki/The-rand-library)
+* [Wiki: imperative Pipefish](github.com/tim-hardcastle/Pipefish/wiki/Imperative-Pipefish)
       
 ---
 
-You now know quite a lot of Pipefish. If you look at e.g. the little [text-based adventure game](https://github.com/tim-hardcastle/pipefish/blob/main/examples/adventure/adv.pf) in the examples folder, you'll find it readable: it's just a bunch of functions, conditionals, and `for` loops, just like all the other Pipefish.
+You now know quite a lot of Pipefish. If you look at e.g. the little [text-based adventure game](https://github.com/tim-hardcastle/pipefish/blob/main/examples/adventure/adv.pf) in the examples folder, you'll find it readable.
