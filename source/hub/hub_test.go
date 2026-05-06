@@ -32,6 +32,7 @@ func TestEnv(t *testing.T) {
 	test := []test_helper.TestItem{
 		{`hub env "foo"::42`, `OK`},
 		{`hub env delete "foo"`, `OK`},
+		{`hub env key "", "foo"`, "[32mOK[0m"},
 		{`hub env wipe`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
