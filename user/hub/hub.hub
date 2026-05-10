@@ -2,7 +2,7 @@ var
 
 allServices = map(`hub`::`/home/tim/Pipefish/user/hub/hub.hub`)
 
-currentService string? = `NULL`
+currentService string? = NULL
 
 isLive = true
 
