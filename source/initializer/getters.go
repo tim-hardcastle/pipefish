@@ -246,7 +246,7 @@ func MakeFilepath(scriptFilepath string) string {
 	if len(scriptFilepath) >= 4 && scriptFilepath[0:4] == "hub/" {
 		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, filepath.FromSlash(scriptFilepath))
 	}
-	if len(scriptFilepath) >= 7 && scriptFilepath[0:7] == "rsc-pf/" {
+	if len(scriptFilepath) >= 7 && strings.HasPrefix(filepath.ToSlash(scriptFilepath), "rsc-pf/") {
 		doctoredFilepath = filepath.Join(settings.PipefishHomeDirectory, "source", "initializer", filepath.FromSlash(scriptFilepath))
 	}
 	if StandardLibraries.Contains(scriptFilepath) {
