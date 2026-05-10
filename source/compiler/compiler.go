@@ -4,6 +4,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -218,7 +219,7 @@ func (cp *Compiler) Do(line string) values.Value {
 // The node types in the switch are in alphabetical order.
 func (cp *Compiler) CompileNode(node parser.Node, ctxt Context) cpResult {
 	cp.Cm("Compiling node of type "+(reflect.TypeOf(node).String())[8:]+" with literal "+text.Emph(node.GetToken().Literal)+".", node.GetToken())
-	cp.showCompile = settings.SHOW_COMPILER && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(node.GetToken().Source))
+	cp.showCompile = settings.SHOW_COMPILER && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(filepath.ToSlash(node.GetToken().Source)))
 	result := cpResult{}
 	state := cp.GetState()
 	cT := cp.CodeTop()
@@ -1214,7 +1215,6 @@ NodeTypeSwitch:
 		cp.Cm("Expression "+node.String()+" is unfoldable with return types "+result.Types.describe(cp.Vm)+".", node.GetToken())
 	}
 	if !result.Types.IsLegalCmdReturn() && !result.Types.IsLegalDefReturn() {
-		println("Throwing sanity:", result.Types.describe(cp.Vm))
 		cp.Throw("comp/sanity", node.GetToken())
 		return FAIL
 	}
@@ -2994,21 +2994,21 @@ func (cp *Compiler) CallIfExists(name string) (values.Value, error) {
 
 // The regular version, in cyan.
 func (cp *Compiler) Cm(comment string, tok *token.Token) {
-	if settings.SHOW_COMPILER_COMMENTS && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(tok.Source)) {
+	if settings.SHOW_COMPILER_COMMENTS && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(filepath.ToSlash(tok.Source))) {
 		println(text.CYAN + "// " + comment + text.RESET)
 	}
 }
 
 // The same as the previous method but in purple. Used to comment on the resolution of the multiple dispatch in particular.
 func (cp *Compiler) cmP(comment string, tok *token.Token) {
-	if settings.SHOW_COMPILER_COMMENTS && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(tok.Source)) {
+	if settings.SHOW_COMPILER_COMMENTS && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(filepath.ToSlash(tok.Source))) {
 		println(text.PURPLE + "// " + comment + text.RESET)
 	}
 }
 
 // The same as the previous methods but in red. Used to draw attention to new comments which will either be downgraded to cyan or purple or removed.
 func (cp *Compiler) CmR(comment string, tok *token.Token) {
-	if settings.SHOW_COMPILER_COMMENTS && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(tok.Source)) {
+	if settings.SHOW_COMPILER_COMMENTS && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(filepath.ToSlash(tok.Source))) {
 		println(text.RED + "// " + comment + text.RESET)
 	}
 }

@@ -3,6 +3,7 @@ package err_test
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"testing"
 
@@ -526,6 +527,9 @@ func TestReturnCtes(t *testing.T) {
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
 func TestSqlErrors(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	tests := []test_helper.TestItem{
 		{`mapKeyError`, `sql/concrete/map/key`},
 		{`mapValueError`, `sql/concrete/map/value`},

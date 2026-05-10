@@ -1,6 +1,7 @@
 package initializer
 
 import (
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -21,9 +22,10 @@ func (iz *Initializer) SerializeApi() string {
 	var buf strings.Builder
 	for name, infoForTypes := range iz.parameterizedTypes {
 		for _, info := range infoForTypes {
-			if settings.MandatoryImportSet().Contains(info.Token.Source) {
+			if settings.MandatoryImportSet().Contains(filepath.ToSlash(info.Token.Source)) {
 				continue
 			}
+			println(info.Token.Source, filepath.ToSlash(info.Token.Source), name)
 			buf.WriteString("PARTYPE | ")
 			buf.WriteString(name)
 			buf.WriteString(" | ")
@@ -144,7 +146,7 @@ func (iz *Initializer) SerializeApi() string {
 		for defOrCmd := 0; defOrCmd < 2; defOrCmd++ { // In the function table the commands and functions are all jumbled up. But we want the commands first, for neatness, so we'll do two passes.
 			for _, fn := range fns {
 				_, ok := fn.body.(*parser.BuiltInExpression) // Which includes the constructors, which don't need exporting.
-				if fn.isBoilerplate || fn.private || settings.MandatoryImportSet().Contains(fn.op.Source) || ok {
+				if fn.isBoilerplate || fn.private || settings.MandatoryImportSet().Contains(filepath.ToSlash(fn.op.Source)) || ok {
 					continue
 				}
 				if fn.decType == commandDeclaration {

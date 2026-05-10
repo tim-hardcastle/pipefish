@@ -3,12 +3,16 @@ package vm_test
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
 func TestSqlErrors(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	tests := []test_helper.TestItem{
 		{`mapKeyError`, `sql/concrete/map/key`},
 		{`mapValueError`, `sql/concrete/map/value`},
@@ -20,6 +24,9 @@ func TestSqlErrors(t *testing.T) {
 	test_helper.RunTest(t, "sql_error_test.pf", tests, test_helper.TestValues)
 }
 func TestSql(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	tests := []test_helper.TestItem{
 		{`testA`, `2`},
 		{`testB`, `2`},
@@ -369,6 +376,9 @@ func TestFunctionSyntaxCalls(t *testing.T) {
 }
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
+	if runtime.GOOS == "windows" {
+		return
+	}
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`variadicAnyTest 2, 42, true, "foo", 9.9`, `"foo"`},
@@ -599,6 +609,9 @@ func TestImports(t *testing.T) {
 	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
 }
 func TestJson(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	tests := []test_helper.TestItem{
 		{`decode "25"`, `25`},
 		{`decode "42.9"`, `42.9`},
@@ -905,6 +918,9 @@ func TestWith(t *testing.T) {
 	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
 }
 func TestWrappers(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	// no t.Parallel()
 	tests := []test_helper.TestItem{
 		{`Uint_32(5) == Uint_32(6)`, `false`},

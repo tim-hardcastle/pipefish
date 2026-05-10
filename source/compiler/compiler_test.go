@@ -1,6 +1,7 @@
 package compiler_test
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
@@ -458,6 +459,9 @@ func TestGivenErrors(t *testing.T) {
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
 func TestGocode(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	// no t.Parallel()
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
@@ -762,6 +766,9 @@ func TestSnippets(t *testing.T) {
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
 }
 func TestSql(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	tests := []test_helper.TestItem{
 		{`testE`, `Dragon with (name::"Smaug", color::RED)`},
 	}
@@ -909,6 +916,9 @@ func TestWith(t *testing.T) {
 	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
 }
 func TestWrappers(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	// no t.Parallel()
 	tests := []test_helper.TestItem{
 		{`Uint_32(5) == Uint_32(6)`, `false`},

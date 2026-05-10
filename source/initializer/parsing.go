@@ -680,7 +680,7 @@ func (iz *Initializer) createEnums() {
 			elementNameList = append(elementNameList, tok.Literal)
 		}
 		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.EnumType{Name: name, Path: iz.P.NamespacePath, ElementNames: elementNameList,
-			ElementValues: values.Value{values.LIST, vec}, Private: dec.private, IsMI: settings.MandatoryImportSet().Contains(dec.op.Source)})
+			ElementValues: values.Value{values.LIST, vec}, Private: dec.private, IsMI: settings.MandatoryImportSet().Contains(filepath.ToSlash(dec.op.Source))})
 		if dec.op.Literal == "$_LogTo" {
 			iz.cp.Vm.UsefulTypes.LogTo = typeNo
 		}
@@ -1201,7 +1201,7 @@ func (iz *Initializer) createAbstractTypes() {
 		newTypename := dec.op.Literal
 		iz.cp.AbstractTypesByName[newTypename] = values.AbT()
 		iz.cp.P.Typenames = iz.cp.P.Typenames.Add(newTypename)
-		if settings.MandatoryImportSet().Contains(dec.op.Source) {
+		if settings.MandatoryImportSet().Contains(filepath.ToSlash(dec.op.Source)) {
 			iz.unserializableTypes.Add(newTypename)
 		}
 		for _, typeAsTokens := range dec.types {
@@ -1228,7 +1228,7 @@ func (iz *Initializer) createInterfaceTypes() {
 		nameTok := dec.op
 		newTypename := nameTok.Literal
 		iz.cp.P.Typenames.Add(newTypename)
-		if settings.MandatoryImportSet().Contains(nameTok.Source) {
+		if settings.MandatoryImportSet().Contains(filepath.ToSlash(nameTok.Source)) {
 			iz.unserializableTypes.Add(newTypename)
 		}
 		typeInfo := []fnSigInfo{}
@@ -1255,7 +1255,7 @@ func (iz *Initializer) createAliasTypes() {
 		newTypename := nameTok.Literal
 		iz.cp.P.Typenames.Add(newTypename)
 		iz.P.Functions.Add(newTypename)
-		if settings.MandatoryImportSet().Contains(nameTok.Source) {
+		if settings.MandatoryImportSet().Contains(filepath.ToSlash(nameTok.Source)) {
 			iz.unserializableTypes.Add(newTypename)
 		}
 		iz.cp.AbstractTypesByName[newTypename] = values.AbT() // We can't populate the interface types before we've parsed everything.

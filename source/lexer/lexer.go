@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"unicode"
@@ -660,7 +661,7 @@ func (l *lexer) NewToken(tokenType token.TokenType, st string) token.Token {
 }
 
 func (l *lexer) MakeToken(tokenType token.TokenType, st string) token.Token {
-	if settings.SHOW_LEXER && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(l.source)) {
+	if settings.SHOW_LEXER && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(filepath.ToSlash(l.source))) {
 		fmt.Println(tokenType, st)
 	}
 	_, chNo := l.runes.Position()

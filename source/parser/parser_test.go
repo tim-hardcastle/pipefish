@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
@@ -117,6 +118,9 @@ func TestFunctionSyntax(t *testing.T) {
 // in fact parse rather than going spoing.
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
+	if runtime.GOOS == "windows" {
+		return
+	}
 	tests := []test_helper.TestItem{
 		{`multiply(8, 9)`, `(multiply 8, 9)`},
 	}

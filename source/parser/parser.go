@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"path/filepath"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -986,7 +987,7 @@ func (p *Parser) getParserFromNamespace(tok token.Token) *Parser {
 // Some functions for interacting with a `TokenSupplier`.
 
 func (p *Parser) NextToken() {
-	if settings.SHOW_RELEXER && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(p.CurToken.Source)) {
+	if settings.SHOW_RELEXER && !(settings.IGNORE_BOILERPLATE && settings.ThingsToIgnore.Contains(filepath.ToSlash(p.CurToken.Source))) {
 		println(text.PURPLE+p.CurToken.Type, p.CurToken.Literal+text.RESET)
 	}
 	p.CurToken = p.PeekToken

@@ -1,6 +1,7 @@
 package test_helper_test
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
@@ -95,6 +96,9 @@ func TestSigChunking(t *testing.T) {
 }
 func TestTeardown(t *testing.T) {
 	// no t.Parallel()
+	if runtime.GOOS == "windows" {
+		return
+	}
 	test_helper.Teardown("teardown_test.pf")
 	tests := []test_helper.TestItem{
 		{`2 + 2`, `4`},

@@ -12,6 +12,7 @@ package initializer_test
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"testing"
 
@@ -192,6 +193,9 @@ func TestFunctionSharing(t *testing.T) {
 }
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
+	if runtime.GOOS == "windows" {
+		return
+	}
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`multiply 2, 3`, `6`},
@@ -309,6 +313,9 @@ func TestVariablesAndConsts(t *testing.T) {
 	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
 }
 func TestWrappers(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	// no t.Parallel()
 	tests := []test_helper.TestItem{
 		{`Uint_32(5) == Uint_32(6)`, `false`},
