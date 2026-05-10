@@ -4,11 +4,7 @@ NULL::"database/sql"
 NULL::"terminal"
 golang "io"
 
-newtype
-
-Hub = wrapper io.Writer
-
-var
+var // The `Hub` type is added in the compiler as a kludge, for reasons.
 
 HUB Hub? = NULL
 

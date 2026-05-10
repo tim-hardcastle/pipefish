@@ -133,6 +133,10 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 		return
 	}
 
+	if filepath.Ext(scriptFilepath) == ".hub" {
+		iz.addHubType()
+	}
+
 	iz.cmI("Creating go types.")
 	iz.createWrapperTypes()
 	if iz.errorsExist() {
@@ -701,6 +705,18 @@ func (iz *Initializer) createWrapperTypes() {
 		iz.addType(dec.op.Literal, "wrapper", typeNo)
 		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.WrapperType{Name: dec.op.Literal, Path: iz.P.NamespacePath, Private: dec.private, Gotype: stringify(dec.goType)})
 	}
+}
+
+// This is a kludge. For reasons, it is useful to be able to run Pipefish under the Windows
+// OS even though we can't use the Golang interop and the standard libraries. We still need the
+// hub, though, and the `Hub` type is a wrapper around Go's `io.Writer`. This means that instead
+// of declaring the type in the initializer's `hub.pf` file, which would make perfect sense
+// otherwise, we need to kludge it in by hand to avoid having to use `plugin` to build the hub.
+func (iz *Initializer) addHubType() {
+		typeNo := values.ValueType(len(iz.cp.Vm.ConcreteTypeInfo))
+		iz.setDeclaration(decWRAPPER, &token.Token{Type: token.IDENT, Literal: "Hub"}, DUMMY, typeNo)
+		iz.addType("Hub", "wrapper", typeNo)
+		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.WrapperType{Name: "Hub", Path: "", Private: true, Gotype: "io.Writer"})
 }
 
 // Just shoves all the identifiers into a string, expanding the namespaces if any.
