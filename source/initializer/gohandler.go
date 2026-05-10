@@ -83,6 +83,9 @@ func (iz *Initializer) compileGo() {
 	// And the Go types declared by `wrapper` in the `newtype` section.
 	for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
 		wrapper := tc.(*tokenizedWrapperDeclaration)
+		if wrapper.op.Literal == "Hub" { // This is added in "by hand", for reasons.
+			continue
+		}
 		iz.goBucket.sources.Add(wrapper.op.Source)
 		iz.goBucket.types[wrapper.op.Source] = append(iz.goBucket.types[wrapper.op.Source],
 			iz.cp.ConcreteTypeNow(wrapper.op.Literal))
