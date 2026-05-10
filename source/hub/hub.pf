@@ -1,7 +1,6 @@
 import
 
 NULL::"terminal"
-golang "io"
 
 var // The `Hub` type is added in the compiler as a kludge, for reasons.
 
@@ -199,10 +198,7 @@ do(verb string, args list) :
     global HUB
     goDo(HUB, makeString verb, args)
 
-goDo(hub Hub, s string) : golang {
-    hub.(io.Writer).Write([]byte(s))
-    return struct{}{}
-}
+goDo(hub Hub, s string) : builtin "write_to_hub"
 
 def private 
 

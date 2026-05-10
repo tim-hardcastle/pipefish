@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 
 	"os"
 	"os/signal"
@@ -1699,6 +1700,9 @@ loop:
 				}
 			case Vlid:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].T != values.ERROR}
+			case WrHb:
+				vm.Mem[args[1]].V.(io.Writer).Write([]byte(vm.Mem[args[2]].V.(string)))
+				vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
 			case WthL:
 				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(vector.Vector)}
 				for it := vm.NewValueIterator(args[3:]); ; {

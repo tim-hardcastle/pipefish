@@ -104,6 +104,7 @@ var BUILTINS = map[string]functionAndReturnType{
 	"type_with":                 {(*Compiler).btTypeWith, AltType()},
 	"type_of_tuple":             {(*Compiler).btTypeOfTuple, AltType(values.TYPE)},
 	"type_union":                {(*Compiler).btTypeUnion, AltType(values.TYPE)},
+	"write_to_hub":              {(*Compiler).btWriteToHub, AltType(values.SUCCESSFUL_VALUE)},
 }
 
 func (cp *Compiler) btAddFloats(tok *token.Token, dest uint32, args []uint32) {
@@ -479,6 +480,10 @@ func (cp *Compiler) btTypeOfTuple(tok *token.Token, dest uint32, args []uint32) 
 func (cp *Compiler) btTypeUnion(tok *token.Token, dest uint32, args []uint32) {
 	cp.Emit(vm.Typu, dest, args[0], args[2])
 }
+
+	func (cp *Compiler) btWriteToHub(tok *token.Token, dest uint32, args []uint32) {
+		cp.Emit(vm.WrHb, dest, args[0], args[1])
+	}
 
 func (cp *Compiler) btTypeWith(tok *token.Token, dest uint32, args []uint32) {
 	newArgs := append([]uint32{dest, args[0], cp.ReserveToken(tok)}, args[2:]...)
