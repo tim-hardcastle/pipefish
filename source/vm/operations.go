@@ -101,15 +101,13 @@ var OPERANDS = map[Opcode]opDescriptor{
 	AddL: {"addL", operands{dst, mem, mem}},
 	AddS: {"addS", operands{dst, mem, mem}},
 	Adds: {"adds", operands{dst, mem, mem}},
-	Adrs: {"adds", operands{dst, mem, mem}},
+	Adrs: {"adrs", operands{dst, mem, mem}},
 	Adsr: {"adds", operands{dst, mem, mem}},
 	Adtk: {"adtk", operands{dst, mem, tok}},
 	Andb: {"andb", operands{dst, mem, mem}},
 	Aref: {"aref", operands{dst, mem}},
 	Asgm: {"asgm", operands{dst, mem}},
 	Auto: {"auto", operands{trk}},
-	Bcon: {"bcon", operands{dst, mem}},
-	Bsql: {"bsql", operands{dst, mem}},
 	Call: {"call", operands{loc, mem, mem, tup}}, // The location to call, the bottom and (exclusive) top of where to put the parameters; and a tuple saying where to get them from.
 	CalT: {"calt", operands{loc, mem, mem, tup}}, // The location to call, the bottom and (exclusive) top of where to put the parameters; the memory location of a list of places where we capture tuples, and a tuple saying where to get them from.
 	CasP: {"casP", operands{dst, tok, mem, mem}},
@@ -142,7 +140,7 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Equt: {"equt", operands{dst, mem, mem}},
 	Eqxx: {"eqxx", operands{dst, mem, mem, tok}},
 	Eval: {"eval", operands{dst, mem, mem}},
-	Extn: {"extn", operands{dst, mem, mem, mem, mem, tup}}, // Operands are: the external service to call; whether the function is PREFIX, INFIX, or POSTFIX; the remainder of the namespace of the function as a string; the name of the function as a string; the locations of the arguments.
+	Extn: {"extn", operands{dst, num, num, mem, mem, tup}}, // Operands are: the external service to call; whether the function is PREFIX, INFIX, or POSTFIX; the remainder of the namespace of the function as a string; the name of the function as a string; the locations of the arguments.
 	Flti: {"flti", operands{dst, mem}},
 	Flts: {"flts", operands{dst, mem, tok}},
 	Gofn: {"gofn", operands{dst, mem, gfn, tup}}, // Mem contains the location of a *mutable* error, i.e. we will copy its token but change its contents when returning it.
@@ -152,7 +150,7 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Gthf: {"gthf", operands{dst, mem, mem}},
 	Gthi: {"gthi", operands{dst, mem, mem}},
 	IdxL: {"idxL", operands{dst, mem, mem, tok}},
-	Idxp: {"idxs", operands{dst, mem, mem, tok}},
+	Idxp: {"idxp", operands{dst, mem, mem, tok}},
 	Idxs: {"idxs", operands{dst, mem, mem, tok}},
 	IdxT: {"idxT", operands{dst, mem, mem, tok}},
 	IxTn: {"ixTn", operands{dst, mem, num}},
@@ -167,13 +165,13 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Intf: {"intf", operands{dst, mem}},
 	Ints: {"ints", operands{dst, mem, tok}},
 	Itgk: {"itgk", operands{dst, mem}},
-	Itkv: {"itgv", operands{dst, dst, mem}},
 	Itgv: {"itgv", operands{dst, mem}},
+	Itkv: {"itkv", operands{dst, dst, mem}},
 	Itor: {"itor", operands{dst, mem}},
-	IxSn: {"inxS", operands{dst, mem, mem}},
+	IxSn: {"ixSn", operands{dst, mem, mem}},
 	IxXx: {"ixXx", operands{dst, mem, mem, tok}},
 	Jmp:  {"jmp", operands{loc}},
-	Json: {"jsde", operands{dst, mem, mem, num, tok}},
+	Json: {"json", operands{dst, mem, mem, num, tok}},
 	Jsr:  {"jsr", operands{loc}},
 	KeyM: {"keyM", operands{dst, mem}},
 	KeyZ: {"keyZ", operands{dst, mem}},
@@ -188,8 +186,8 @@ var OPERANDS = map[Opcode]opDescriptor{
 	LnSn: {"lnSn", operands{dst, mem}},
 	Logn: {"logn", operands{}},
 	Logy: {"logy", operands{}},
-	Mker: {"mker", operands{dst, mem, tok}},
 	MkEn: {"mkEn", operands{dst, typ, mem, tok}},
+	Mker: {"mker", operands{dst, mem, tok}},
 	Mkfn: {"mkfn", operands{dst, lfc}},
 	Mkit: {"mkit", operands{dst, mem, num, tok}}, // the num is 0 or 1 according to whether the iterator doesn't or does only return keys.
 	Mkmp: {"mkmp", operands{dst, mem, tok}},
@@ -218,7 +216,7 @@ var OPERANDS = map[Opcode]opDescriptor{
 	Qtpt: {"qtpt", operands{mem, num, tup, loc}},
 	Qtru: {"qtru", operands{mem, loc}},
 	Qtyp: {"qtyp", operands{mem, typ, loc}},
-	Psql: {"gsql", operands{dst, mem, mem, tok}},
+	Psql: {"psql", operands{dst, mem, mem, tok}},
 	Ret:  {"ret", operands{}},
 	Rpop: {"rpop", operands{}},
 	Rpsh: {"rpsh", operands{num, num}},
@@ -279,8 +277,6 @@ const (
 	Aref
 	Asgm
 	Auto
-	Bcon
-	Bsql
 	Call
 	CalT // Specialized for tuple capture.
 	CasP

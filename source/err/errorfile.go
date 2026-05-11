@@ -1558,7 +1558,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/typecheck/bool": {
+	"init/validation/bool": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "validation " + emph(args[0]) + " declared at for type " + emph(args[1]) +
 				" can never return a boolean value"

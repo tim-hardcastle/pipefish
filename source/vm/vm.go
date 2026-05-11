@@ -488,7 +488,7 @@ loop:
 			case Chck:
 				// Arguments:
 				// args[0] : memory location of result.
-				// args[1] : evaluation of the type condition, presumptively boolean.
+				// args[1] : evaluation of the validation condition, presumptively boolean.
 				// args[2] : memory location containing an int which is the number of the
 				// token of the calling constructor.
 				// args[3] : the ordinal of the data needed to hold the error message.
@@ -954,7 +954,7 @@ loop:
 					vm.Mem[args[0]] = vm.Mem[args[1]].V.(values.Snippet).Data[ix]
 				}
 			// This is emitted by `function_call` and the typechecking logic and so the index should
-			// be correct ad no bounds-checking is required.
+			// be correct and no bounds-checking is required.
 			case IxTn:
 				vm.Mem[args[0]] = (vm.Mem[args[1]].V.([]values.Value))[args[2]]
 			case IxXx:
@@ -1629,7 +1629,7 @@ loop:
 			case Trak:
 				staticData := vm.Tracking[args[0]]
 				newData := TrackingData{staticData.Flavor, staticData.Tok, staticData.LogToLoc, staticData.LogTimeLoc, make([]any, len(staticData.Args))}
-				copy(newData.Args, staticData.Args) // This is because only things of tye uint32 are meant to be replaced.
+				copy(newData.Args, staticData.Args) // This is because only things of type uint32 are meant to be replaced.
 				for i, v := range newData.Args {
 					if v, ok := v.(uint32); ok {
 						newData.Args[i] = vm.Mem[v]

@@ -1382,19 +1382,20 @@ func (iz *Initializer) compileValidation(name string, node parser.Node, newEnv *
 		if checkResult.Failed {
 			return false
 		}
+		booleanLoc := iz.cp.That()
 		if !checkResult.Types.Contains(values.BOOL) {
-			iz.throw("init/typecheck/bool", chunk.GetToken(), iz.cp.P.PrettyPrint(chunk), name)
+			iz.throw("init/validation/bool", chunk.GetToken(), iz.cp.P.PrettyPrint(chunk), name)
 			return false
 		}
 		errNo := iz.cp.ReserveValidationError(chunk, name, inLoc)
-		iz.cp.Emit(vm.Chck, resultLoc, iz.cp.That(), tokNumberLoc, errNo) // This will do its own early return from the typecheck.
+		iz.cp.Emit(vm.Chck, resultLoc, booleanLoc, tokNumberLoc, errNo) // This will do its own early return from the validation.
 	}
 	iz.cp.Emit(vm.Ret)
-	typeCheck := &vm.TypeCheck{CallAddress: callAddress, InLoc: inLoc, ResultLoc: resultLoc, TokNumberLoc: tokNumberLoc}
+	validation := &vm.TypeCheck{CallAddress: callAddress, InLoc: inLoc, ResultLoc: resultLoc, TokNumberLoc: tokNumberLoc}
 	if info.IsClone() {
-		info = info.(vm.CloneType).AddValidation(typeCheck)
+		info = info.(vm.CloneType).AddValidation(validation)
 	} else {
-		info = info.(vm.StructType).AddValidation(typeCheck)
+		info = info.(vm.StructType).AddValidation(validation)
 	}
 	iz.cp.Vm.ConcreteTypeInfo[typeNumber] = info
 	return true
@@ -1548,8 +1549,8 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 			if len(iz.cp.ThunkList) > 0 {
 				iz.cp.Cm("Initializing thunks for outer function.", &izFn.op)
 			}
-			for _, thunks := range iz.cp.ThunkList {
-				iz.cp.Emit(vm.Thnk, thunks.Dest, thunks.Value.MLoc, thunks.Value.CAddr)
+			for _, thunk := range iz.cp.ThunkList {
+				iz.cp.Emit(vm.Thnk, thunk.Dest, thunk.Value.MLoc, thunk.Value.CAddr)
 			}
 		}
 		// Logging the function call, if we do it, goes here.

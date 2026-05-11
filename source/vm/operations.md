@@ -32,8 +32,8 @@ continues execution.
 
 The last letter or sometimes two letters of the operator may indicate what sort of types the operator
 works on: `i` for an integer, `f` for a float, `s` for a string, `S` for a set, `Sn` for a snippet,
-`Z` for a struct, `L` for a list, `r` for a rune, `p` for a pair, and `n` for an operand considered
-as a natural number.
+`Z` for a struct, `L` for a list, `r` for a rune, `p` for a pair, `1` for a non-tuple, `x` for a type
+that couldn't be determined at compile time, and `n` for an operand considered as a natural number.
 
 ### Mnemonics for the operand flavors
 
@@ -55,7 +55,7 @@ only used once: the common ones are dst, loc, mem, num, tok, tup, and typ.
 * tok : The index number of a token in the VM's `Tokens` vector.
 * trk : The index number of static tracking info in the VM's `Tracking` vector.
 * tup : Any number of uint32s, the meaning depending on context. This means that one `tup` operand
-        may consist of any number of actual arguments in the VM's `Run` method.
+        may correspond to any number of actual arguments in the VM's `Run` method.
 * typ : The index number of a type in the VM's `ConcreteTypeInfo` field.
 
 ### Conventions for explaining the operations
