@@ -1,6 +1,6 @@
 var
 
-allServices = map(`hub`::`C:\Users\owner\Pipefish\user\hub\hub.hub`)
+allServices = map(`hub`::`/home/tim/Pipefish/user/hub/hub.hub`)
 
 currentService string? = NULL
 

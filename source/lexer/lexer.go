@@ -584,12 +584,12 @@ func (runes *RuneSupplier) ReadPlaintextString(ch rune) (string, bool) {
 	result := ""
 	for {
 		runes.Next()
-		if runes.CurrentRune() == ch || runes.CurrentRune() == 0 || runes.CurrentRune() == 13 || runes.CurrentRune() == 10 {
+		if runes.CurrentRune() == ch || runes.CurrentRune() == 0 {
 			break
 		}
 		result = result + string(runes.CurrentRune())
 	}
-	if runes.CurrentRune() == 13 || runes.CurrentRune() == 0 || runes.CurrentRune() == 10 {
+	if runes.CurrentRune() == 0 {
 		return result, false
 	}
 	return result, true
