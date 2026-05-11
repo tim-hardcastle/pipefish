@@ -76,7 +76,7 @@ This means that right up until the last moment (i.e. when compiling a function c
 
 ### External services
 
-At this stage we also deal with any external Pipefish services we want to use. The initializer sends an HTTP request to these for their API, which arrives in a special reverse Polish form to avoid injection. This is then used to generate a "stub" consisting of type declarations matching the API, and of function declarations with matching signatures, but with bodies that jst say: "Call the external service and get the value from that". This stub is then treated just like an import, being lexed, parsed, compiled, and given a namespace.
+At this stage we also deal with any external Pipefish services we want to use. The initializer sends an HTTP request to these for their API, which arrives in a special reverse Polish form to avoid injection. This is then used to generate a "stub" consisting of type declarations matching the API, and of function declarations with matching signatures, but with bodies that just say: "Call the external service and get the value from that". This stub is then treated just like an import, being lexed, parsed, compiled, and given a namespace.
 
 ### The lexing stage
 
@@ -98,7 +98,7 @@ We need to add some boilerplate commands to supplement any user-defined commands
 
 ### Initializing function names
 
-Before we can parse the tokenized chunks, we need to declare to the parser the existence and syntactic role of the various things we've defined, so that e.g. it knows that the name of a function is the name of a function Also the initializer creates a structure in the parser called a `BlingManager` which keeps track of the fancy syntax when parsing.
+Before we can parse the tokenized chunks, we need to declare to the parser the existence and syntactic role of the various things we've defined, so that e.g. it knows that the name of a function is the name of a function. Also the initializer creates a structure in the parser called a `BlingManager` which keeps track of the fancy syntax when parsing.
 
 ### Initializing types, part A
 
@@ -126,7 +126,7 @@ The stages so far are performed on every module of the source code by depth-firs
 
 We now continue creating the types in the compiler and registering them in the VM. This is done in a number of phases each of which is performed recursively depth-first on each module of the source code before moving on the the next phase.
 
-At the end of all this, we end up with a type number for each concrete type, and a list of concrete type numbers giving the 
+At the end of all this, we end up with a type number for each concrete type.
 
 In the compiler, we will have a map associating the name of each concrete type with its type number; and a map associating the name of each abstract type with a list of the type numbers of the concrete types it contains.
 
@@ -142,11 +142,11 @@ At a later stage we will add one more piece of information for each type:
 
 ## The `FunctionMap` and `FunctionForest`
 
-We put the parsed functions into a temporary structure in the initializer (the `FunctionMap`, which groups overloaded functions together, sorted in order of the specificity of their parameter types. (Which is why we're only doing this now, up until we performed the previous step we didn't know which abstract types contain which concrete types.)
+We put the parsed functions into a temporary structure in the initializer (the `FunctionMap`), which groups overloaded functions together, sorted in order of the specificity of their parameter types. (Which is why we're only doing this now, up until we performed the previous step we didn't know which abstract types contain which concrete types.)
 
 The builtin functions and type constructors have also been thrown into this table, since their signatures are just like those of normal functions.
 
-We then convert the `FunctionTable into a `FunctionForest` in the compiler, which we will use to perform multiple dispatch.
+We then convert the `FunctionTable` into a `FunctionForest` in the compiler, which we will use to perform multiple dispatch.
 
 A `FunctionForest`, as the name suggest, consists of `Function Tree`s, one for each overloaaded function name. A `FunctionTree` is a specialized data structure, a *non-backtracking tree*, which allows us to work our way along the types of the parameters of an overloaded function from left to right, making a decision at each point, and end up in the right place without having to backtrack along the tree.
 
@@ -272,7 +272,7 @@ It isn't possible to completely typecheck any language dynamic enough that a fun
 
 *Or* you can have false negatives, where we throw an error at compile time only if the runtime *must* throw a type error.
 
-This is what Pipefish does, and to do it effectively, when it compiles an expression, the compiler returns a `cpResult` struct (as discussed in the previous section) with a field `altType` containing a `*range* of types that the compiled code might return on execution, stored in an `AlternateType`, which satisfies the `Typescheme` interface and which may itself contain a number of `Typeschemes`. These can contain information such as "either two strings, or an error" or "a tuple consisting of any number of integers", etc. This is way more fiddly than many typecheckers, but has proved surprisingly stable.
+This is what Pipefish does, and to do it effectively, when it compiles an expression, the compiler returns a `cpResult` struct (as discussed in the previous section) with a field `altType` containing a *range* of types that the compiled code might return on execution, stored in an `AlternateType`, which satisfies the `Typescheme` interface and which may itself contain a number of `Typeschemes`. These can contain information such as "either two strings, or an error" or "a tuple consisting of any number of integers", etc. This is way more fiddly than many typecheckers, but has proved surprisingly stable.
 
 The result of all this is that when we consider compiling a function call `foo x, y`, and we have a function `foo(a int, y string)`, we can ask, *is it possible* that `x` is an `int` and `y` is a `string`, and then throw an error if it isn't.
 
