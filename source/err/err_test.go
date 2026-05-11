@@ -63,12 +63,11 @@ func TestGolangItes(t *testing.T) {
 		{`golang/type_c`, `golang/type.c`},
 		{`golang/concrete`, `golang/concrete`},
 		{`golang/build`, `golang/build`},
-
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 	test_helper.Teardown(
-		"initialization-error-tests/golang_type_a.pf", 
-		"initialization-error-tests/golang_type_b.pf", 
+		"initialization-error-tests/golang_type_a.pf",
+		"initialization-error-tests/golang_type_b.pf",
 		"initialization-error-tests/golang_type_c.pf",
 		"initialization-error-tests/golang_concrete.pf",
 		"initialization-error-tests/golang_build.pf",
@@ -97,7 +96,7 @@ func TestInitializerItes(t *testing.T) {
 		{`service/depends`, `OK`},
 		{`service/type`, `OK`},
 		{`type/known`, `OK`},
-		{`typecheck/bool`, `OK`},
+		{`validation/bool`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
@@ -506,7 +505,7 @@ func TestParserErrors(t *testing.T) {
 func TestParamErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Z{_ int, 86 bool}`, `parse/rbrace`}, // TODO --- this is clearly not the problem.
-		{`Z{_ int: b bool}`, `parse/rbrace`}, // Ditto.
+		{`Z{_ int: b bool}`, `parse/rbrace`},  // Ditto.
 		// {`Z{_ int, b 86}`, `parse/rbrace`}, // More TODO. Elicited no error.
 	}
 	test_helper.RunTest(t, "param_error_test.pf", tests, test_helper.TestParserErrors)

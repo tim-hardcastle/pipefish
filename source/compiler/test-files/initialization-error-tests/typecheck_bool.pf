@@ -1,4 +1,0 @@
-newtype 
-
-Foo = clone int :
-    2 + 2

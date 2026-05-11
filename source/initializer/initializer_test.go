@@ -43,12 +43,11 @@ func TestGolangItes(t *testing.T) {
 		{`golang/type_c`, `golang/type.c`},
 		{`golang/concrete`, `golang/concrete`},
 		{`golang/build`, `golang/build`},
-
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 	test_helper.Teardown(
-		"initialization-error-tests/golang_type_a.pf", 
-		"initialization-error-tests/golang_type_b.pf", 
+		"initialization-error-tests/golang_type_a.pf",
+		"initialization-error-tests/golang_type_b.pf",
 		"initialization-error-tests/golang_type_c.pf",
 		"initialization-error-tests/golang_concrete.pf",
 		"initialization-error-tests/golang_build.pf",
@@ -77,7 +76,7 @@ func TestInitializerItes(t *testing.T) {
 		{`service/depends`, `OK`},
 		{`service/type`, `OK`},
 		{`type/known`, `OK`},
-		{`typecheck/bool`, `OK`},
+		{`validation/bool`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
