@@ -30,6 +30,8 @@ const (
 
 	FUNCTION_TO_PEEK = "" // Shows the function table entry and function tree associated with the function named in the string, if non-empty.
 
+	PEEK_VM = false
+
 	// These do what it sounds like.
 	SHOW_LEXER             = false
 	SHOW_RELEXER           = false

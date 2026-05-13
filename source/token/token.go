@@ -13,6 +13,7 @@ const (
 	GIVEN    = "given"
 	GLOBAL   = "global"
 	GOLANG   = "golang"
+	PEEK     = "peek"
 	RANGE    = "range"
 	TRY      = "try"
 	UNWRAP   = "unwrap"
@@ -103,6 +104,7 @@ var Keywords = map[string]TokenType{
 	"given":    GIVEN,
 	"golang":   GOLANG,
 	"global":   GLOBAL,
+	"peek":     PEEK,
 	"range":    RANGE,
 	"try":      TRY,
 	"unwrap":   UNWRAP,

@@ -67,10 +67,15 @@ type Vm struct {
 	FieldLabelsInMem           map[string]uint32 // Used to turn a string into a label.
 	ParameterizedTypeInfo      []values.Map      // A list of maps from type parameters (as TUPLE values) to types (as TYPE values). The list is itself keyed by a map from type operators to the position in the list, which is stored in the compiler.
 
+	// Things for converting to and from Go.
 	GoToPipefishTypes map[reflect.Type]values.ValueType
 	GoConverter       [](func(t uint32, v any) any)
 	GoEquals          func(x any, y any) bool
 	GoLiteral         func(x any) string
+
+	PeekStack         []map[string]bool      // Flags for peeking the compiler and vm.
+	OutputTo          string                 // Gives a filename to dump output to.
+
 }
 
 // In general, the VM can't convert from type names to type numbers, because it doesn't
@@ -175,6 +180,7 @@ func BlankVm() *Vm {
 		GoConverter:       [](func(t uint32, v any) any){},
 		NamespaceInfo:     []map[values.ValueType]string{},
 		FieldLabelsInMem:  make(map[string]uint32),
+		PeekStack:         []map[string]bool{},
 	}
 	vm.OutHandle = &SimpleOutHandler{os.Stdout, vm}
 	copy(vm.Mem, CONSTANTS)
