@@ -46,7 +46,6 @@ func init() {
 			description: description,
 			notes: notes,
 		}
-		println(operator, description)
 	}
 }
 
