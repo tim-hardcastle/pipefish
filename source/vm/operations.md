@@ -270,6 +270,7 @@ Eval
 This evaluates the string v#1 using evaluator number n#2.
 
 extn : dst num num mem mem tup
+External service call
 Operands are: 
     n#1 : the number of the external service to call
     n#2 : whether the function being called is a prefix, infix, postfix or unfix.
@@ -292,6 +293,7 @@ Float from string
 Token number n#2 is used to make an error if the conversion fails.
 
 gofn : dst mem gfn tup
+Call Go function
 Operands are :
     m#1 : contains an error which we will doctor before (if necessary) returning it.
     n#2 : the number of the Go function we want to call.
@@ -460,10 +462,10 @@ lnSn : dst mem
 Length of snippet
 
 logn : 
-Turn logging off.
+Turn logging off
 
 logy : 
-Turn logging on.
+Turn logging on
 
 mkEn : dst typ mem tok
 Enum element from int
@@ -656,6 +658,7 @@ First element of tuple
 Returns the first element of a tuple, or an element created from token n#2 if the tuple is empty.
 
 trak : trk
+Make tracking data
 This constructs live tracking data saying what the compiler is doing now from the static tracking 
 datum number n#0
 
@@ -680,6 +683,7 @@ This takes the error v#1, converts all the arguments of the error of type uint32
 in the corresponding memory locations, and returns it in m#0.
 
 untk : dst
+Unthunk
 This checks whether v#1 is of type THUNK. If it is, it `jsr`s to the code address contained in the thunk,
 gets the evaluated result of the thunk, and puts it into m#0; otherwise it does nothing.
 

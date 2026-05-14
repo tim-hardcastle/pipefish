@@ -11,6 +11,45 @@ import (
 
 // This contains temporary or permanent code for peeking at the operations of the VM.
 
+// We read in the operations.md file and use it as a source of truth for dumping the compiler and VM, and
+// for sanity checks.
+type operatorInfo struct {
+	operandFlavors []string
+	description string 
+	notes []string // We keep these as seperate lines so we can add them as comments to vm.go.
+}
+
+var operators = map[string]operatorInfo{}
+
+func init() {
+	content, _ := os.ReadFile(filepath.Join(settings.PipefishHomeDirectory, "source/vm/operations.md"))
+	lines := strings.Split(string(content), "\n")
+	i := 0
+	for ; lines[i] != "## Operators"; i ++ {} // Skips the preamble to `operations.md`.
+	i++
+	for ; i < len(lines) ; {
+		// We start off at a newline, which we skip.
+		i++
+		headline := lines[i]
+		fields := strings.Fields(headline)
+		operator := fields[0]
+		operands := fields[1:]
+		i++
+		description := lines[i]
+		i++
+		notes := []string{}
+		for ; i < len(lines) && lines[i] != ""; i++ {
+			notes = append(notes, lines[i])
+		} 
+		operators[operator] = operatorInfo{
+			operandFlavors: operands,
+			description: description,
+			notes: notes,
+		}
+		println(operator, description)
+	}
+}
+
 // This will just be a whitespace-separated string like "foo bar !qux", where ! indicates a flag
 // to be turned off.
 func (vm *Vm) SetPeeks(s string) {
@@ -84,5 +123,4 @@ func (vm *Vm) Dump(s string) {
 	} else {
 		print(result)
 	}
-
 }

@@ -280,7 +280,7 @@ const (
 	Asgm
 	Auto
 	Call
-	CalT // Specialized for tuple capture.
+	CalT
 	CasP
 	Cast
 	Casx
@@ -301,7 +301,7 @@ const (
 	Diif
 	Divf
 	Divi
-	Dofn // For lambdas, as opposed to call for outer functions.
+	Dofn
 	Dref
 	Dvfi
 	Dvif
