@@ -1,8 +1,11 @@
 package vm
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/token"
 )
 
@@ -23,7 +26,11 @@ func (vm *Vm) SetPeeks(s string) {
 	vm.PeekStack = append(vm.PeekStack, peeks)
 }
 
-func (vm *Vm) SetPeeksFromTokens(toks []token.Token) {
+func (vm *Vm) PushPeeks(peeks map[string]bool) {
+	vm.PeekStack = append(vm.PeekStack, peeks)
+}
+
+func (vm *Vm) GetPeeksFromTokens(toks []token.Token) map[string]bool {
 	peeks := map[string]bool{}
 	negated := false
 	for _, item := range toks {
@@ -34,7 +41,7 @@ func (vm *Vm) SetPeeksFromTokens(toks []token.Token) {
 		peeks[item.Literal] = !negated
 		negated = false
 	}
-	vm.PeekStack = append(vm.PeekStack, peeks)
+	return peeks
 }
 
 func (vm *Vm) PopPeeks() {
@@ -42,7 +49,7 @@ func (vm *Vm) PopPeeks() {
 }
 
 func (vm *Vm) IsSet(peek string) bool {
-	for i := len(vm.PeekStack)-1; i <= 0; i-- {
+	for i := len(vm.PeekStack)-1; i >= 0; i-- {
 		if b, ok := vm.PeekStack[i][peek]; ok {
 			return b
 		}
@@ -50,3 +57,32 @@ func (vm *Vm) IsSet(peek string) bool {
 	return false
 }
 
+func PeekString(peeks map[string]bool) string {
+	result := "'"
+	sep := " "
+	for k, b := range peeks {
+		result = result + sep 
+		if !b {
+			result = result + "!"
+		}
+		result = result + k 
+		sep = " "
+	}
+	return result
+}
+
+func (vm *Vm) Dump(s string) {
+	items := strings.Split(s, "\n")
+	result := ""
+	for _, item := range items {
+		result = result + strings.Repeat("  ", vm.IndentBy) + item + "\n"
+	}
+	if vm.IsSet("o") {
+		file, _ := os.OpenFile(filepath.Join(filepath.FromSlash(settings.PipefishHomeDirectory), settings.DUMP_PATH), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+		file.WriteString(result)
+		file.Close()
+	} else {
+		print(result)
+	}
+
+}

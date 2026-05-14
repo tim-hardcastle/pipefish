@@ -277,6 +277,13 @@ Operands are:
     v#3 : the name of the function as a string
     #4 : a tuple of the locations of the arguments we wish to pass.
 
+flpp :
+Pop peek flags
+
+flps : mem
+Push peek flags
+v#0 will be of internal type PEEK_FLAGS.
+
 flti : dst mem
 Float from int
 

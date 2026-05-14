@@ -73,9 +73,11 @@ type Vm struct {
 	GoEquals          func(x any, y any) bool
 	GoLiteral         func(x any) string
 
+	// Controls dumping the compiler and VM.
+	// 
 	PeekStack         []map[string]bool      // Flags for peeking the compiler and vm.
 	OutputTo          string                 // Gives a filename to dump output to.
-
+	IndentBy          int
 }
 
 // In general, the VM can't convert from type names to type numbers, because it doesn't
@@ -227,9 +229,6 @@ func (vm *Vm) Run(loc uint32) {
 // (This condition, rather than just saying "until the callstack is empty" allows `run` to
 // call itself under certain rare and harmless conditions.)
 func (vm *Vm) run(loc uint32, ctx context.Context) {
-	if settings.SHOW_RUNTIME {
-		println("Running code from", loc)
-	}
 	// We exit the loop and this function when we perform a `ret` openeration and `stackHeight``
 	// equals the length of the callstack.
 	stackHeight := len(vm.callstack)
@@ -240,11 +239,17 @@ loop:
 			vm.callstack = vm.callstack[0:stackHeight]
 			return
 		default:
-			if settings.SHOW_RUNTIME {
-				println(text.GREEN + vm.DescribeCode(loc) + text.RESET)
+			// We do this now and by hand so as to avoid commenting Flpp when possible.
+			if settings.PEEK_VM && vm.Code[loc].Opcode == Flpp {
+				vm.PopPeeks()
+				loc ++
+				continue loop
 			}
-			if settings.SHOW_RUNTIME_VALUES {
-				print(vm.DescribeOperandValues(loc))
+			if settings.PEEK_VM && vm.IsSet("c") {
+				vm.Dump("! " + vm.DescribeCode(loc))
+			}
+			if settings.PEEK_VM && vm.IsSet("c") && !vm.IsSet("s") {
+				vm.Dump(vm.DescribeOperandValues(loc))
 			}
 			args := vm.Code[loc].Args
 		Switch:
@@ -753,6 +758,10 @@ loop:
 					buf.WriteString(name)
 				}
 				vm.Mem[args[0]] = vm.ExternalCallHandlers[externalOrdinal].Evaluate(buf.String())
+			case Flpp:
+				vm.PopPeeks()
+			case Flps:
+				vm.PeekStack = append(vm.PeekStack, vm.Mem[args[0]].V.(map[string]bool))
 			case Flti:
 				vm.Mem[args[0]] = values.Value{values.FLOAT, float64(vm.Mem[args[1]].V.(int))}
 			case Flts:
@@ -1898,9 +1907,6 @@ loop:
 			}
 			loc++
 		}
-	}
-	if settings.SHOW_RUNTIME {
-		println()
 	}
 }
 

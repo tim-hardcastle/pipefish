@@ -27,9 +27,7 @@ import (
 const DUMMY = 4294967295
 
 func (vm *Vm) DescribeCode(loc uint32) string {
-	prefix := "@" + strconv.Itoa(int(loc)) + " : "
-	spaces := strings.Repeat(" ", 8-len(prefix))
-	return spaces + prefix + describe(vm.Code[loc])
+	return "@" + strconv.Itoa(int(loc)) + " : " + describe(vm.Code[loc])
 }
 
 func (vm *Vm) DescribeOperandValues(addr uint32) string {
@@ -37,12 +35,14 @@ func (vm *Vm) DescribeOperandValues(addr uint32) string {
 	operands := op.Args
 	operandTypes := OPERANDS[op.Opcode].or
 	result := ""
+	sep := ""
 	for i, operandType := range operandTypes {
 		if operandType == mem {
-			result = result + text.BULLET + "m" + strconv.Itoa(int(operands[i])) + " = " + vm.DescribeTypeAndValue(vm.Mem[operands[i]], LITERAL, 0) + "\n"
+			result = result + sep + "▪ m" + strconv.Itoa(int(operands[i])) + " = " + vm.DescribeTypeAndValue(vm.Mem[operands[i]], LITERAL, 0)
+			sep = "\n"
 		}
 	}
-	return text.PURPLE + result + text.RESET
+	return result
 }
 
 func (vm *Vm) DescribeTypeAndValue(v values.Value, flavor descriptionFlavor, cpNumber uint32) string {
