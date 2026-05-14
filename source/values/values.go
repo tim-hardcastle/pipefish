@@ -16,6 +16,7 @@ const ( // Cross-reference with typeNames in BlankVm()
 	UNSATISFIED_CONDITIONAL                  // An unsatisfied conditional, i.e. what <condition> : <expression> returns if <condition> isn't true.
 	REF                                      // A reference variable. This is always dereferenced when used, so the type is invisible.
 	ITERATOR                                 // V is an Iterator interface as defined in iterator.go in the `vm` package.
+	PEEK_FLAGS                               // A map from strings to bools turning flags on and off.
 
 	// And now we have types visible to the user.
 

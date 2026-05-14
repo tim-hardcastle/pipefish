@@ -209,6 +209,8 @@ func (p *Parser) ParseExpression(precedence int) Node {
 		leftExp = p.parseGroupedExpression()
 	case token.NOT:
 		leftExp = p.parseNativePrefixExpression()
+	case token.PEEK:
+		leftExp = p.parsePeekExpression()
 	case token.PRELOG:
 		leftExp = p.parsePrelogExpression()
 	case token.STRING:
@@ -790,6 +792,27 @@ func (p *Parser) parsePrefixExpression() Node {
 		right = p.ParseExpression(FPREFIX)
 	}
 	expression.Args = p.RecursivelyListify(right)
+	return expression
+}
+
+func (p *Parser) parsePeekExpression() Node {
+	expression := &PeekExpression{
+		Token: p.CurToken,
+		Peeks: []token.Token{},
+	}
+	p.NextToken()
+	for {
+		if p.CurToken.Type == token.NEWLINE || p.CurToken.Type == token.EOF {
+			p.Throw("parse/peek/colon", &p.CurToken)
+		}
+		if p.CurToken.Type == token.COLON {
+			break
+		}
+		expression.Peeks = append(expression.Peeks, p.CurToken)
+		p.NextToken()
+	}
+	p.NextToken()
+	expression.Body = p.ParseExpression(COLON)
 	return expression
 }
 

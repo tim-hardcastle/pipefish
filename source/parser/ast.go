@@ -122,6 +122,7 @@ func (fe *ForExpression) Children() []Node {
 	return []Node{fe.BoundVariables, fe.Initializer, fe.ConditionOrRange, fe.Update, fe.Body, fe.Given}
 }
 func (fe *ForExpression) GetToken() *token.Token { return &fe.Token }
+
 func (fe *ForExpression) String() string {
 	var out bytes.Buffer
 	if fe.BoundVariables != nil {
@@ -328,6 +329,30 @@ type Nothing struct {
 func (ne *Nothing) Children() []Node       { return []Node{} }
 func (ne *Nothing) GetToken() *token.Token { return &ne.Token }
 func (ne *Nothing) String() string         { return "" }
+
+
+type PeekExpression struct {
+	Token    token.Token
+	Peeks    []token.Token
+	Body     Node 
+}
+
+func (pe *PeekExpression) Children() []Node       { return []Node{pe.Body} }
+func (pe *PeekExpression) GetToken() *token.Token { return &pe.Token }
+func (pe *PeekExpression) String() string {
+	result := "peek "
+	sep := ""
+	for _, tok := range pe.Peeks {
+		if tok.Literal == "!" {
+			result = result + "!"
+		} else {
+			result = result + sep + tok.Literal
+		}
+		sep = " "
+	}
+	result = result + " : " + pe.Body.String()
+	return result
+}
 
 type PipingExpression struct {
 	Token    token.Token

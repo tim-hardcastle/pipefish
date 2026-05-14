@@ -54,9 +54,8 @@ func (vm *Vm) DescribeType(t values.ValueType, flavor descriptionFlavor, cpNumbe
 	if len(vm.NamespaceInfo) <= int(cpNumber) { // A kludge because we may be describing types while compiling and before we have the info.
 		return plainName
 	}
-	if t < values.SUCCESSFUL_VALUE {
-		return []string{"UNDEFINED_TYPE", "TUPLE_DATA", "THUNK", "CREATED_THUNK_OR_CONST", "BLING", "UNSATISFIED_CONDITIONAL", 
-		"REF", "ITERATOR"}[t]
+	if int(t) < len(nativeTypeNames) {
+		return nativeTypeNames[t]
 	}
 	namespace, ok := vm.NamespaceInfo[cpNumber][t]
 	if !ok {

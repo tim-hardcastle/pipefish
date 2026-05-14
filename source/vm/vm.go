@@ -169,7 +169,7 @@ var CONSTANTS = []values.Value{values.UNDEF, values.FALSE, values.TRUE, values.U
 // Type names in upper case are things the user should never see.
 var nativeTypeNames = []string{"UNDEFINED VALUE", "INT ARRAY", "THUNK", "CREATED LOCAL CONSTANT",
 	"BLING", "UNSATISFIED CONDITIONAL", "REFERENCE VARIABLE",
-	"ITERATOR", "ok", "tuple", "error", "null", "int", "bool", "string", "rune", "float", "type", "func",
+	"ITERATOR", "PEEK", "ok", "tuple", "error", "null", "int", "bool", "string", "rune", "float", "type", "func",
 	"pair", "list", "map", "set", "label", "snippet"}
 
 func BlankVm() *Vm {

@@ -866,10 +866,13 @@ NodeTypeSwitch:
 		}
 		result.Foldable = false
 		cp.VmComeFrom(ifRuntimeError)
-		break
 	case *parser.Nothing:
 		cp.Put(vm.Asgm, values.C_EMPTY_TUPLE)
 		result = cpResult{Types: AlternateType{FiniteTupleType{}}, Foldable: true}
+	case *parser.PeekExpression :
+		cp.Vm.SetPeeksFromTokens(node.Peeks)
+		result = cp.CompileNode(node.Body, ctxt)
+		cp.Vm.PopPeeks()
 	case *parser.PipingExpression: // I.e. -> >> and -> and ?> .
 		lResult := cp.CompileNode(node.Left, ctxt.x())
 		if lResult.Failed {
@@ -889,7 +892,6 @@ NodeTypeSwitch:
 			return FAIL
 		}
 		result = cpResult{Types: rResult.Types, Foldable: lResult.Foldable && rResult.Foldable}
-		break
 	case *parser.PrefixExpression:
 		if node.Token.Type == token.NOT {
 			rResult := cp.CompileNode(node.Args[0], ctxt.x())
