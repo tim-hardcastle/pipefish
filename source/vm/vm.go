@@ -1832,7 +1832,7 @@ loop:
 				if typecheck == nil {
 					vm.Mem[args[0]] = values.Value{typ, outVals}
 				} else {
-					vm.Mem[typecheck.TokNumberLoc] = values.Value{values.INT, int(tok)}
+					vm.Mem[typecheck.TokNumberLoc] = values.Value{values.INT, int(args[3])}
 					for i, v := range outVals {
 						vm.Mem[typecheck.InLoc+uint32(i)] = v
 					}
@@ -1903,7 +1903,7 @@ loop:
 					vm.Mem[args[0]+uint32(i)] = v
 				}
 			default:
-				panic("Unhandled opcode '" + OPERANDS[vm.Code[loc].Opcode].oc + "'")
+				panic("Unhandled opcode '" + opInfo[vm.Code[loc].Opcode].opcode + "'")
 			}
 			loc++
 		}
