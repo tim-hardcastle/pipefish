@@ -1249,10 +1249,12 @@ NodeTypeSwitch:
 	}
 	// If we have a foldable constant, we run the code, roll back the vm, and put the result we got
 	// from the code on top of memory.
-	if result.Foldable && (!result.Types.hasSideEffects()) && cp.CodeTop() > cT {
+	if result.Foldable && (!result.Types.hasSideEffects()) && cp.CodeTop() > cT && !cp.Vm.IsSet("f") {
 		cp.Emit(vm.Ret)
 		cp.Cm("Calling Run from end of CompileNode as part of routine constant folding.", node.GetToken())
+		cp.Vm.IsCompiling = true
 		cp.Vm.Run(cT)
+		cp.Vm.IsCompiling = false
 		val := cp.Vm.Mem[cp.That()]
 		if val.T == values.TUPLE {
 			tType := FiniteTupleType{}
@@ -2879,7 +2881,7 @@ func (cp *Compiler) VmComeFrom(items ...any) {
 // the destination is the next free memory address.
 func (cp *Compiler) Emit(opcode vm.Opcode, args ...uint32) {
 	cp.Vm.Code = append(cp.Vm.Code, vm.MakeOp(opcode, args...))
-	if settings.PEEK_COMPILER && cp.Vm.IsSet("c") {
+	if settings.PEEK_COMPILER && cp.Vm.IsSet("c") || cp.Vm.IsSet("C") || cp.Vm.IsSet("k") {
 		cp.Vm.Dump(cp.Vm.DescribeCode(cp.CodeTop() - 1))
 	}
 }
@@ -3003,7 +3005,7 @@ func (cp *Compiler) CallIfExists(name string) (values.Value, error) {
 // The regular version.
 func (cp *Compiler) Cm(comment string, tok *token.Token) {
 	if settings.PEEK_COMPILER  {
-		if cp.Vm.IsSet("c") && !cp.Vm.IsSet("b") {
+		if (cp.Vm.IsSet("c") || cp.Vm.IsSet("C") || cp.Vm.IsSet("k")) && !cp.Vm.IsSet("b") {
 			cp.Vm.Dump(comment)
 		}
 	}

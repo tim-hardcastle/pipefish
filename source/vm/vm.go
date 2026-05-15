@@ -75,9 +75,10 @@ type Vm struct {
 
 	// Controls dumping the compiler and VM.
 	// 
-	PeekStack         []map[string]bool      // Flags for peeking the compiler and vm.
+	PeekStack         []map[string]bool      // Flags for peeking the compiler and VM.
 	OutputTo          string                 // Gives a filename to dump output to.
-	IndentBy          int
+	IndentBy          int                    // Indentation to allow us to display the children of a node att a different depth.
+	IsCompiling       bool                   // So we can optionally only dump the VM during compilation, i.e. when it's doing constant folding.
 }
 
 // In general, the VM can't convert from type names to type numbers, because it doesn't
@@ -245,10 +246,10 @@ loop:
 				loc ++
 				continue loop
 			}
-			if settings.PEEK_VM && vm.IsSet("c") {
+			if settings.PEEK_VM && vm.IsSet("c") || (vm.IsSet("k") && vm.IsCompiling) {
 				vm.Dump("! " + vm.DescribeCode(loc))
 			}
-			if settings.PEEK_VM && vm.IsSet("c") && !vm.IsSet("s") {
+			if (settings.PEEK_VM && vm.IsSet("c") || (vm.IsSet("k") && vm.IsCompiling)) && !vm.IsSet("s") {
 				vm.Dump(vm.DescribeOperandValues(loc))
 			}
 			args := vm.Code[loc].Args

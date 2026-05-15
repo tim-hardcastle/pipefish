@@ -1,7 +1,5 @@
 package vm
 
-import "strconv"
-
 func MakeOp(oc Opcode, args ...uint32) *Operation {
 	return &Operation{Opcode: oc, Args: args}
 }
@@ -11,78 +9,13 @@ type Operation struct {
 	Args   []uint32
 }
 
-func (op *Operation) ppOperand(i int) string {
-	// If we're calling this, the OPERANDS table shows that the operation ought to have an [i] operand.
-	//
-	opFlavor := opInfo[op.Opcode].operandFlavors[i]
-	if i >= len(op.Args) {
-		if opFlavor == "tup" {
-			return " ()"
-		}
-		println("Not enough operands supplied to " + opInfo[op.Opcode].opcode + "; was expecting " + strconv.Itoa(len(opInfo[op.Opcode].operandFlavors)) + " but got " + strconv.Itoa(len(op.Args)) + ".")
-		argStr := "Args were:"
-		for j := range op.Args {
-			argStr = argStr + " " + op.ppOperand(j)
-		}
-		argStr = argStr + "."
-		println(argStr)
-		panic("That's all folks!")
-	}
-	opVal := strconv.Itoa(int(op.Args[i]))
-	switch opFlavor {
-	case "chk":
-		return "?" + opVal
-	case "dst":
-		return " m" + opVal + " <-"
-	case "gfn":
-		return " Γ" + opVal
-	case "lfc":
-		return " Λ" + opVal
-	case "loc":
-		return " @" + opVal
-	case "mem":
-		return " m" + opVal
-	case "num":
-		return " %" + opVal
-	case "ptp":
-		return " {" + opVal + "}"
-	case "sfc":
-		return " Σ" + opVal
-	case "trk":
-		return " ~" + opVal
-	case "tok":
-		return " TK" + opVal
-	case "tup":
-		args := op.Args[i : len(op.Args)+1-len(opInfo[op.Opcode].operandFlavors)+i]
-		result := " ("
-		for j, v := range args[:] {
-			result = result + "m" + strconv.Itoa(int(v))
-			if j < len(args)-1 {
-				result = result + " "
-			}
-		}
-		return result + ")"
-	case "typ":
-		return " t" + opVal
-	}
-	panic("Unknown operand type '" + opFlavor + "'")
-}
-
-func describe(op *Operation) string {
-	operands := opInfo[op.Opcode].operandFlavors
-	result := opInfo[op.Opcode].opcode
-	for i := range operands {
-		result = result + op.ppOperand(i)
-	}
-	return result + "  // " + opInfo[op.Opcode].description + "."
-}
-
 func (op *Operation) MakeLastArg(loc uint32) {
 	op.Args[len(op.Args)-1] = loc
 }
 
 type Opcode uint8
 
+// Comments on the opcodes are auto-generated from `operations.md` and so should not be edited by hand.
 const (
 	Addf Opcode = iota
 	Addi

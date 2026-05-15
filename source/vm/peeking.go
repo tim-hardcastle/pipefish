@@ -3,6 +3,7 @@ package vm
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/tim-hardcastle/pipefish/source/settings"
@@ -23,6 +24,7 @@ type operatorInfo struct {
 var opInfo = map[Opcode]operatorInfo{}
 
 func init() {
+        // Set up the operations map.
 	content, _ := os.ReadFile(filepath.Join(settings.PipefishHomeDirectory, "source/vm/operations.md"))
 	lines := strings.Split(string(content), "\n")
 	i := 0
@@ -49,6 +51,7 @@ func init() {
 			notes: notes,
 		}
 	}
+        // Add comments to operations.go.
 }
 
 // This will just be a whitespace-separated string like "foo bar !qux", where ! indicates a flag
@@ -124,6 +127,72 @@ func (vm *Vm) Dump(s string) {
 	} else {
 		print(result)
 	}
+}
+
+func (op *Operation) ppOperand(i int) string {
+	// If we're calling this, the OPERANDS table shows that the operation ought to have an [i] operand.
+	//
+	opFlavor := opInfo[op.Opcode].operandFlavors[i]
+	if i >= len(op.Args) {
+		if opFlavor == "tup" {
+			return " ()"
+		}
+		println("Not enough operands supplied to " + opInfo[op.Opcode].opcode + "; was expecting " + strconv.Itoa(len(opInfo[op.Opcode].operandFlavors)) + " but got " + strconv.Itoa(len(op.Args)) + ".")
+		argStr := "Args were:"
+		for j := range op.Args {
+			argStr = argStr + " " + op.ppOperand(j)
+		}
+		argStr = argStr + "."
+		println(argStr)
+		panic("That's all folks!")
+	}
+	opVal := strconv.Itoa(int(op.Args[i]))
+	switch opFlavor {
+	case "chk":
+		return "?" + opVal
+	case "dst":
+		return " m" + opVal + " <-"
+	case "gfn":
+		return " Γ" + opVal
+	case "lfc":
+		return " Λ" + opVal
+	case "loc":
+		return " @" + opVal
+	case "mem":
+		return " m" + opVal
+	case "num":
+		return " %" + opVal
+	case "ptp":
+		return " {" + opVal + "}"
+	case "sfc":
+		return " Σ" + opVal
+	case "trk":
+		return " ~" + opVal
+	case "tok":
+		return " TK" + opVal
+	case "tup":
+		args := op.Args[i : len(op.Args)+1-len(opInfo[op.Opcode].operandFlavors)+i]
+		result := " ("
+		for j, v := range args[:] {
+			result = result + "m" + strconv.Itoa(int(v))
+			if j < len(args)-1 {
+				result = result + " "
+			}
+		}
+		return result + ")"
+	case "typ":
+		return " t" + opVal
+	}
+	panic("Unknown operand type '" + opFlavor + "'")
+}
+
+func describe(op *Operation) string {
+	operands := opInfo[op.Opcode].operandFlavors
+	result := opInfo[op.Opcode].opcode
+	for i := range operands {
+		result = result + op.ppOperand(i)
+	}
+	return result + "  // " + opInfo[op.Opcode].description + "."
 }
 
 var OPCODES = map[string]Opcode{
