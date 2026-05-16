@@ -38,7 +38,7 @@ func (vm *Vm) DescribeOperandValues(addr uint32) string {
 	sep := ""
 	for i, operandType := range operandFlavors {
 		if operandType == "mem" {
-			result = result + sep + "▪ m" + strconv.Itoa(int(operands[i])) + " = " + vm.DescribeTypeAndValue(vm.Mem[operands[i]], LITERAL, 0)
+			result = result + sep + "* m" + strconv.Itoa(int(operands[i])) + " = " + vm.DescribeTypeAndValue(vm.Mem[operands[i]], LITERAL, 0)
 			sep = "\n"
 		}
 	}
