@@ -3,8 +3,11 @@ package vm
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
+	"testing"
+	"unicode"
 
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/token"
@@ -51,7 +54,38 @@ func init() {
 			notes: notes,
 		}
 	}
-        // Add comments to operations.go.
+    // Add comments to operations.go.
+    if !testing.Testing() {
+        operationsFile := filepath.Join(settings.PipefishHomeDirectory, "source/vm/operations.go")
+        content, _ = os.ReadFile(operationsFile)
+        lines = strings.Split(string(content), "\n")
+        result := ""
+        i = 0
+        for ; lines[i] != "const ("; i++ {
+                result = result + lines[i] + "\n"
+        }
+        result = result + "const (\n"
+        i++
+        for ; lines[i] != ")"; i++ {
+            noCommentRegexp, _ := regexp.Compile(`(.*?)\s*//.*`)
+            noComment := noCommentRegexp.ReplaceAllString(lines[i], `$1`)    
+            result = result + noComment + " "
+            opcode := ""
+            if len(noComment) == 4 {
+                    opcode = noComment[1:4]
+                    result = result + " "
+            } else {
+                opcode = noComment[1:5]
+            }
+            runes := []rune(opcode)
+            runes[0] = unicode.ToLower(runes[0])
+            opcode = string(runes)
+            opNumber := OPCODES[opcode]
+            result = result + "// " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
+        }
+        result = result + ")\n"
+        os.WriteFile(operationsFile, []byte(result), 0666)
+    }
 }
 
 // This will just be a whitespace-separated string like "foo bar !qux", where ! indicates a flag

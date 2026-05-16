@@ -187,9 +187,9 @@ At the end of executing a command, if it has reference variables, if we have ins
 error into any of the reference variables, we must return the first of these errors instead
 of `OK`. m#0 is the return location of the command; m#1 contains the reference variable.
 
-cpnt : dst mem
-Codepoint of rune
-Converts a rune into its Unicode code point, represented as an integer.
+clon : dst mem
+Clones of type 
+Implements `clones{T}`.
 
 conL : dst mem mem
 Append element to list 
@@ -198,6 +198,10 @@ Appends an element to a list, i.e. implements `L & x` where `L` is a list.
 conS : dst mem mem
 Add element to set
 Adds an element to a list, i.e. implements `S & x` where `L` is a set.
+
+cpnt : dst mem
+Codepoint of rune
+Converts a rune into its Unicode code point, represented as an integer.
 
 cv1T : dst mem
 Convert element to tuple
@@ -339,6 +343,11 @@ in the case that v#2 is out of bounds.
 
 idxT : dst mem mem tok
 Index tuple
+v#1 is the tuple, v#2 is an integer, and n#3 is the number of a token to make an error
+in the case that v#2 is out of bounds.
+
+ixSn : dst mem mem tok
+Index snippet
 v#1 is the tuple, v#2 is an integer, and n#3 is the number of a token to make an error
 in the case that v#2 is out of bounds.
 
@@ -703,27 +712,27 @@ A magical gizmo that lets services which are also hubs tell hub.go what to do. v
 which hub action we want to take, and v#2 is a list containing parameters.
 
 wthL : dst mem tok tup
-List with ()
+List with
 The `with` operator for lists. v#1 is a list, #2 is a tuple of pairs, and token n#2 is for constructing
 an error if the pairs are wrong, e.g. if the key of a pair is outside the bounds of the list.
 
 wthM : dst mem tok tup
-Map with ()
+Map with
 The `with` operator for maps. v#1 is a map, #2 is a tuple of pairs, and token n#2 is for constructing
 an error if the pairs are wrong, e.g. if the key of a pair is unhashable.
 
 wthT : dst mem tok tup
-Tuple with ()
+Tuple with
 The `with` operator for tuples. v#1 is a tuple, #2 is a tuple of pairs, and token n#2 is for constructing
 an error if the pairs are wrong, e.g. if the key of a pair is outside the bounds of the tuple.
 
 wthZ : dst mem tok tup
-Struct with ()
+Struct with
 The `with` operator for structs. v#1 is a struct, #2 is a tuple of pairs, and token n#2 is for constructing
 an error if the pairs are wrong, e.g. if the key of a pair is not a field of the struct.
 
 wtoM : dst mem tok tup
-Map without ()
+Map without
 v#1 is a map, and #3 is a tuple of key values to be removed from it. Token n#2 is for constructing
 an error if any of the values is unhashable unhashable
 
