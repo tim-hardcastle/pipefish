@@ -66,22 +66,22 @@ func init() {
         }
         result = result + "const (\n"
         i++
+        commentRegexp, _ := regexp.Compile(`\s*//*.`)
         for ; lines[i] != ")"; i++ {
-            noCommentRegexp, _ := regexp.Compile(`(.*?)\s*//.*`)
-            noComment := noCommentRegexp.ReplaceAllString(lines[i], `$1`)    
-            result = result + noComment + " "
-            opcode := ""
-            if len(noComment) == 4 {
-                    opcode = noComment[1:4]
-                    result = result + " "
-            } else {
-                opcode = noComment[1:5]
+            if commentRegexp.MatchString(lines[i]) || lines[i] == "\t" {
+                continue
             }
+            opcodeEnd := strings.Index(lines[i], " ")
+            if opcodeEnd == -1 {
+                opcodeEnd = len(lines[i])
+            }
+            opcode := lines[i][1:opcodeEnd]
             runes := []rune(opcode)
             runes[0] = unicode.ToLower(runes[0])
             opcode = string(runes)
             opNumber := OPCODES[opcode]
-            result = result + "// " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
+            result = result + "\t// " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
+            result = result + lines[i] + "\n\t\n" 
         }
         result = result + ")\n"
         os.WriteFile(operationsFile, []byte(result), 0666)
