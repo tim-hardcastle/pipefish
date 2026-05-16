@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/lexer"
@@ -352,4 +353,60 @@ func fontFromFontValue(pfFont values.Value) string {
 		result = result + text.UNDERLINE
 	}
 	return result
+}
+
+type fnDumpData struct{
+	sig string 
+	fnData *CpFunc
+}
+
+func (cp *Compiler) getFunctionsFromFnTree(tree *FnTreeNode, description string) []fnDumpData {
+	if tree.CallInfo != nil {
+		return []fnDumpData{{description + "", tree.CallInfo.Compiler.Fns[tree.CallInfo.Number]}}
+	}
+	result := []fnDumpData{}
+	for _, branch := range tree.Branch {
+		newDescription := description
+		switch {
+		case len(branch.Type.Types) == 0 :
+		case branch.Type.Is(values.BLING) :
+			newDescription = newDescription + " " + branch.Bling  
+		default :
+			newDescription = newDescription + " " + cp.Vm.DescribeAbstractType(branch.Type, vm.LITERAL, cp.Number)
+		}
+		result = append(result, cp.getFunctionsFromFnTree(branch.Node, newDescription)...)
+	}
+	return result
+}
+
+func (cp *Compiler) DumpFunction(name string, mem bool) string {
+	if tree, ok := cp.FunctionForest[name]; !ok {
+		return "Function `" + name + "` doesn't exist.\n\n"
+	} else {
+		result := "# Function dump of `" + name + "` at " + time.Now().Format("15:04:05") + "\n\n"
+
+		fnData := cp.getFunctionsFromFnTree(tree.Tree, "function `" + name + "` with sig")
+		for _, fn := range fnData {
+			result = result + "## Code dump for " + fn.sig + "\n\n"
+			switch {
+			case fn.fnData.HasGo :
+				result = result + "Calls Go function number " + strconv.Itoa(int(fn.fnData.GoNumber)) + ".\n\n"
+			case fn.fnData.Builtin != "" :
+				result = result + "Calls builtin `" + fn.fnData.Builtin + "`.\n\n"
+			default :			
+				for loc := fn.fnData.CallTo; loc < fn.fnData.Top; loc++ {
+					result = result + cp.Vm.DescribeCode(loc) + "\n"
+				}
+				result = result + "\n"
+				if mem {
+					result = result + "### Memory dump for " + fn.sig + "`\n\n"
+					for addr := fn.fnData.LoReg; addr <= fn.fnData.OutReg; addr++ {
+						result = result + "m" + strconv.Itoa(int(addr)) + " : " + cp.Vm.DescribeTypeAndValue(cp.Vm.Mem[addr], vm.LITERAL, cp.Number) + "\n"
+					}
+					result = result + "\n"
+				}
+			}
+		}
+		return result
+	}
 }

@@ -1590,6 +1590,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		iz.cp.VmComeFrom(paramChecks...)
 		iz.cp.Emit(vm.Ret)
 	}
+	cpFn.Top = iz.cp.CodeTop()
 	iz.cp.Fns = append(iz.cp.Fns, &cpFn)
 	// The equivalent checks for functions happen elsewhere, for Reasons.
 	if ac == compiler.CMD && !cpFn.RtnTypes.IsLegalCmdReturn() {

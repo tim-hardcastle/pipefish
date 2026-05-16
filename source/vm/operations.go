@@ -143,7 +143,7 @@ const (
 	Qlog // Jumps to location number n#0 if logging is turned off (loc)
 	Qnab // Test not in abstract type  (mem tup loc)
 	Qntp // Test not of type  (mem typ loc)
-	Qsat // Test satisfied (mem loc)
+	Qsat // Test not `UNSAT` (mem loc)
 	Qsnq // Test singleton (mem loc)
 	Qspt // Add floats (dst mem mem)
 	Qspq // Add floats (dst mem mem)

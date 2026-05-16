@@ -2747,6 +2747,7 @@ type CpFunc struct {
 	Command                 bool     // True if it's a command.
 	GoNumber                uint32
 	HasGo                   bool
+	Top                     uint32   // Needed to know when to stop dumping the data.
 }
 
 // Information we need in the CpFunc struct to call an external service.

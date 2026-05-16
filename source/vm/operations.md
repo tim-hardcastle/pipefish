@@ -579,7 +579,7 @@ Test not of type
 Jumps to the location n#2 if the type of v#0 is not the type numbers in n#1.
 
 qsat : mem loc
-Test satisfied
+Test not `UNSAT`
 Jumps to location n#1 if v#0 is an unsatisfied conditional.
 
 qsnq : mem loc

@@ -316,6 +316,12 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if err != nil {
 			h.WriteError(err.Error())
 		}
+	case "dump":
+		dump := h.Services[h.currentServiceName()].DumpCode(args[0], args[2] == "true")
+		print("\n" + dump)
+		if args[1] == "true" {
+			os.WriteFile(filepath.Join(settings.PipefishHomeDirectory, args[3]), []byte(dump), 0666)
+		}
 	case "env":
 		// $_env has been updated by hub.pf. This is called by both `env` and `env delete`.
 		env, _ := h.Services["hub"].GetVariable("$_env")
