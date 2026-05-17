@@ -229,6 +229,13 @@ func (vm *Vm) Run(loc uint32) {
 //
 // (This condition, rather than just saying "until the callstack is empty" allows `run` to
 // call itself under certain rare and harmless conditions.)
+//
+// The comments to the right of and immediately below each `case` statement in the main 
+// `switch` statement are auto-generated from the documentation in `operations.md` and should
+// be edited there and not here. Other comments are safe to edit.
+//
+// For the meanings of the operand "flavors", `dst`, `mem`, etc, see `operations.md`.
+//
 func (vm *Vm) run(loc uint32, ctx context.Context) {
 	// We exit the loop and this function when we perform a `ret` openeration and `stackHeight``
 	// equals the length of the callstack.
@@ -255,11 +262,14 @@ loop:
 			args := vm.Code[loc].Args
 		Switch:
 			switch vm.Code[loc].Opcode {
-			case Addf:
+			case Addf: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(float64) + vm.Mem[args[2]].V.(float64)}
-			case Addi:
+			case Addi: // Add ints (dst mem mem)
+				// Adds two ints, returning an int.
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(int) + vm.Mem[args[2]].V.(int)}
-			case AddL:
+			case AddL: // Add lists (dst mem mem)
+				// Adds two lists, returning a list.
 				result := vm.Mem[args[1]].V.(vector.Vector)
 				rhs := vm.Mem[args[2]].V.(vector.Vector)
 				for i := 0; ; i++ {
@@ -270,25 +280,31 @@ loop:
 					result = result.Conj(el)
 				}
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
-			case AddS:
+			case AddS: // Add sets (dst mem mem)
+				// Adds two sets, returning a set.
 				result := vm.Mem[args[1]].V.(values.Set).Union(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
-			case Adds:
+			case Adds: // Add strings (dst mem mem)
+				// Adds two floats, returning a float.
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(string) + vm.Mem[args[2]].V.(string)}
-			case Adrs:
+			case Adrs: // Prepend rune to string (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.STRING, string(vm.Mem[args[1]].V.(rune)) + vm.Mem[args[2]].V.(string)}
-			case Adsr:
+			case Adsr: // Append rune to string (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.STRING, vm.Mem[args[1]].V.(string) + string(vm.Mem[args[2]].V.(rune))}
-			case Adtk:
+			case Adtk: // Add token  (dst mem tok)
+				// Adds a token to the trace of the error in mem
 				vm.Mem[args[0]] = vm.Mem[args[1]]
 				vm.Mem[args[0]].V.(*err.Error).AddToTrace(vm.Tokens[args[2]])
-			case Andb:
+			case Andb: // Boolean and (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(bool) && vm.Mem[args[2]].V.(bool)}
-			case Aref:
+			case Aref: // Assign to ref variable (dst mem)
+				// Assigns v#1 to the reference variable in m#0.
 				vm.Mem[vm.Mem[args[0]].V.(uint32)] = vm.Mem[args[1]]
-			case Asgm:
+			case Asgm: // Assign to memory (dst mem)
+				// Assigns v#1 to m#0.
 				vm.Mem[args[0]] = vm.Mem[args[1]]
-			case Auto:
+			case Auto: // Autogenerate tracking (trk)
+				// Use tracking info number n#0 to generate tracking.
 				if vm.logging {
 					staticData := vm.Tracking[args[0]]
 					newData := TrackingData{staticData.Flavor, staticData.Tok, staticData.LogToLoc, staticData.LogTimeLoc, make([]any, len(staticData.Args))}
@@ -327,7 +343,11 @@ loop:
 						f.WriteString(trackingString)
 					}
 				}
-			case Call:
+			case Call: // Function call  (loc mem mem tup)
+				// Operands are:
+				//     #0: the location to call.
+				//     m#1 and m#2: the bottom and (exclusive) top of where to put the function's arguments.
+				//     #3 a tuple of memory locations containing the values to put in the arguments.
 				paramNumber := args[1]
 				argNumber := 3
 				for paramNumber < args[2] {
@@ -348,7 +368,8 @@ loop:
 				vm.callstack = append(vm.callstack, loc)
 				loc = args[0]
 				continue
-			case CalT: // A more complicated version which can do vararg or tuple captures. TODO --- the chances of anything needing to do both are infinitessimally rare so maybe two simpler versions, one for varargs and one for tuples?
+			case CalT: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				paramNumber := args[1]
 				argNumber := 3
 				tupleOrVarargsData := vm.Mem[args[2]].V.([]uint32)
@@ -404,7 +425,9 @@ loop:
 				vm.callstack = append(vm.callstack, loc)
 				loc = args[0]
 				continue
-			case CasP:
+			case CasP: // Cast to parameterized clone type (dst tok mem mem)
+				// Casts the value v#3 to the type v#2, where v#2 is a parameterized clone type.
+				// Token n#1 can be used to return an error if the conversion is impossible.
 				typeNo := vm.Mem[args[2]].V.(values.AbstractType).Types[0]
 				if typeCheck := vm.ConcreteTypeInfo[typeNo].(CloneType).Validation; typeCheck != nil {
 					vm.Mem[typeCheck.TokNumberLoc] = values.Value{values.INT, int(args[1])}
@@ -415,9 +438,12 @@ loop:
 				} else {
 					vm.Mem[args[0]] = values.Value{typeNo, vm.Mem[args[3]].V}
 				}
-			case Cast:
+			case Cast: // Cast type (dst mem typ)
+				// Casts v#1 to type number n#2.
 				vm.Mem[args[0]] = values.Value{values.ValueType(args[2]), vm.Mem[args[1]].V}
-			case Casx:
+			case Casx: // Try to cast type (dst mem typ tok)
+				// Like `cast`, except we don't know for certain it will succeed, so we also supply the
+				// number of a token to throw an error if it can't be done.
 				currentType := vm.Mem[args[1]].T
 				if currentType == values.ERROR {
 					vm.Mem[args[0]] = vm.Mem[args[1]]
@@ -475,15 +501,17 @@ loop:
 					break Switch
 				}
 				vm.Mem[args[0]] = vm.makeError("vm/cast", args[3], args[1], args[2])
-			case Cc11:
+			case Cc11: // Concatenate non-tuples (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.TUPLE, []values.Value{vm.Mem[args[1]], vm.Mem[args[2]]}}
-			case Cc1T:
+			case Cc1T: // Concatenate non-tuple and tuple (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.TUPLE, append([]values.Value{vm.Mem[args[1]]}, vm.Mem[args[2]].V.([]values.Value)...)}
-			case CcT1:
+			case CcT1: // Concatenate tuple and non-tuple (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.TUPLE, append(vm.Mem[args[1]].V.([]values.Value), vm.Mem[args[2]])}
-			case CcTT:
+			case CcTT: // Concatenate tuples (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.TUPLE, append(vm.Mem[args[1]].V.([]values.Value), vm.Mem[args[2]].V.([]values.Value)...)}
-			case Ccxx:
+			case Ccxx: // Concatenate unknowns (dst mem mem)
+				// That is, either #1 or #2 may be a tuple or non-tuple, and we don't know which
+				// at compile time.
 				if vm.Mem[args[1]].T == values.TUPLE {
 					if vm.Mem[args[2]].T == values.TUPLE {
 						vm.Mem[args[0]] = values.Value{values.TUPLE, append(vm.Mem[args[1]].V.([]values.Value), vm.Mem[args[2]].V.([]values.Value)...)}
@@ -497,13 +525,15 @@ loop:
 						vm.Mem[args[0]] = values.Value{values.TUPLE, []values.Value{vm.Mem[args[1]], vm.Mem[args[2]]}}
 					}
 				}
-			case Chck:
-				// Arguments:
-				// args[0] : memory location of result.
-				// args[1] : evaluation of the validation condition, presumptively boolean.
-				// args[2] : memory location containing an int which is the number of the
-				// token of the calling constructor.
-				// args[3] : the ordinal of the data needed to hold the error message.
+			case Chck: // Finish type validation (dst mem mem chk)
+				// Operands are:
+				//     v#0 : the value to be validated
+				//     v#1 : evaluation of the validation condition, presumptively boolean
+				//     v#2 : an int which is the number of the token of the calling constructor
+				// 	n#3 : the number of the validation error data
+				// All this does is if v#1 is false, it constructs an error out of token number v#2 and
+				// error number n#3, and overwrites the contents of m#0 with the error; otherwise it leaves
+				// m#0 untouched.
 				switch vm.Mem[args[1]].T {
 				case values.BOOL:
 					if !(vm.Mem[args[1]].V.(bool)) {
@@ -531,11 +561,15 @@ loop:
 					loc = vm.callstack[len(vm.callstack)-1]
 					vm.callstack = vm.callstack[0 : len(vm.callstack)-1]
 				}
-			case Chrf: // If a reference variable is an error at return time, we need to substitute the error for `OK` as the return value.
+			case Chrf: // Check reference variable (dst mem)
+				// At the end of executing a command, if it has reference variables, if we have inserted an
+				// error into any of the reference variables, we must return the first of these errors instead
+				// of `OK`. m#0 is the return location of the command; m#1 contains the reference variable.
 				if vm.Mem[vm.Mem[args[1]].V.(uint32)].T == values.ERROR {
 					vm.Mem[args[0]] = vm.Mem[vm.Mem[args[1]].V.(uint32)]
 				}
-			case Clon:
+			case Clon: // Clones of type  (dst mem)
+				// Implements `clones{T}`.
 				if vm.Mem[args[1]].T != values.TYPE {
 					vm.Mem[args[0]] = vm.makeError("vm/clones/type", args[2], args[1])
 					break Switch
@@ -546,17 +580,23 @@ loop:
 					abType = abType.Union(clones)
 				}
 				vm.Mem[args[0]] = values.Value{values.TYPE, abType}
-			case CoSn:
+			case CoSn: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				vm.Mem[args[0]] = values.Value{values.SNIPPET, values.Snippet{vm.Mem[args[1]].V.([]values.Value), nil}}
-			case ConL:
+			case ConL: // Append element to list  (dst mem mem)
+				// Appends an element to a list, i.e. implements `L & x` where `L` is a list.
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(vector.Vector).Conj(vm.Mem[args[2]])}
-			case ConS:
+			case ConS: // Add element to set (dst mem mem)
+				// Adds an element to a list, i.e. implements `S & x` where `L` is a set.
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(values.Set).Add(vm.Mem[args[2]])}
-			case Cpnt:
+			case Cpnt: // Codepoint of rune (dst mem)
+				// Converts a rune into its Unicode code point, represented as an integer.
 				vm.Mem[args[0]] = values.Value{values.INT, int(vm.Mem[args[1]].V.(rune))}
-			case Cv1T:
+			case Cv1T: // Convert element to tuple (dst mem)
+				// Converts v#1 to the tuple containing v#1.
 				vm.Mem[args[0]] = values.Value{values.TUPLE, []values.Value{vm.Mem[args[1]]}}
-			case CvTT:
+			case CvTT: // Create tuple (dst tup)
+				// Takes v#2 ... v#n and returns a tuple consisting of those elements.
 				slice := []values.Value{}
 				for i := 1; i < len(args); i++ {
 					if vm.Mem[args[i]].T == values.TUPLE {
@@ -566,42 +606,53 @@ loop:
 					}
 				}
 				vm.Mem[args[0]] = values.Value{values.TUPLE, slice}
-			case Diif:
+			case Diif: // Divide ints as float  (dst mem mem tok)
+				// Divides two integers as a float, i.e. it implements `m / n` where `m` and `n` are 
+				// integers. It returns an error constructed from token number n#3 if v#2 is 0. 
 				divisor := vm.Mem[args[2]].V.(int)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/div/zero/a", args[3])
 				} else {
 					vm.Mem[args[0]] = values.Value{values.FLOAT, float64(vm.Mem[args[1]].V.(int)) / float64(divisor)}
 				}
-			case Divf:
+			case Divf: // Divide floats  (dst mem mem tok)
+				// Divides two floats, returning a float.
+				// It returns an error constructed from token number n#3 if v#2 is 0.0. 
 				divisor := vm.Mem[args[2]].V.(float64)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/div/zero/b", args[3])
 				} else {
 					vm.Mem[args[0]] = values.Value{values.FLOAT, vm.Mem[args[1]].V.(float64) / divisor}
 				}
-			case Divi:
+			case Divi: // Divide ints  (dst mem mem tok)
+				// Divides two integers and returns an integer, i.e. it implements `m div n`.
+				// It returns an error constructed from token number n#3 if v#2 is 0. 
 				divisor := vm.Mem[args[2]].V.(int)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/div/zero/c", args[3])
 				} else {
 					vm.Mem[args[0]] = values.Value{values.INT, vm.Mem[args[1]].V.(int) / vm.Mem[args[2]].V.(int)}
 				}
-			case Dvfi:
+			case Dvfi: // Divide float by int (dst mem mem tok)
+				// Divides a float by an int and returns a float.
+				// It returns an error constructed from token number n#3 if v#2 is 0. 
 				divisor := vm.Mem[args[2]].V.(int)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/div/zero/d", args[3])
 				} else {
 					vm.Mem[args[0]] = values.Value{values.FLOAT, vm.Mem[args[1]].V.(float64) / float64(divisor)}
 				}
-			case Dvif:
+			case Dvif: // Divide int by float (dst mem mem tok)
+				// Divides an int by a float and returns a float.
+				// It returns an error constructed from token number n#3 if v#2 is 0.0.
 				divisor := vm.Mem[args[2]].V.(float64)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/div/zero/e", args[3])
 				} else {
 					vm.Mem[args[0]] = values.Value{values.FLOAT, float64(vm.Mem[args[1]].V.(int)) / divisor}
 				}
-			case Dofn:
+			case Dofn: // Apply lambda function (dst mem tup)
+				// Applies the function v#1 to the values in the tuple.
 				lambda := vm.Mem[args[1]].V.(Lambda)
 				// The case where the lambda is from a Go function.
 				if lambda.Gocode != nil {
@@ -676,19 +727,27 @@ loop:
 				}
 				vm.run(lambda.AddressToCall, ctx)
 				vm.Mem[args[0]] = vm.Mem[lambda.ResultLocation]
-			case Dref:
+			case Dref: // Dereference ref variable (dst mem)
+				// Puts the contents of the reference variable in m#1 into m#0.
 				vm.Mem[args[0]] = vm.Mem[vm.Mem[args[1]].V.(uint32)]
-			case Equb:
+			case Equb: // Boolean comparison with == (dst mem mem)
+				// Tests if two booleans are equal.
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(bool) == vm.Mem[args[2]].V.(bool)}
-			case Equf:
+			case Equf: // Float comparison with == (dst mem mem)
+				// Tests if two floats are equal.
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(float64) == vm.Mem[args[2]].V.(float64)}
-			case Equi:
+			case Equi: // Integer comparison with == (dst mem mem)
+				// Tests if two ints are equal.
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(int) == vm.Mem[args[2]].V.(int)}
-			case Equs:
+			case Equs: // String comparison with == (dst mem mem)
+				// Tests if two strings are equal
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(string) == vm.Mem[args[2]].V.(string)}
-			case Equt:
+			case Equt: // Type comparison with == (dst mem mem)
+				// Tests if two types are equal
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(values.AbstractType).Equals(vm.Mem[args[2]].V.(values.AbstractType))}
-			case Eqxx:
+			case Eqxx: // Comparison with == (dst mem mem tok)
+				// Tests if two values are equal. If they are not comparable, we return an error
+				// based on token number n#3.
 				if vm.Mem[args[1]].T == values.ERROR {
 					vm.Mem[args[0]] = vm.Mem[args[1]]
 					break
@@ -702,9 +761,16 @@ loop:
 				} else {
 					vm.Mem[args[0]] = values.Value{values.BOOL, vm.equals(vm.Mem[args[1]], vm.Mem[args[2]])}
 				}
-			case Eval:
+			case Eval: // Eval (dst mem num)
+				// This evaluates the string v#1 using evaluator number n#2.
 				vm.Mem[args[0]] = vm.Evaluators[args[2]](vm.Mem[args[1]].V.(string))
-			case Extn:
+			case Extn: // External service call (dst num num mem mem tup)
+				// Operands are: 
+				//     n#1 : the number of the external service to call
+				//     n#2 : whether the function being called is a prefix, infix, postfix or unfix.
+				//     v#2 : the remainder of the namespace of the function as a string
+				//     v#3 : the name of the function as a string
+				//     #4 : a tuple of the locations of the arguments we wish to pass.
 				externalOrdinal := args[1]
 				operatorType := args[2]
 				remainingNamespace := vm.Mem[args[3]].V.(string)
@@ -759,20 +825,26 @@ loop:
 					buf.WriteString(name)
 				}
 				vm.Mem[args[0]] = vm.ExternalCallHandlers[externalOrdinal].Evaluate(buf.String())
-			case Flpp:
+			case Flpp: // Pop peek flags ()
 				vm.PopPeeks()
-			case Flps:
+			case Flps: // Push peek flags (mem)
+				// v#0 will be of internal type PEEK_FLAGS.
 				vm.PeekStack = append(vm.PeekStack, vm.Mem[args[0]].V.(map[string]bool))
-			case Flti:
+			case Flti: // Float from int (dst mem)
 				vm.Mem[args[0]] = values.Value{values.FLOAT, float64(vm.Mem[args[1]].V.(int))}
-			case Flts:
+			case Flts: // Float from string (dst mem tok)
+				// Token number n#2 is used to make an error if the conversion fails.
 				i, err := strconv.ParseFloat(vm.Mem[args[1]].V.(string), 64)
 				if err != nil {
 					vm.Mem[args[0]] = vm.makeError("vm/string/float", args[2], args[1])
 				} else {
 					vm.Mem[args[0]] = values.Value{values.FLOAT, i}
 				}
-			case Gofn:
+			case Gofn: // Call Go function (dst mem gfn tup)
+				// Operands are :
+				//     m#1 : contains an error which we will doctor before (if necessary) returning it.
+				//     n#2 : the number of the Go function we want to call.
+				//     #3 : a tuple of the locations of the arguments we want to pass to the function.
 				F := vm.GoFns[args[2]]
 				goTpl := make([]reflect.Value, 0, len(args))
 				for _, v := range args[3:] { // TODO --- how can this be right? Surely they should be stored in a TUPLE.
@@ -806,15 +878,15 @@ loop:
 					break Switch
 				}
 				vm.Mem[args[0]] = val
-			case Gsql:
-				// Arguments:
-				// 0: the destination, which ends up as OK or an error, i.e. it's what the command returns.
-				// 1: the address of the reference variable: where we put what we get from SQL.
-				// 2: the desired type of the result
-				// 3: the database connection
-				// 4: the snippet
-				// 5: 0 for `as`, 1 for `like`.
-				// 6: the token
+			case Gsql: // Get from SQL (dst mem mem mem mem num tok)
+				// This returns an error or `OK` in m#0, the SQL data being put in the reference variable v#1.
+				// Operands are :
+				//     v#1 : the address of the reference variable: where we put what we get from SQL.
+				//     v#2 : the desired type of the result
+				// 	v#3 : the database connection
+				// 	v#4 : the snippet of SQL
+				// 	n#5 : 0 for `get as`, 1 for `get like`.
+				// 	n#6 : the number of a token for emitting an error if required.
 				rType := vm.Mem[args[2]].V.(values.AbstractType)
 				if rType.Len() != 1 {
 					vm.Mem[args[0]] = vm.makeError("vm/sql/abstract/c", args[5], vm.DescribeAbstractType(vm.Mem[args[2]].V.(values.AbstractType), LITERAL, 0))
@@ -842,19 +914,22 @@ loop:
 				} else {
 					vm.Mem[args[0]] = values.OK
 				}
-			case Gtef:
+			case Gtef: // Float comparison with >= (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(float64) >= vm.Mem[args[2]].V.(float64)}
-			case Gtei:
+			case Gtei: // Int comparison with >= (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(int) >= vm.Mem[args[2]].V.(int)}
-			case Gthf:
+			case Gthf: // Float comparison with > (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(float64) > vm.Mem[args[2]].V.(float64)}
-			case Gthi:
+			case Gthi: // Int comparison with > (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(int) > vm.Mem[args[2]].V.(int)}
-			case IctS:
+			case IctS: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				leftSet := vm.Mem[args[1]].V.(values.Set)
 				result := leftSet.Intersect(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
-			case IdxL:
+			case IdxL: // Index list  (dst mem mem tok)
+				// v#1 is the list, v#2 is an integer, and n#3 is the number of a token to make an error
+				// in the case that v#2 is out of bounds.
 				vec := vm.Mem[args[1]].V.(vector.Vector)
 				ix := vm.Mem[args[2]].V.(int)
 				val, ok := vec.Index(ix)
@@ -863,7 +938,9 @@ loop:
 				} else {
 					vm.Mem[args[0]] = val.(values.Value)
 				}
-			case Idxp:
+			case Idxp: // Index pair  (dst mem mem tok)
+				// v#1 is the pair, v#2 is an integer, and n#3 is the number of a token to make an error
+				// in the case that v#2 is out of bounds.
 				pair := vm.Mem[args[1]].V.([]values.Value)
 				ix := vm.Mem[args[2]].V.(int)
 				ok := ix == 0 || ix == 1
@@ -872,7 +949,9 @@ loop:
 				} else {
 					vm.Mem[args[0]] = vm.makeError("vm/index/pair", args[3], ix)
 				}
-			case Idxs:
+			case Idxs: // Index string (dst mem mem tok)
+				// v#1 is the string, v#2 is an integer, and n#3 is the number of a token to make an error
+				// in the case that v#2 is out of bounds.
 				str := vm.Mem[args[1]].V.(string)
 				ix := vm.Mem[args[2]].V.(int)
 				ok := 0 <= ix && ix < len(str)
@@ -882,7 +961,9 @@ loop:
 				} else {
 					vm.Mem[args[0]] = vm.makeError("vm/index/string", args[3], ix, len(str), args[1], args[2])
 				}
-			case IdxT:
+			case IdxT: // Index tuple (dst mem mem tok)
+				// v#1 is the tuple, v#2 is an integer, and n#3 is the number of a token to make an error
+				// in the case that v#2 is out of bounds.
 				tuple := vm.Mem[args[1]].V.([]values.Value)
 				ix := vm.Mem[args[2]].V.(int)
 				ok := 0 <= ix && ix < len(tuple)
@@ -891,7 +972,9 @@ loop:
 				} else {
 					vm.Mem[args[0]] = vm.makeError("vm/index/tuple", args[3], ix, len(tuple), args[1], args[2])
 				}
-			case Inpt:
+			case Inpt: // Input from keyboard (dst mem mem)
+				// v#1 is of type `terminal.Keyboard` with one field consisting of the prompt. #v2 is a 
+				// boolean saying whether the input should be masked for privacy.
 				temp := vm.InHandle
 				if vm.Mem[args[2]].V.(bool) {
 					vm.InHandle = &MaskedInHandler{vm.Mem[args[1]].V.([]values.Value)[0].V.(string)}
@@ -901,18 +984,19 @@ loop:
 				response := vm.InHandle.Get()
 				vm.InHandle = temp
 				vm.Mem[vm.Mem[args[0]].V.(uint32)] = values.Value{values.STRING, response}
-			case Inte:
+			case Inte: // Integer from enum (dst mem)
 				vm.Mem[args[0]] = values.Value{values.INT, vm.Mem[args[1]].V.(int)}
-			case Intf:
+			case Intf: // Integer from float (dst mem)
 				vm.Mem[args[0]] = values.Value{values.INT, int(vm.Mem[args[1]].V.(float64))}
-			case Ints:
+			case Ints: // Integer from string  (dst mem tok)
+				// n#2 is the number of a token to make an error if conversion fails.
 				i, err := strconv.Atoi(vm.Mem[args[1]].V.(string))
 				if err != nil {
 					vm.Mem[args[0]] = vm.makeError("vm/string/int", args[2], args[1])
 				} else {
 					vm.Mem[args[0]] = values.Value{values.INT, i}
 				}
-			case InxL:
+			case InxL: // Is element in list (dst mem mem)
 				x := vm.Mem[args[1]]
 				L := vm.Mem[args[2]].V.(vector.Vector)
 				i := 0
@@ -927,7 +1011,8 @@ loop:
 					i++
 					el, ok = L.Index(i)
 				}
-			case InxS:
+			case InxS: // Hard-index snippet (dst mem num)
+				// Returns element number n#2 of snippet v#1.
 				x := vm.Mem[args[1]]
 				S := vm.Mem[args[2]].V.(values.Set)
 				if S.Contains(x) {
@@ -935,7 +1020,7 @@ loop:
 				} else {
 					vm.Mem[args[0]] = values.Value{values.BOOL, false}
 				}
-			case InxT:
+			case InxT: // Is element in tuple (dst mem mem)
 				x := vm.Mem[args[1]]
 				T := vm.Mem[args[2]].V.([]values.Value)
 				vm.Mem[args[0]] = values.Value{values.BOOL, false}
@@ -947,22 +1032,24 @@ loop:
 						}
 					}
 				}
-			case Inxt:
+			case Inxt: // Is element in type (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, false}
 				for _, t := range vm.Mem[args[2]].V.(values.AbstractType).Types {
 					if vm.Mem[args[1]].T == t {
 						vm.Mem[args[0]] = values.Value{values.BOOL, true}
 					}
 				}
-			case Itgk:
+			case Itgk: // Get key from iterator (dst mem)
 				vm.Mem[args[0]] = vm.Mem[args[1]].V.(Iterator).GetKey()
-			case Itkv:
+			case Itkv: // Get key and value from iterator (dst dst mem)
 				vm.Mem[args[0]], vm.Mem[args[1]] = vm.Mem[args[2]].V.(Iterator).GetKeyValuePair()
-			case Itgv:
+			case Itgv: // Get value from iterator (dst mem)
 				vm.Mem[args[0]] = vm.Mem[args[1]].V.(Iterator).GetValue()
-			case Itor:
+			case Itor: // Integer to rune (dst mem)
 				vm.Mem[args[0]] = values.Value{values.RUNE, rune(vm.Mem[args[1]].V.(int))}
-			case IxSn:
+			case IxSn: // Index snippet (dst mem mem tok)
+				// v#1 is the tuple, v#2 is an integer, and n#3 is the number of a token to make an error
+				// in the case that v#2 is out of bounds.
 				ix := vm.Mem[args[2]].V.(int)
 				if ix < 0 || ix >= len(vm.Mem[args[1]].V.(values.Snippet).Data) {
 					vm.Mem[args[0]] = vm.makeError("vm/index/s", args[3], ix)
@@ -971,9 +1058,13 @@ loop:
 				}
 			// This is emitted by `function_call` and the typechecking logic and so the index should
 			// be correct and no bounds-checking is required.
-			case IxTn:
+			case IxTn: // Hard-index tuple (dst mem num)
+				// v#1 is the tuple, and we index it by n#2.
 				vm.Mem[args[0]] = (vm.Mem[args[1]].V.([]values.Value))[args[2]]
-			case IxXx:
+			case IxXx: // Index value by value (dst mem mem tok)
+				// In the case where at compile time we can't determine the types of one or other or both
+				// of v#1 and v#2. The token number n#3 can be used to create an error if the index is the 
+				// wrong type or out of bounds.
 				container := vm.Mem[args[1]]
 				if container.T == values.ERROR {
 					vm.Mem[args[0]] = container
@@ -1130,7 +1221,9 @@ loop:
 						break Switch
 					}
 				}
-			case IxZl:
+			case IxZl: // Index struct by label (dst mem mem tok)
+				// v#1 is the struct, v#2 is a label, and n#3 is the number of a token to make an error
+				// in the case that v#1 has no field labeled by v#2.
 				typeInfo := vm.ConcreteTypeInfo[vm.Mem[args[1]].T].(StructType)
 				ix := typeInfo.Resolve(vm.Mem[args[2]].V.(int))
 				if ix == -1 {
@@ -1138,26 +1231,38 @@ loop:
 					break Switch
 				}
 				vm.Mem[args[0]] = vm.Mem[args[1]].V.([]values.Value)[ix]
-			case IxZn:
+			case IxZn: // Hard-index struct (dst mem num)
+				// v#1 is the struct and n#2 is the number of the field we want to index, determined at
+				// compile-time.
 				vm.Mem[args[0]] = vm.Mem[args[1]].V.([]values.Value)[args[2]]
-			case Jmp:
+			case Jmp: // Jump (loc)
 				loc = args[0]
 				continue
-			case Json:
+			case Json: // Json to Pipefish (dst mem mem num tok)
+				// Operands are :
+				//     v#1 : a string containing the JSON.
+				//     v#2 : the type to convert to.
+				//     n#3 : 0 or 1 to indicate whether we are converting "like" or "as".
+				//     n#4 : the number of a token for constructing an error in the case the conversion fails.
 				vm.Mem[args[0]] = vm.jsonToPf(vm.Mem[args[1]].V.(string), vm.Mem[args[2]].V.(values.AbstractType), args[3] == 0, args[4], ctx)
-			case Jsr:
+			case Jsr: // Jump to subroutine (loc)
+				// Pushes the location we're jumping from onto the stack, so that `rtn` will return to just after
+				// the jump.
 				vm.callstack = append(vm.callstack, loc)
 				loc = args[0]
 				continue
-			case KeyM:
+			case KeyM: // Keys of map (dst mem)
+				// Returned as a list.
 				vm.Mem[args[0]] = values.Value{values.LIST, vm.Mem[args[1]].V.(values.Map).KeysAsVector()}
-			case KeyZ:
+			case KeyZ: // Keys of struct (dst mem)
+				// Returned as a list containing the labels.
 				result := vector.Empty
 				for _, labelNumber := range vm.ConcreteTypeInfo[vm.Mem[args[1]].T].(StructType).LabelNumbers {
 					result = result.Conj(values.Value{values.LABEL, labelNumber})
 				}
 				vm.Mem[args[0]] = values.Value{values.LIST, result}
-			case Lbls:
+			case Lbls: // Label from string (dst mem tok)
+				// Returns token number n#2 if the conversion fails.
 				stringToConvert := vm.Mem[args[1]].V.(string)
 				labelNo, ok := vm.FieldLabelsInMem[stringToConvert]
 				if ok {
@@ -1165,17 +1270,17 @@ loop:
 				} else {
 					vm.Mem[args[0]] = vm.makeError("vm/label/exists", args[2], stringToConvert)
 				}
-			case LenL:
+			case LenL: // Length of list (dst mem)
 				vm.Mem[args[0]] = values.Value{values.INT, vm.Mem[args[1]].V.(vector.Vector).Len()}
-			case LenM:
+			case LenM: // Length of map (dst mem)
 				vm.Mem[args[0]] = values.Value{values.INT, vm.Mem[args[1]].V.(values.Map).Len()}
-			case Lens:
+			case Lens: // Length of string (dst mem)
 				vm.Mem[args[0]] = values.Value{values.INT, len(vm.Mem[args[1]].V.(string))}
-			case LenS:
+			case LenS: // Length of set (dst mem)
 				vm.Mem[args[0]] = values.Value{values.INT, vm.Mem[args[1]].V.(values.Set).Len()}
-			case LenT:
+			case LenT: // Length of tuple (dst mem)
 				vm.Mem[args[0]] = values.Value{values.INT, len(vm.Mem[args[1]].V.([]values.Value))}
-			case List:
+			case List: // List from tuple (dst mem)
 				list := vector.Empty
 				if vm.Mem[args[1]].T == values.TUPLE {
 					for _, v := range vm.Mem[args[1]].V.([]values.Value) {
@@ -1185,15 +1290,21 @@ loop:
 					list = list.Conj(vm.Mem[args[1]])
 				}
 				vm.Mem[args[0]] = values.Value{values.LIST, list}
-			case Litx:
+			case Litx: // Literal of value (dst mem num tok)
+				// Operands :
+				//     v#1 is the value.
+				//     n#2 is the number of the compiler to generate the literal.
+				//     n#3 is the number of a token for error-generation if the value has no literal representation.
 				vm.Mem[args[0]] = values.Value{values.STRING, vm.Literal(vm.Mem[args[1]], args[2])}
-			case LnSn:
+			case LnSn: // Length of snippet (dst mem)
 				vm.Mem[args[0]] = values.Value{values.INT, len(vm.Mem[args[1]].V.(values.Snippet).Data)}
-			case Logn:
+			case Logn: // Turn logging off ()
 				vm.logging = false
-			case Logy:
+			case Logy: // Turn logging on ()
 				vm.logging = true
-			case MkEn:
+			case MkEn: // Enum element from int (dst typ mem tok)
+				// Makes an enum of type number n#1 from an integer v#2, using token n#3 to return an error if
+				// v#2 is out of bounds.
 				info := vm.ConcreteTypeInfo[args[1]].(EnumType)
 				ix := vm.Mem[args[2]].V.(int)
 				ok := 0 <= ix && ix < len(info.ElementNames)
@@ -1202,9 +1313,10 @@ loop:
 				} else {
 					vm.Mem[args[0]] = vm.makeError("vm/enum", args[3], info.GetName(LITERAL), ix)
 				}
-			case Mker:
+			case Mker: // Error from string (dst mem tok)
 				vm.Mem[args[0]] = values.Value{values.ERROR, &err.Error{ErrorId: "vm/user", Message: vm.Mem[args[1]].V.(string), Token: vm.Tokens[args[2]]}}
-			case Mkfn:
+			case Mkfn: // Make lambda (dst lfc)
+				// Here n#1 is the number of a lambda factory which knows how to make the lambda.
 				lf := vm.LambdaFactories[args[1]]
 				newLambda := *lf.Model
 				newLambda.Captures = make([]values.Value, len(lf.CaptureLocations))
@@ -1217,9 +1329,14 @@ loop:
 					newLambda.Captures[i] = val
 				}
 				vm.Mem[args[0]] = values.Value{values.FUNC, newLambda}
-			case Mkit:
+			case Mkit: // Make iterator (dst mem num tok)
+				// v#1 is the range of the iterator, n#2 is 0 or 1 according to whether the iterator  doesn't or
+				// does only return keys, and token number n#3 is used to create a runtime error if the range
+				// is invalid.
 				vm.Mem[args[0]] = vm.NewIterator(vm.Mem[args[1]], args[2] == 1, args[3])
-			case Mkmp:
+			case Mkmp: // Make map (dst mem tok)
+				// Constructs a map from a tuple value v#1, using token n#2 to create an error if the
+				// elements of the tuple have the wrong type, e.g. there's an unhashable key.
 				result := values.Map{}
 				for _, p := range vm.Mem[args[1]].V.([]values.Value) {
 					k := p.V.([]values.Value)[0]
@@ -1232,32 +1349,40 @@ loop:
 					result = result.Set(k, v)
 				}
 				vm.Mem[args[0]] = values.Value{values.MAP, result}
-			case Mkpr:
+			case Mkpr: // Make pair (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.PAIR, []values.Value{vm.Mem[args[1]], vm.Mem[args[2]]}}
-			case Mkst:
+			case Mkst: // Make set (dst mem tok)
+				// Constructs a map from a tuple value v#1, using token n#2 to create an error if the
+				// elements of the tuple have the wrong type, e.g. there's an unhashable value.
 				result := values.Set{}
 				for _, v := range vm.Mem[args[1]].V.([]values.Value) {
 					// TODO --- whether a type can be put in a set should be extractable from its concrete type information.
 					result = result.Add(v)
 				}
 				vm.Mem[args[0]] = values.Value{values.SET, result}
-			case MkSn:
+			case MkSn: // Make snippet (dst sfc)
+				// Here n#1 is a snippet factory analogous to a lambda factory.
 				sFac := vm.SnippetFactories[args[1]]
 				vals := make([]values.Value, len(sFac.Bindle.ValueLocs))
 				for i, v := range sFac.Bindle.ValueLocs {
 					vals[i] = vm.Mem[v]
 				}
 				vm.Mem[args[0]] = values.Value{values.SNIPPET, values.Snippet{vals, sFac.Bindle}}
-			case Mlfi:
+			case Mlfi: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				vm.Mem[args[0]] = values.Value{values.FLOAT, vm.Mem[args[1]].V.(float64) * float64(vm.Mem[args[2]].V.(int))}
-			case Modi:
+			case Modi: // Modulus of integers (dst mem mem tok)
 				divisor := vm.Mem[args[2]].V.(int)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/mod/zero", args[3])
 				} else {
 					vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(int) % vm.Mem[args[2]].V.(int)}
 				}
-			case Mpar:
+			case Mpar: // Make parameterized type (dst ptp tok tup)
+				// Operands :
+				//     n#1 : the number of the parameterized type constructor.
+				//     n#2 : number of a token for throwing an error if the value can't be constructed.
+				//     n#3 : a tuple of arguments to pass to the constructor.
 				vals := []values.Value{}
 				for _, loc := range args[3:] {
 					vals = append(vals, vm.Mem[loc])
@@ -1272,26 +1397,28 @@ loop:
 				} else {
 					vm.Mem[args[0]] = entry
 				}
-			case Mulf:
+			case Mulf: // Multiply floats (dst mem mem)
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(float64) * vm.Mem[args[2]].V.(float64)}
-			case Muli:
+			case Muli: // Multiply ints (dst mem mem)
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(int) * vm.Mem[args[2]].V.(int)}
-			case Negf:
+			case Negf: // Negate flaot (dst mem)
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, -vm.Mem[args[1]].V.(float64)}
-			case Negi:
+			case Negi: // Negate int (dst mem)
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, -vm.Mem[args[1]].V.(int)}
-			case Notb:
+			case Notb: // Binary not (dst mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, !vm.Mem[args[1]].V.(bool)}
-			case Outp:
+			case Outp: // Post to output (mem)
 				vm.OutHandle.Out(vm.Mem[args[0]])
 				vm.PostHappened = true
-			case Outt:
+			case Outt: // Post to terminal (mem)
 				if vm.Mem[vm.UsefulValues.OutputAs].V.(int) == 0 {
 					fmt.Println(vm.Literal(vm.Mem[args[0]], 0))
 				} else {
 					fmt.Println(vm.DefaultDescription(vm.Mem[args[0]]))
 				}
-			case Psql:
+			case Psql: // Post to SQL (dst mem mem tok)
+				// Here v#1 is the SQL accessor object and v#2 is a snippet. We return either `OK` or an 
+				// error created using the token n#3
 				sqlObj := vm.Mem[args[1]].V.(*sql.DB)
 				snippet := vm.Mem[args[2]].V.(values.Snippet).Data
 				buf := strings.Builder{}
@@ -1331,7 +1458,8 @@ loop:
 					}
 				}
 				vm.Mem[args[0]] = vm.evalPostSQL(sqlObj, buf.String(), vals, args[3])
-			case Qabt:
+			case Qabt: // Test abstract type  (mem tup loc)
+				// Jumps to the location n#2 if the type of v#0 is not in the tuple of type numbers in #1.
 				for _, t := range args[1 : len(args)-1] {
 					if vm.Mem[args[0]].T == values.ValueType(t) {
 						loc = loc + 1
@@ -1340,42 +1468,47 @@ loop:
 				}
 				loc = args[len(args)-1]
 				continue
-			case Qfls:
+			case Qfls: // Test for false (mem loc)
+				// This jumps to the location number n#1 if v#0 is not false.
 				if vm.Mem[args[0]].V.(bool) {
 					loc = args[1]
 				} else {
 					loc = loc + 1
 				}
 				continue
-			case Qitr:
+			case Qitr: // Test for end of iterator (mem loc)
+				// This jumps to location number n#1 if the iterator v#0 hasn't finished iterating.
 				if vm.Mem[args[0]].V.(Iterator).Unfinished() {
 					loc = args[1]
 				} else {
 					loc = loc + 1
 				}
 				continue
-			case QleT:
+			case QleT: // Test length of tuple <= n (mem num loc)
+				// Jumps to location number n#2 if the length of the tuple value v#0 isn't less than or equal to n#1.
 				if vm.Mem[args[0]].T == values.TUPLE && len(vm.Mem[args[0]].V.([]values.Value)) <= int(args[1]) {
 					loc = loc + 1
 				} else {
 					loc = args[2]
 				}
 				continue
-			case QlnT:
+			case QlnT: // Test length of tuple < n (mem num loc)
+				// Jumps to location number n#2 if the length of the tuple value v#0 isn't less than or equal to n#1.
 				if len(vm.Mem[args[0]].V.([]values.Value)) == int(args[1]) {
 					loc = loc + 1
 				} else {
 					loc = args[2]
 				}
 				continue
-			case Qlog:
+			case Qlog: // Jumps to location number n#0 if logging is turned off (loc)
 				if vm.logging {
 					loc = loc + 1
 				} else {
 					loc = args[0]
 				}
 				continue
-			case Qnab:
+			case Qnab: // Test not in abstract type  (mem tup loc)
+				// Jumps to the location n#2 if the type of v#0 is in the tuple of type numbers in #1.
 				for _, t := range args[1 : len(args)-1] {
 					if vm.Mem[args[0]].T == values.ValueType(t) {
 						loc = args[len(args)-1]
@@ -1384,28 +1517,33 @@ loop:
 				}
 				loc = loc + 1
 				continue
-			case Qntp:
+			case Qntp: // Test not of type  (mem typ loc)
+				// Jumps to the location n#2 if the type of v#0 is not the type numbers in n#1.
 				if vm.Mem[args[0]].T != values.ValueType(args[1]) {
 					loc = loc + 1
 				} else {
 					loc = args[2]
 				}
 				continue
-			case Qsat:
+			case Qsat: // Test not `UNSAT` (mem loc)
+				// Jumps to location n#1 if v#0 is an unsatisfied conditional.
 				if vm.Mem[args[0]].T != values.UNSATISFIED_CONDITIONAL {
 					loc = loc + 1
 				} else {
 					loc = args[1]
 				}
 				continue
-			case Qsnq:
+			case Qsnq: // Test singleton (mem loc)
+				// Jumps to location n#1 if v#2 is a tuple.
 				if vm.Mem[args[0]].T >= values.NULL {
 					loc = loc + 1
 				} else {
 					loc = args[1]
 				}
 				continue
-			case Qtpt:
+			case Qtpt: // Test tuple types (mem num tup loc)
+				// Jumps to location n#3 if the first n#1 elements of the tuple value v#0 don't have types corresponding
+				// to the type numbers in n#2.
 				vals := vm.Mem[args[0]].V.([]values.Value)
 				slice := []values.Value{}
 				if int(args[1]) <= len(vals) {
@@ -1426,37 +1564,44 @@ loop:
 				}
 				loc = loc + 1
 				continue
-			case Qtru:
+			case Qtru: // Test true (mem loc)
+				// Jumps to location n#1 if v#0 isn't true
 				if vm.Mem[args[0]].V.(bool) {
 					loc = loc + 1
 				} else {
 					loc = args[1]
 				}
 				continue
-			case Qtyp:
+			case Qtyp: // Test type membership (mem typ loc)
+				// Jumps to location #2 if v#0 doesn't have type number n#1
 				if vm.Mem[args[0]].T == values.ValueType(args[1]) {
 					loc = loc + 1
 				} else {
 					loc = args[2]
 				}
 				continue
-			case Ret:
+			case Ret: // Return ()
+				// If the height of the return stack is strictly greater than it was when the vm's `.Run` 
+				// method was called, then we pop the top off the return stack and jump to that location.
+				// Otherwise we've finished exacuting `.Run` and can return.
 				if len(vm.callstack) == stackHeight { // This is so that we can call "Run" when we have things on the stack and it will bottom out at the appropriate time.
 					break loop
 				}
 				loc = vm.callstack[len(vm.callstack)-1]
 				vm.callstack = vm.callstack[0 : len(vm.callstack)-1]
-			case Rpop:
+			case Rpop: // Pop recursion data ()
 				rData := vm.recursionStack[len(vm.recursionStack)-1]
 				vm.recursionStack = vm.recursionStack[:len(vm.recursionStack)-1]
 				copy(vm.Mem[rData.loc:int(rData.loc)+len(rData.mems)], rData.mems)
-			case Rpsh:
+			case Rpsh: // Push recursion data (num num)
 				lowLoc := args[0]
 				highLoc := args[1]
 				memToSave := make([]values.Value, highLoc-lowLoc)
 				copy(memToSave, vm.Mem[lowLoc:highLoc])
 				vm.recursionStack = append(vm.recursionStack, recursionData{memToSave, lowLoc})
-			case SliL:
+			case SliL: // Slice of list (dst mem mem tok)
+				// v#1 is a list, v#2 is a pair; token n#3 is used to create errors for e.g. when the pair
+				// is out of bounds.
 				vec := vm.Mem[args[1]].V.(vector.Vector)
 				ix := vm.Mem[args[2]].V.([]values.Value)
 				if ix[0].T != values.INT {
@@ -1480,7 +1625,9 @@ loop:
 					break Switch
 				}
 				vm.Mem[args[0]] = values.Value{values.LIST, vec.SubVector(ix[0].V.(int), ix[1].V.(int))}
-			case Slis:
+			case Slis: // Slice of string (dst mem mem tok)
+				// v#1 is a string, v#2 is a pair; token n#3 is used to create errors for e.g. when the pair
+				// is out of bounds.
 				str := vm.Mem[args[1]].V.(string)
 				ix := vm.Mem[args[2]].V.([]values.Value)
 				if ix[0].T != values.INT {
@@ -1504,7 +1651,9 @@ loop:
 					break Switch
 				}
 				vm.Mem[args[0]] = values.Value{values.STRING, str[ix[0].V.(int):ix[1].V.(int)]}
-			case SliT:
+			case SliT: // Slice of tuple (dst mem mem tok)
+				// v#1 is a tuple, v#2 is a pair; token n#3 is used to create errors for e.g. when the pair
+				// is out of bounds.
 				tup := vm.Mem[args[1]].V.([]values.Value)
 				ix := vm.Mem[args[2]].V.([]values.Value)
 				if ix[0].T != values.INT {
@@ -1528,9 +1677,12 @@ loop:
 					break Switch
 				}
 				vm.Mem[args[0]] = values.Value{values.TUPLE, tup[ix[0].V.(int):ix[1].V.(int)]}
-			case SlTn:
+			case SlTn: // Hard slice tuple (dst mem num)
+				// Returns the tuple consisting of the elements from n#1 to the end of the tuple value v#1.
 				vm.Mem[args[0]] = values.Value{values.TUPLE, (vm.Mem[args[1]].V.([]values.Value))[args[2]:]}
-			case StrP:
+			case StrP: // Make parameterized struct. (dst tok tup)
+				// Constructs a parameterized struct of type n#1 from the values in the memory locations given in #2.
+				// An error will be constructed from token number n#1 if the struct can't be constructed.
 				typeNo := vm.Mem[args[2]].V.(values.AbstractType).Types[0]
 				fields := make([]values.Value, 0, len(args)-3)
 				for _, loc := range args[3:] {
@@ -1547,25 +1699,30 @@ loop:
 				} else {
 					vm.Mem[args[0]] = values.Value{typeNo, fields}
 				}
-			case Strc:
+			case Strc: // Make struct (dst typ tup)
+				// Constructs a struct of type n#1 from the values in the memory locations given in #2.
 				fields := make([]values.Value, 0, len(args)-2)
 				for _, loc := range args[2:] {
 					fields = append(fields, vm.Mem[loc])
 				}
 				vm.Mem[args[0]] = values.Value{values.ValueType(args[1]), fields}
-			case Strx:
+			case Strx: // String of value (dst mem)
 				vm.Mem[args[0]] = values.Value{values.STRING, vm.DefaultDescription(vm.Mem[args[1]])}
-			case Subf:
+			case Subf: // Subtract floats (dst mem mem)
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(float64) - vm.Mem[args[2]].V.(float64)}
-			case Subi:
+			case Subi: // Subtract integers (dst mem mem)
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(int) - vm.Mem[args[2]].V.(int)}
-			case SubS:
+			case SubS: // Subtract sets (dst mem mem)
 				result := vm.Mem[args[1]].V.(values.Set).Subtract(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
-			case Thnk:
+			case Thnk: // Initialize thunk (dst mem loc)
+				// This will set m#0 to be a value of type THUNK with a payload of n#1 and n#2. The first of these
+				// says where the result of unthinking the thunk will end up; the second says where the VM will have 
+				// to jsr to to unthunk it.
 				vm.Mem[args[0]] = values.Value{values.THUNK, values.Thunk{args[1], args[2]}}
-			case Tinf:
-				// TODO --- as this is permanent state, much of it could be stuck in the ConcreteTypeInfo.
+			case Tinf: // Get info for type (dst mem)
+				// This dumps the type info for the type into a list returned in m#0. This is done under the hood,
+				// the user never sees the raw list.
 				result := vector.Empty
 				ty := vm.Mem[args[1]].V.(values.AbstractType)
 				conc := (ty.Len() == 1)
@@ -1635,14 +1792,17 @@ loop:
 					result = result.Conj(values.Value{values.NULL, nil})
 				}
 				vm.Mem[args[0]] = values.Value{values.LIST, result}
-			case Tplf:
+			case Tplf: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				tup := vm.Mem[args[1]].V.([]values.Value)
 				if len(tup) == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/tup/first", args[2])
 					break Switch
 				}
 				vm.Mem[args[0]] = tup[0]
-			case Trak:
+			case Trak: // Make tracking data (trk)
+				// This constructs live tracking data saying what the compiler is doing now from the static tracking 
+				// datum number n#0
 				staticData := vm.Tracking[args[0]]
 				newData := TrackingData{staticData.Flavor, staticData.Tok, staticData.LogToLoc, staticData.LogTimeLoc, make([]any, len(staticData.Args))}
 				copy(newData.Args, staticData.Args) // This is because only things of type uint32 are meant to be replaced.
@@ -1652,7 +1812,8 @@ loop:
 					}
 				}
 				vm.LiveTracking = append(vm.LiveTracking, newData)
-			case TuLx:
+			case TuLx: // Tuple of possible list (dst mem tok)
+				// Splats the list if it is a list, otherwise returns an error constructed from token t#2.
 				vector, ok := vm.Mem[args[1]].V.(vector.Vector)
 				if !ok {
 					vm.Mem[args[0]] = vm.makeError("vm/splat/type", args[2], args[1])
@@ -1665,7 +1826,8 @@ loop:
 					slice[i] = element.(values.Value)
 				}
 				vm.Mem[args[0]] = values.Value{values.TUPLE, slice}
-			case TupL:
+			case TupL: // Tuple of list (dst mem)
+				// That is, this implements the splat operator `L ...`.
 				vector := vm.Mem[args[1]].V.(vector.Vector)
 				length := vector.Len()
 				slice := make([]values.Value, length)
@@ -1674,13 +1836,16 @@ loop:
 					slice[i] = element.(values.Value)
 				}
 				vm.Mem[args[0]] = values.Value{values.TUPLE, slice}
-			case Typu:
+			case Typu: // Type union (dst mem mem)
+				// That is, this implements `typeA/typeB`.
 				lhs := vm.Mem[args[1]].V.(values.AbstractType)
 				rhs := vm.Mem[args[2]].V.(values.AbstractType)
 				vm.Mem[args[0]] = values.Value{values.TYPE, lhs.Union(rhs)}
-			case Typx:
+			case Typx: // Type of value (dst mem)
 				vm.Mem[args[0]] = values.Value{values.TYPE, values.AbstractType{[]values.ValueType{vm.Mem[args[1]].T}}}
-			case UntE:
+			case UntE: // Unthunk error (dst mem)
+				// This takes the error v#1, converts all the arguments of the error of type uint32 to the values
+				// in the corresponding memory locations, and returns it in m#0.
 				oldErr := vm.Mem[args[1]].V.(*err.Error)
 				newArgs := []any{}
 				newVals := []values.Value{}
@@ -1696,14 +1861,19 @@ loop:
 				}
 				vm.Mem[args[0]] = values.Value{values.ERROR,
 					&err.Error{oldErr.ErrorId, oldErr.Message, "", newArgs, newVals, []*token.Token{}, oldErr.Token}}
-			case Untk:
+			case Untk: // Unthunk (dst)
+				// This checks whether v#1 is of type THUNK. If it is, it `jsr`s to the code address contained in the thunk,
+				// gets the evaluated result of the thunk, and puts it into m#0; otherwise it does nothing.
 				if vm.Mem[args[0]].T == values.THUNK {
 					resultLoc := vm.Mem[args[0]].V.(values.Thunk).MLoc
 					codeAddr := vm.Mem[args[0]].V.(values.Thunk).CAddr
 					vm.run(codeAddr, ctx)
 					vm.Mem[args[0]] = vm.Mem[resultLoc]
 				}
-			case Uwrp:
+			case Uwrp: // Unwrap error (dst mem tok)
+				// This turns something of type `error` into something of type `Error`, and ordinary struct defined in the
+				// builtins. The token n#3 is used to return an error if we're trying to unwrap something that is not in
+				// fact of type error
 				if vm.Mem[args[1]].T == values.ERROR {
 					wrappedErr := vm.Mem[args[1]].V.(*err.Error)
 					errWithMessage := wrappedErr
@@ -1714,12 +1884,17 @@ loop:
 				} else {
 					vm.Mem[args[0]] = vm.makeError("vm/unwrap", args[2], vm.DescribeType(vm.Mem[args[1]].T, LITERAL, 0))
 				}
-			case Vlid:
+			case Vlid: // Valid (dst mem)
+				// Returns `true` if v#1 is not of type error
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].T != values.ERROR}
-			case WrHb:
+			case WrHb: // Write to hub (mem mem)
+				// A magical gizmo that lets services which are also hubs tell hub.go what to do. v#0 is a string saying
+				// which hub action we want to take, and v#2 is a list containing parameters.
 				vm.Mem[args[1]].V.(io.Writer).Write([]byte(vm.Mem[args[2]].V.(string)))
 				vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
-			case WthL:
+			case WthL: // List with (dst mem tok tup)
+				// The `with` operator for lists. v#1 is a list, #2 is a tuple of pairs, and token n#2 is for constructing
+				// an error if the pairs are wrong, e.g. if the key of a pair is outside the bounds of the list.
 				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(vector.Vector)}
 				for it := vm.NewValueIterator(args[3:]); ; {
 					pair, ok := it.get()
@@ -1750,7 +1925,9 @@ loop:
 					}
 				}
 				vm.Mem[args[0]] = result
-			case WthM:
+			case WthM: // Map with (dst mem tok tup)
+				// The `with` operator for maps. v#1 is a map, #2 is a tuple of pairs, and token n#2 is for constructing
+				// an error if the pairs are wrong, e.g. if the key of a pair is unhashable.
 				result := values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(values.Map)}
 				for it := vm.NewValueIterator(args[3:]); ; {
 					pair, ok := it.get()
@@ -1781,7 +1958,9 @@ loop:
 					}
 				}
 				vm.Mem[args[0]] = result
-			case WthT:
+			case WthT: // Tuple with (dst mem tok tup)
+				// The `with` operator for tuples. v#1 is a tuple, #2 is a tuple of pairs, and token n#2 is for constructing
+				// an error if the pairs are wrong, e.g. if the key of a pair is outside the bounds of the tuple.
 				typL := vm.Mem[args[1]].V.(values.AbstractType)
 				if typL.Len() != 1 {
 					vm.Mem[args[0]] = vm.makeError("vm/with/type/a", args[2], vm.DescribeAbstractType(typL, LITERAL, 0))
@@ -1841,7 +2020,9 @@ loop:
 					vm.run(typecheck.CallAddress, ctx)
 					vm.Mem[args[0]] = vm.Mem[typecheck.ResultLoc]
 				}
-			case WthZ:
+			case WthZ: // Struct with (dst mem tok tup)
+				// The `with` operator for structs. v#1 is a struct, #2 is a tuple of pairs, and token n#2 is for constructing
+				// an error if the pairs are wrong, e.g. if the key of a pair is not a field of the struct.
 				typ := vm.Mem[args[1]].T
 				outVals := make([]values.Value, len(vm.ConcreteTypeInfo[typ].(StructType).LabelNumbers))
 				copy(outVals, vm.Mem[args[1]].V.([]values.Value))
@@ -1875,7 +2056,9 @@ loop:
 					}
 				}
 				vm.Mem[args[0]] = result
-			case WtoM:
+			case WtoM: // Map without (dst mem tok tup)
+				// v#1 is a map, and #3 is a tuple of key values to be removed from it. Token n#2 is for constructing
+				// an error if any of the values is unhashable unhashable
 				mp := vm.Mem[args[1]].V.(values.Map)
 				for it := vm.NewValueIterator(args[3:]); ; {
 					key, ok := it.get()
@@ -1889,7 +2072,9 @@ loop:
 					mp = (mp).Delete(key)
 				}
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, mp}
-			case Yeet:
+			case Yeet: // Yeet type parameters (dst mem)
+				// If v#1 is of a parameterized type, then this assigns the parameters of this type to m#0 and to the
+				// following memory addresses, one address for each parameter.
 				typeInfo := vm.ConcreteTypeInfo[vm.Mem[args[1]].T]
 				var typeArgs []values.Value
 				switch typeInfo := typeInfo.(type) {
@@ -2247,3 +2432,5 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+

@@ -27,7 +27,7 @@ type operatorInfo struct {
 var opInfo = map[Opcode]operatorInfo{}
 
 func init() {
-        // Set up the operations map.
+    // Set up the operations map.
 	content, _ := os.ReadFile(filepath.Join(settings.PipefishHomeDirectory, "source/vm/operations.md"))
 	lines := strings.Split(string(content), "\n")
 	i := 0
@@ -66,7 +66,7 @@ func init() {
         }
         result = result + "const (\n"
         i++
-        commentRegexp, _ := regexp.Compile(`\s*//*.`)
+        commentRegexp, _ := regexp.Compile(`^\s*//*.`)
         for ; lines[i] != ")"; i++ {
             if commentRegexp.MatchString(lines[i]) || lines[i] == "\t" {
                 continue
@@ -85,6 +85,37 @@ func init() {
         }
         result = result + ")\n"
         os.WriteFile(operationsFile, []byte(result), 0666)
+
+        // Now the comments to vm.go.
+        caseRegexp, _ := regexp.Compile(`(\t\t\tcase [A-Z][A-Za-z1]{2,3}:)\s*(|//.*)`)
+        vmFile := filepath.Join(settings.PipefishHomeDirectory, "source/vm/vm.go")
+        content, _ = os.ReadFile(vmFile)
+        lines = strings.Split(string(content), "\n")
+        result = ""
+        eatComments := false
+        for i = 0; i < len(lines); i++ {
+            line := lines[i]
+            if eatComments && commentRegexp.MatchString(line) {
+                continue
+            }
+            eatComments = false
+            if match := caseRegexp.FindString(line); match != "" {
+                line = caseRegexp.ReplaceAllString(match, `$1`)
+                opcode := line[8:len(line)-1]
+                runes := []rune(opcode)
+                runes[0] = unicode.ToLower(runes[0])
+                opcode = string(runes)
+                opNumber := OPCODES[opcode]
+                result = result + line + " // " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
+                for _, noteLine := range opInfo[opNumber].notes {
+                    result = result + "\t\t\t\t// " + noteLine + "\n"
+                }
+                eatComments = true
+                continue
+            }
+            result = result + line + "\n"
+        }
+        os.WriteFile(vmFile, []byte(result), 0666)
     }
 }
 
