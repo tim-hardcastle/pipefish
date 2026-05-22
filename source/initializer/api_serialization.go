@@ -25,7 +25,6 @@ func (iz *Initializer) SerializeApi() string {
 			if settings.MandatoryImportSet().Contains(filepath.ToSlash(info.Token.Source)) {
 				continue
 			}
-			println(info.Token.Source, filepath.ToSlash(info.Token.Source), name)
 			buf.WriteString("PARTYPE | ")
 			buf.WriteString(name)
 			buf.WriteString(" | ")
