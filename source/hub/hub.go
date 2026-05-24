@@ -557,6 +557,12 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		} else {
 			h.WriteString(result)
 		}
+	case "unadminister":
+		database.DropTables(h.Db)
+		h.setSV("isAdministered", pf.BOOL, false)
+		h.TerminalUsername = ""
+		h.TerminalPassword = ""
+		h.setServiceName("")
 	case "values":
 		if len(h.ers) == 0 {
 			h.WriteError("there are no recent errors.")
@@ -637,15 +643,13 @@ func (hub *Hub) makeWriter() io.Writer {
 }
 
 // Things that only make sense if we have RBAM set up.
-var rbamVerbs = dtypes.From("add", "create", "log-on", "log-off", "let",
+var rbamVerbs = dtypes.From("add", "create", "log-on", "log-off", "let", "let-own", "let-use",
 	"register", "groups", "groups-of-user", "groups-of-service", "services of group",
-	"services-of-user", "users-of-service", "users-of-group", "let-use", "let-own")
+	"services-of-user", "unadminister", "users-of-service", "users-of-group",)
 
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
-// TODO --- errors will need to be stored per user.
 // These are also exactly the things you can do remotely if RBAM is not turned on.
-var greenList = dtypes.From("api", "errors", "help", "log-on", "log-off",
-	"groups", "register", "services", "values", "why")
+var greenList = dtypes.From("log-on", "log-off", "groups", "register", "services")
 
 func (hub *Hub) Quit() {
 	hub.saveHubFile()
@@ -860,8 +864,7 @@ func (hub *Hub) saveHubFile() string {
 	buf.WriteString(hubService.ToLiteral(hub.getSV("width")))
 	buf.WriteString("\n\n")
 	buf.WriteString("isAdministered = ")
-	buf.WriteString("false") // Temporary replacement for the below while debugging.
-	// buf.WriteString(hubService.ToLiteral(hub.getSV("isAdministered")))
+	buf.WriteString(hubService.ToLiteral(hub.getSV("isAdministered")))
 	buf.WriteString("\n\n")
 
 	fname := hub.MakeFilepath(hub.hubFilepath)

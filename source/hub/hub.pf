@@ -270,6 +270,9 @@ trace :
 track :
     do("track", [])
 
+unadminister :
+    do("unadminister", [])
+
 unadd(usr string) to (grp string) :
     do("unadd", [usr, grp])
 

@@ -557,6 +557,15 @@ VALUES ($1)`
 	return err
 }
 
+func DropTables(db *sql.DB) {
+	query :=
+		`DROP TABLE _GroupServices;
+DROP TABLE _GroupMemberships;
+DROP TABLE _Groups;
+DROP TABLE _Users`
+	db.Exec(query)
+}
+
 func encrypt(s string) string {
 	result, _ := bcrypt.GenerateFromPassword([]byte(s), bcrypt.DefaultCost)
 	return string(result)
