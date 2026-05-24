@@ -95,10 +95,10 @@ func enumToEnglish(s string) string {
 	return strings.Title(s)
 }
 
-func AddAdmin(db *sql.DB, username, firstName, lastName, email, password, dir string) error {
+func AddAdmin(db *sql.DB, username, firstName, lastName, email, password string) error {
 
 	query :=
-		`CREATE TABLE IF NOT EXISTS _Users (
+		`CREATE TABLE IF NOT EXISTS PipefishUsers (
     username varchar(32),
     firstName varchar(32),
     lastName varchar(32),
@@ -106,30 +106,30 @@ func AddAdmin(db *sql.DB, username, firstName, lastName, email, password, dir st
     email varchar(60),
 PRIMARY KEY (username));
 
-CREATE TABLE IF NOT EXISTS _Groups (
+CREATE TABLE IF NOT EXISTS PipefishGroups (
     groupName varchar(32),
 PRIMARY KEY (groupName));
 
-CREATE TABLE IF NOT EXISTS _GroupMemberships (
-    username varchar(32) REFERENCES _Users ON DELETE CASCADE,
-    groupName varchar(32) REFERENCES _Groups ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS PipefishGroupMemberships (
+    username varchar(32) REFERENCES PipefishUsers ON DELETE CASCADE,
+    groupName varchar(32) REFERENCES PipefishGroups ON DELETE CASCADE,
     owner BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (username, groupName));
 
-CREATE TABLE IF NOT EXISTS _GroupServices (
-    groupName varchar(32) REFERENCES _Groups ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS PipefishGroupServices (
+    groupName varchar(32) REFERENCES PipefishGroups ON DELETE CASCADE,
 	serviceName varchar(32),
 PRIMARY KEY (groupName, serviceName));
 
-INSERT INTO _Groups (groupName)
+INSERT INTO PipefishGroups (groupName)
 VALUES('Admin')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO _Groups (groupName)
+INSERT INTO PipefishGroups (groupName)
 VALUES('Users')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO _Groups (groupName)
+INSERT INTO PipefishGroups (groupName)
 VALUES('Guests')
 ON CONFLICT DO NOTHING;`
 	_, err := db.Exec(query)
@@ -152,14 +152,14 @@ ON CONFLICT DO NOTHING;`
 
 func AddUserToGroup(db *sql.DB, username, groupName string, owner bool) error {
 	query :=
-		`INSERT INTO _GroupMemberships(username, groupName, owner)
+		`INSERT INTO PipefishGroupMemberships(username, groupName, owner)
 	VALUES ($1, $2, $3)`
 	_, err := db.Exec(query, username, groupName, owner)
 	return err
 }
 
 func ChangePassword(db *sql.DB, username, newPassword string) error {
-	query := `UPDATE _Users
+	query := `UPDATE PipefishUsers
 SET password = $1
 WHERE username = $2;`
 	_, err := db.Exec(query, encrypt(newPassword), username)
@@ -168,14 +168,14 @@ WHERE username = $2;`
 
 func UnAddUserToGroup(db *sql.DB, username, groupName string) error {
 	query :=
-		`DELETE FROM _GroupMemberships WHERE username = $1 AND groupName = $2)`
+		`DELETE FROM PipefishGroupMemberships WHERE username = $1 AND groupName = $2)`
 	_, err := db.Exec(query, username, groupName)
 	return err
 }
 
 func LetGroupUseService(db *sql.DB, groupName, serviceName string) error {
 	query :=
-		`INSERT INTO _GroupServices(groupName, serviceName)
+		`INSERT INTO PipefishGroupServices(groupName, serviceName)
 	VALUES ($1, $2)`
 	_, err := db.Exec(query, groupName, serviceName)
 	return err
@@ -183,7 +183,7 @@ func LetGroupUseService(db *sql.DB, groupName, serviceName string) error {
 
 func UnLetGroupUseService(db *sql.DB, groupName, serviceName string) error {
 	query :=
-		`DELETE FROM _GroupServices WHERE groupName = $1 AND serviceName = $2)`
+		`DELETE FROM PipefishGroupServices WHERE groupName = $1 AND serviceName = $2)`
 	_, err := db.Exec(query, groupName, serviceName)
 	return err
 }
@@ -210,7 +210,7 @@ type groupRow struct {
 }
 
 func GetGroupsOfUser(db *sql.DB, username string, ownGroups bool) (string, error) {
-	rows, err := db.Query("SELECT * FROM _GroupMemberships WHERE username = $1", username)
+	rows, err := db.Query("SELECT * FROM PipefishGroupMemberships WHERE username = $1", username)
 	if err != nil {
 
 		return "", err
@@ -276,7 +276,7 @@ func GetGroupsOfUser(db *sql.DB, username string, ownGroups bool) (string, error
 }
 
 func GetUsersOfGroup(db *sql.DB, groupName string) (string, error) {
-	rows, err := db.Query("SELECT * FROM _GroupMemberships WHERE groupName = $1", groupName)
+	rows, err := db.Query("SELECT * FROM PipefishGroupMemberships WHERE groupName = $1", groupName)
 	if err != nil {
 		return "", err
 	}
@@ -331,9 +331,9 @@ func GetUsersOfGroup(db *sql.DB, groupName string) (string, error) {
 
 func GetServicesOfUser(db *sql.DB, username string, ownServices bool) (string, error) {
 	rows, err := db.Query(
-		`SELECT _GroupServices.serviceName FROM _GroupMemberships 
-INNER JOIN _GroupServices
-ON _GroupMemberships.groupName = _GroupServices.groupName
+		`SELECT PipefishGroupServices.serviceName FROM PipefishGroupMemberships 
+INNER JOIN PipefishGroupServices
+ON PipefishGroupMemberships.groupName = PipefishGroupServices.groupName
 WHERE username = $1`, username)
 	if err != nil {
 		return "", err
@@ -377,9 +377,9 @@ WHERE username = $1`, username)
 
 func GetUsersOfService(db *sql.DB, serviceName string) (string, error) {
 	rows, err := db.Query(
-		`SELECT _GroupMemberships.username FROM _GroupServices 
-INNER JOIN _GroupMemberships
-ON _GroupMemberships.groupName = _GroupServices.groupName
+		`SELECT PipefishGroupMemberships.username FROM PipefishGroupServices 
+INNER JOIN PipefishGroupMemberships
+ON PipefishGroupMemberships.groupName = PipefishGroupServices.groupName
 WHERE serviceName = $1`, serviceName)
 	if err != nil {
 		return "", err
@@ -414,7 +414,7 @@ WHERE serviceName = $1`, serviceName)
 }
 
 func GetServicesOfGroup(db *sql.DB, groupName string) (string, error) {
-	rows, err := db.Query("SELECT serviceName FROM _GroupServices WHERE groupName = $1", groupName)
+	rows, err := db.Query("SELECT serviceName FROM PipefishGroupServices WHERE groupName = $1", groupName)
 	if err != nil {
 		return "", err
 	}
@@ -446,7 +446,7 @@ func GetServicesOfGroup(db *sql.DB, groupName string) (string, error) {
 }
 
 func GetGroupsOfService(db *sql.DB, serviceName string) (string, error) {
-	rows, err := db.Query("SELECT groupName FROM _GroupServices WHERE serviceName = $1", serviceName)
+	rows, err := db.Query("SELECT groupName FROM PipefishGroupServices WHERE serviceName = $1", serviceName)
 	if err != nil {
 		return "", err
 	}
@@ -480,7 +480,7 @@ func GetGroupsOfService(db *sql.DB, serviceName string) (string, error) {
 func IsUserGroupOwner(db *sql.DB, username, groupName string) error {
 	var count int
 
-	row := db.QueryRow("SELECT COUNT (*) FROM _GroupMemberships WHERE username = $1 AND groupName = $2 AND owner = TRUE",
+	row := db.QueryRow("SELECT COUNT (*) FROM PipefishGroupMemberships WHERE username = $1 AND groupName = $2 AND owner = TRUE",
 		username, groupName)
 	err := row.Scan(&count)
 	if err != nil {
@@ -499,7 +499,7 @@ func IsUserAdmin(db *sql.DB, username string) (bool, error) {
 func IsUserInGroup(db *sql.DB, username, groupName string) (bool, error) {
 	var count int
 
-	row := db.QueryRow("SELECT COUNT (*) FROM _GroupMemberships WHERE username = $1 AND groupName = $2",
+	row := db.QueryRow("SELECT COUNT (*) FROM PipefishGroupMemberships WHERE username = $1 AND groupName = $2",
 		username, groupName)
 	err := row.Scan(&count)
 	if err != nil {
@@ -517,10 +517,10 @@ func DoesUserHaveAccess(db *sql.DB, username, serviceName string) (bool, error) 
 	var count int
 
 	row := db.QueryRow(
-		`SELECT COUNT (*) FROM _GroupMemberships 
-INNER JOIN _GroupServices
+		`SELECT COUNT (*) FROM PipefishGroupMemberships 
+INNER JOIN PipefishGroupServices
 USING (groupName)
-WHERE _GroupMemberships.username = $1 AND _GroupServices.serviceName = $2`,
+WHERE PipefishGroupMemberships.username = $1 AND PipefishGroupServices.serviceName = $2`,
 		username, serviceName)
 	err := row.Scan(&count)
 	if err != nil {
@@ -535,7 +535,7 @@ type userRow struct {
 
 func ValidateUser(db *sql.DB, username, password string) error {
 	var userData userRow
-	row := db.QueryRow("SELECT password FROM _Users WHERE username = $1", username)
+	row := db.QueryRow("SELECT password FROM PipefishUsers WHERE username = $1", username)
 	if err := row.Scan(&userData.password); err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("the hub doesn't recognize that combination of username and password")
@@ -555,7 +555,7 @@ type emailRow struct {
 
 func ValidateEmail(db *sql.DB, username, email string) error {
 	var userData emailRow
-	row := db.QueryRow("SELECT email FROM _Users WHERE username = $1", username)
+	row := db.QueryRow("SELECT email FROM PipefishUsers WHERE username = $1", username)
 	if err := row.Scan(&userData.email); err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("the hub doesn't recognize that combination of username and email address")
@@ -571,7 +571,7 @@ func ValidateEmail(db *sql.DB, username, email string) error {
 
 func AddUser(db *sql.DB, username, firstName, lastName, email, password string) error {
 	query :=
-		`INSERT INTO _Users(username, firstName, lastName, password, email)
+		`INSERT INTO PipefishUsers(username, firstName, lastName, password, email)
 	VALUES ($1, $2, $3, $4, $5)`
 	_, err := db.Exec(query, username, firstName, lastName, encrypt(password), encrypt(email))
 
@@ -580,7 +580,7 @@ func AddUser(db *sql.DB, username, firstName, lastName, email, password string) 
 
 func AddGroup(db *sql.DB, groupName string) error {
 	query :=
-		`INSERT INTO _Groups(groupName)
+		`INSERT INTO PipefishGroups(groupName)
 VALUES ($1)`
 	_, err := db.Exec(query, groupName)
 
@@ -589,10 +589,10 @@ VALUES ($1)`
 
 func DropTables(db *sql.DB) {
 	query :=
-		`DROP TABLE _GroupServices;
-DROP TABLE _GroupMemberships;
-DROP TABLE _Groups;
-DROP TABLE _Users`
+		`DROP TABLE PipefishGroupServices;
+DROP TABLE PipefishGroupMemberships;
+DROP TABLE PipefishGroups;
+DROP TABLE PipefishUsers`
 	db.Exec(query)
 }
 

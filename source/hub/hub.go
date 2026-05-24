@@ -327,7 +327,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError("mailer has not been configured: edit the `hub.pf` file of this hub to specify a mailer.")
 			break
 		}
-		err := database.AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4], settings.PipefishHomeDirectory)
+		err := database.AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4])
 		if err != nil {
 			h.WriteError(err.Error())
 			break
