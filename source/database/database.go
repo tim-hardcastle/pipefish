@@ -5,9 +5,11 @@ package database
 // error-handling.
 
 import (
+	"crypto/rand"
 	"database/sql"
 	"errors"
 	"fmt"
+	"math/big"
 	"sort"
 	"strings"
 
@@ -153,6 +155,14 @@ func AddUserToGroup(db *sql.DB, username, groupName string, owner bool) error {
 		`INSERT INTO _GroupMemberships(username, groupName, owner)
 	VALUES ($1, $2, $3)`
 	_, err := db.Exec(query, username, groupName, owner)
+	return err
+}
+
+func ChangePassword(db *sql.DB, username, newPassword string) error {
+	query := `UPDATE _Users
+SET password = $1
+WHERE username = $2;`
+	_, err := db.Exec(query, encrypt(newPassword), username)
 	return err
 }
 
@@ -539,6 +549,26 @@ func ValidateUser(db *sql.DB, username, password string) error {
 	return nil
 }
 
+type emailRow struct {
+	email string
+}
+
+func ValidateEmail(db *sql.DB, username, email string) error {
+	var userData emailRow
+	row := db.QueryRow("SELECT email FROM _Users WHERE username = $1", username)
+	if err := row.Scan(&userData.email); err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("the hub doesn't recognize that combination of username and email address")
+		}
+		return err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(userData.email), []byte(email)); err != nil {
+		return errors.New("the hub doesn't recognize that combination of username and email address")
+	}
+	return nil
+}
+
 func AddUser(db *sql.DB, username, firstName, lastName, email, password string) error {
 	query :=
 		`INSERT INTO _Users(username, firstName, lastName, password, email)
@@ -569,4 +599,14 @@ DROP TABLE _Users`
 func encrypt(s string) string {
 	result, _ := bcrypt.GenerateFromPassword([]byte(s), bcrypt.DefaultCost)
 	return string(result)
+}
+
+func MakePassword() string {
+	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	password := make([]byte, 16)
+	for i := range password {
+		index, _ := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+		password[i] = chars[index.Int64()]
+	}
+	return string(password)
 }

@@ -12,14 +12,30 @@ cmd
 
 // Verb are in alphabetical order:
 // add, config, create, do, edit, env, errors, halt, help, let, listen, live, log, log on, 
-// log off, quit, register, replay, run, services, snap, test, trace, track, where, why, 
-// values
+// log off, quit, register, replay, run, services, snap, test, trace, track, unadminister,
+// unregister, where, why, values
 
 add(usr string) to (grp string) :
     do("add", [usr, grp])
 
 api :
     do("api", [])
+
+change password :
+    global $_external
+    $_external :
+        error "this setup wizard requires keyboard input on the terminal the remote hub is running on, so you can't use it; " ..
+         .. + "you should use `change password (pword string)` instead"
+    else :
+        get pword from masked Keyboard("New password? ")
+        get confirm from masked Keyboard("Confirm password? ")
+        pword != confirm :
+            error "password and confirmation don't match"
+        else :
+            do("change-password", [pword])
+
+change password (pword string) :
+    do("change-password", [pword])
 
 config admin :
     global $_external 
@@ -116,6 +132,9 @@ env wipe :
 
 errors :
     do("errors", [])
+
+forgot password (usr, email string) :
+    do("forgot-password", [usr, email])
 
 groups :
     do("groups", [])
@@ -270,11 +289,11 @@ trace :
 track :
     do("track", [])
 
-unadminister :
-    do("unadminister", [])
-
 unadd(usr string) to (grp string) :
     do("unadd", [usr, grp])
+
+unadminister :
+    do("unadminister", [])
 
 uncreate(grp string) :
     do("uncreate", [grp])

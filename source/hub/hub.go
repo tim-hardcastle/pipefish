@@ -278,6 +278,13 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	var isAdmin bool
 	var err error
 	if h.administered() {
+		if username == "" && !(verb == "log-on" || verb == "register" || verb == "forgot-password") {
+			h.WriteError("this is an administered hub and you aren't logged on. Please use either " +
+				"`hub register` to register as a guest; `hub forgot password(username, email string)` " +
+				"to replace your password; or `hub log on` to log on if you're trying to use the hub on " +
+				"the terminal it's running on and you're already registered with this hub.")
+			return len(b), nil
+		}
 		isAdmin, err = database.IsUserAdmin(h.Db, username)
 		if err != nil {
 			h.WriteError(err.Error())
@@ -285,12 +292,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 		if !isAdmin && !greenList.Contains(verb) {
 			h.WriteError("you don't have the admin status necessary to do that.")
-			return len(b), nil
-		}
-		if username == "" && !(verb == "log-on" || verb == "register") {
-			h.WriteError("\nthis is an administered hub and you aren't logged on. Please enter either " +
-				"`hub register` to register as a guest, or `hub log on` to log on if you're already registered " +
-				"with this hub.")
 			return len(b), nil
 		}
 	} else {
@@ -312,6 +313,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	case "api":
 		h.update()
 		h.WriteString(h.Services[h.currentServiceName()].Api(h.currentServiceName(), h.getFonts(), h.getSV("width").V.(int)))
+	
 	case "config-admin":
 		if h.administered() {
 			h.WriteError("this hub is already administered.")
@@ -321,7 +323,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError("database has not been configured: edit the `hub.pf` file of this hub to specify a database.")
 			break
 		}
-		if !h.hasMailer() {
+		if !h.hasMailer() && !testing.Testing() {
 			h.WriteError("mailer has not been configured: edit the `hub.pf` file of this hub to specify a mailer.")
 			break
 		}
@@ -334,6 +336,19 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.TerminalPassword = args[4]
 		h.WritePretty("You are logged on as " + h.TerminalUsername + ".\n")
 		h.setSV("isAdministered", pf.BOOL, true)
+	case "change-password" :
+		err = database.ChangePassword(h.Db, username, args[0])
+		if err != nil {
+			h.WriteError(err.Error())
+		} else {
+			if h.getSV("$_external").V.(bool) {
+				h.WritePretty("You have changed your password. Any connections that relied on the old password are " +
+				"now broken, presumably including this one. Please recompile any client services that depended on the old password " +
+				"to make them operative again.")
+			} else {
+				h.TerminalPassword = args[0]	
+			}
+		}
 	case "create":
 		err := database.AddGroup(h.Db, args[0])
 		if err != nil {
@@ -371,6 +386,24 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	case "errors":
 		r, _ := h.Services[h.currentServiceName()].GetErrorReport()
 		h.WritePretty(r)
+	case "forgot-password":
+		err := database.ValidateEmail(h.Db, args[0], args[1])
+		if err != nil {
+			h.WriteError(err.Error())
+		} else {
+			newPassword := database.MakePassword()
+			database.ChangePassword(h.Db, args[0], newPassword)
+			msg := `Subject: Replacement password for ` + args[0] + "\n" + 
+`From: Pipefish mailer (do not reply)
+
+Your replacement password for your account ` + args[0] + ` is ` + newPassword + ".\n\nYou should change this as soon as possible to a new password of your choosing."
+			err := smtp.SendMail(h.mailData.addr, h.mailData.auth, h.mailData.sender, []string{args[1]}, []byte(msg))
+			if err != nil {
+				h.WriteError(err.Error())
+			} else {
+				h.WritePretty("An email with a replacement password has been sent to <C>" + args[1] + "</>.")
+			}
+		}
 	case "groups-of-user":
 		result, err := database.GetGroupsOfUser(h.Db, args[0], false)
 		if err != nil {
@@ -443,9 +476,12 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.TerminalUsername = ""
 		h.TerminalPassword = ""
 		h.makeEmptyServiceCurrent()
-		h.WritePretty("<G>OK</>\n\nThis is an administered hub and you aren't logged on. Please enter either " +
-			"`hub register` to register as a user, or `hub log on` to log on if you're already registered " +
-			"with this hub.\n\n")
+		h.WritePretty("<G>OK</>")
+		h.WriteString("\n\n" + strings.Repeat("┈", hw.hub.getSV("width").V.(int)) + "\n\n")
+		h.WritePretty("This is an administered hub and you aren't logged on. Please use either " +
+				"`hub register` to register as a guest; `hub forgot password(username, email string)` " +
+				"to replace your password; or `hub log on` to log on if you're trying to use the hub on " +
+				"the terminal it's running on and you're already registered with this hub.\n\n")
 	case "groups":
 		result, err := database.GetGroupsOfUser(h.Db, username, true)
 		if err != nil {
@@ -643,13 +679,14 @@ func (hub *Hub) makeWriter() io.Writer {
 }
 
 // Things that only make sense if we have RBAM set up.
-var rbamVerbs = dtypes.From("add", "create", "log-on", "log-off", "let", "let-own", "let-use",
-	"register", "groups", "groups-of-user", "groups-of-service", "services of group",
-	"services-of-user", "unadminister", "users-of-service", "users-of-group",)
+var rbamVerbs = dtypes.From("add", "create", "change-password", "forgot-password", "groups", 
+	"groups-of-user", "groups-of-service", "let", "let-own", "let-use", "log-off", "log-on", 
+	"register", "services of group", "services-of-user", "unadminister", "users-of-service", 
+	"users-of-group",)
 
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
 // These are also exactly the things you can do remotely if RBAM is not turned on.
-var greenList = dtypes.From("log-on", "log-off", "groups", "register", "services")
+var greenList = dtypes.From("change-password", "forgot-password", "log-on", "log-off", "groups", "register", "services")
 
 func (hub *Hub) Quit() {
 	hub.saveHubFile()
