@@ -1,4 +1,4 @@
-var
+var private
 
 allServices = map(`hub`::`/home/tim/Pipefish/source/hub/test-files/default/hub.hub`)
 
@@ -9,4 +9,6 @@ isLive = true
 theme Theme? = DARK_MODERN
 
 width = 92
+
+isAdministered = false
 

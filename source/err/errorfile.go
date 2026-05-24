@@ -2289,7 +2289,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"vm/equals/type": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "comparing value of type " + emph(args[0]) + " with value of type " + emph(args[1])
+			return "comparing value of type " + emph(args[2]) + " with value of type " + emph(args[3])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "In Pipefish, comparing two values of different types using `==` is considered an " +

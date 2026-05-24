@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
@@ -51,7 +50,6 @@ var driversFromPipefishEnum = map[string]string{"COCKROACHDB": "postgres", "FIRE
 	"ORACLE": "oracle", "POSTGRESQL": "postgres", "SNOWFLAKE": "snowflake", "SQLITE": "sqlite", "TIDB": "mysql"}
 
 func GetdB(driverAsPipefishEnum, hostpath string, port int, hostname, user, password string) (*sql.DB, error) {
-
 	connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
 		hostpath, port, hostname, user, password)
 
@@ -95,7 +93,7 @@ func enumToEnglish(s string) string {
 	return strings.Title(s)
 }
 
-func AddAdmin(db *sql.DB, username, firstName, lastName, email, password, serviceName, dir string) error {
+func AddAdmin(db *sql.DB, username, firstName, lastName, email, password, dir string) error {
 
 	query :=
 		`CREATE TABLE IF NOT EXISTS _Users (
@@ -104,7 +102,6 @@ func AddAdmin(db *sql.DB, username, firstName, lastName, email, password, servic
     lastName varchar(32),
     password varchar(60),
     email varchar(60),
-	serviceName varchar(32),
 PRIMARY KEY (username));
 
 CREATE TABLE IF NOT EXISTS _Groups (
@@ -138,7 +135,7 @@ ON CONFLICT DO NOTHING;`
 		return err
 	}
 
-	err = AddUser(db, username, firstName, lastName, email, password, serviceName)
+	err = AddUser(db, username, firstName, lastName, email, password)
 	if err != nil {
 		return err
 	}
@@ -148,10 +145,6 @@ ON CONFLICT DO NOTHING;`
 			return err
 		}
 	}
-
-	// This should only ever happen to a hub once. We create the file "user/admin.dat"
-	// to prove that it has.
-	_, err = os.Create(dir + "user/admin.dat")
 	return err
 }
 
@@ -200,15 +193,6 @@ func UnLetUserOwnGroup(db *sql.DB, username, groupName string) error {
 	return AddUserToGroup(db, username, groupName, false)
 }
 
-func UpdateService(db *sql.DB, username, serviceName string) error {
-	query :=
-		`UPDATE _Users
-SET serviceName = $2
-WHERE username = $1`
-	_, err := db.Exec(query, username, serviceName)
-	return err
-}
-
 type groupRow struct {
 	username  string
 	groupName string
@@ -218,6 +202,7 @@ type groupRow struct {
 func GetGroupsOfUser(db *sql.DB, username string, ownGroups bool) (string, error) {
 	rows, err := db.Query("SELECT * FROM _GroupMemberships WHERE username = $1", username)
 	if err != nil {
+
 		return "", err
 	}
 	defer rows.Close()
@@ -535,37 +520,30 @@ WHERE _GroupMemberships.username = $1 AND _GroupServices.serviceName = $2`,
 }
 
 type userRow struct {
-	password    string
-	serviceName string
+	password string
 }
 
-func ValidateUser(db *sql.DB, username, password string) (string, error) {
+func ValidateUser(db *sql.DB, username, password string) error {
 	var userData userRow
-
-	rows, err := db.Query("SELECT password, serviceName FROM _Users WHERE username = $1", username)
-	if err != nil {
-		return "", err
-	}
-	for rows.Next() {
-		if err := rows.Scan(&userData.password, &userData.serviceName); err != nil {
-			return "", err
+	row := db.QueryRow("SELECT password FROM _Users WHERE username = $1", username)
+	if err := row.Scan(&userData.password); err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("the hub doesn't recognize that combination of username and password")
 		}
-		if err = bcrypt.CompareHashAndPassword([]byte(userData.password), []byte(password)); err != nil {
-			return "", errors.New("the hub doesn't recognize that combination of username and password")
-		}
-
-		return userData.serviceName, nil
-
+		return err
 	}
-	// The case where there are no rows.
-	return "", errors.New("the hub doesn't recognize that combination of username and password")
+
+	if err := bcrypt.CompareHashAndPassword([]byte(userData.password), []byte(password)); err != nil {
+		return errors.New("the hub doesn't recognize that combination of username and password")
+	}
+	return nil
 }
 
-func AddUser(db *sql.DB, username, firstName, lastName, email, password, serviceName string) error {
+func AddUser(db *sql.DB, username, firstName, lastName, email, password string) error {
 	query :=
-		`INSERT INTO _Users(username, firstName, lastName, password, email, serviceName)
-	VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err := db.Exec(query, username, firstName, lastName, encrypt(password), encrypt(email), serviceName)
+		`INSERT INTO _Users(username, firstName, lastName, password, email)
+	VALUES ($1, $2, $3, $4, $5)`
+	_, err := db.Exec(query, username, firstName, lastName, encrypt(password), encrypt(email))
 
 	return err
 }

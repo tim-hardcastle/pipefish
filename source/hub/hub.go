@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/smtp"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -40,15 +41,22 @@ type Hub struct {
 	Out                    io.Writer
 	Sources                map[string][]string
 	Db                     *sql.DB
-	administered           bool
+	mailData               mailer
 	listeningToHttpOrHttps bool
 	// The username and password of the person logged into the terminal.
 	TerminalUsername string
 	TerminalPassword string
 	// The usernames and password of whoever called `hub.Do``.
 	username, password string
-	store              values.Map
-	storekey           string
+	// Whether this is an external call.
+	store    values.Map
+	storekey string
+}
+
+type mailer = struct {
+	addr   string
+	auth   smtp.Auth
+	sender string
 }
 
 func New(path string, out io.Writer) *Hub {
@@ -70,18 +78,17 @@ func (hub *Hub) currentServiceName() string {
 }
 
 func (hub *Hub) hasDatabase() bool {
-	return hub.getSV("$_db").V != nil
+	return hub.getSV("HUB_DB").V != nil
 }
 
 func (hub *Hub) hasMailer() bool {
-	return hub.getSV("$_mailer").V != nil
+	return hub.getSV("HUB_MAILER").V != nil
 }
 
-// Temporary thing until all SQL io is in hub.pf.
-func (hub *Hub) getDB() (string, string, int, string, string, string) {
-	dbStruct := hub.getSV("$_db").V.([]pf.Value)
-	driver := hub.Services["hub"].ToLiteral(dbStruct[0])
-	return driver, dbStruct[1].V.(string), dbStruct[2].V.(int), dbStruct[3].V.(string), dbStruct[4].V.(string), dbStruct[5].V.(string)
+func (hub *Hub) getMailer() (string, string, string, string, string, string) {
+	mailerStruct := hub.getSV("HUB_MAILER").V.([]pf.Value)
+	authStruct := mailerStruct[1].V.([]pf.Value)
+	return mailerStruct[0].V.(string), authStruct[0].V.(string), authStruct[1].V.(string), authStruct[2].V.(string), authStruct[3].V.(string), mailerStruct[2].V.(string)
 }
 
 func (hub *Hub) isLive() bool {
@@ -146,6 +153,7 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 		}
 		hub.username = username
 		hub.password = password
+		hub.setSV("$_external", pf.BOOL, external)
 		hub.DoHubCommand(strings.Join(hubWords[1:], " "))
 		return passedServiceName, false
 	}
@@ -153,9 +161,20 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 	// We may be talking to the os
 
 	if len(hubWords) > 0 && hubWords[0] == "os" {
-		if hub.isAdministered() {
-			hub.WriteError("for reasons of safety and sanity, the `os` prefix doesn't work in administered hubs.")
+		if hub.administered() {
+			isAdmin, err := database.IsUserAdmin(hub.Db, username)
+			if err != nil {
+				hub.WriteError(err.Error())
+				return passedServiceName, false
+			}
+			if !isAdmin {
+				hub.WriteError("only administrators can use `os` remotely.")
+			}
 			return passedServiceName, false
+		} else {
+			if external {
+				hub.WriteError("only administrators can use `os` remotely.")
+			}
 		}
 		if len(hubWords) == 3 && hubWords[1] == "cd" { // Because cd changes the directory for the current
 			os.Chdir(hubWords[2])     // process, if we did it with exec it would do it for
@@ -233,7 +252,7 @@ func (hub *Hub) update() {
 	}
 }
 
-func (hub *Hub) DoHubCommand(line string) { // TODO --- this is where we need to pass in whether it's external.
+func (hub *Hub) DoHubCommand(line string) {
 	hubService := hub.Services["hub"]
 	hubReturn := ServiceDo(hubService, line)
 	if errorsExist, _ := hubService.ErrorsExist(); errorsExist {
@@ -252,10 +271,13 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	verb := bits[0]
 	args := bits[1:]
 	h := hw.hub
+	// There are commands to the hub that should only have permission if you're an administrator, of course.
+	// But there are also commands like `switch` which only apply to the person using the TUI, and which won't
+	// work if `external` is set.
 	username := h.username
 	var isAdmin bool
 	var err error
-	if h.isAdministered() {
+	if h.administered() {
 		isAdmin, err = database.IsUserAdmin(h.Db, username)
 		if err != nil {
 			h.WriteError(err.Error())
@@ -265,7 +287,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError("you don't have the admin status necessary to do that.")
 			return len(b), nil
 		}
-		if username == "" && !(verb == "log-on" || verb == "register" || verb == "quit") {
+		if username == "" && !(verb == "log-on" || verb == "register") {
 			h.WriteError("\nthis is an administered hub and you aren't logged on. Please enter either " +
 				"`hub register` to register as a guest, or `hub log on` to log on if you're already registered " +
 				"with this hub.")
@@ -274,6 +296,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	} else {
 		if rbamVerbs.Contains(verb) {
 			h.WriteError("this hub doesn't have RBAM intitialized.")
+			return len(b), nil
 		}
 	}
 	switch verb {
@@ -290,15 +313,19 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.update()
 		h.WriteString(h.Services[h.currentServiceName()].Api(h.currentServiceName(), h.getFonts(), h.getSV("width").V.(int)))
 	case "config-admin":
-		if h.isAdministered() {
+		if h.administered() {
 			h.WriteError("this hub is already administered.")
 			break
 		}
-		if h.Db == nil {
-			h.WriteError("database has not been configured: edit the `hub.usr` file of this hub to specify a database and a mailer.")
+		if !h.hasDatabase() {
+			h.WriteError("database has not been configured: edit the `hub.pf` file of this hub to specify a database.")
 			break
 		}
-		err := database.AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4], h.currentServiceName(), settings.PipefishHomeDirectory)
+		if !h.hasMailer() {
+			h.WriteError("mailer has not been configured: edit the `hub.pf` file of this hub to specify a mailer.")
+			break
+		}
+		err := database.AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4], settings.PipefishHomeDirectory)
 		if err != nil {
 			h.WriteError(err.Error())
 			break
@@ -306,7 +333,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.TerminalUsername = args[0]
 		h.TerminalPassword = args[4]
 		h.WritePretty("You are logged on as " + h.TerminalUsername + ".\n")
-		h.administered = true
+		h.setSV("isAdministered", pf.BOOL, true)
 	case "create":
 		err := database.AddGroup(h.Db, args[0])
 		if err != nil {
@@ -403,7 +430,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.WritePretty(tracking)
 		h.WriteString("\n")
 	case "log-on":
-		_, err := database.ValidateUser(h.Db, args[0], args[1])
+		err := database.ValidateUser(h.Db, args[0], args[1])
 		if err != nil {
 			h.WriteError(err.Error())
 			h.WriteString("Please try again.\n\n")
@@ -416,7 +443,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.TerminalUsername = ""
 		h.TerminalPassword = ""
 		h.makeEmptyServiceCurrent()
-		h.WritePretty("\nThis is an administered hub and you aren't logged on. Please enter either " +
+		h.WritePretty("<G>OK</>\n\nThis is an administered hub and you aren't logged on. Please enter either " +
 			"`hub register` to register as a user, or `hub log on` to log on if you're already registered " +
 			"with this hub.\n\n")
 	case "groups":
@@ -429,7 +456,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	case "quit":
 		h.Quit()
 	case "register":
-		err = database.AddUser(h.Db, args[0], args[1], args[2], args[3], args[4], "")
+		err = database.AddUser(h.Db, args[0], args[1], args[2], args[3], args[4])
 		if err != nil {
 			h.WriteError(err.Error())
 			break
@@ -470,7 +497,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	case "serialize":
 		h.WriteString(h.Services[args[0]].SerializeApi())
 	case "services":
-		if h.isAdministered() {
+		if h.administered() {
 			result, err := database.GetServicesOfUser(h.Db, username, true)
 			if err != nil {
 				h.WriteError(err.Error())
@@ -502,19 +529,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		sname := args[0]
 		_, ok := h.Services[sname]
 		if ok {
-
-			if h.administered {
-				access, err := database.DoesUserHaveAccess(h.Db, username, sname)
-				if err != nil {
-					h.WriteError("o/ " + err.Error())
-				}
-				if !access {
-					h.WriteError("you don't have access to service <C>\"" + sname + "\"</>.")
-				}
-				database.UpdateService(h.Db, username, sname)
-			} else {
-				h.setServiceName(sname)
-			}
+			h.setServiceName(sname)
 			break
 		}
 		h.WriteError("service <C>\"" + sname + "\"</> doesn't exist.")
@@ -627,8 +642,10 @@ var rbamVerbs = dtypes.From("add", "create", "log-on", "log-off", "let",
 	"services-of-user", "users-of-service", "users-of-group", "let-use", "let-own")
 
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
+// TODO --- errors will need to be stored per user.
+// These are also exactly the things you can do remotely if RBAM is not turned on.
 var greenList = dtypes.From("api", "errors", "help", "log-on", "log-off",
-	"groups", "register", "service", "switch", "values", "why", "quit")
+	"groups", "register", "services", "values", "why")
 
 func (hub *Hub) Quit() {
 	hub.saveHubFile()
@@ -662,11 +679,6 @@ func (hub *Hub) GetPretty(s string) string {
 	hubService, _ := hub.Services["hub"]
 	mdFunc := hubService.GetMarkdowner("", hub.getSV("width").V.(int), hub.getFonts())
 	return mdFunc(s)
-}
-
-func (hub *Hub) isAdministered() bool {
-	_, err := os.Stat(filepath.Join(settings.PipefishHomeDirectory, "user/admin.dat"))
-	return !errors.Is(err, os.ErrNotExist)
 }
 
 func (hub *Hub) WriteError(s string) {
@@ -803,7 +815,7 @@ func (hub *Hub) CurrentServiceIsBroken() bool {
 func (hub *Hub) saveHubFile() string {
 	hubService := hub.Services["hub"]
 	var buf strings.Builder
-	buf.WriteString("var\n\n")
+	buf.WriteString("var private\n\n")
 	buf.WriteString("allServices = map(")
 	serviceList := []string{}
 	for k := range hub.Services {
@@ -846,6 +858,10 @@ func (hub *Hub) saveHubFile() string {
 	buf.WriteString("\n\n")
 	buf.WriteString("width = ")
 	buf.WriteString(hubService.ToLiteral(hub.getSV("width")))
+	buf.WriteString("\n\n")
+	buf.WriteString("isAdministered = ")
+	buf.WriteString("false") // Temporary replacement for the below while debugging.
+	// buf.WriteString(hubService.ToLiteral(hub.getSV("isAdministered")))
 	buf.WriteString("\n\n")
 
 	fname := hub.MakeFilepath(hub.hubFilepath)
@@ -915,8 +931,13 @@ func (h *Hub) OpenHubFile(hubFilepath string) {
 	services := v.V.(pf.Map).AsSlice()
 
 	if h.hasDatabase() {
-		driver, hostpath, port, hostname, username, password := h.getDB()
-		h.Db, _ = database.GetdB(driver, hostpath, port, hostname, username, password)
+		h.Db = h.getSV("HUB_DB").V.(*sql.DB)
+
+	}
+
+	if h.hasMailer() {
+		addr, identity, username, password, host, sender := h.getMailer()
+		h.mailData = mailer{addr, smtp.PlainAuth(identity, username, password, host), sender}
 	}
 
 	errors := false
@@ -1020,8 +1041,8 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var serviceName string
-	if h.administered && !((!h.listeningToHttpOrHttps) && (request.Body == "hub register" || request.Body == "hub log in")) {
-		_, err = database.ValidateUser(h.Db, request.Username, request.Password)
+	if h.administered() && !((!h.listeningToHttpOrHttps) && (request.Body == "hub register" || request.Body == "hub log in")) {
+		err = database.ValidateUser(h.Db, request.Username, request.Password)
 		if err != nil {
 			h.WriteError(err.Error())
 			return
@@ -1101,4 +1122,8 @@ func (h *Hub) MakeFilepath(scriptFilepath string) string {
 		doctoredFilepath = doctoredFilepath + ".pf"
 	}
 	return doctoredFilepath
+}
+
+func (h *Hub) administered() bool {
+	return h.getSV("isAdministered").V.(bool)
 }

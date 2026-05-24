@@ -2,9 +2,11 @@ import
 
 NULL::"terminal"
 
-var // The `Hub` type is added in the compiler as a kludge, for reasons.
+var private // The `Hub` type is added in the compiler as a kludge, for reasons.
 
 HUB Hub? = NULL
+
+$_external = false
 
 cmd
 
@@ -20,18 +22,27 @@ api :
     do("api", [])
 
 config admin :
-    get username from Keyboard("Username? ")
-    get firstName from Keyboard("First name? ")
-    get lastName from Keyboard("Last name? ")
-    get email from Keyboard("Email? ")
-    get password from masked Keyboard("Password? ")
-    get confirm from masked Keyboard("Confirm password? ")
-    password != confirm :
-        error "password and confirmation don't match"
-    do("config-admin", [username, firstName, lastName, email, password])
+    global $_external 
+    $_external :
+        error "can't set up hub administration remotely"
+    else :
+        get uname from Keyboard("Username? ")
+        get firstName from Keyboard("First name? ")
+        get lastName from Keyboard("Last name? ")
+        get email from Keyboard("Email? ")
+        get pword from masked Keyboard("Password? ")
+        get confirm from masked Keyboard("Confirm password? ")
+        pword == confirm :
+            do("config-admin", [uname, firstName, lastName, email, pword])
+        else :
+            error "password and confirmation don't match"
 
-config admin(username, firstName, lastName, email, password string):
-    do("config-admin", [username, firstName, lastName, email, password])
+config admin(uname, firstName, lastName, email, pword string):
+    global $_external 
+    $_external :
+        error "can't set up hub administration remotely"
+    else :
+        do("config-admin", [uname, firstName, lastName, email, pword])
 
 create(grp string) :
     do("create", [grp])
@@ -44,33 +55,64 @@ dump m (s string) :
     do("dump", [s, false, true, ""])
 
 dump(s string) to (f string):
-    do("dump", [s, true, false, f])
+    global $_external 
+    $_external :
+        error "can't do remote dump to file"
+    else :
+        do("dump", [s, true, false, f])
 
 dump m (s string) to (f string):
-    do("dump", [s, true, true, f])
+    global $_external 
+    $_external :
+        error "can't do remote dump to file"
+    else :
+        do("dump", [s, true, true, f])
 
 env (p pair) :
-    global $_env 
-    $_env = $_env with p
-    do("env", [])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't change env remotely on an unadministered hub"
+    else :
+        global $_env 
+        $_env = $_env with p
+        do("env", [])
 
 env delete(x any) :
-    global $_env 
-    $_env = $_env without x
-    do("env", [])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't change env remotely on an unadministered hub"
+    else :
+        global $_env 
+        $_env = $_env without x
+        do("env", [])
 
 env key :
-    post ("Input current env key (or newline to continue if there isn't one):")
-    get old from masked Keyboard("? ")
-    post ("Input new env key:")
-    get new from masked Keyboard("? ")
-    do("env-key", [old, new])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't change env key remotely on an unadministered hub"
+    $_external :
+        error "this setup wizard requires keyboard input on the terminal the remote hub is running on, so you can't use it; " ..
+         .. + "you should use `hub env key(old, new string)` instead"
+    else :
+        post ("Input current env key (or newline to continue if there isn't one):")
+        get old from masked Keyboard("? ")
+        post ("Input new env key:")
+        get new from masked Keyboard("? ")
+        do("env-key", [old, new])
 
 env key(old, new string):
-    do("env-key", [old, new])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't change env key remotely on an unadministered hub"
+    else :
+        do("env-key", [old, new])
 
 env wipe :
-    do("env-wipe", [])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't change env remotely on an unadministered hub"
+    else :
+        do("env-wipe", [])
 
 errors :
     do("errors", [])
@@ -94,13 +136,25 @@ help(topic string) :
     do("help", [topic])
 
 http :
-    do("http", ["50005"])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't start http remotely on an unadministered hub"
+    else :
+        do("http", ["50005"])
 
 http(port int) :
-    do("http", [string port])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't start http remotely on an unadministered hub"
+    else :
+        do("http", [string port])
 
 https(domains ... string) :
-    do("https", [domains])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't start http remotely on an unadministered hub"
+    else :
+        do("https", [domains])
 
 let(usr string) own (grp string) :
     do("let-own", [usr, grp])
@@ -109,47 +163,87 @@ let(grp string) use (srv string) :
     do("let", [grp, srv])
 
 live on :
-    do("live-on", [])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't turn livecodeing on and off remotely on an unadministered hub"
+    else :
+        do("live-on", [])
 
 live off :
-    do("live-off", [])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't turn livecodeing on and off remotely on an unadministered hub"
+    else :
+        do("live-off", [])
 
 log :
     do("log", [])
 
 log on :
-    get username from Keyboard("Username? ")
-    get password from masked Keyboard("Password? ")
-    do("log-on", [username, password])
+    global $_external
+    $_external :
+        error "`log on` means \"log on to this hub from the terminal it's running on\", and so can't be used remotely"
+    else :
+        get uname from Keyboard("Username? ")
+        get pword from masked Keyboard("Password? ")
+        do("log-on", [uname, pword])
 
 log off :
-    do("log-off", [])
+    global $_external
+    $_external :
+        error "`log off` means \"log off from using this hub from the terminal it's running on\", and so can't be used remotely"
+    else :
+        do("log-off", [])
 
 quit :
-    do("quit", [])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't quit an unadministered hub remotely"
+    else :
+        do("quit", [])
 
 register :
-    get username from Keyboard("Username? ")
-    get firstName from Keyboard("First name? ")
-    get lastName from Keyboard("Last name? ")
-    get email from Keyboard("Email? ")
-    get password from masked Keyboard("Password? ")
-    get confirm from masked Keyboard("Confirm password? ")
-    password != confirm :
-        error "password and confirmation don't match"
-    do("register", [username, firstName, lastName, email, password])
+    global $_external
+    $_external :
+        error "this setup wizard requires keyboard input on the terminal the remote hub is running on, so you can't use it; " ..
+         .. + "you should use `register (uname, firstName, lastName, email, pword string)` instead"
+    else :
+        get uname from Keyboard("Username? ")
+        get firstName from Keyboard("First name? ")
+        get lastName from Keyboard("Last name? ")
+        get email from Keyboard("Email? ")
+        get pword from masked Keyboard("Password? ")
+        get confirm from masked Keyboard("Confirm password? ")
+        pword != confirm :
+            error "password and confirmation don't match"
+        else :
+            do("register", [uname, firstName, lastName, email, pword])
 
-register (username, firstName, lastName, email, password string):
-    do("register", [username, firstName, lastName, email, password])
+register (uname, firstName, lastName, email, pword string):
+    do("register", [uname, firstName, lastName, email, pword])
 
 reset :
-    do("reset", [])
+    global $_external
+    $_external :
+        error "`reset` means \"reset the current service on the machine the hub is running on\", and so can't be used remotely"
+    else :
+        do("reset", [])
+
+// TODO --- `reset` with parameters.
 
 run(filename string) :
-    do("run", [filename, ""])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't run a service on an unadministered hub remotely"
+    else :
+        do("run", [filename, ""])
 
 run(filename string) as (srv string) :
-    do("run", [filename, srv])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't run a service on an unadministered hub remotely"
+    else :
+        do("run", [filename, srv])
 
 serialize(srv string) :
     do("serialize", [srv])
@@ -164,10 +258,11 @@ services of user(usr string) :
     do("services-of-user", [usr])
 
 switch(srv string) :
-    do("switch", [srv])
-
-test(filename string) :
-    do("test", [filename])
+    global $_external
+    $_external :
+        error "`switch` means \"switch the current service of the tui the hub is running in\", and so can't be used remotely"
+    else :
+        do("switch", [srv])
 
 trace :
     do("trace", [])
@@ -196,11 +291,17 @@ users of group(grp string) :
 users of service(srv string) :
     do("users-of-service", [srv])
 
+// TODO --- also needs to be user-specific.
 values :
     do("values", [])
 
+
 where(errorNo int) :
-    do("where", [errorNo])
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't use `where` remotely on an unadministered hub"
+    else :
+        do("where", [errorNo])
     
 why(errorNo int) :
     do("why", [errorNo])

@@ -22,6 +22,10 @@ SqlDb(driver SqlDriver) :
     driver != SQLITE : // Someone might make another one.
         error "only Sqlite can be used in-memory"
     else :
+        // Create an in-memory Sqlite database. Configure the Go sql.DB
+        // to use a single underlying connection so the schema created
+        // during initialization is visible to all subsequent queries
+        // on this SqlDb instance.
         goMakeSqlConnection(string(driver), ":memory:")
 
 goMakeSqlConnection(driver string, connectionString string) -> SqlDb/error : golang {
@@ -34,6 +38,12 @@ goMakeSqlConnection(driver string, connectionString string) -> SqlDb/error : gol
     pingError := sqlObj.Ping()
     if pingError != nil {
         return pingError
+    }
+    // If this is an in-memory Sqlite DB, force a single open connection
+    // so the same connection (and thus same in-memory DB) is reused.
+    if driversMap[driver] == "sqlite" && connectionString == ":memory:" {
+        sqlObj.SetMaxOpenConns(1)
+        sqlObj.SetMaxIdleConns(1)
     }
     return sqlObj
 }  
