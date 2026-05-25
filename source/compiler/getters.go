@@ -306,7 +306,7 @@ func (cp *Compiler) GetMarkdowner(leftMargin string, rightMargin int, fonts valu
 	}
 	md := text.NewMarkdown(leftMargin, rightMargin, hl)
 	return func(s string) string {
-		return md.Render([]string{s})
+		return md.RenderString(s)
 	}
 }
 

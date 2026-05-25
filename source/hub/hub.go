@@ -334,7 +334,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 		h.TerminalUsername = args[0]
 		h.TerminalPassword = args[4]
-		h.WritePretty("You are logged on as " + h.TerminalUsername + ".\n")
+		h.WritePretty("You are logged on as <C>" + h.TerminalUsername + "</>.\n")
 		h.setSV("isAdministered", pf.BOOL, true)
 	case "change-password" :
 		err = database.ChangePassword(h.Db, username, args[0])
@@ -409,14 +409,14 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
-			h.WriteString(result)
+			h.WritePretty(result)
 		}
 	case "groups-of-service":
 		result, err := database.GetGroupsOfService(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
-			h.WriteString(result)
+			h.WritePretty(result)
 		}
 	case "halt":
 		var name string
@@ -487,7 +487,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
-			h.WriteString(result)
+			h.WritePretty(result)
 		}
 	case "quit":
 		h.Quit()
@@ -504,7 +504,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		}
 		h.TerminalUsername = args[0]
 		h.TerminalPassword = args[4]
-		h.WriteString("You are logged in as " + h.TerminalUsername + ".\n")
+		h.WritePretty("You are logged on as <C>" + h.TerminalUsername + "</>.\n")
 	case "reset":
 		serviceToReset, ok := h.Services[h.currentServiceName()]
 		if !ok {
@@ -538,7 +538,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			if err != nil {
 				h.WriteError(err.Error())
 			} else {
-				h.WriteString(result)
+				h.WritePretty(result)
 			}
 		} else {
 			if len(h.Services) == 2 {
@@ -552,14 +552,14 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
-			h.WriteString(result)
+			h.WritePretty(result)
 		}
 	case "services-of-group":
 		result, err := database.GetServicesOfGroup(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
-			h.WriteString(result)
+			h.WritePretty(result)
 		}
 	case "switch":
 		sname := args[0]
@@ -584,14 +584,14 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
-			h.WriteString(result)
+			h.WritePretty(result)
 		}
 	case "users-of-service":
 		result, err := database.GetUsersOfService(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
-			h.WriteString(result)
+			h.WritePretty(result)
 		}
 	case "unadminister":
 		database.DropTables(h.Db)

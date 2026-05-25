@@ -44,10 +44,9 @@ func TestErrors(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
 		{"2 +", "[0] [31mError[39m: can't parse end of line as a prefix at line [33m1:3[39m of REPL input."},
-		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \x1b[0m\n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
+		{`hub why 0`, "\x1b[31mError\x1b[39m: can't parse end of line as a prefix. \n\nYou've put end of line in such a position that it looks like you want it to function as a \x1b[0m\nprefix, but it isn't one. \n\n                                                      Error has reference \x1b[0m\x1b[48;2;0;0;64m\x1b[97m\"parse/prefix\"\x1b[0m."},
 		{`hub where 0`, "2 +\x1b[31m\n\x1b[0m   \x1b[31m▔\x1b[0m"},
 		{`hub errors`, "[0] \x1b[31mError\x1b[39m: can't parse end of line as a prefix at line \x1b[33m1:3\x1b[39m of REPL input."},
-		
 	}
 	test_helper.RunHubTest(t, "default", test)
 }
@@ -68,7 +67,7 @@ func TestTrace(t *testing.T) {
 	test := []test_helper.TestItem{
 		{`hub run "../hub/test-files/trace.pf"`, "Starting script [36m\"trace.pf\"[39m as service [36m\"trace\"[39m."},
 		{"foo 0", "[0] \x1b[31mError\x1b[39m: division by zero at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/trace.pf\"\x1b[39m."},
-		{"hub trace", "\x1b[31mError\x1b[39m: division by zero \x1b[0m\n\n\x1b[31m\x1b[39mFrom: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mfoo\x1b[0m at line \x1b[33m1:0-3\x1b[39m of REPL input. From: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mdiv\x1b[0m at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/\x1b[0m\n\x1b[33m\x1b[39m\x1b[36mtrace.pf\"\x1b[39m. From: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mdiv\x1b[0m at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/trace.pf\"\x1b[39m."},
+		{"hub trace", "\x1b[31mError\x1b[39m: division by zero \nFrom: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mfoo\x1b[0m at line \x1b[33m1:0-3\x1b[39m of REPL input. From: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mdiv\x1b[0m at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/\x1b[0m\n\x1b[33m\x1b[39m\x1b[36mtrace.pf\"\x1b[39m. From: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mdiv\x1b[0m at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/trace.pf\"\x1b[39m."},
 		{`hub halt "trace"`, "OK"},
 		{`hub quit`, "[32mOK[0m\n" + hub.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}

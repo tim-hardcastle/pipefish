@@ -113,15 +113,11 @@ line:
 		if Head(s, "- ") {
 			ix = ix + 2
 			sidebar = "    "
-			if !listItem {
-				listItem = true
-				fmt.Fprint(sb, "\n", RESET, md.leftMargin)
-				ox = leftMarginWidth
-			}
-			if ox == leftMarginWidth {
-				fmt.Fprint(sb, BULLET, font)
-				ox = ox + len(BULLET)
-			}
+			listItem = true
+			fmt.Fprint(sb, "\n", RESET, md.leftMargin)
+			ox = leftMarginWidth
+			fmt.Fprint(sb, BULLET, font)
+			ox = ox + len(BULLET)
 		} else {
 			if listItem {
 				fmt.Fprint(sb, "\n", RESET, md.leftMargin, font)

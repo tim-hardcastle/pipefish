@@ -15,8 +15,6 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/tim-hardcastle/pipefish/source/text"
-
 	// SQL drivers
 
 	_ "github.com/databricks/databricks-sql-go" // Databricks
@@ -231,11 +229,11 @@ func GetGroupsOfUser(db *sql.DB, username string, ownGroups bool) (string, error
 		if ownGroups {
 			return "You are not a member of any groups.", nil
 		} else {
-			return text.Emph(username) + " is not a member of any groups.", nil
+			return "<C>" + username + "</> is not a member of any groups.", nil
 		}
 	}
 
-	result := "\n"
+	result := ""
 
 	ownerGroups := []string{}
 	userGroups := []string{}
@@ -246,30 +244,30 @@ func GetGroupsOfUser(db *sql.DB, username string, ownGroups bool) (string, error
 			userGroups = append(userGroups, v.groupName)
 		}
 	}
-	sort.Strings(ownerGroups)
 	if len(ownerGroups) > 0 {
+		sort.Strings(ownerGroups)
 		if ownGroups {
 			result = result + "You are an owner of the following groups:\n\n"
 		} else {
-			result = result + text.Emph(username) + " is an owner of the following groups:\n\n"
+			result = result + "<C>" + username + "</> is an owner of the following groups:\n\n"
 		}
 		for _, v := range ownerGroups {
-			result = result + text.BULLET + v + "\n"
+			result = result + "- " + v + "\n"
 		}
+	}
+	if len(ownerGroups) > 0 && len(userGroups) > 0 {
 		result = result + "\n"
 	}
-
-	sort.Strings(userGroups)
 	if len(userGroups) > 0 {
+		sort.Strings(userGroups)
 		if ownGroups {
 			result = result + "You are an user of the following groups:\n\n"
 		} else {
-			result = result + text.Emph(username) + " is a user of the following groups:\n\n"
+			result = result + "<C>" + username + "</> is a user of the following groups:\n\n"
 		}
 		for _, v := range userGroups {
-			result = result + text.BULLET + v + "\n"
+			result = result + "- " + v + "\n"
 		}
-		result = result + "\n"
 	}
 
 	return result, nil
@@ -293,10 +291,10 @@ func GetUsersOfGroup(db *sql.DB, groupName string) (string, error) {
 	}
 
 	if len(users) == 0 {
-		return text.Emph(groupName) + " has no users.", nil
+		return "<C>" + groupName + "</> has no users.", nil
 	}
 
-	result := "\n"
+	result := ""
 
 	owners := []string{}
 	usersOnly := []string{}
@@ -308,22 +306,23 @@ func GetUsersOfGroup(db *sql.DB, groupName string) (string, error) {
 		}
 	}
 
-	sort.Strings(owners)
+
 	if len(owners) > 0 {
-		result = result + text.Emph(groupName) + " has the following owners:\n\n"
+		sort.Strings(owners)
+		result = result + "<C>" + groupName + "</> has the following owners:\n\n"
 		for _, v := range owners {
-			result = result + text.BULLET + v + "\n"
+			result = result + "- " + v + "\n"
 		}
+	}
+	if len(owners) > 0 && len(usersOnly) > 0 {
 		result = result + "\n"
 	}
-
-	sort.Strings(usersOnly)
 	if len(usersOnly) > 0 {
-		result = result + text.Emph(groupName) + " has the following users:\n\n"
+		sort.Strings(usersOnly)
+		result = result + "<C>" + groupName + "</> has the following users:\n\n"
 		for _, v := range usersOnly {
-			result = result + text.BULLET + v + "\n"
+			result = result + "- " + v + "\n"
 		}
-		result = result + "\n"
 	}
 
 	return result, nil
@@ -354,21 +353,21 @@ WHERE username = $1`, username)
 		if ownServices {
 			return "\nYou do not have access to any services.\n\n", nil
 		} else {
-			return text.Emph(username) + " does not have access to any services.\n\n", nil
+			return "<C>" + username + "</> does not have access to any services.\n\n", nil
 		}
 	}
 
-	result := "\n"
+	result := ""
 
 	sort.Strings(services)
 	if ownServices {
 		result = result + "You have access to the following services:\n\n"
 	} else {
-		result = result + text.Emph(username) + " has access to the following services:\n\n"
+		result = result + "<C>" + username + "</> has access to the following services:\n\n"
 	}
 	for _, v := range services {
 		if v != "" {
-			result = result + text.BULLET + v + "\n"
+			result = result + "- " + v + "\n"
 		}
 	}
 
@@ -397,16 +396,16 @@ WHERE serviceName = $1`, serviceName)
 	}
 
 	if len(users) == 0 {
-		return text.Emph(serviceName) + " does not have any users.\n\n", nil
+		return "<C>" + serviceName + "</> does not have any users.\n\n", nil
 	}
 
-	result := "\n"
+	result := ""
 
 	sort.Strings(users)
-	result = result + text.Emph(serviceName) + " has the following users:\n\n"
+	result = result + "<C>" + serviceName + "</> has the following users:\n\n"
 	for _, v := range users {
 		if v != "" {
-			result = result + text.BULLET + v + "\n"
+			result = result + "- " + v + "\n"
 		}
 	}
 
@@ -431,17 +430,16 @@ func GetServicesOfGroup(db *sql.DB, groupName string) (string, error) {
 	}
 
 	if len(services) == 0 {
-		return text.Emph(groupName) + " has access to no services.", nil
+		return "<C>" + groupName + "</> has access to no services.", nil
 	}
 
-	result := "\n"
+	result := ""
 
 	sort.Strings(services)
-	result = result + text.Emph(groupName) + " has access to the following services:\n\n"
+	result = result + "<C>" + groupName + "</> has access to the following services:\n\n"
 	for _, v := range services {
-		result = result + text.BULLET + v + "\n"
+		result = result + "- " + v + "\n"
 	}
-	result = result + "\n"
 	return result, nil
 }
 
@@ -463,17 +461,17 @@ func GetGroupsOfService(db *sql.DB, serviceName string) (string, error) {
 	}
 
 	if len(groups) == 0 {
-		return text.Emph(serviceName) + " has no groups that can access it.", nil
+		return "<C>" + serviceName + "</> has no groups that can access it.", nil
 	}
 
-	result := "\n"
+	result := ""
 
 	sort.Strings(groups)
-	result = result + text.Emph(serviceName) + " can be accessed by the following groups:\n\n"
+	result = result + "<C>" + serviceName + "</> can be accessed by the following groups:\n\n"
 	for _, v := range groups {
-		result = result + text.BULLET + v + "\n"
+		result = result + "- " + v + "\n"
 	}
-	result = result + "\n"
+
 	return result, nil
 }
 
