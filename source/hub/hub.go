@@ -24,7 +24,6 @@ import (
 	"github.com/lmorg/readline/v4"
 	"golang.org/x/crypto/pbkdf2"
 
-	"github.com/tim-hardcastle/pipefish/source/database"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/initializer"
@@ -162,7 +161,7 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 
 	if len(hubWords) > 0 && hubWords[0] == "os" {
 		if hub.administered() {
-			isAdmin, err := database.IsUserAdmin(hub.Db, username)
+			isAdmin, err := IsUserAdmin(hub.Db, username)
 			if err != nil {
 				hub.WriteError(err.Error())
 				return passedServiceName, false
@@ -285,7 +284,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 				"the terminal it's running on and you're already registered with this hub.")
 			return len(b), nil
 		}
-		isAdmin, err = database.IsUserAdmin(h.Db, username)
+		isAdmin, err = IsUserAdmin(h.Db, username)
 		if err != nil {
 			h.WriteError(err.Error())
 			return len(b), nil
@@ -302,11 +301,11 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	}
 	switch verb {
 	case "add":
-		err := database.IsUserGroupOwner(h.Db, username, args[1])
+		err := IsUserGroupOwner(h.Db, username, args[1])
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-		err = database.AddUserToGroup(h.Db, args[0], args[1], false)
+		err = AddUserToGroup(h.Db, args[0], args[1], false)
 		if err != nil {
 			h.WriteError(err.Error())
 		}
@@ -320,14 +319,14 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			break
 		}
 		if !h.hasDatabase() {
-			h.WriteError("database has not been configured: edit the `hub.pf` file of this hub to specify a database.")
+			h.WriteError("database has not been configured: edit the `hub.pf` file of this hub to specify a ")
 			break
 		}
 		if !h.hasMailer() && !testing.Testing() {
 			h.WriteError("mailer has not been configured: edit the `hub.pf` file of this hub to specify a mailer.")
 			break
 		}
-		err := database.AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4])
+		err := AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4])
 		if err != nil {
 			h.WriteError(err.Error())
 			break
@@ -337,7 +336,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.WritePretty("You are logged on as <C>" + h.TerminalUsername + "</>.\n")
 		h.setSV("isAdministered", pf.BOOL, true)
 	case "change-password" :
-		err = database.ChangePassword(h.Db, username, args[0])
+		err = ChangePassword(h.Db, username, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
@@ -350,11 +349,11 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			}
 		}
 	case "create":
-		err := database.AddGroup(h.Db, args[0])
+		err := AddGroup(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-		err = database.AddUserToGroup(h.Db, username, args[0], true)
+		err = AddUserToGroup(h.Db, username, args[0], true)
 		if err != nil {
 			h.WriteError(err.Error())
 		}
@@ -387,12 +386,12 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		r, _ := h.Services[h.currentServiceName()].GetErrorReport()
 		h.WritePretty(r)
 	case "forgot-password":
-		err := database.ValidateEmail(h.Db, args[0], args[1])
+		err := ValidateEmail(h.Db, args[0], args[1])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
-			newPassword := database.MakePassword()
-			database.ChangePassword(h.Db, args[0], newPassword)
+			newPassword := MakePassword()
+			ChangePassword(h.Db, args[0], newPassword)
 			msg := `Subject: Replacement password for ` + args[0] + "\n" + 
 `From: Pipefish mailer (do not reply)
 
@@ -405,14 +404,14 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			}
 		}
 	case "groups-of-user":
-		result, err := database.GetGroupsOfUser(h.Db, args[0], false)
+		result, err := GetGroupsOfUser(h.Db, args[0], false)
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
 			h.WritePretty(result)
 		}
 	case "groups-of-service":
-		result, err := database.GetGroupsOfService(h.Db, args[0])
+		result, err := GetGroupsOfService(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
@@ -450,7 +449,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WriteString(GREEN_OK)
 		go h.StartHttp(args, true)
 	case "let":
-		err = database.LetGroupUseService(h.Db, args[0], args[1])
+		err = LetGroupUseService(h.Db, args[0], args[1])
 		if err != nil {
 			h.WriteError(err.Error())
 		}
@@ -463,7 +462,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WritePretty(tracking)
 		h.WriteString("\n")
 	case "log-on":
-		err := database.ValidateUser(h.Db, args[0], args[1])
+		err := ValidateUser(h.Db, args[0], args[1])
 		if err != nil {
 			h.WriteError(err.Error())
 			h.WriteString("Please try again.\n\n")
@@ -483,7 +482,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 				"to replace your password; or `hub log on` to log on if you're trying to use the hub on " +
 				"the terminal it's running on and you're already registered with this hub.\n\n")
 	case "groups":
-		result, err := database.GetGroupsOfUser(h.Db, username, true)
+		result, err := GetGroupsOfUser(h.Db, username, true)
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
@@ -492,12 +491,12 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 	case "quit":
 		h.Quit()
 	case "register":
-		err = database.AddUser(h.Db, args[0], args[1], args[2], args[3], args[4])
+		err = AddUser(h.Db, args[0], args[1], args[2], args[3], args[4])
 		if err != nil {
 			h.WriteError(err.Error())
 			break
 		}
-		err = database.AddUserToGroup(h.Db, args[0], "Guests", false)
+		err = AddUserToGroup(h.Db, args[0], "Guests", false)
 		if err != nil {
 			h.WriteError(err.Error())
 			break
@@ -534,7 +533,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WriteString(h.Services[args[0]].SerializeApi())
 	case "services":
 		if h.administered() {
-			result, err := database.GetServicesOfUser(h.Db, username, true)
+			result, err := GetServicesOfUser(h.Db, username, true)
 			if err != nil {
 				h.WriteError(err.Error())
 			} else {
@@ -548,14 +547,14 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			h.list()
 		}
 	case "services-of-user":
-		result, err := database.GetServicesOfUser(h.Db, args[0], false)
+		result, err := GetServicesOfUser(h.Db, args[0], false)
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
 			h.WritePretty(result)
 		}
 	case "services-of-group":
-		result, err := database.GetServicesOfGroup(h.Db, args[0])
+		result, err := GetServicesOfGroup(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
@@ -580,21 +579,21 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		}
 		h.WritePretty(pf.GetTraceReport(h.ers[0]))
 	case "users-of-group":
-		result, err := database.GetUsersOfGroup(h.Db, args[0])
+		result, err := GetUsersOfGroup(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
 			h.WritePretty(result)
 		}
 	case "users-of-service":
-		result, err := database.GetUsersOfService(h.Db, args[0])
+		result, err := GetUsersOfService(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
 			h.WritePretty(result)
 		}
 	case "unadminister":
-		database.DropTables(h.Db)
+		DropTables(h.Db)
 		h.setSV("isAdministered", pf.BOOL, false)
 		h.TerminalUsername = ""
 		h.TerminalPassword = ""
@@ -1082,7 +1081,7 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	var serviceName string
 	if h.administered() && !((!h.listeningToHttpOrHttps) && (request.Body == "hub register" || request.Body == "hub log in")) {
-		err = database.ValidateUser(h.Db, request.Username, request.Password)
+		err = ValidateUser(h.Db, request.Username, request.Password)
 		if err != nil {
 			h.WriteError(err.Error())
 			return
