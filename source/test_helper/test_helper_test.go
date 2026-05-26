@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
+	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
 // The only way to test the test helper is to run one of each of the tests it supports. Which we
@@ -54,7 +55,7 @@ func TestImperative(t *testing.T) {
 }
 func TestItes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`import/file`, `OK`},		
+		{`import/file`, `OK`},
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
@@ -75,6 +76,15 @@ func TestPrettyPrint(t *testing.T) {
 		{`func(x) : x`, "func(x any?) :\n    x"},
 	}
 	test_helper.RunTest(t, "prettyprint_test.pf", tests, test_helper.TestPrettyPrinter)
+}
+func TestRbam(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.UserItem{
+		{``, ``, `hub config admin "PfAdmin", "Norma", "Mortenson", "marilyn@hollywood.org", "password123"`, "You are logged on as \x1b[36mPfAdmin\x1b[39m."},
+		{`PfAdmin`, `password123`, `hub unadminister`, "OK"},
+		{``, ``, `hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunUserTest(t, "rbam", test)
 }
 func TestReparser(t *testing.T) {
 	tests := []test_helper.TestItem{

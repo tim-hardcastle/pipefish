@@ -207,6 +207,13 @@ log on :
         get pword from masked Keyboard("Password? ")
         do("log-on", [uname, pword])
 
+log on (uname, pword) :
+    global $_external
+    $_external :
+        error "`log on` means \"log on to this hub from the terminal it's running on\", and so can't be used remotely"
+    else :
+        do("log-on", [uname, pword])
+
 log off :
     global $_external
     $_external :

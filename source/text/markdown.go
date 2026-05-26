@@ -58,7 +58,7 @@ line:
 			continue line
 		}
 		// A number of empty lines adds up to one empty line.
-		if s == "" && (i > 0 || text[i-1] != "") {
+		if s == "" && !(i > 0 && text[i-1] == "") {
 			fmt.Fprint(sb, "\n", md.leftMargin)
 			ox = leftMarginWidth
 		}

@@ -67,7 +67,7 @@ func New(path string, out io.Writer) *Hub {
 	return &h
 }
 
-func (hub *Hub) currentServiceName() string {
+func (hub *Hub) CurrentServiceName() string {
 	cs := hub.getSV("currentService")
 	if cs.T == pf.NULL {
 		return ""
@@ -135,12 +135,12 @@ func (hub *Hub) getFonts() values.Map {
 // This takes the input from the REPL, interprets it as a hub command if it begins with 'hub';
 // as an instruction to the os if it begins with 'os', and as an expression to be passed to
 // the current service if none of the above hold.
-func (hub *Hub) Do(line, username, password, passedServiceName string, external bool) (string, bool) {
+func (hub *Hub) Do(line, username, password, service string, external bool) (string, bool) {
 
-	serviceToUse, ok := hub.Services[passedServiceName]
-	if !ok {
-		hub.WriteError("the hub can't find the service <C>\"" + passedServiceName + "\"</>.")
-		return passedServiceName, false
+	// Empty/comment-only lines do nothing.
+	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
+		hub.WriteString("")
+		return service, false
 	}
 
 	// We may be talking to the hub itself.
@@ -148,28 +148,27 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 	if len(hubWords) > 0 && hubWords[0] == "hub" {
 		if len(hubWords) == 1 {
 			hub.WriteError("you need to say what you want the hub to do.")
-			return passedServiceName, false
+			return service, false
 		}
 		hub.username = username
 		hub.password = password
 		hub.setSV("$_external", pf.BOOL, external)
 		hub.DoHubCommand(strings.Join(hubWords[1:], " "))
-		return passedServiceName, false
+		return service, false
 	}
 
 	// We may be talking to the os
-
 	if len(hubWords) > 0 && hubWords[0] == "os" {
 		if hub.administered() {
 			isAdmin, err := IsUserAdmin(hub.Db, username)
 			if err != nil {
 				hub.WriteError(err.Error())
-				return passedServiceName, false
+				return service, false
 			}
 			if !isAdmin {
 				hub.WriteError("only administrators can use `os` remotely.")
 			}
-			return passedServiceName, false
+			return service, false
 		} else {
 			if external {
 				hub.WriteError("only administrators can use `os` remotely.")
@@ -178,45 +177,51 @@ func (hub *Hub) Do(line, username, password, passedServiceName string, external 
 		if len(hubWords) == 3 && hubWords[1] == "cd" { // Because cd changes the directory for the current
 			os.Chdir(hubWords[2])     // process, if we did it with exec it would do it for
 			hub.WriteString(GREEN_OK) // that process and not for Pipefish.
-			return passedServiceName, false
+			return service, false
 		}
 		command := exec.Command(hubWords[1], hubWords[2:]...)
 		out, err := command.Output()
 		if err != nil {
 			hub.WriteError(err.Error())
-			return passedServiceName, false
+			return service, false
 		}
 		if len(out) == 0 {
 			hub.WriteString(GREEN_OK)
-			return passedServiceName, false
+			return service, false
 		}
 		hub.WriteString(string(out))
-		return passedServiceName, false
+		return service, false
 	}
 	hub.Sources["REPL input"] = []string{line}
 	hub.update()
-	serviceToUse = hub.Services[hub.currentServiceName()]
+	serviceToUse, ok := hub.Services[service]
+	if !ok {
+		hub.WriteError("the hub can't find the service <C>\"" + service + "\"</>.")
+		return service, false
+	}
+	if hub.administered() {
+		if !userHasService(hub.Db, username, service) {
+			if isAdmin, _ := IsUserAdmin(hub.Db, username); !isAdmin {
+				hub.WriteError("you have no access to a service named <C>\"" + service + "\"</> on this hub.")
+				return service, false
+			}
+		}
+	}
 	// The service may be broken, in which case we'll let the empty service handle the input.
 	if serviceToUse.IsBroken() {
 		serviceToUse = hub.Services[""]
 	}
 
-	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
-		hub.WriteString("")
-		return passedServiceName, false
-	}
-
-	// *** THIS IS THE BIT WHERE WE DO THE THING!
+	// We call the service and get the value.
 	val := ServiceDo(serviceToUse, line)
-	// *** FROM ALL THAT LOGIC, WE EXTRACT ONE PIPEFISH VALUE !!!
 
 	errorsExist, _ := serviceToUse.ErrorsExist()
 	if errorsExist { // Any lex-parse-compile errors should end up in the parser of the compiler of the service, returned in p.
 		hub.GetAndReportErrors(serviceToUse)
-		return passedServiceName, false
+		return service, false
 	}
 	hub.outputVal(val, serviceToUse, external)
-	return passedServiceName, false
+	return service, false
 }
 
 func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external bool) {
@@ -243,11 +248,11 @@ func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external b
 }
 
 func (hub *Hub) update() {
-	needsUpdate := hub.serviceNeedsUpdate(hub.currentServiceName())
+	needsUpdate := hub.serviceNeedsUpdate(hub.CurrentServiceName())
 	if hub.isLive() && needsUpdate {
-		path, _ := hub.Services[hub.currentServiceName()].GetFilepath()
+		path, _ := hub.Services[hub.CurrentServiceName()].GetFilepath()
 		println("")
-		hub.StartAndMakeCurrent(hub.TerminalUsername, hub.currentServiceName(), path)
+		hub.StartAndMakeCurrent(hub.TerminalUsername, hub.CurrentServiceName(), path)
 	}
 }
 
@@ -311,8 +316,20 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 	case "api":
 		h.update()
-		h.WriteString(h.Services[h.currentServiceName()].Api(h.currentServiceName(), h.getFonts(), h.getSV("width").V.(int)))
-	
+		h.WriteString(h.Services[h.CurrentServiceName()].Api(h.CurrentServiceName(), h.getFonts(), h.getSV("width").V.(int)))
+	case "change-password":
+		err = ChangePassword(h.Db, username, args[0])
+		if err != nil {
+			h.WriteError(err.Error())
+		} else {
+			if h.getSV("$_external").V.(bool) {
+				h.WritePretty("You have changed your password. Any connections that relied on the old password are " +
+					"now broken, presumably including this one. Please recompile any client services that depended on the old password " +
+					"to make them operative again.")
+			} else {
+				h.TerminalPassword = args[0]
+			}
+		}
 	case "config-admin":
 		if h.administered() {
 			h.WriteError("this hub is already administered.")
@@ -326,6 +343,9 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError("mailer has not been configured: edit the `hub.pf` file of this hub to specify a mailer.")
 			break
 		}
+		if invalid(args) {
+			break
+		}
 		err := AddAdmin(h.Db, args[0], args[1], args[2], args[3], args[4])
 		if err != nil {
 			h.WriteError(err.Error())
@@ -335,19 +355,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.TerminalPassword = args[4]
 		h.WritePretty("You are logged on as <C>" + h.TerminalUsername + "</>.\n")
 		h.setSV("isAdministered", pf.BOOL, true)
-	case "change-password" :
-		err = ChangePassword(h.Db, username, args[0])
-		if err != nil {
-			h.WriteError(err.Error())
-		} else {
-			if h.getSV("$_external").V.(bool) {
-				h.WritePretty("You have changed your password. Any connections that relied on the old password are " +
-				"now broken, presumably including this one. Please recompile any client services that depended on the old password " +
-				"to make them operative again.")
-			} else {
-				h.TerminalPassword = args[0]	
-			}
-		}
 	case "create":
 		err := AddGroup(h.Db, args[0])
 		if err != nil {
@@ -358,7 +365,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError(err.Error())
 		}
 	case "dump":
-		dump := h.Services[h.currentServiceName()].DumpCode(args[0], args[2] == "true")
+		dump := h.Services[h.CurrentServiceName()].DumpCode(args[0], args[2] == "true")
 		print("\n" + dump)
 		if args[1] == "true" {
 			os.WriteFile(filepath.Join(settings.PipefishHomeDirectory, args[3]), []byte(dump), 0666)
@@ -383,7 +390,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.store = values.Map{}
 		h.SaveAndPropagateHubStore()
 	case "errors":
-		r, _ := h.Services[h.currentServiceName()].GetErrorReport()
+		r, _ := h.Services[h.CurrentServiceName()].GetErrorReport()
 		h.WritePretty(r)
 	case "forgot-password":
 		err := ValidateEmail(h.Db, args[0], args[1])
@@ -392,8 +399,8 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		} else {
 			newPassword := MakePassword()
 			ChangePassword(h.Db, args[0], newPassword)
-			msg := `Subject: Replacement password for ` + args[0] + "\n" + 
-`From: Pipefish mailer (do not reply)
+			msg := `Subject: Replacement password for ` + args[0] + "\n" +
+				`From: Pipefish mailer (do not reply)
 
 Your replacement password for your account ` + args[0] + ` is ` + newPassword + ".\n\nYou should change this as soon as possible to a new password of your choosing."
 			err := smtp.SendMail(h.mailData.addr, h.mailData.auth, h.mailData.sender, []string{args[1]}, []byte(msg))
@@ -429,7 +436,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			h.WriteError("the hub doesn't know what you want to stop.")
 		}
 		delete(h.Services, name)
-		if name == h.currentServiceName() {
+		if name == h.CurrentServiceName() {
 			h.makeEmptyServiceCurrent()
 		}
 	case "help":
@@ -458,7 +465,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 	case "live-off":
 		h.setLive(false)
 	case "log":
-		tracking, _ := h.Services[h.currentServiceName()].GetTrackingReport()
+		tracking, _ := h.Services[h.CurrentServiceName()].GetTrackingReport()
 		h.WritePretty(tracking)
 		h.WriteString("\n")
 	case "log-on":
@@ -470,7 +477,8 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		}
 		h.TerminalUsername = args[0]
 		h.TerminalPassword = args[1]
-		h.WriteString(GREEN_OK + "\n")
+		h.makeEmptyServiceCurrent()
+		h.WritePretty("You are logged on as <C>" + h.TerminalUsername + "</>.\n")
 	case "log-off":
 		h.TerminalUsername = ""
 		h.TerminalPassword = ""
@@ -478,9 +486,10 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WritePretty("<G>OK</>")
 		h.WriteString("\n\n" + strings.Repeat("┈", hw.hub.getSV("width").V.(int)) + "\n\n")
 		h.WritePretty("This is an administered hub and you aren't logged on. Please use either " +
-				"`hub register` to register as a guest; `hub forgot password(username, email string)` " +
-				"to replace your password; or `hub log on` to log on if you're trying to use the hub on " +
-				"the terminal it's running on and you're already registered with this hub.\n\n")
+			"`hub register` to register as a guest; `hub forgot password(username, email string)` " +
+			"to replace your password; or `hub log on` to log on if you're trying to use the hub on " +
+			"the terminal it's running on and you're already registered with this hub.")
+		h.WriteString("\n\n")
 	case "groups":
 		result, err := GetGroupsOfUser(h.Db, username, true)
 		if err != nil {
@@ -491,6 +500,9 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 	case "quit":
 		h.Quit()
 	case "register":
+		if invalid(args) {
+			break
+		}
 		err = AddUser(h.Db, args[0], args[1], args[2], args[3], args[4])
 		if err != nil {
 			h.WriteError(err.Error())
@@ -505,17 +517,17 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.TerminalPassword = args[4]
 		h.WritePretty("You are logged on as <C>" + h.TerminalUsername + "</>.\n")
 	case "reset":
-		serviceToReset, ok := h.Services[h.currentServiceName()]
+		serviceToReset, ok := h.Services[h.CurrentServiceName()]
 		if !ok {
-			h.WriteError("the hub can't find the service <C>\"" + h.currentServiceName() + "\".")
+			h.WriteError("the hub can't find the service <C>\"" + h.CurrentServiceName() + "\".")
 		}
-		if h.currentServiceName() == "" {
+		if h.CurrentServiceName() == "" {
 			h.WriteError("service is empty, nothing to reset.")
 		}
 		filepath, _ := serviceToReset.GetFilepath()
 		h.WritePretty("Restarting script <C>\"" + filepath +
-			"\"</> as service <C>\"" + h.currentServiceName() + "\"</>.\n")
-		h.StartAndMakeCurrent(username, h.currentServiceName(), filepath)
+			"\"</> as service <C>\"" + h.CurrentServiceName() + "\"</>.\n")
+		h.StartAndMakeCurrent(username, h.CurrentServiceName(), filepath)
 	case "run":
 		fname := args[0]
 		sname := args[1]
@@ -532,7 +544,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 	case "serialize":
 		h.WriteString(h.Services[args[0]].SerializeApi())
 	case "services":
-		if h.administered() {
+		if h.administered() && !isAdmin {
 			result, err := GetServicesOfUser(h.Db, username, true)
 			if err != nil {
 				h.WriteError(err.Error())
@@ -562,12 +574,20 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		}
 	case "switch":
 		sname := args[0]
+		if h.administered() && !isAdmin && !userHasService(h.Db, username, sname) {
+			h.WriteError("you have no access to any service named <C>" + sname + "</>.")
+			break
+		}
 		_, ok := h.Services[sname]
 		if ok {
 			h.setServiceName(sname)
 			break
 		}
-		h.WriteError("service <C>\"" + sname + "\"</> doesn't exist.")
+		if isAdmin {
+			h.WriteError("service <C>" + sname + "</> doesn't exist.")
+		} else {
+			h.WriteError("although you have permissions to use a service called <C>" + sname + "</> on this hub, it's not currently running any service of that name.")
+		}
 	case "trace":
 		if len(h.ers) == 0 {
 			h.WriteError("there are no recent errors.")
@@ -618,9 +638,9 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		}
 		for _, v := range h.ers[0].Values {
 			if v.T == pf.BLING {
-				h.WriteString(BULLET_SPACING + h.Services[h.currentServiceName()].ToLiteral(v))
+				h.WriteString(BULLET_SPACING + h.Services[h.CurrentServiceName()].ToLiteral(v))
 			} else {
-				h.WriteString(BULLET + h.Services[h.currentServiceName()].ToLiteral(v))
+				h.WriteString(BULLET + h.Services[h.CurrentServiceName()].ToLiteral(v))
 			}
 			h.WriteString("\n")
 		}
@@ -661,7 +681,8 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		exp, _ := pf.ExplainError(h.ers, num)
 		h.WritePretty("<R>Error</>: " + h.ers[num].Message + ".")
 		h.WriteString("\n\n")
-		h.WritePretty(exp + "\n\n")
+		h.WritePretty(exp)
+		h.WriteString("\n\n")
 		refLine := h.GetPretty("Error has reference `\"" + h.ers[num].ErrorId + "\"`.")
 		padding := strings.Repeat(" ", h.getSV("width").V.(int)-len(text.StripColors(refLine))-2)
 		h.WriteString(padding)
@@ -671,6 +692,15 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 	return len(b), nil
 }
 
+func invalid(args []string) bool { // TODO --- more validation.
+	for _, arg := range args {
+		if arg == "" {
+			return true
+		}
+	}
+	return false
+}
+
 func (hub *Hub) makeWriter() io.Writer {
 	return hubWriter{
 		hub: hub,
@@ -678,18 +708,17 @@ func (hub *Hub) makeWriter() io.Writer {
 }
 
 // Things that only make sense if we have RBAM set up.
-var rbamVerbs = dtypes.From("add", "create", "change-password", "forgot-password", "groups", 
-	"groups-of-user", "groups-of-service", "let", "let-own", "let-use", "log-off", "log-on", 
-	"register", "services of group", "services-of-user", "unadminister", "users-of-service", 
-	"users-of-group",)
+var rbamVerbs = dtypes.From("add", "create", "change-password", "forgot-password", "groups",
+	"groups-of-user", "groups-of-service", "let", "let-own", "let-use", "log-off", "log-on",
+	"register", "services of group", "services-of-user", "unadminister", "users-of-service",
+	"users-of-group")
 
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
-// These are also exactly the things you can do remotely if RBAM is not turned on.
-var greenList = dtypes.From("change-password", "forgot-password", "log-on", "log-off", "groups", "register", "services")
+var greenList = dtypes.From("change-password", "forgot-password", "log-on", "log-off", "groups", "register", "services", "switch")
 
 func (hub *Hub) Quit() {
 	hub.saveHubFile()
-	hub.WriteString(GREEN_OK + "\n" + Logo() + "Thank you for using Pipefish. Have a nice day!\n\n")
+	hub.WriteString(GREEN_OK + "\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!\n\n")
 	if !testing.Testing() {
 		os.Exit(0)
 	}
@@ -747,16 +776,16 @@ func (hub *Hub) StartAndMakeCurrent(username, serviceName, scriptFilepath string
 }
 
 func (hub *Hub) tryMain() { // Guardedly tries to run the `main` command.
-	if !hub.Services[hub.currentServiceName()].IsBroken() {
-		val, _ := hub.Services[hub.currentServiceName()].CallMain()
+	if !hub.Services[hub.CurrentServiceName()].IsBroken() {
+		val, _ := hub.Services[hub.CurrentServiceName()].CallMain()
 		switch val.T {
 		case pf.ERROR:
-			hub.WritePretty("\n[0] " + valToString(hub.Services[hub.currentServiceName()], val))
+			hub.WritePretty("\n[0] " + valToString(hub.Services[hub.CurrentServiceName()], val))
 			hub.WriteString("\n")
 			hub.ers = []*pf.Error{val.V.(*pf.Error)}
 		case pf.UNDEFINED_TYPE: // Which is what we get back if there is no `main` command.
 		default:
-			hub.WriteString(valToString(hub.Services[hub.currentServiceName()], val))
+			hub.WriteString(valToString(hub.Services[hub.CurrentServiceName()], val))
 		}
 	}
 }
@@ -849,7 +878,7 @@ func (hub *Hub) GetAndReportErrors(sv *pf.Service) {
 }
 
 func (hub *Hub) CurrentServiceIsBroken() bool {
-	return hub.Services[hub.currentServiceName()].IsBroken()
+	return hub.Services[hub.CurrentServiceName()].IsBroken()
 }
 
 func (hub *Hub) saveHubFile() string {
@@ -1108,7 +1137,6 @@ var (
 	WAS            = Green("was") + ": "
 	GOT            = Red("got") + ": "
 	TEST_PASSED    = Green("Test passed!") + "\n"
-	VERSION        = "0.6.8"
 	BULLET         = "  ▪ "
 	BULLET_SPACING = "    " // I.e. whitespace the same width as BULLET.
 	GOOD_BULLET    = Green("  ▪ ")
@@ -1136,17 +1164,6 @@ func Green(s string) string {
 
 func Cyan(s string) string {
 	return "\033[36m" + s + "\033[0m"
-}
-
-func Logo() string {
-	titleText := " 🧿 Pipefish version " + VERSION + " "
-	leftMargin := "  "
-	bar := strings.Repeat("═", len(titleText)-2)
-	logoString := "\n" +
-		leftMargin + "╔" + bar + "╗\n" +
-		leftMargin + "║" + titleText + "║\n" +
-		leftMargin + "╚" + bar + "╝\n\n"
-	return logoString
 }
 
 func (h *Hub) MakeFilepath(scriptFilepath string) string {

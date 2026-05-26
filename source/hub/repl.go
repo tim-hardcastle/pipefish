@@ -14,7 +14,7 @@ func (hub *Hub) Repl() {
 	colonOrEmdash, _ := regexp.Compile(`.*[\w\s]*(:|--)[\s]*$`)
 	rline := readline.NewInstance()
 	rline.SyntaxHighlighter = func(code []rune) string {
-		return hub.Services[hub.currentServiceName()].Highlight(code, hub.getFonts())
+		return hub.Services[hub.CurrentServiceName()].Highlight(code, hub.getFonts())
 	}
 	for {
 
@@ -73,9 +73,9 @@ func (hub *Hub) Repl() {
 			}
 		}
 		input = strings.TrimSpace(input)
-		sv := hub.Services[hub.currentServiceName()]
+		sv := hub.Services[hub.CurrentServiceName()]
 		sv.SetOutHandler(sv.MakeTerminalOutHandler())
-		_, quit := hub.Do(input, hub.TerminalUsername, hub.TerminalPassword, hub.currentServiceName(), false)
+		_, quit := hub.Do(input, hub.TerminalUsername, hub.TerminalPassword, hub.CurrentServiceName(), false)
 		if quit {
 			break
 		}
@@ -98,12 +98,12 @@ func ReadChar() rune {
 
 func makePrompt(hub *Hub, indented bool) string {
 	symbol := PROMPT
-	left := hub.currentServiceName()
+	left := hub.CurrentServiceName()
 	if indented {
 		symbol = INDENT_PROMPT
 		left = strings.Repeat(" ", len(left))
 	}
-	if hub.currentServiceName() == "" {
+	if hub.CurrentServiceName() == "" {
 		return symbol
 	}
 	promptText := text.RESET + text.Cyan(left) + " " + symbol

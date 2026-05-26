@@ -81,3 +81,15 @@ func Tail(s, substr string) bool {
 	return s[len(s)-len(substr):] == substr
 }
 
+const VERSION = "0.6.8"
+
+func Logo() string {
+	titleText := " 🧿 Pipefish version " + VERSION + " "
+	leftMargin := "  "
+	bar := strings.Repeat("═", len(titleText)-2)
+	logoString := "\n" +
+		leftMargin + "╔" + bar + "╗\n" +
+		leftMargin + "║" + titleText + "║\n" +
+		leftMargin + "╚" + bar + "╝\n\n"
+	return logoString
+}

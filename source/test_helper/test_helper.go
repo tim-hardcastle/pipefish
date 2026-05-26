@@ -27,6 +27,13 @@ type TestItem struct {
 	Want  string
 }
 
+type UserItem struct {
+	Username string 
+	Password string
+	Input    string
+	Want     string
+}
+
 func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compiler.Compiler, s string) (string, error)) {
 	wd, _ := os.Getwd() // The working directory is the directory containing the package being tested.
 	for _, test := range tests {
@@ -265,14 +272,23 @@ func RunHubTest(t *testing.T, hubName string, test []TestItem) {
 	hubDir := filepath.Join(sourceDir, "hub/test-files", hubName)
 	h := hub.New(hubDir, &capturingWriter{})
 	for _, item := range test {
-		h.Do(item.Input, "", "", "", false)
+		h.Do(item.Input, "", "", h.CurrentServiceName(), false)
 		result := strings.TrimSpace(h.Out.(*capturingWriter).get())
 		if result != item.Want {
-			// for i := 0; i < len(strconv.Quote(item.Want)); i++ {
-			// 	if strconv.Quote(result)[i] != strconv.Quote(item.Want)[i] {
-			// 		println(i, string(strconv.Quote(result)[i]), string(strconv.Quote(item.Want)[i]))
-			// 	}
-			// }
+			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : '" + strconv.Quote(item.Want) + "'\n    Got : '" + strconv.Quote(result) + "'")
+		}
+	}
+}
+
+func RunUserTest(t *testing.T, hubName string, test []UserItem) {
+	wd, _ := os.Getwd()                                     // The working directory is the directory containing the package being tested.
+	sourceDir, _ := filepath.Abs(filepath.Join(wd, "/../")) // We may be calling this either from the `hub` directory or `pf`.
+	hubDir := filepath.Join(sourceDir, "hub/test-files", hubName)
+	h := hub.New(hubDir, &capturingWriter{})
+	for _, item := range test {
+		h.Do(item.Input, item.Username, item.Password, h.CurrentServiceName(), false)
+		result := strings.TrimSpace(h.Out.(*capturingWriter).get())
+		if result != item.Want {
 			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : '" + strconv.Quote(item.Want) + "'\n    Got : '" + strconv.Quote(result) + "'")
 		}
 	}

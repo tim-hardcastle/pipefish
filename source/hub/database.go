@@ -263,9 +263,9 @@ func GetGroupsOfUser(db *sql.DB, username string, ownGroups bool) (string, error
 	if len(userGroups) > 0 {
 		sort.Strings(userGroups)
 		if ownGroups {
-			result = result + "You are an user of the following groups:\n\n"
+			result = result + "You are an member of the following groups:\n\n"
 		} else {
-			result = result + "<C>" + username + "</> is a user of the following groups:\n\n"
+			result = result + "<C>" + username + "</> is a member of the following groups:\n\n"
 		}
 		for _, v := range userGroups {
 			result = result + "- " + v + "\n"
@@ -328,6 +328,18 @@ func GetUsersOfGroup(db *sql.DB, groupName string) (string, error) {
 	}
 
 	return result, nil
+}
+
+func userHasService(db *sql.DB, username, servicename string) bool {
+	var exists int
+	err := db.QueryRow(
+`SELECT 1
+FROM PipefishGroupMemberships 
+INNER JOIN PipefishGroupServices
+ON PipefishGroupMemberships.groupName = PipefishGroupServices.groupName
+WHERE PipefishGroupMemberships.username = $1 AND PipefishGroupServices.servicename = $2
+LIMIT 1`, username, servicename).Scan(&exists)
+	return err == nil
 }
 
 func GetServicesOfUser(db *sql.DB, username string, ownServices bool) (string, error) {

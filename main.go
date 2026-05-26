@@ -22,6 +22,7 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/hub"
 	"github.com/tim-hardcastle/pipefish/source/settings"
+	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
 func main() {
@@ -36,7 +37,7 @@ func main() {
 			showhelp()
 			return
 		case "-v", "--version", "version":
-			os.Stdout.WriteString("\nPipefish version " + hub.VERSION + ".\n\n")
+			os.Stdout.WriteString("\nPipefish version " + text.VERSION + ".\n\n")
 			return
 		case "-r", "--run", "run":
 			hub.StartServiceFromCli()
@@ -49,7 +50,7 @@ func main() {
 		}
 	}
 
-	fmt.Print(hub.Logo())
+	fmt.Print(text.Logo())
 	hubDir := filepath.Join(settings.PipefishHomeDirectory, ("user/hub"))
 	h := hub.New(hubDir, os.Stdout)
 	h.Repl()
