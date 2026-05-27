@@ -411,8 +411,8 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 				h.WritePretty("An email with a replacement password has been sent to <C>" + args[1] + "</>.")
 			}
 		}
-	case "groups-of-user":
-		result, err := GetGroupsOfUser(h.Db, args[0], false)
+	case "groups":
+		result, err := GetGroupsOfUser(h.Db, username, true)
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
@@ -420,6 +420,13 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		}
 	case "groups-of-service":
 		result, err := GetGroupsOfService(h.Db, args[0])
+		if err != nil {
+			h.WriteError(err.Error())
+		} else {
+			h.WritePretty(result)
+		}
+	case "groups-of-user":
+		result, err := GetGroupsOfUser(h.Db, args[0], false)
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
@@ -491,13 +498,6 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			"to replace your password; or `hub log on` to log on if you're trying to use the hub on " +
 			"the terminal it's running on and you're already registered with this hub.")
 		h.WriteString("\n\n")
-	case "groups":
-		result, err := GetGroupsOfUser(h.Db, username, true)
-		if err != nil {
-			h.WriteError(err.Error())
-		} else {
-			h.WritePretty(result)
-		}
 	case "quit":
 		h.Quit()
 	case "register":
@@ -587,7 +587,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			h.setServiceName(sname)
 			break
 		}
-		if isAdmin {
+		if !h.administered() || isAdmin {
 			h.WriteError("service <C>" + sname + "</> doesn't exist.")
 		} else {
 			h.WriteError("although you have permissions to use a service called <C>" + sname + "</> on this hub, it's not currently running any service of that name.")
