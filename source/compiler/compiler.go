@@ -1477,7 +1477,6 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	indexResultLoc := uint32(DUMMY)
 	var boundCpSig, indexCpSig alternateSig
 	var boundVariableTypes, indexVariableTypes AlternateType
-
 	if node.BoundVariables == nil {
 		if ctxt.Access != CMD && ctxt.Access != REPL {
 			cp.Throw("comp/for/bound/present", &node.Token)
@@ -1544,7 +1543,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			return FAIL
 		}
 		cp.Cm("Finding initial values of index variables", tok)
-		indexCpResult := cp.CompileNode(rhsOfInitVariables, ctxt)
+		indexCpResult := cp.CompileNode(rhsOfInitVariables, ctxt.x())
 		if indexCpResult.Failed {
 			return FAIL
 		}

@@ -137,12 +137,6 @@ func (hub *Hub) getFonts() values.Map {
 // the current service if none of the above hold.
 func (hub *Hub) Do(line, username, password, service string, external bool) (string, bool) {
 
-	// Empty/comment-only lines do nothing.
-	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
-		hub.WriteString("")
-		return service, false
-	}
-
 	// We may be talking to the hub itself.
 	hubWords := strings.Fields(line)
 	if len(hubWords) > 0 && hubWords[0] == "hub" {
@@ -193,7 +187,6 @@ func (hub *Hub) Do(line, username, password, service string, external bool) (str
 		return service, false
 	}
 	hub.Sources["REPL input"] = []string{line}
-	hub.update()
 	serviceToUse, ok := hub.Services[service]
 	if !ok {
 		hub.WriteError("the hub can't find the service <C>\"" + service + "\"</>.")
@@ -206,6 +199,13 @@ func (hub *Hub) Do(line, username, password, service string, external bool) (str
 				return service, false
 			}
 		}
+	}
+	hub.update(service)
+	// Empty/comment-only lines do nothing, but we wait until now to decide that because we *do* want them to
+	// trigger recompilation of code.
+	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
+		hub.WriteString("")
+		return service, false
 	}
 	// The service may be broken, in which case we'll let the empty service handle the input.
 	if serviceToUse.IsBroken() {
@@ -247,12 +247,13 @@ func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external b
 	}
 }
 
-func (hub *Hub) update() {
-	needsUpdate := hub.serviceNeedsUpdate(hub.CurrentServiceName())
-	if hub.isLive() && needsUpdate {
-		path, _ := hub.Services[hub.CurrentServiceName()].GetFilepath()
-		println("")
-		hub.StartAndMakeCurrent(hub.TerminalUsername, hub.CurrentServiceName(), path)
+func (hub *Hub) update(serviceName string) {
+	if !hub.isLive() {
+		return
+	}
+	if hub.serviceNeedsUpdate(serviceName) {
+		path, _ := hub.Services[serviceName].GetFilepath()
+		hub.createService(serviceName, path)
 	}
 }
 
@@ -315,7 +316,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError(err.Error())
 		}
 	case "api":
-		h.update()
+		h.update(h.CurrentServiceName())
 		h.WriteString(h.Services[h.CurrentServiceName()].Api(h.CurrentServiceName(), h.getFonts(), h.getSV("width").V.(int)))
 	case "change-password":
 		err = ChangePassword(h.Db, username, args[0])
@@ -527,7 +528,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		filepath, _ := serviceToReset.GetFilepath()
 		h.WritePretty("Restarting script <C>\"" + filepath +
 			"\"</> as service <C>\"" + h.CurrentServiceName() + "\"</>.\n")
-		h.StartAndMakeCurrent(username, h.CurrentServiceName(), filepath)
+		h.createService(h.CurrentServiceName(), filepath)
 	case "run":
 		fname := args[0]
 		sname := args[1]
@@ -539,8 +540,11 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			fname = filepath.Join(dir, fname)
 		}
 		h.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.")
-		h.StartAndMakeCurrent(username, sname, fname)
-		h.tryMain()
+		h.createService(sname, fname)
+		if !h.getSV("$_external").V.(bool)  {
+			h.setServiceName(sname)
+			h.tryMain()
+		}
 	case "serialize":
 		h.WriteString(h.Services[args[0]].SerializeApi())
 	case "services":
@@ -767,12 +771,6 @@ var helpTopics = []string{}
 
 func init() {
 	helpStrings = map[string]string{}
-}
-
-func (hub *Hub) StartAndMakeCurrent(username, serviceName, scriptFilepath string) bool {
-	hub.setServiceName(serviceName)
-	hub.createService(serviceName, scriptFilepath)
-	return true
 }
 
 func (hub *Hub) tryMain() { // Guardedly tries to run the `main` command.
