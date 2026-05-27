@@ -60,8 +60,8 @@ config admin(uname, firstName, lastName, email, pword string):
     else :
         do("config-admin", [uname, firstName, lastName, email, pword])
 
-create(grp string) :
-    do("create", [grp])
+create group(grp string) :
+    do("create-group", [grp])
 
 dump(s string) :
     // The booleans are whether we're dumping to a file, and whether we're dumping the memory.

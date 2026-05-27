@@ -356,7 +356,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.TerminalPassword = args[4]
 		h.WritePretty("You are logged on as <C>" + h.TerminalUsername + "</>.\n")
 		h.setSV("isAdministered", pf.BOOL, true)
-	case "create":
+	case "create-group":
 		err := AddGroup(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
@@ -541,7 +541,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		}
 		h.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.")
 		h.createService(sname, fname)
-		if !h.getSV("$_external").V.(bool)  {
+		if !h.getSV("$_external").V.(bool) {
 			h.setServiceName(sname)
 			h.tryMain()
 		}
@@ -712,7 +712,7 @@ func (hub *Hub) makeWriter() io.Writer {
 }
 
 // Things that only make sense if we have RBAM set up.
-var rbamVerbs = dtypes.From("add", "create", "change-password", "forgot-password", "groups",
+var rbamVerbs = dtypes.From("add", "create-group", "change-password", "forgot-password", "groups",
 	"groups-of-user", "groups-of-service", "let", "let-own", "let-use", "log-off", "log-on",
 	"register", "services of group", "services-of-user", "unadminister", "users-of-service",
 	"users-of-group")

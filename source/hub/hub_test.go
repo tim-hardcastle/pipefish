@@ -28,6 +28,17 @@ func TestServices(t *testing.T) {
 	test_helper.RunHubTest(t, "default", test)
 }
 
+func TestApi(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
+		{`hub api`, "\x1b[1m\x1b[3m≡≡≡≡ foo ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\n\x1b[0m\n\x1b[3m―――― Functions ――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――\n\x1b[0m\n\x1b[0m  ▪ foo\x1b[38;2;255;215;0m(\x1b[0mx \x1b[38;2;78;201;176many?\x1b[0m\x1b[38;2;255;215;0m)\x1b[0m"},
+		{`hub halt "foo"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
 func TestEnv(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
@@ -99,8 +110,13 @@ func TestRbam(t *testing.T) {
 		{`jdean`, `password456`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
 		{``, ``,`hub log on "mmadmin", "password123"`, "You are logged on as \x1b[36mmmadmin\x1b[39m."},
 		{`mmadmin`, `password123`, `hub add "jdean" to "Users"`, "OK"},
+		{`mmadmin`, `password123`, `hub groups of user "jdean"`, "The user \x1b[36mjdean\x1b[39m is a member of the following groups: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mGuests \n\x1b[0m  ▪ \x1b[36m\x1b[39mUsers \n\n\x1b[0m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub services of group "Users"`, "The group \x1b[36mUsers\x1b[39m has access to the following services: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mfoo \n\n\x1b[0m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub services of group "Guests"`, "The group \x1b[36mGuests\x1b[39m has access to no services."},
+		{`mmadmin`, `password123`, `hub create group "Superusers"`, "OK"},
 		{`mmadmin`, `password123`, `hub halt "foo"`, "OK"},
-		{`mmadmin`, `password123`, `hub unadminister`, "OK"},
+		{`mmadmin`, `password123`, `hub change password "password789"`, "OK"},
+		{`mmadmin`, `password789`, `hub unadminister`, "OK"},
 		{``, ``, `hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunUserTest(t, "rbam", test)
