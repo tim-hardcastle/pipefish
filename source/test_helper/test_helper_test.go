@@ -81,7 +81,7 @@ func TestRbam(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.UserItem{
 		{``, ``, `hub config admin "PfAdmin", "Norma", "Mortenson", "marilyn@hollywood.org", "password123"`, "You are logged on as \x1b[36mPfAdmin\x1b[39m."},
-		{`PfAdmin`, `password123`, `hub unadminister`, "OK"},
+		{`PfAdmin`, `password123`, `hub nuke admin`, "OK"},
 		{``, ``, `hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunUserTest(t, "rbam", test)

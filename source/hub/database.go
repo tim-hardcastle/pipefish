@@ -10,10 +10,8 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"errors"
-	"fmt"
 	"math/big"
 	"sort"
-	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -29,71 +27,6 @@ import (
 )
 
 // List of SQL drivers for when I want to import more: https://zchee.github.io/golang-wiki/SQLDrivers/
-
-type SQLDriver uint32
-
-const (
-	COCKROACHDB SQLDriver = iota
-	FIREBIRD_SQL
-	MARIADB
-	MICROSOFT_SQL_SERVER
-	MYSQL
-	ORACLE
-	POSTGRESQL
-	SNOWFLAKE
-	SQLITE
-)
-
-// Matches with the enum above, e.g. COCKROACH_DB uses the postgres driver.
-var SqlDrivers = []string{"postgres", "firebirdsql", "mysql", "sqlserver", "mysql",
-	"oracle", "postgres", "snowflake", "sqlite", "mysql"}
-
-var driversFromPipefishEnum = map[string]string{"COCKROACHDB": "postgres", "FIREBIRD_SQL": "firebirdsql", "MARIADB": "mysql", "MICROSOFT_SQL_SERVER": "sqlserver", "MYSQL": "mysql",
-	"ORACLE": "oracle", "POSTGRESQL": "postgres", "SNOWFLAKE": "snowflake", "SQLITE": "sqlite", "TIDB": "mysql"}
-
-func GetdB(driverAsPipefishEnum, hostpath string, port int, hostname, user, password string) (*sql.DB, error) {
-	connectionString := fmt.Sprintf("host=%v port=%v dbname=%v user=%v password=%v sslmode=disable",
-		hostpath, port, hostname, user, password)
-
-	sqlObj, connectionError := sql.Open(driversFromPipefishEnum[driverAsPipefishEnum], connectionString)
-	if connectionError != nil {
-		return nil, connectionError
-	}
-
-	err := sqlObj.Ping()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return sqlObj, nil
-}
-
-func GetDriverOptions() string {
-	result := "The following SQL drivers are available: \n\n"
-	for k, v := range GetSortedDrivers() {
-		result = result + fmt.Sprintf("  [%v] %v\n", k, v)
-	}
-	result = result + "\nPick a number"
-	return result
-}
-
-func GetSortedDrivers() []string { // TODO --- could be done once on initialization.
-	dr := []string{}
-	for k := range driversFromPipefishEnum {
-		dr = append(dr, enumToEnglish(k))
-	}
-	sort.Strings(dr)
-	return dr
-}
-
-func enumToEnglish(s string) string {
-	s = strings.ReplaceAll(s, "_", " ")
-	s = strings.ToLower(s)
-	s = strings.ReplaceAll(s, "sql", "SQL")
-	s = strings.ReplaceAll(s, "db", "DB")
-	return strings.Title(s)
-}
 
 func AddAdmin(db *sql.DB, username, firstName, lastName, email, password string) error {
 
@@ -168,7 +101,7 @@ WHERE username = $2;`
 
 func UnAddUserToGroup(db *sql.DB, username, groupName string) error {
 	query :=
-		`DELETE FROM PipefishGroupMemberships WHERE username = $1 AND groupName = $2)`
+		`DELETE FROM PipefishGroupMemberships WHERE username = $1 AND groupName = $2`
 	_, err := db.Exec(query, username, groupName)
 	return err
 }
@@ -183,24 +116,17 @@ func LetGroupUseService(db *sql.DB, groupName, serviceName string) error {
 
 func UnLetGroupUseService(db *sql.DB, groupName, serviceName string) error {
 	query :=
-		`DELETE FROM PipefishGroupServices WHERE groupName = $1 AND serviceName = $2)`
+		`DELETE FROM PipefishGroupServices WHERE groupName = $1 AND serviceName = $2`
 	_, err := db.Exec(query, groupName, serviceName)
 	return err
 }
 
-func LetUserOwnGroup(db *sql.DB, username, groupName string) error {
-	return AddUserToGroup(db, username, groupName, true)
-}
-
-func UnLetUserOwnGroup(db *sql.DB, username, groupName string) error {
-	result, err := IsUserInGroup(db, username, groupName)
-	if err != nil {
-		return err
-	}
-	if !result {
-		return nil
-	}
-	return AddUserToGroup(db, username, groupName, false)
+func SetOwnership(db *sql.DB, username, groupName string, owner bool) error {
+	query := `UPDATE PipefishGroupMemberships
+SET owner = $3
+WHERE username = $1 AND groupName = $2;`
+	_, err := db.Exec(query, username, groupName, owner)
+	return err
 }
 
 type groupRow struct {
@@ -308,7 +234,6 @@ func GetUsersOfGroup(db *sql.DB, groupName string) (string, error) {
 		}
 	}
 
-
 	if len(owners) > 0 {
 		sort.Strings(owners)
 		result = result + "The group <C>" + groupName + "</> has the following owners:\n\n"
@@ -333,7 +258,7 @@ func GetUsersOfGroup(db *sql.DB, groupName string) (string, error) {
 func userHasService(db *sql.DB, username, servicename string) bool {
 	var exists int
 	err := db.QueryRow(
-`SELECT 1
+		`SELECT 1
 FROM PipefishGroupMemberships 
 INNER JOIN PipefishGroupServices
 ON PipefishGroupMemberships.groupName = PipefishGroupServices.groupName
@@ -518,25 +443,13 @@ func IsUserInGroup(db *sql.DB, username, groupName string) (bool, error) {
 	return count == 1, nil
 }
 
-func DoesUserHaveAccess(db *sql.DB, username, serviceName string) (bool, error) {
+func UnRegisterUser(db *sql.DB, username string) error {
+	query :=
+`DELETE FROM PipefishUsers
+WHERE username = $1`
+	_, err := db.Exec(query, username)
 
-	if serviceName == "" {
-		return true, nil
-	}
-
-	var count int
-
-	row := db.QueryRow(
-		`SELECT COUNT (*) FROM PipefishGroupMemberships 
-INNER JOIN PipefishGroupServices
-USING (groupName)
-WHERE PipefishGroupMemberships.username = $1 AND PipefishGroupServices.serviceName = $2`,
-		username, serviceName)
-	err := row.Scan(&count)
-	if err != nil {
-		return false, err
-	}
-	return count == 1, nil
+	return err
 }
 
 type userRow struct {
@@ -572,7 +485,6 @@ func ValidateEmail(db *sql.DB, username, email string) error {
 		}
 		return err
 	}
-
 	if err := bcrypt.CompareHashAndPassword([]byte(userData.email), []byte(email)); err != nil {
 		return errors.New("the hub doesn't recognize that combination of username and email address")
 	}
@@ -588,10 +500,19 @@ func AddUser(db *sql.DB, username, firstName, lastName, email, password string) 
 	return err
 }
 
-func AddGroup(db *sql.DB, groupName string) error {
+func CreateGroup(db *sql.DB, groupName string) error {
 	query :=
 		`INSERT INTO PipefishGroups(groupName)
 VALUES ($1)`
+	_, err := db.Exec(query, groupName)
+
+	return err
+}
+
+func UncreateGroup(db *sql.DB, groupName string) error {
+	query :=
+		`DELETE FROM PipefishGroups
+WHERE groupName = $1`
 	_, err := db.Exec(query, groupName)
 
 	return err

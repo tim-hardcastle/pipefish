@@ -7,74 +7,23 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
-
-func TestRbam(t *testing.T) {
-	// no t.Parallel()
-	test := []test_helper.UserItem{
-		{``, ``, `hub config admin "mmadmin", "Norma", "Mortenson", "marilyn@hollywood.org", "password123"`, "You are logged on as \x1b[36mmmadmin\x1b[39m."},
-		{`mmadmin`, `password123`, `hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
-		{`mmadmin`, `password123`, `hub let "Users" use "foo"`, `OK`},
-		{`mmadmin`, `password123`, `hub services`, "The hub is running the following services:\n\n[32m  ▪ [0mService [36m\"foo\"[39m running script [36m\"foo.pf\"[39m."},
-		{`mmadmin`, `password123`, `foo 2`, `4`},
-		{`mmadmin`, `password123`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
-		{``, ``, `hub register "jdean", "James", "Dean", "rebel@hollywood.ord", "password456"`, "You are logged on as \x1b[36mjdean\x1b[39m."},
-		{`jdean`, `password456`, `hub services`, "You do not have access to any services."},
-		{`jdean`, `password456`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
-		{``, ``,`hub log on "mmadmin", "password123"`, "You are logged on as \x1b[36mmmadmin\x1b[39m."},
-		{`mmadmin`, `password123`, `hub services of user "jdean"`, "The user \x1b[36mjdean\x1b[39m does not have access to any services."},
-		{`mmadmin`, `password123`, `hub add "jdean" to "Users"`, "OK"},
-		{`mmadmin`, `password123`, `hub groups of user "jdean"`, "The user \x1b[36mjdean\x1b[39m is a member of the following groups: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mGuests \n\x1b[0m  ▪ \x1b[36m\x1b[39mUsers \n\n\x1b[0m\x1b[36m\x1b[39m"},
-		{`mmadmin`, `password123`, `hub services of user "jdean"`, "The user \x1b[36mjdean\x1b[39m has access to the following services: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mfoo \n\n\x1b[0m\x1b[36m\x1b[39m"},
-		{`mmadmin`, `password123`, `hub services of group "Users"`, "The group \x1b[36mUsers\x1b[39m has access to the following services: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mfoo \n\n\x1b[0m\x1b[36m\x1b[39m"},
-		{`mmadmin`, `password123`, `hub groups of service "foo"`, "The service \x1b[36mfoo\x1b[39m can be accessed by the following groups: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mUsers \n\n\x1b[0m\x1b[36m\x1b[39m"},
-		{`mmadmin`, `password123`, `hub users of service "foo"`, "The service \x1b[36mfoo\x1b[39m has the following users: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mjdean \n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39m"},
-		{`mmadmin`, `password123`, `hub services of group "Guests"`, "The group \x1b[36mGuests\x1b[39m has access to no services."},
-		{`mmadmin`, `password123`, `hub create group "Superusers"`, "OK"},
-		{`mmadmin`, `password123`, `hub users of group "Superusers"`, "The group \x1b[36mSuperusers\x1b[39m has the following owners: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39m"},
-		{`mmadmin`, `password123`, `hub users of group "Users"`, "The group \x1b[36mUsers\x1b[39m has the following owners: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39mThe group \x1b[36mUsers\x1b[39m has the following users: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39m\x1b[36m\x1b[39mjdean \n\n\x1b[0m\x1b[36m\x1b[39m\x1b[36m\x1b[39m"},
-		{`mmadmin`, `password123`, `hub halt "foo"`, "OK"},
-		{`mmadmin`, `password123`, `hub change password "password789"`, "OK"},
-		{`mmadmin`, `password789`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
-		{``, ``, "hub services", "\x1b[31mHub error\x1b[39m: this is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub \x1b[0m\n\x1b[31m\x1b[39m\x1b[0m\x1b[48;2;0;0;64m\x1b[97mregister\x1b[0m to register as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace \x1b[0m\nyour password; or \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal \x1b[0m\nit's running on and you're already registered with this hub."},
-		{``, ``,`hub log on "jdean", "password456"`, "You are logged on as \x1b[36mjdean\x1b[39m."},
-		{`jdean`, `password456`, `hub services`, "You have access to the following services: \n\n\x1b[0m  ▪ foo \n\n\x1b[0m"},
-		{`jdean`, `password456`, `hub groups`, "You are an member of the following groups: \n\n\x1b[0m  ▪ Guests \n\x1b[0m  ▪ Users \n\n\x1b[0m"},
-		{`jdean`, `password456`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
-		{``, ``,`hub log on "mmadmin", "password789"`, "You are logged on as \x1b[36mmmadmin\x1b[39m."},
-		{`mmadmin`, `password789`, `hub unadminister`, "OK"},
-		{``, ``, `hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
-	}
-	test_helper.RunUserTest(t, "rbam", test)
-}
-
-func TestServices(t *testing.T) {
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{"2 + 2", "4"},
-		{`hub services`, `The hub isn't running any services.`},
-		{`hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
-		{`hub reset`, "Restarting script \x1b[36m\"../hub/test-files/foo.pf\"\x1b[39m as service \x1b[36m\"foo\"\x1b[39m."},
-		{`hub services`, "The hub is running the following services:\n\n[32m  ▪ [0mService [36m\"foo\"[39m running script [36m\"foo.pf\"[39m."},
-		{`foo 2`, `4`},
-		{`hub run "../hub/test-files/bar.pf"`, `Starting script [36m"bar.pf"[39m as service [36m"bar"[39m.`},
-		{`bar 2`, `6`},
-		{`hub switch "foo"`, `OK`},
-		{`foo 2`, `4`},
-		{`hub switch "qux"`, "\x1b[31mHub error\x1b[39m: service \x1b[36mqux\x1b[39m doesn't exist."},
-		{`hub halt "foo"`, `OK`},
-		{`hub halt "bar"`, `OK`},
-		{`hub http`, "\x1b[32mOK\x1b[0m"},
-		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
-	}
-	test_helper.RunHubTest(t, "default", test)
-}
-
 func TestApi(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
 		{`hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
 		{`hub api`, "\x1b[1m\x1b[3m≡≡≡≡ foo ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\n\x1b[0m\n\x1b[3m―――― Functions ――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――\n\x1b[0m\n\x1b[0m  ▪ foo\x1b[38;2;255;215;0m(\x1b[0mx \x1b[38;2;78;201;176many?\x1b[0m\x1b[38;2;255;215;0m)\x1b[0m"},
 		{`hub halt "foo"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
+func TestBrokenService(t *testing.T) { // We want to make sure that if the service is broken, queries get handed off to the empty service.
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub run "../hub/test-files/broken.pf"`, "Starting script [36m\"broken.pf\"[39m as service [36m\"broken\"[39m. [0] [31mError[39m: unexpected occurrence of [0m[48;2;0;0;64m[97mfnurgle[0m without a headword at line [33m1:0-7[39m of [36m\"../hub/[0m\n[33m[39m[36mtest-files/broken.pf\"[39m."},
+		{"2 + 2", "4"},
+		{`hub halt "broken"`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
@@ -103,12 +52,72 @@ func TestErrors(t *testing.T) {
 	test_helper.RunHubTest(t, "default", test)
 }
 
-func TestBrokenService(t *testing.T) { // We want to make sure that if the service is broken, queries get handed off to the empty service.
+func TestRbam(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.UserItem{
+		{``, ``, `hub config admin "mmadmin", "Norma", "Mortenson", "marilyn@hollywood.org", "password123"`, "You are logged on as \x1b[36mmmadmin\x1b[39m."},
+		{`mmadmin`, `password123`, `hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
+		{`mmadmin`, `password123`, `hub let "Users" use "foo"`, `OK`},
+		{`mmadmin`, `password123`, `hub services`, "The hub is running the following services:\n\n[32m  ▪ [0mService [36m\"foo\"[39m running script [36m\"foo.pf\"[39m."},
+		{`mmadmin`, `password123`, `foo 2`, `4`},
+		{`mmadmin`, `password123`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
+		{``, ``, `hub register "jdean", "James", "Dean", "rebel@hollywood.org", "password456"`, "You are logged on as \x1b[36mjdean\x1b[39m."},
+		{`jdean`, `password456`, `hub services`, "You do not have access to any services."},
+		{`jdean`, `password456`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
+		{``, ``, `hub log on "mmadmin", "password123"`, "You are logged on as \x1b[36mmmadmin\x1b[39m."},
+		{`mmadmin`, `password123`, `hub services of user "jdean"`, "The user \x1b[36mjdean\x1b[39m does not have access to any services."},
+		{`mmadmin`, `password123`, `hub add "jdean" to "Users"`, "OK"},
+		{`mmadmin`, `password123`, `hub groups of user "jdean"`, "The user \x1b[36mjdean\x1b[39m is a member of the following groups: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mGuests \n\x1b[0m  ▪ \x1b[36m\x1b[39mUsers \n\n\x1b[0m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub services of user "jdean"`, "The user \x1b[36mjdean\x1b[39m has access to the following services: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mfoo \n\n\x1b[0m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub services of group "Users"`, "The group \x1b[36mUsers\x1b[39m has access to the following services: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mfoo \n\n\x1b[0m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub groups of service "foo"`, "The service \x1b[36mfoo\x1b[39m can be accessed by the following groups: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mUsers \n\n\x1b[0m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub users of service "foo"`, "The service \x1b[36mfoo\x1b[39m has the following users: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mjdean \n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub services of group "Guests"`, "The group \x1b[36mGuests\x1b[39m has access to no services."},
+		{`mmadmin`, `password123`, `hub create group "Superusers"`, "OK"},
+		{`mmadmin`, `password123`, `hub users of group "Superusers"`, "The group \x1b[36mSuperusers\x1b[39m has the following owners: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub let "jdean" own "Superusers"`, "OK"},
+		{`mmadmin`, `password123`, `hub users of group "Superusers"`, "The group \x1b[36mSuperusers\x1b[39m has the following owners: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mjdean \n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub unlet "jdean" own "Superusers"`, "OK"},
+		{`mmadmin`, `password123`, `hub users of group "Superusers"`, "The group \x1b[36mSuperusers\x1b[39m has the following owners: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39mThe group \x1b[36mSuperusers\x1b[39m has the following users: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39m\x1b[36m\x1b[39mjdean \n\n\x1b[0m\x1b[36m\x1b[39m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub users of group "Users"`, "The group \x1b[36mUsers\x1b[39m has the following owners: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39mThe group \x1b[36mUsers\x1b[39m has the following users: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39m\x1b[36m\x1b[39mjdean \n\n\x1b[0m\x1b[36m\x1b[39m\x1b[36m\x1b[39m"},
+		{`mmadmin`, `password123`, `hub halt "foo"`, "OK"},
+		{`mmadmin`, `password123`, `hub change password "password789"`, "OK"},
+		{`mmadmin`, `password789`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
+		{``, ``, "hub services", "\x1b[31mHub error\x1b[39m: this is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub \x1b[0m\n\x1b[31m\x1b[39m\x1b[0m\x1b[48;2;0;0;64m\x1b[97mregister\x1b[0m to register as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace \x1b[0m\nyour password; or \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal \x1b[0m\nit's running on and you're already registered with this hub."},
+		{``, ``, `hub log on "jdean", "password456"`, "You are logged on as \x1b[36mjdean\x1b[39m."},
+		{`jdean`, `password456`, `hub services`, "You have access to the following services: \n\n\x1b[0m  ▪ foo \n\n\x1b[0m"},
+		{`jdean`, `password456`, `hub groups`, "You are an member of the following groups: \n\n\x1b[0m  ▪ Guests \n\x1b[0m  ▪ Superusers \n\x1b[0m  ▪ Users \n\n\x1b[0m"},
+		{`jdean`, `password456`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
+		{``, ``, `hub forgot password "jdean", "rebel@hollywood.org"`, "An email with a replacement password has been sent to \x1b[36mrebel@hollywood.org\x1b[39m."},
+		{``, ``, `hub register "brando", "Marlon", "Brando", "kurtz@hollywood.org", "password000"`, "You are logged on as \x1b[36mbrando\x1b[39m."},
+		{`brando`, `password000`, `hub nuke my account`, "OK"},
+		{``, ``, `hub log on "mmadmin", "password789"`, "You are logged on as \x1b[36mmmadmin\x1b[39m."},
+		{`mmadmin`, `password123`, `hub unadd "jdean" to "Users"`, "OK"},
+		{`mmadmin`, `password123`, `hub unlet "Users" use "foo"`, `OK`},
+		{`mmadmin`, `password123`, `hub uncreate group "Superusers"`, "OK"},
+		{`mmadmin`, `password789`, `hub nuke admin`, "OK"},
+		{``, ``, `hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunUserTest(t, "rbam", test)
+}
+
+func TestServices(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
-		{`hub run "../hub/test-files/broken.pf"`, "Starting script [36m\"broken.pf\"[39m as service [36m\"broken\"[39m. [0] [31mError[39m: unexpected occurrence of [0m[48;2;0;0;64m[97mfnurgle[0m without a headword at line [33m1:0-7[39m of [36m\"../hub/[0m\n[33m[39m[36mtest-files/broken.pf\"[39m."},
 		{"2 + 2", "4"},
-		{`hub halt "broken"`, `OK`},
+		{`hub services`, `The hub isn't running any services.`},
+		{`hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
+		{`hub reset`, "Restarting script \x1b[36m\"../hub/test-files/foo.pf\"\x1b[39m as service \x1b[36m\"foo\"\x1b[39m."},
+		{`hub services`, "The hub is running the following services:\n\n[32m  ▪ [0mService [36m\"foo\"[39m running script [36m\"foo.pf\"[39m."},
+		{`foo 2`, `4`},
+		{`hub run "../hub/test-files/bar.pf"`, `Starting script [36m"bar.pf"[39m as service [36m"bar"[39m.`},
+		{`bar 2`, `6`},
+		{`hub switch "foo"`, `OK`},
+		{`foo 2`, `4`},
+		{`hub switch "qux"`, "\x1b[31mHub error\x1b[39m: service \x1b[36mqux\x1b[39m doesn't exist."},
+		{`hub halt "foo"`, `OK`},
+		{`hub halt "bar"`, `OK`},
+		{`hub http`, "\x1b[32mOK\x1b[0m"},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
@@ -137,5 +146,3 @@ func TestValues(t *testing.T) {
 	}
 	test_helper.RunHubTest(t, "default", test)
 }
-
-

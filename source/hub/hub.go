@@ -271,6 +271,16 @@ type hubWriter struct {
 	hub *Hub
 }
 
+// Things that only make sense if we have RBAM set up.
+var rbamVerbs = dtypes.From("add", "change-password", "create-group", "forgot-password", "groups",
+	"groups-of-service", "groups-of-user", "let-own", "let-use", "log-off", "log-on",
+	"nuke-account", "nuke-admin", "register", "services of group", "services-of-user", "unadd", "uncreate", 
+	"unlet-own", "unlet-use", "unregister", "users-of-service", "users-of-group")
+
+// Things you can use if you're logged in to a service with RBAM, but not as admin.
+var greenList = dtypes.From("change-password", "forgot-password", "log-on", "log-off", "groups", 
+                            "nuke-account", "register", "services", "switch")
+
 func (hw hubWriter) Write(b []byte) (int, error) {
 	bits := strings.Split(string(b), ", ")
 	verb := bits[0]
@@ -357,7 +367,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		h.WritePretty("You are logged on as <C>" + h.TerminalUsername + "</>.\n")
 		h.setSV("isAdministered", pf.BOOL, true)
 	case "create-group":
-		err := AddGroup(h.Db, args[0])
+		err := CreateGroup(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		}
@@ -404,7 +414,10 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 				`From: Pipefish mailer (do not reply)
 
 Your replacement password for your account ` + args[0] + ` is ` + newPassword + ".\n\nYou should change this as soon as possible to a new password of your choosing."
-			err := smtp.SendMail(h.mailData.addr, h.mailData.auth, h.mailData.sender, []string{args[1]}, []byte(msg))
+			var err error
+			if !testing.Testing() {
+				err = smtp.SendMail(h.mailData.addr, h.mailData.auth, h.mailData.sender, []string{args[1]}, []byte(msg))
+			}
 			if err != nil {
 				h.WriteError(err.Error())
 			} else {
@@ -463,7 +476,24 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		}
 		h.WriteString(GREEN_OK)
 		go h.StartHttp(args, true)
-	case "let":
+	case "let-own":
+		var inGroup bool
+		inGroup, err = IsUserInGroup(h.Db, args[0], args[1])
+		if err != nil {
+			h.WriteError(err.Error())
+			break
+		}
+		if !inGroup {
+			err = AddUserToGroup(h.Db, args[0], args[1], true)
+			if err != nil {
+				h.WriteError(err.Error())
+			}
+		}
+		err = SetOwnership(h.Db, args[0], args[1], true)
+		if err != nil {
+			h.WriteError(err.Error())
+		}
+	case "let-use":
 		err = LetGroupUseService(h.Db, args[0], args[1])
 		if err != nil {
 			h.WriteError(err.Error())
@@ -498,6 +528,22 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			"to replace your password; or `hub log on` to log on if you're trying to use the hub on " +
 			"the terminal it's running on and you're already registered with this hub.")
 		h.WriteString("\n\n")
+	case "nuke-account":
+		err = UnRegisterUser(h.Db, username)
+		if err != nil {
+			h.WriteError(err.Error())
+		}
+		if username == h.TerminalUsername {
+			h.TerminalUsername = ""
+			h.TerminalPassword = ""
+			h.setServiceName("")
+		}
+	case "nuke-admin":
+		DropTables(h.Db)
+		h.setSV("isAdministered", pf.BOOL, false)
+		h.TerminalUsername = ""
+		h.TerminalPassword = ""
+		h.setServiceName("")
 	case "quit":
 		h.Quit()
 	case "register":
@@ -562,15 +608,15 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			h.WriteString("\n")
 			h.list()
 		}
-	case "services-of-user":
-		result, err := GetServicesOfUser(h.Db, args[0], false)
+	case "services-of-group":
+		result, err := GetServicesOfGroup(h.Db, args[0])
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
 			h.WritePretty(result)
 		}
-	case "services-of-group":
-		result, err := GetServicesOfGroup(h.Db, args[0])
+	case "services-of-user":
+		result, err := GetServicesOfUser(h.Db, args[0], false)
 		if err != nil {
 			h.WriteError(err.Error())
 		} else {
@@ -602,6 +648,41 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			break
 		}
 		h.WritePretty(pf.GetTraceReport(h.ers[0]))
+	case "uncreate-group":
+		err := UncreateGroup(h.Db, args[0])
+		if err != nil {
+			h.WriteError(err.Error())
+		}
+	case "unadd-user":
+		err :=UnAddUserToGroup(h.Db, args[0], args[1])
+		if err != nil {
+			h.WriteError(err.Error())
+		}
+	case "unlet-use":
+		err = UnLetGroupUseService(h.Db, args[0], args[1])
+		if err != nil {
+			h.WriteError(err.Error())
+		}
+	case "unlet-own":
+		var inGroup bool
+		inGroup, err = IsUserInGroup(h.Db, args[0], args[1])
+		if err != nil {
+			h.WriteError(err.Error())
+			break
+		}
+		if !inGroup {
+			h.WriteError("user is not in group.")
+			break
+		}
+		err = SetOwnership(h.Db, args[0], args[1], false)
+		if err != nil {
+			h.WriteError(err.Error())
+		}
+	case "unregister":
+		err = UnRegisterUser(h.Db, args[0])
+		if err != nil {
+			h.WriteError(err.Error())
+		}
 	case "users-of-group":
 		result, err := GetUsersOfGroup(h.Db, args[0])
 		if err != nil {
@@ -616,12 +697,6 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		} else {
 			h.WritePretty(result)
 		}
-	case "unadminister":
-		DropTables(h.Db)
-		h.setSV("isAdministered", pf.BOOL, false)
-		h.TerminalUsername = ""
-		h.TerminalPassword = ""
-		h.setServiceName("")
 	case "values":
 		if len(h.ers) == 0 {
 			h.WriteError("there are no recent errors.")
@@ -692,6 +767,8 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WriteString(padding)
 		h.WritePretty(refLine)
 		h.WriteString("\n")
+	default :
+		panic("Unhandled verb " + verb)
 	}
 	return len(b), nil
 }
@@ -710,15 +787,6 @@ func (hub *Hub) makeWriter() io.Writer {
 		hub: hub,
 	}
 }
-
-// Things that only make sense if we have RBAM set up.
-var rbamVerbs = dtypes.From("add", "create-group", "change-password", "forgot-password", "groups",
-	"groups-of-user", "groups-of-service", "let", "let-own", "let-use", "log-off", "log-on",
-	"register", "services of group", "services-of-user", "unadminister", "users-of-service",
-	"users-of-group")
-
-// Things you can use if you're logged in to a service with RBAM, but not as admin.
-var greenList = dtypes.From("change-password", "forgot-password", "log-on", "log-off", "groups", "register", "services", "switch")
 
 func (hub *Hub) Quit() {
 	hub.saveHubFile()
@@ -1107,7 +1175,7 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var serviceName string
-	if h.administered() && !((!h.listeningToHttpOrHttps) && (request.Body == "hub register" || request.Body == "hub log in")) {
+	if h.administered() && !((!h.listeningToHttpOrHttps) && (request.Body == "hub register" || request.Body == "hub log on")) {
 		err = ValidateUser(h.Db, request.Username, request.Password)
 		if err != nil {
 			h.WriteError(err.Error())

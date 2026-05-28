@@ -12,7 +12,7 @@ cmd
 
 // Verb are in alphabetical order:
 // add, config, create, do, edit, env, errors, halt, help, let, listen, live, log, log on, 
-// log off, quit, register, replay, run, services, snap, test, trace, track, unadminister,
+// log off, quit, register, replay, run, services, snap, test, trace, track, nuke admin,
 // unregister, where, why, values
 
 add(usr string) to (grp string) :
@@ -179,7 +179,7 @@ let(usr string) own (grp string) :
     do("let-own", [usr, grp])
 
 let(grp string) use (srv string) :
-    do("let", [grp, srv])
+    do("let-use", [grp, srv])
 
 live on :
     global $_external, isAdministered
@@ -220,6 +220,12 @@ log off :
         error "`log off` means \"log off from using this hub from the terminal it's running on\", and so can't be used remotely"
     else :
         do("log-off", [])
+
+nuke admin :
+    do("nuke-admin", [])
+
+nuke my account :
+    do("nuke-account", [])
 
 quit :
     global $_external, isAdministered
@@ -296,23 +302,20 @@ trace :
 track :
     do("track", [])
 
-unadd(usr string) to (grp string) :
-    do("unadd", [usr, grp])
+unadd (usr string) to (grp string) :
+    do("unadd-user", [usr, grp])
 
-unadminister :
-    do("unadminister", [])
+uncreate group(grp string) :
+    do("uncreate-group", [grp])
 
-uncreate(grp string) :
-    do("uncreate", [grp])
-
-unlet(grp string) use (srv string) :
+unlet (grp string) use (srv string) :
     do("unlet-use", [grp, srv])
 
-unlet(usr string) own (grp string) :
+unlet (usr string) own (grp string) :
     do("unlet-own", [usr, grp])
 
-unregister :
-    do("unregister", [])
+unregister (usr string):
+    do("unregister", [usr])
 
 users of group(grp string) :
     do("users-of-group", [grp])
