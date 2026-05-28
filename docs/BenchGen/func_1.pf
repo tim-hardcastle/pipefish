@@ -1,0 +1,42 @@
+newtype
+
+Array = struct(data list, refC, id int)
+
+def 
+
+func_1(vars list) -> Array :
+    vars -> initialize -> increment -> loopToLimit
+
+initialize(vars list) -> Array :
+    len(vars) > 0 :
+        lastArray with refC::(1 + lastArray[refC])
+    else :
+        Array(newdata, 1, 7)
+given :
+    lastArray = vars[len(vars)-1]
+    newdata = from a = [] for i::_ = range 211 : 
+        a & 0
+
+increment(A Array) -> Array :
+    from R = A for i::v = range A[data] :
+        R with [data, i]::v+1
+
+loopToLimit(A Array) -> Array :
+    from R = A for loop_1 = 0; loop_1 < loopLimit_1; loop_1 + 1 :
+        contains_29(R) :
+            R
+        else :
+            decrement(R)
+given :
+    loopLimit_1 = (50 div 1) + 1
+
+contains_29(A Array) -> bool :
+    from a = false for _::v = range A[data] :
+        v == 29 :
+            break true 
+        else :
+            continue
+
+decrement(A Array) -> Array :
+    from R = A for i::v = range A[data] :
+        R with [data, i]::v-1

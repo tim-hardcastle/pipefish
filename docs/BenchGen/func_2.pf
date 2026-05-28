@@ -1,0 +1,16 @@
+newtype
+
+Array = struct(data list, size, refC, id int)
+
+def 
+
+func_2(pool list) -> Array :
+    len(pool) > 0 :
+        lastArray with refC::(1 + lastArray[refC])
+    else :
+        Array(newdata, 923, 1, 9)
+given :
+    lastArray = pool[len(pool)-1]
+    newdata = from a = [] for i::_ = range 923 : 
+        a & 0
+
