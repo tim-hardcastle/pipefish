@@ -1,0 +1,8 @@
+external
+
+"http://localhost/server"
+
+def 
+
+twice(x int) :
+    server.double x
