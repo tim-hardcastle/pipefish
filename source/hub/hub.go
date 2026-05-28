@@ -583,8 +583,9 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			fname = filepath.Join(dir, fname)
 		}
 		h.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.")
+		ext := h.getSV("$_external").V.(bool) // Note that we need to do this before createService, which may do external things.
 		h.createService(sname, fname)
-		if !h.getSV("$_external").V.(bool) {
+		if !ext {
 			h.setServiceName(sname)
 			h.tryMain()
 		}
@@ -1162,11 +1163,12 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	var buf bytes.Buffer
+	oldOut := h.Out
 	h.Out = &buf
 	sv := h.Services[request.Service]
 	sv.SetOutHandler(sv.MakeLiteralOutHandler(&buf))
 	serviceName, _ = h.Do(request.Body, request.Username, request.Password, request.Service, true)
-	h.Out = os.Stdout
+	h.Out = oldOut
 	response := jsonResponse{Body: buf.String(), Service: serviceName}
 	json.NewEncoder(w).Encode(response)
 }

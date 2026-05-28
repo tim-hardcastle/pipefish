@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"testing"
 
 	"github.com/lmorg/readline/v4"
 	"github.com/tim-hardcastle/pipefish/source/compiler"
@@ -300,13 +301,17 @@ func (iz *Initializer) initializeExternals(startAt int) {
 			portIsAt := strings.LastIndex(hostpath, ":")
 			pathWithoutPort := hostpath[:portIsAt]
 			serviceName := path[pos+1:]
-			rline := readline.NewInstance()
-			println("\n\nPlease enter your username and password for hub at " + text.CYAN + "'" + pathWithoutPort + "'" + text.RESET + ".")
-			rline.SetPrompt("Username: ")
-			username, _ := rline.Readline()
-			rline.SetPrompt("Password: ")
-			rline.PasswordMask = '▪'
-			password, _ := rline.Readline()
+			username := ""
+			password := ""
+			if !testing.Testing() {
+				rline := readline.NewInstance()
+				println("\n\nPlease enter your username and password for hub at " + text.CYAN + "'" + pathWithoutPort + "'" + text.RESET + ".")
+				rline.SetPrompt("Username: ")
+				username, _ = rline.Readline()
+				rline.SetPrompt("Password: ")
+				rline.PasswordMask = '▪'
+				password, _ = rline.Readline()
+			}
 			iz.addHttpService(hostpath, serviceName, username, password)
 			continue
 		}

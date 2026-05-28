@@ -18,6 +18,7 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
+	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
 func TestExternalItes(t *testing.T) {
@@ -56,6 +57,20 @@ func TestGolangItes(t *testing.T) {
 		goFile := filepath.Join(settings.PipefishHomeDirectory, "gocode_"+strconv.Itoa(counter)+".go")
 		os.Remove(goFile)
 	}
+}
+
+func TestHttp(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub http`, "\x1b[32mOK\x1b[0m"},
+		{`hub run "../hub/test-files/server.pf"`, `Starting script [36m"server.pf"[39m as service [36m"server"[39m.`},
+		{`hub run "../hub/test-files/client.pf"`, `Starting script [36m"client.pf"[39m as service [36m"client"[39m.`},
+		{`twice 2`, "4"},
+		{`hub halt "client"`, `OK`},
+		{`hub halt "server"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
 }
 
 // This apparent tautology refers to errors from the `intializer.go` file specifically.

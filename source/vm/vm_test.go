@@ -7,39 +7,8 @@ import (
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
+	"github.com/tim-hardcastle/pipefish/source/text"
 )
-
-func TestSqlErrors(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		return
-	}
-	tests := []test_helper.TestItem{
-		{`mapKeyError`, `sql/concrete/map/key`},
-		{`mapValueError`, `sql/concrete/map/value`},
-		{`mapConflictError`, `sql/map/exists`},
-		{`listError`, `sql/concrete/list`},
-		{`setError`, `sql/concrete/set`},
-		{`sigError`, `sql/sig`},
-	}
-	test_helper.RunTest(t, "sql_error_test.pf", tests, test_helper.TestValues)
-}
-func TestSql(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		return
-	}
-	tests := []test_helper.TestItem{
-		{`testA`, `2`},
-		{`testB`, `2`},
-		{`testC`, `2`},
-		{`testD`, `2`},
-		{`testE`, `Dragon with (name::"Smaug", color::RED)`},
-		{`testF`, `"Puff"::GREEN`},
-		{`testG`, `map("Puff"::GREEN)`},
-		{`testH`, `2`},
-		{`testI`, `OtherData with (neString::NonEmptyString("foo"), nzInt::NonZeroInt(42))`},
-	}
-	test_helper.RunTest(t, "sql_test.pf", tests, test_helper.TestOutput)
-}
 
 func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -454,6 +423,21 @@ func TestHardwiredOps(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
+
+func TestHttp(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub http`, "\x1b[32mOK\x1b[0m"},
+		{`hub run "../hub/test-files/server.pf"`, `Starting script [36m"server.pf"[39m as service [36m"server"[39m.`},
+		{`hub run "../hub/test-files/client.pf"`, `Starting script [36m"client.pf"[39m as service [36m"client"[39m.`},
+		{`twice 2`, "4"},
+		{`hub halt "client"`, `OK`},
+		{`hub halt "server"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
 func TestImperative(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`zort false`, `7`},
@@ -767,6 +751,39 @@ func TestSnippet(t *testing.T) {
 		{`len snippet(1, "q", true)`, `3`},
 	}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
+}
+
+func TestSql(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
+	tests := []test_helper.TestItem{
+		{`testA`, `2`},
+		{`testB`, `2`},
+		{`testC`, `2`},
+		{`testD`, `2`},
+		{`testE`, `Dragon with (name::"Smaug", color::RED)`},
+		{`testF`, `"Puff"::GREEN`},
+		{`testG`, `map("Puff"::GREEN)`},
+		{`testH`, `2`},
+		{`testI`, `OtherData with (neString::NonEmptyString("foo"), nzInt::NonZeroInt(42))`},
+	}
+	test_helper.RunTest(t, "sql_test.pf", tests, test_helper.TestOutput)
+}
+
+func TestSqlErrors(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
+	tests := []test_helper.TestItem{
+		{`mapKeyError`, `sql/concrete/map/key`},
+		{`mapValueError`, `sql/concrete/map/value`},
+		{`mapConflictError`, `sql/map/exists`},
+		{`listError`, `sql/concrete/list`},
+		{`setError`, `sql/concrete/set`},
+		{`sigError`, `sql/sig`},
+	}
+	test_helper.RunTest(t, "sql_error_test.pf", tests, test_helper.TestValues)
 }
 
 func TestStructs(t *testing.T) {
