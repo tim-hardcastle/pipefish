@@ -452,27 +452,24 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			name = args[0]
 		} else {
 			h.WriteError("the hub can't find the service <C>\"" + args[0] + "\"</>.")
+			break
 		}
 		if name == "" || name == "hub" {
-			h.WriteError("the hub doesn't know what you want to stop.")
+			h.WriteError("the hub doesn't know what you want to halt.")
+			break
 		}
 		delete(h.Services, name)
 		if name == h.CurrentServiceName() {
 			h.makeEmptyServiceCurrent()
 		}
 	case "help":
-		if helpMessage, ok := helpStrings[args[0]]; ok {
-			h.WritePretty(helpMessage + "\n")
-		} else {
-			h.WriteError("the `hub help` command doesn't accept " +
-				"`\"" + args[0] + "\"` as a parameter.")
-		}
+		h.WriteError("the `hub help` command is temporarily deprecated.")
 	case "http":
 		h.WriteString(GREEN_OK)
 		go h.StartHttp([]string{args[0]}, false)
 	case "https":
 		if len(args) == 0 {
-			h.WriteError("list of domain names cannot be empty")
+			h.WriteError("list of domain names cannot be empty.")
 		}
 		h.WriteString(GREEN_OK)
 		go h.StartHttp(args, true)
@@ -796,16 +793,6 @@ func (hub *Hub) Quit() {
 	}
 }
 
-func (hub *Hub) help() {
-	hub.WriteString("\n")
-	hub.WriteString("Help topics are:\n")
-	hub.WriteString("\n")
-	for _, v := range helpTopics {
-		hub.WriteString("  " + BULLET + v + "\n")
-	}
-	hub.WriteString("\n")
-}
-
 func (hub *Hub) WritePretty(s string) {
 	// This shouldn't be happening here.
 	hubService, ok := hub.Services["hub"]
@@ -831,14 +818,6 @@ func (hub *Hub) WriteError(s string) {
 func (hub *Hub) WriteString(s string) {
 	io.WriteString(hub.Out, s)
 	hub.Services["hub"].SetPostHappened()
-}
-
-var helpStrings = map[string]string{}
-
-var helpTopics = []string{}
-
-func init() {
-	helpStrings = map[string]string{}
 }
 
 func (hub *Hub) tryMain() { // Guardedly tries to run the `main` command.
