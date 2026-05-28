@@ -95,6 +95,7 @@ func TestRbam(t *testing.T) {
 		{`mmadmin`, `password123`, `hub unadd "jdean" to "Users"`, "OK"},
 		{`mmadmin`, `password123`, `hub unlet "Users" use "foo"`, `OK`},
 		{`mmadmin`, `password123`, `hub uncreate group "Superusers"`, "OK"},
+		{`mmadmin`, `password123`, `hub unregister "jdean"`, "OK"},
 		{`mmadmin`, `password789`, `hub nuke admin`, "OK"},
 		{``, ``, `hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
