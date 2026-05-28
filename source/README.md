@@ -1,6 +1,6 @@
 # Overall architecture of Pipefish
 
-Almost every important package has its own README by now, explaining the purpose of the files in it: in this section we will take a less detailed overview of the whole system.
+Almost every important package has its own README by now, explaining the purpose of the files in it: in this document we will take a less detailed overview of the whole system.
 
 ## `main` and `hub`
 

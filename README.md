@@ -49,7 +49,7 @@ Here are some of Pipefish's more distinctive features:
 * Pipefish services have a [functional core, imperative shell](https://github.com/tim-hardcastle/pipefish/blob/main/docs/functional-core-imperative-shell.md) architecture, in which a thin layer of IO sits on top of pure functional business logic.
 * All values are immutable; all comparison is by value.
 * Functions are pure and referentially transparent.
-* [Local constants](https://github.com/tim-hardcastle/pipefish/wiki/Local-constants-and-inner-functions#local-constants) of functions are defined in a block at the end of the function and evaluated only if/when required. (You don't know how nice this is until you've tried it.)
+* [Local variables](https://github.com/tim-hardcastle/pipefish/wiki/Local-variables-and-inner-functions#local-constants) of functions are defined in a block at the end of the function and evaluated only if/when required. (You don't know how nice this is until you've tried it.)
 * Free order of intitialization also helps you to write your scripts top-down.
 * Abstraction is achieved by [overloading](https://github.com/tim-hardcastle/pipefish/wiki/Function-signatures-and-overloading#overloading) and duck-typing. There is multiple dispatch.
 * Field names of [structs](https://github.com/tim-hardcastle/pipefish/wiki/Structs) are first-class objects. Indexing structs and maps overloads the same operator.
@@ -59,7 +59,7 @@ Here are some of Pipefish's more distinctive features:
 * It is intended that often a Pipefish service will act as its own front end (like e.g. a SQL database does) with the end-user talking to it via the Pipefish REPL. For this reason Pipefish has an unusually [flexible syntax](https://github.com/tim-hardcastle/pipefish/wiki/Infixes,-postfixes,-etc) for creating DSLs.
 * Pipefish comes with [Go](https://github.com/tim-hardcastle/pipefish/wiki/Golang-interop) and [SQL](https://github.com/tim-hardcastle/pipefish/wiki/SQL-interop) interop for all your backend needs.
 * (Also the [system for embedding other languages](https://github.com/tim-hardcastle/pipefish/wiki/Snippets) is extensible if this does not in fact meet all your needs.)
-* Pipefish allows and encourages you to write your applications as [microservices](https://github.com/tim-hardcastle/pipefish/wiki/Microservices), giving you a natural way to encapsulate data and manage access to it.
+* Pipefish allows you to deploy your libraries as [microservices](https://github.com/tim-hardcastle/pipefish/wiki/Microservices), or, alternatively to turn your microservices back into libraries.
 * Pipefish’s syntax is based on mainstream productivity languages, principally Python and Go. It has a shallow or indeed invisible learning curve: you can learn the simple parts of the language without knowing that the other parts exist.
 * Pipefish's roadmap includes a point where we freeze the core language around a small set of sufficiently powerful features and try to remain permanently in version 1.x.
 
@@ -69,6 +69,8 @@ Here are some of Pipefish's more distinctive features:
 * [Pipefish: a high-level view](https://github.com/tim-hardcastle/pipefish/blob/main/docs/pipefish-a-high-level-view.md). This explains the goals and design principles of the language.
 * [Style guide](https://github.com/tim-hardcastle/pipefish/blob/main/docs/style-guide.md). This gives best practices for the style in which one should write Pipefish code.
 * [Functional core, imperative shell](https://github.com/tim-hardcastle/pipefish/blob/main/docs/functional-core-imperative-shell.md). A synopsis of the language paradigm.
+* [Pipefish and the lambda calculus](https://github.com/tim-hardcastle/pipefish/blob/main/docs/pipefish-and-the-lambda-calculs.md). A quick look at the fact that Pipefish is the lambda calculus with a ton of sugar poured on it.
+* [Architecture of Pipefish](https://github.com/tim-hardcastle/pipefish/blob/main/docs/the-whys-of-pipefish.md). This explains broadly how the initializer/compiler/VM work.
 * [The whys of Pipefish](https://github.com/tim-hardcastle/pipefish/blob/main/docs/the-whys-of-pipefish.md). This explains the reasoning behind some lower-level design choices which are sufficiently unusual as to need explanation.
 
 ## Our adorable mascot
