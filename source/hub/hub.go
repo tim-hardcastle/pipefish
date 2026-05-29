@@ -1007,7 +1007,10 @@ func (h *Hub) OpenHubFile(hubFilepath string) {
 			rline := readline.NewInstance()
 			rline.SetPrompt("Enter the env key for the hub: ")
 			rline.PasswordMask = '▪'
-			storekey, _ := rline.Readline()
+			storekey := "Default key for testing."
+			if !testing.Testing() {
+				storekey, _ = rline.Readline()
+			}
 			if storekey == "" {
 				println("Starting hub without opening env data.")
 				s = "PLAINTEXT"

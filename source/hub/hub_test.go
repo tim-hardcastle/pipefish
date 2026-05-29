@@ -33,12 +33,18 @@ func TestEnv(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
 		{`hub env "foo"::42`, `OK`},
-		{`hub env delete "foo"`, `OK`},
-		{`hub env key "", "foo"`, "[32mOK[0m"},
+		{`hub env key "", "Default key for testing."`, "[32mOK[0m"},
 		{`hub env wipe`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
+	// no t.Parallel()
+	testB := []test_helper.TestItem{
+		{`hub env delete "foo"`, `OK`},
+		{`hub env wipe`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", testB)
 }
 
 func TestErrors(t *testing.T) {
