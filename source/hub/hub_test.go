@@ -37,7 +37,7 @@ func TestEnv(t *testing.T) {
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
-	
+
 	testB := []test_helper.TestItem{
 		{`hub env delete "foo"`, `OK`},
 		{`hub env wipe`, `OK`},
@@ -137,6 +137,8 @@ func TestServices(t *testing.T) {
 		{`bar 2`, `6`},
 		{`hub switch "foo"`, `OK`},
 		{`foo 2`, `4`},
+		{`hub live off`, `OK`},
+		{`hub live on`, `OK`},
 		{`hub switch "qux"`, "\x1b[31mHub error\x1b[39m: service \x1b[36mqux\x1b[39m doesn't exist."},
 		{`hub halt "foo"`, `OK`},
 		{`hub halt "bar"`, `OK`},
