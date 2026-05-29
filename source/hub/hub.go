@@ -152,7 +152,7 @@ func (hub *Hub) Do(line, username, password, service string, external bool) (str
 	}
 
 	// We may be talking to the os
-	if len(hubWords) > 0 && hubWords[0] == "os" {
+	if len(hubWords) > 0 && hubWords[0] == "$" {
 		if hub.administered() {
 			isAdmin, err := IsUserAdmin(hub.Db, username)
 			if err != nil {
@@ -160,20 +160,16 @@ func (hub *Hub) Do(line, username, password, service string, external bool) (str
 				return service, false
 			}
 			if !isAdmin {
-				hub.WriteError("only administrators can use `os` remotely.")
+				hub.WriteError("Only administrators can use the shell remotely.")
+				return service, false
 			}
-			return service, false
 		} else {
 			if external {
-				hub.WriteError("only administrators can use `os` remotely.")
+				hub.WriteError("on an unadministered hub, for reasons of security and sanity, you can't use the shell remotely.")
+				return service, false
 			}
 		}
-		if len(hubWords) == 3 && hubWords[1] == "cd" { // Because cd changes the directory for the current
-			os.Chdir(hubWords[2])     // process, if we did it with exec it would do it for
-			hub.WriteString(GREEN_OK) // that process and not for Pipefish.
-			return service, false
-		}
-		command := exec.Command(hubWords[1], hubWords[2:]...)
+		command := exec.Command("sh", "-c", line[2:])
 		out, err := command.Output()
 		if err != nil {
 			hub.WriteError(err.Error())

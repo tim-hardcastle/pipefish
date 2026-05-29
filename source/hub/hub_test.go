@@ -95,13 +95,16 @@ func TestRbam(t *testing.T) {
 		{`mmadmin`, `password123`, `hub users of group "Superusers"`, "The group \x1b[36mSuperusers\x1b[39m has the following owners: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39mThe group \x1b[36mSuperusers\x1b[39m has the following users: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39m\x1b[36m\x1b[39mjdean \n\n\x1b[0m\x1b[36m\x1b[39m\x1b[36m\x1b[39m"},
 		{`mmadmin`, `password123`, `hub users of group "Users"`, "The group \x1b[36mUsers\x1b[39m has the following owners: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39mmmadmin \n\n\x1b[0m\x1b[36m\x1b[39mThe group \x1b[36mUsers\x1b[39m has the following users: \n\n\x1b[0m  ▪ \x1b[36m\x1b[39m\x1b[36m\x1b[39mjdean \n\n\x1b[0m\x1b[36m\x1b[39m\x1b[36m\x1b[39m"},
 		{`mmadmin`, `password123`, `hub halt "foo"`, "OK"},
+		{`mmadmin`, `password123`, `$ echo "Hello world!"`, `Hello world!`},
 		{`mmadmin`, `password123`, `hub change password "password789"`, "OK"},
 		{`mmadmin`, `password789`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
 		{``, ``, "hub services", "\x1b[31mHub error\x1b[39m: this is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub \x1b[0m\n\x1b[31m\x1b[39m\x1b[0m\x1b[48;2;0;0;64m\x1b[97mregister\x1b[0m to register as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace \x1b[0m\nyour password; or \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal \x1b[0m\nit's running on and you're already registered with this hub."},
 		{``, ``, `hub log on "jdean", "password456"`, "You are logged on as \x1b[36mjdean\x1b[39m."},
 		{`jdean`, `password456`, `hub services`, "You have access to the following services: \n\n\x1b[0m  ▪ foo \n\n\x1b[0m"},
 		{`jdean`, `password456`, `hub groups`, "You are an member of the following groups: \n\n\x1b[0m  ▪ Guests \n\x1b[0m  ▪ Superusers \n\x1b[0m  ▪ Users \n\n\x1b[0m"},
+		{`jdean`, `password456`, `$ echo "Hello world!"`, "\x1b[31mHub error\x1b[39m: Only administrators can use the shell remotely."},
 		{`jdean`, `password456`, `hub log off`, "\x1b[32mOK\x1b[39m\n\n┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\nThis is an administered hub and you aren't logged on. Please use either \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub register\x1b[0m to \x1b[0m\nregister as a guest; \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub forgot password(username, email string)\x1b[0m to replace your password; \x1b[0m\nor \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub log on\x1b[0m to log on if you're trying to use the hub on the terminal it's running on \x1b[0m\nand you're already registered with this hub."},
+		{``, ``, `$ echo "Hello world!"`, "\x1b[31mHub error\x1b[39m: Only administrators can use the shell remotely."},
 		{``, ``, `hub forgot password "jdean", "rebel@hollywood.org"`, "An email with a replacement password has been sent to \x1b[36mrebel@hollywood.org\x1b[39m."},
 		{``, ``, `hub register "brando", "Marlon", "Brando", "kurtz@hollywood.org", "password000"`, "You are logged on as \x1b[36mbrando\x1b[39m."},
 		{`brando`, `password000`, `hub nuke my account`, "OK"},
@@ -133,6 +136,16 @@ func TestServices(t *testing.T) {
 		{`hub halt "foo"`, `OK`},
 		{`hub halt "bar"`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
+func TestShell(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`$ echo "Hello!"`, "Hello!"},
+		{"$ return 0", "\x1b[32mOK\x1b[0m"},
+		{"$ return 42", "\x1b[31mHub error\x1b[39m: exit status 42"},
 	}
 	test_helper.RunHubTest(t, "default", test)
 }

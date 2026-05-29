@@ -2533,3 +2533,8 @@ func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 
 
 
+
+
+
+
+
