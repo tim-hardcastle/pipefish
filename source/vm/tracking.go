@@ -42,7 +42,7 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 	time := time.Now()
 	if len(tdL) == 0 {
 		return ("\nNo tracking data exists.\n")
-	}
+	} 
 	var out bytes.Buffer
 	for i, td := range tdL {
 		logTime := vm.Mem[td.LogTimeLoc].V.(bool)
@@ -109,12 +109,15 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 			out.WriteString(args[0].(values.Value).V.(string))
 			out.WriteString("\n")
 		case TR_RESULT:
+			if !vm.trackingIs(i-1, TR_CONDITION) {
+				out.WriteString("-")
+			}
 			if logTime {
-				out.WriteString("- At ")
+				out.WriteString(" At ")
 				out.WriteString(time.Format("15:04:05"))
 				out.WriteString(", t")
 			} else {
-				out.WriteString("- T")
+				out.WriteString(" T")
 			}
 			if args[0].(values.Value).V.(bool) {
 				out.WriteString("he condition succeeded.\n")

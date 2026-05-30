@@ -642,7 +642,6 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 	case "track":
 		tracking, _ := h.Services[h.CurrentServiceName()].GetTrackingReport()
 		h.WritePretty(tracking)
-		h.WriteString("\n")
 	case "uncreate-group":
 		err := UncreateGroup(h.Db, args[0])
 		if err != nil {
