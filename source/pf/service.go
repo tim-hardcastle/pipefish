@@ -495,6 +495,7 @@ func (sv *Service) TypeToTypeName(t Type) (string, error) {
 // Gets a report of the tracking if any, in the form of a string which can be passed to
 // `PrettyString` for highlighting.
 func (sv *Service) GetTrackingReport() (string, error) {
+	println("GTR!")
 	if sv.cp == nil {
 		return "", errors.New("service is uninitialized")
 	}

@@ -219,8 +219,8 @@ func (cp *Compiler) Do(line string) values.Value {
 func (cp *Compiler) CompileNode(node parser.Node, ctxt Context) cpResult {
 	cp.Cm("Compiling node of type "+(reflect.TypeOf(node).String())[8:]+" with literal "+text.Emph(node.GetToken().Literal)+" :", node.GetToken())
 	if !cp.Vm.IsSet("l") {
-		cp.Vm.IndentBy ++
-		defer func() {cp.Vm.IndentBy --}()
+		cp.Vm.IndentBy++
+		defer func() { cp.Vm.IndentBy-- }()
 	}
 	result := cpResult{}
 	state := cp.GetState()
@@ -833,7 +833,7 @@ NodeTypeSwitch:
 		// therefore need to compile like it was a snippet.
 		if node.Value == "" {
 			if node.Token.Type != token.PRELOG { // In which case autologging will have been taken care of when we started compiling the function.
-				newCtxt.LogFlavor = LF_TRACK // This will ensure that autologging happens for the children of the LogExpression.
+				newCtxt.LogFlavor = LF_ALL // This will ensure that autologging happens for the children of the LogExpression.
 			}
 		} else { // Otherwise the user has made their own logging statement.
 			logCheck := cp.vmIf(vm.Qlog) // Skips over the logging if we are already in a logging statement, as explained below.
@@ -870,7 +870,7 @@ NodeTypeSwitch:
 	case *parser.Nothing:
 		cp.Put(vm.Asgm, values.C_EMPTY_TUPLE)
 		result = cpResult{Types: AlternateType{FiniteTupleType{}}, Foldable: true}
-	case *parser.PeekExpression :
+	case *parser.PeekExpression:
 		peeks := cp.Vm.GetPeeksFromTokens(node.Peeks)
 		cp.Reserve(values.PEEK_FLAGS, peeks, &node.Token)
 		cp.Emit(vm.Flps, cp.That())
@@ -2746,7 +2746,7 @@ type CpFunc struct {
 	Command                 bool     // True if it's a command.
 	GoNumber                uint32
 	HasGo                   bool
-	Top                     uint32   // Needed to know when to stop dumping the data.
+	Top                     uint32 // Needed to know when to stop dumping the data.
 }
 
 // Information we need in the CpFunc struct to call an external service.
@@ -3004,7 +3004,7 @@ func (cp *Compiler) CallIfExists(name string) (values.Value, error) {
 
 // The regular version.
 func (cp *Compiler) Cm(comment string, tok *token.Token) {
-	if settings.PEEK_COMPILER  {
+	if settings.PEEK_COMPILER {
 		if (cp.Vm.IsSet("c") || cp.Vm.IsSet("C") || cp.Vm.IsSet("k")) && !cp.Vm.IsSet("b") {
 			cp.Vm.Dump(comment)
 		}

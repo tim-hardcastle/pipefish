@@ -19,9 +19,9 @@ import (
 type LogFlavor int
 
 const (
-	LF_NONE  LogFlavor = iota // No logging is taking place.
-	LF_INIT                   // We're still initializing the variables.
-	LF_TRACK                  // We're logging everything.
+	LF_NONE LogFlavor = iota // No logging is taking place.
+	LF_INIT                  // We're still initializing the variables.
+	LF_ALL                   // We're logging everything.
 )
 
 // Although the arguments of this function are the same as the shape of the vm.TrackingData struct, we don't just naively shove one into the other,
@@ -87,25 +87,18 @@ func staticTrackingToString(i int, td vm.TrackingData) string { // For the use o
 	return out.String()
 }
 
+// What `ctxt.Typecheck` is doing here is that we're not going to e.g. log what goes on inside
+// an inline conditional which produces a value which we then add to something.
+func (cp *Compiler) autoOn(ctxt Context) bool {
+	return ctxt.Typecheck != nil && ctxt.LogFlavor == LF_ALL
+}
+
 func (cp *Compiler) trackingOn(ctxt Context) bool {
 	if ctxt.Typecheck == nil {
 		return false
 	}
-	if ctxt.TrackingFlavor == LF_TRACK && cp.GetTrackingScope() == 2 {
-		return true
-	}
-	return false
-}
-
-func (cp *Compiler) autoOn(ctxt Context) bool {
-	if ctxt.Typecheck == nil {
-		return false
-	}
-	return ctxt.LogFlavor == LF_TRACK
-}
-
-func (cp *Compiler) GetTrackingScope() int {
-	return cp.getValueOfVariable("$_logging").(int)
+	v, ok := cp.getValueOfVariable("$_logTo").(int)
+	return ok && v == 3
 }
 
 func (cp *Compiler) getValueOfVariable(s string) any {

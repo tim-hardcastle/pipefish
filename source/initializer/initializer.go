@@ -1534,13 +1534,16 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		iz.cp.Vm.GoFns = append(iz.cp.Vm.GoFns, vm.GoFn{Code: izFn.body.(*parser.GolangExpression).GoFunction})
 	case token.XCALL:
 	default:
-		areWeTracking := compiler.LF_NONE
-		if iz.cp.GetTrackingScope() == 2 {
-			areWeTracking = compiler.LF_TRACK
+		logVar, _ := iz.cp.GlobalVars.GetVar("$_logTo")
+		logVal, ok := iz.cp.Vm.Mem[logVar.MLoc].V.(int)
+		areWeTracking := ok && logVal == 3 && (functionName != "stringify")
+		trackingOn := compiler.LF_NONE
+		if areWeTracking {
+			trackingOn = compiler.LF_ALL
 		}
 		if izFn.given != nil {
 			iz.cp.ThunkList = []compiler.ThunkData{}
-			givenContext := compiler.Context{fnenv, functionName, compiler.DEF, cpFn.LoReg, areWeTracking, compiler.LF_NONE, altType(), nil}
+			givenContext := compiler.Context{fnenv, functionName, compiler.DEF, cpFn.LoReg, trackingOn, compiler.LF_NONE, altType(), nil}
 			ok := iz.cp.CompileGivenBlock(izFn.given, givenContext)
 			if !ok {
 				return nil
@@ -1554,19 +1557,16 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 			}
 		}
 		// Logging the function call, if we do it, goes here.
-		// 'stringify' is secret sauce, users aren't meant to know it exists. TODO --- conceal it better.
-
-		trackingOn := areWeTracking == compiler.LF_TRACK && (functionName != "stringify")
 		log, nodeHasLog := izFn.body.(*parser.LogExpression)
 		autoOn := nodeHasLog && log.Token.Type == token.PRELOG && log.Value == ""
-		if trackingOn || autoOn {
-			iz.cp.TrackOrLog(vm.TR_FNCALL, trackingOn, autoOn, &izFn.op, functionName, izFn.sig, cpFn.LoReg)
+		if areWeTracking || autoOn {
+			iz.cp.TrackOrLog(vm.TR_FNCALL, areWeTracking, autoOn, &izFn.op, functionName, izFn.sig, cpFn.LoReg)
 		}
 		if nodeHasLog && log.Token.Type == token.PRELOG && log.Value != "" {
 
 		}
 		// We compile a check on the return types.
-		bodyContext := compiler.Context{fnenv, functionName, ac, cpFn.LoReg, areWeTracking, compiler.LF_NONE, altType(), &compiler.ReturnTypeCheck{&izFn.op, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), compiler.CHECK_GIVEN_ASSIGNMENTS}}
+		bodyContext := compiler.Context{fnenv, functionName, ac, cpFn.LoReg, trackingOn, compiler.LF_NONE, altType(), &compiler.ReturnTypeCheck{&izFn.op, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), compiler.CHECK_GIVEN_ASSIGNMENTS}}
 		bodyResult := iz.cp.CompileNode(izFn.body, bodyContext) // TODO --- could we in fact do anything useful if we knew it was a constant?
 		if bodyResult.Failed {
 			return nil

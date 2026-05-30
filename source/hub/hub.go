@@ -183,7 +183,7 @@ func (hub *Hub) Do(line, username, password, service string, external bool) (str
 		return service, false
 	}
 	hub.Sources["REPL input"] = []string{line}
-	serviceToUse, ok := hub.Services[service]
+	_, ok := hub.Services[service]
 	if !ok {
 		hub.WriteError("the hub can't find the service <C>\"" + service + "\"</>.")
 		return service, false
@@ -197,6 +197,7 @@ func (hub *Hub) Do(line, username, password, service string, external bool) (str
 		}
 	}
 	hub.update(service)
+	serviceToUse, _ := hub.Services[service]
 	// Empty/comment-only lines do nothing, but we wait until now to decide that because we *do* want them to
 	// trigger recompilation of code.
 	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
@@ -495,10 +496,6 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.setLive(true)
 	case "live-off":
 		h.setLive(false)
-	case "log":
-		tracking, _ := h.Services[h.CurrentServiceName()].GetTrackingReport()
-		h.WritePretty(tracking)
-		h.WriteString("\n")
 	case "log-on":
 		err := ValidateUser(h.Db, args[0], args[1])
 		if err != nil {
@@ -642,6 +639,10 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			break
 		}
 		h.WritePretty(pf.GetTraceReport(h.ers[0]))
+	case "track":
+		tracking, _ := h.Services[h.CurrentServiceName()].GetTrackingReport()
+		h.WritePretty(tracking)
+		h.WriteString("\n")
 	case "uncreate-group":
 		err := UncreateGroup(h.Db, args[0])
 		if err != nil {
