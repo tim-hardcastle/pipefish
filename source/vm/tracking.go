@@ -39,7 +39,6 @@ func (vm *Vm) trackingIs(i int, tf TrackingFlavor) bool {
 }
 
 func (vm *Vm) TrackingToString(tdL []TrackingData) string {
-	println("Here!")
 	time := time.Now()
 	if len(tdL) == 0 {
 		return ("\nNo tracking data exists.\n")

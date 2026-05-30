@@ -1536,7 +1536,7 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 	default:
 		logVar, _ := iz.cp.GlobalVars.GetVar("$_logTo")
 		logVal, ok := iz.cp.Vm.Mem[logVar.MLoc].V.(int)
-		areWeTracking := ok && logVal == 3 && (functionName != "stringify")
+		areWeTracking := ok && logVal == 2 && (functionName != "stringify")
 		trackingOn := compiler.LF_NONE
 		if areWeTracking {
 			trackingOn = compiler.LF_ALL

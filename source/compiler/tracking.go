@@ -98,7 +98,7 @@ func (cp *Compiler) trackingOn(ctxt Context) bool {
 		return false
 	}
 	v, ok := cp.getValueOfVariable("$_logTo").(int)
-	return ok && v == 3
+	return ok && v == 2
 }
 
 func (cp *Compiler) getValueOfVariable(s string) any {
