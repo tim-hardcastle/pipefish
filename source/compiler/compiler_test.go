@@ -669,6 +669,17 @@ func TestLiterals(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
+func TestLog(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub run "../hub/test-files/log.pf"`, `Starting script [36m"log.pf"[39m as service [36m"log"[39m.`},
+		{`big 6`, `"small"`},
+		{`hub log`, "\x1b[0m  ▪ Log at line 8 : Called \x1b[0m\x1b[48;2;0;0;64m\x1b[97mbig\x1b[0m. \n\x1b[0m  ▪ At line 9 we evaluated the condition \x1b[0m\x1b[48;2;0;0;64m\x1b[97mi >= 100\x1b[0m. The condition failed. \n\x1b[0m  ▪ At line 11 we took the \x1b[0m\x1b[48;2;0;0;64m\x1b[97melse\x1b[0m branch, so at line 12 function \x1b[0m\x1b[48;2;0;0;64m\x1b[97mbig\x1b[0m returned \"small\". \n\n\x1b[0m"},
+		{`hub halt "log"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
 func TestLogging(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 8`, test_helper.Foo8Result},

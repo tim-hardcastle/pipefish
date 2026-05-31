@@ -703,8 +703,8 @@ NodeTypeSwitch:
 		}
 		if node.Operator == ":" {
 			if node.Left.GetToken().Type == token.ELSE {
-				if cp.trackingOn(ctxt) || cp.autoOn(ctxt) {
-					cp.TrackOrLog(vm.TR_ELSE, cp.trackingOn(ctxt), cp.autoOn(ctxt), &node.Token)
+				if cp.autoOn(ctxt) {
+					cp.TrackOrLog(vm.TR_ELSE, cp.trackingOnAndIsReturn(ctxt), &node.Token)
 				}
 				result = cp.CompileNode(node.Right, ctxt)
 				if result.Failed {
@@ -712,8 +712,8 @@ NodeTypeSwitch:
 				}
 				break NodeTypeSwitch
 			}
-			if cp.trackingOn(ctxt) || cp.autoOn(ctxt) {
-				cp.TrackOrLog(vm.TR_CONDITION, cp.trackingOn(ctxt), cp.autoOn(ctxt), &node.Token, cp.P.PrettyPrint(node.Left))
+			if cp.autoOn(ctxt) {
+				cp.TrackOrLog(vm.TR_CONDITION, cp.trackingOnAndIsReturn(ctxt), &node.Token, cp.P.PrettyPrint(node.Left))
 			}
 			lResult := cp.CompileNode(node.Left, ctxt.x())
 			if lResult.Failed {
@@ -723,8 +723,8 @@ NodeTypeSwitch:
 				cp.Throw("comp/bool/cond", node.GetToken(), lResult.Types.describe(cp.Vm))
 				return FAIL
 			}
-			if cp.trackingOn(ctxt) || cp.autoOn(ctxt) {
-				cp.TrackOrLog(vm.TR_RESULT, cp.trackingOn(ctxt), cp.autoOn(ctxt), &node.Token, cp.That())
+			if cp.autoOn(ctxt) {
+				cp.TrackOrLog(vm.TR_RESULT, cp.trackingOnAndIsReturn(ctxt), &node.Token, cp.That())
 			}
 			leftRg := cp.That()
 			if !lResult.Types.IsOnly(values.BOOL) {
@@ -843,7 +843,7 @@ NodeTypeSwitch:
 				return FAIL
 			}
 			cp.Emit(vm.Logy)
-			cp.TrackOrLog(vm.TR_LITERAL, false, true, &node.Token, outputLoc)
+			cp.TrackOrLog(vm.TR_LITERAL, cp.trackingOn(), &node.Token, outputLoc)
 			if logMayHaveError {
 				ifRuntimeError = cp.VmConditionalEarlyReturn(vm.Qtyp, outputLoc, uint32(values.ERROR), cp.That())
 			}
@@ -1242,8 +1242,8 @@ NodeTypeSwitch:
 	// We do a little logging.
 	_, isLazyInfix := node.(*parser.LazyInfixExpression)
 	_, isLoggingOperation := node.(*parser.LogExpression)
-	if !(isLazyInfix || isLoggingOperation) && (cp.trackingOn(ctxt) || cp.autoOn(ctxt)) && ac == DEF {
-		cp.TrackOrLog(vm.TR_RETURN, cp.trackingOn(ctxt), cp.autoOn(ctxt), node.GetToken(), ctxt.FName, cp.That())
+	if !(isLazyInfix || isLoggingOperation) && (cp.autoOn(ctxt)) && ac == DEF {
+		cp.TrackOrLog(vm.TR_RETURN, cp.trackingOnAndIsReturn(ctxt), node.GetToken(), ctxt.FName, cp.That())
 		result.Foldable = false // 'false' because we don't want to fold away the tracking information. TODO --- is this redundant?
 		return result
 	}

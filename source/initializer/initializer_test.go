@@ -59,20 +59,6 @@ func TestGolangItes(t *testing.T) {
 	}
 }
 
-func TestHttp(t *testing.T) {
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{`hub http`, "\x1b[32mOK\x1b[0m"},
-		{`hub run "../hub/test-files/server.pf"`, `Starting script [36m"server.pf"[39m as service [36m"server"[39m.`},
-		{`hub run "../hub/test-files/client.pf"`, `Starting script [36m"client.pf"[39m as service [36m"client"[39m.`},
-		{`twice 2`, "4"},
-		{`hub halt "client"`, `OK`},
-		{`hub halt "server"`, `OK`},
-		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
-	}
-	test_helper.RunHubTest(t, "default", test)
-}
-
 // This apparent tautology refers to errors from the `intializer.go` file specifically.
 func TestInitializerItes(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -217,6 +203,21 @@ func TestGocode(t *testing.T) {
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
 	test_helper.Teardown("gocode_test.pf")
 }
+
+func TestHttp(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub http`, "\x1b[32mOK\x1b[0m"},
+		{`hub run "../hub/test-files/server.pf"`, `Starting script [36m"server.pf"[39m as service [36m"server"[39m.`},
+		{`hub run "../hub/test-files/client.pf"`, `Starting script [36m"client.pf"[39m as service [36m"client"[39m.`},
+		{`twice 2`, "4"},
+		{`hub halt "client"`, `OK`},
+		{`hub halt "server"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
 func TestIndexing(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`DARK_BLUE[shade]`, `DARK`},
@@ -252,6 +253,19 @@ func TestInterfaces(t *testing.T) {
 	}
 	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
 }
+
+func TestLog(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub run "../hub/test-files/log.pf"`, `Starting script [36m"log.pf"[39m as service [36m"log"[39m.`},
+		{`big 6`, `"small"`},
+		{`hub log`, "\x1b[0m  ▪ Log at line 8 : Called \x1b[0m\x1b[48;2;0;0;64m\x1b[97mbig\x1b[0m. \n\x1b[0m  ▪ At line 9 we evaluated the condition \x1b[0m\x1b[48;2;0;0;64m\x1b[97mi >= 100\x1b[0m. The condition failed. \n\x1b[0m  ▪ At line 11 we took the \x1b[0m\x1b[48;2;0;0;64m\x1b[97melse\x1b[0m branch, so at line 12 function \x1b[0m\x1b[48;2;0;0;64m\x1b[97mbig\x1b[0m returned \"small\". \n\n\x1b[0m"},
+		{`hub halt "log"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
 func TestLogging(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 8`, test_helper.Foo8Result},

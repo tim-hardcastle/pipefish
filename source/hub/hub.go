@@ -271,12 +271,12 @@ type hubWriter struct {
 // Things that only make sense if we have RBAM set up.
 var rbamVerbs = dtypes.From("add", "change-password", "create-group", "forgot-password", "groups",
 	"groups-of-service", "groups-of-user", "let-own", "let-use", "log-off", "log-on",
-	"nuke-account", "nuke-admin", "register", "services of group", "services-of-user", "unadd", "uncreate", 
+	"nuke-account", "nuke-admin", "register", "services of group", "services-of-user", "unadd", "uncreate",
 	"unlet-own", "unlet-use", "unregister", "users-of-service", "users-of-group")
 
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
-var greenList = dtypes.From("change-password", "forgot-password", "log-on", "log-off", "groups", 
-                            "nuke-account", "register", "services", "switch")
+var greenList = dtypes.From("change-password", "forgot-password", "log-on", "log-off", "groups",
+	"nuke-account", "register", "services", "switch")
 
 func (hw hubWriter) Write(b []byte) (int, error) {
 	bits := strings.Split(string(b), ", ")
@@ -293,7 +293,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if username == "" && !(verb == "log-on" || verb == "register" || verb == "forgot-password") {
 			h.WriteError("this is an administered hub and you aren't logged on. Please use either " +
 				"`hub register` to register as a guest; `hub forgot password(username, email string)` " +
-				"to replace your password; or `hub log on` to log on if you're trying to use the hub on " +
+				"to replace your password; or `hub sign on` to sign on if you're trying to use the hub on " +
 				"the terminal it's running on and you're already registered with this hub.")
 			return len(b), nil
 		}
@@ -515,7 +515,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WriteString("\n\n" + strings.Repeat("┈", hw.hub.getSV("width").V.(int)) + "\n\n")
 		h.WritePretty("This is an administered hub and you aren't logged on. Please use either " +
 			"`hub register` to register as a guest; `hub forgot password(username, email string)` " +
-			"to replace your password; or `hub log on` to log on if you're trying to use the hub on " +
+			"to replace your password; or `hub sign on` to sign on if you're trying to use the hub on " +
 			"the terminal it's running on and you're already registered with this hub.")
 		h.WriteString("\n\n")
 	case "nuke-account":
@@ -639,7 +639,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			break
 		}
 		h.WritePretty(pf.GetTraceReport(h.ers[0]))
-	case "track":
+	case "log":
 		tracking, _ := h.Services[h.CurrentServiceName()].GetTrackingReport()
 		h.WritePretty(tracking)
 	case "uncreate-group":
@@ -648,7 +648,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			h.WriteError(err.Error())
 		}
 	case "unadd-user":
-		err :=UnAddUserToGroup(h.Db, args[0], args[1])
+		err := UnAddUserToGroup(h.Db, args[0], args[1])
 		if err != nil {
 			h.WriteError(err.Error())
 		}
@@ -761,7 +761,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WriteString(padding)
 		h.WritePretty(refLine)
 		h.WriteString("\n")
-	default :
+	default:
 		panic("Unhandled verb " + verb)
 	}
 	return len(b), nil
@@ -1154,7 +1154,7 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var serviceName string
-	if h.administered() && !((!h.listeningToHttpOrHttps) && (request.Body == "hub register" || request.Body == "hub log on")) {
+	if h.administered() && !((!h.listeningToHttpOrHttps) && (request.Body == "hub register" || request.Body == "hub sign on")) {
 		err = ValidateUser(h.Db, request.Username, request.Password)
 		if err != nil {
 			h.WriteError(err.Error())

@@ -11,8 +11,8 @@ $_external = false
 cmd
 
 // Verb are in alphabetical order:
-// add, config, create, do, edit, env, errors, halt, help, let, listen, live, log, log on, 
-// log off, quit, register, replay, run, services, snap, test, trace, track, nuke admin,
+// add, config, create, do, edit, env, errors, halt, help, let, listen, live, log, sign on, 
+// sign off, quit, register, replay, run, services, snap, test, trace, track, nuke admin,
 // unregister, where, why, values
 
 add(usr string) to (grp string) :
@@ -198,28 +198,14 @@ live off :
 log :
     do("log", [])
 
-log on :
+sign on :
     global $_external
     $_external :
-        error "`log on` means \"log on to this hub from the terminal it's running on\", and so can't be used remotely"
+        error "`sign on` means \"sign on to this hub from the terminal it's running on\", and so can't be used remotely"
     else :
         get uname from Keyboard("Username? ")
         get pword from masked Keyboard("Password? ")
         do("log-on", [uname, pword])
-
-log on (uname, pword) :
-    global $_external
-    $_external :
-        error "`log on` means \"log on to this hub from the terminal it's running on\", and so can't be used remotely"
-    else :
-        do("log-on", [uname, pword])
-
-log off :
-    global $_external
-    $_external :
-        error "`log off` means \"log off from using this hub from the terminal it's running on\", and so can't be used remotely"
-    else :
-        do("log-off", [])
 
 nuke admin :
     do("nuke-admin", [])
@@ -289,6 +275,20 @@ services of group(grp string) :
 services of user(usr string) :
     do("services-of-user", [usr])
 
+sign on (uname, pword) :
+    global $_external
+    $_external :
+        error "`sign on` means \"sign on to this hub from the terminal it's running on\", and so can't be used remotely"
+    else :
+        do("log-on", [uname, pword])
+
+sign off :
+    global $_external
+    $_external :
+        error "`sign off` means \"sign off from using this hub from the terminal it's running on\", and so can't be used remotely"
+    else :
+        do("log-off", [])
+
 switch(srv string) :
     global $_external
     $_external :
@@ -298,9 +298,6 @@ switch(srv string) :
 
 trace :
     do("trace", [])
-
-track :
-    do("track", [])
 
 unadd (usr string) to (grp string) :
     do("unadd-user", [usr, grp])

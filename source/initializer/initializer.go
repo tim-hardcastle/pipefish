@@ -1559,11 +1559,8 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		// Logging the function call, if we do it, goes here.
 		log, nodeHasLog := izFn.body.(*parser.LogExpression)
 		autoOn := nodeHasLog && log.Token.Type == token.PRELOG && log.Value == ""
-		if areWeTracking || autoOn {
-			iz.cp.TrackOrLog(vm.TR_FNCALL, areWeTracking, autoOn, &izFn.op, functionName, izFn.sig, cpFn.LoReg)
-		}
-		if nodeHasLog && log.Token.Type == token.PRELOG && log.Value != "" {
-
+		if autoOn {
+			iz.cp.TrackOrLog(vm.TR_FNCALL, areWeTracking, &izFn.op, functionName, izFn.sig, cpFn.LoReg)
 		}
 		// We compile a check on the return types.
 		bodyContext := compiler.Context{fnenv, functionName, ac, cpFn.LoReg, trackingOn, compiler.LF_NONE, altType(), &compiler.ReturnTypeCheck{&izFn.op, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), compiler.CHECK_GIVEN_ASSIGNMENTS}}

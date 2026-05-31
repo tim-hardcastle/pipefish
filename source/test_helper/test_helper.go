@@ -275,7 +275,7 @@ func RunHubTest(t *testing.T, hubName string, test []TestItem) {
 		h.Do(item.Input, "", "", h.CurrentServiceName(), false)
 		result := strings.TrimSpace(h.Out.(*capturingWriter).get())
 		if result != item.Want {
-			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : '" + strconv.Quote(item.Want) + "'\n    Got : '" + strconv.Quote(result) + "'")
+			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : " + strconv.Quote(item.Want) + "\n    Got : " + strconv.Quote(result))
 		}
 	}
 }
@@ -289,7 +289,7 @@ func RunUserTest(t *testing.T, hubName string, test []UserItem) {
 		h.Do(item.Input, item.Username, item.Password, h.CurrentServiceName(), false)
 		result := strings.TrimSpace(h.Out.(*capturingWriter).get())
 		if result != item.Want {
-			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : '" + strconv.Quote(item.Want) + "'\n    Got : '" + strconv.Quote(result) + "'")
+			t.Fatal("\nOn input '" + item.Input + "'\n    Exp : " + strconv.Quote(item.Want) + "\n    Got : " + strconv.Quote(result))
 		}
 	}
 }

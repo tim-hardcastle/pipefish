@@ -26,7 +26,7 @@ const (
 
 // Although the arguments of this function are the same as the shape of the vm.TrackingData struct, we don't just naively shove one into the other,
 // but may have to tamper with it for the greater convenience of the caller.
-func (cp *Compiler) TrackOrLog(tf vm.TrackingFlavor, trackingOn, autoOn bool, tok *token.Token, args ...any) {
+func (cp *Compiler) TrackOrLog(tf vm.TrackingFlavor, trackingOn bool, tok *token.Token, args ...any) {
 	if settings.MandatoryImportSet().Contains(tok.Source) {
 		return
 	}
@@ -50,8 +50,7 @@ func (cp *Compiler) TrackOrLog(tf vm.TrackingFlavor, trackingOn, autoOn bool, to
 	cp.Cm(staticTrackingToString(len(cp.Vm.Tracking), newData), tok)
 	if trackingOn {
 		cp.Emit(vm.Trak, uint32(len(cp.Vm.Tracking)))
-	}
-	if autoOn {
+	} else {
 		cp.Emit(vm.Auto, uint32(len(cp.Vm.Tracking)))
 	}
 	cp.Vm.Tracking = append(cp.Vm.Tracking, newData)
@@ -93,10 +92,14 @@ func (cp *Compiler) autoOn(ctxt Context) bool {
 	return ctxt.Typecheck != nil && ctxt.LogFlavor == LF_ALL
 }
 
-func (cp *Compiler) trackingOn(ctxt Context) bool {
+func (cp *Compiler) trackingOnAndIsReturn(ctxt Context) bool {
 	if ctxt.Typecheck == nil {
 		return false
 	}
+	return cp.trackingOn()
+}
+
+func (cp *Compiler) trackingOn() bool {
 	v, ok := cp.getValueOfVariable("$_logTo").(int)
 	return ok && v == 2
 }
