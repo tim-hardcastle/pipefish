@@ -1,6 +1,10 @@
 package hub_test
 
 import (
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
@@ -27,6 +31,19 @@ func TestBrokenService(t *testing.T) { // We want to make sure that if the servi
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
+}
+
+func TestCli(t *testing.T) { 
+	wd, _ := os.Getwd()                                     // The working directory is the directory containing the package being tested.
+	pfPath := filepath.Join(wd, "/../../pipefish")
+	println(pfPath)
+	result, err := exec.Command(pfPath, "run", "./test-files/cli.pf").Output()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if string(result) != "Hello world!\n" {
+		t.Fatal("Expected \"Hello world!\\n\"`; got " + strconv.Quote(string(result)))
+	}
 }
 
 func TestDump(t *testing.T) { // We want to make sure that if the service is broken, queries get handed off to the empty service.

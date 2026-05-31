@@ -894,22 +894,28 @@ func StartServiceFromCli() {
 	newService := pf.NewService()
 	// This ought to get the `$_env` settings.
 	// Then we could do proper markdown in the errors.
-	newService.InitializeFromFilepathWithStore(filename, values.Map{})
+	err := newService.InitializeFromFilepathWithStore(filename, values.Map{})
 	if newService.IsBroken() {
-		fmt.Println("\nThere were errors running the script <C>\"" + filename + "\"</>.")
+		fmt.Println("\nThere were errors running the script " + text.CYAN + "\"" + filename + "\"" + text.RESET + ".")
 		s, _ := newService.GetErrorReport()
 		fmt.Println(s)
+		fmt.Println("Initializer returned error:", err.Error())
 		fmt.Print("Closing Pipefish.\n\n")
 		os.Exit(3)
 	}
 	val, _ := newService.CallMain()
 	if val.T == pf.UNDEFINED_TYPE {
-		s := "\nScript <C>\"" + filename + "\"</> has no `main` command.\n\n"
-		fmt.Println(s)
+		fmt.Println("\nScript <C>\"" + filename + "\"</> has no `main` command.\n\n")
 		fmt.Print("\n\nClosing Pipefish.\n\n")
 		os.Exit(4)
 	}
-	fmt.Println(newService.ToString(val) + "\n")
+	if val.T == pf.ERROR {
+		fmt.Print(newService.ToString(val))
+		os.Exit(86)
+	}
+	if !newService.PostHappened() {
+		fmt.Print(newService.ToString(val)) // Which will be `OK`.
+	}
 	os.Exit(0)
 }
 

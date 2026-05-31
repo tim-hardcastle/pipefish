@@ -82,7 +82,7 @@ func init() {
 			opcode = string(runes)
 			opNumber := OPCODES[opcode]
 			result = result + "\t// " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
-			result = result + lines[i] + "\n\t\n"
+			result = result + lines[i] + "\n"
 		}
 		result = result + ")\n"
 		os.WriteFile(operationsFile, []byte(result), 0666)

@@ -606,8 +606,8 @@ loop:
 				}
 				vm.Mem[args[0]] = values.Value{values.TUPLE, slice}
 			case Diif: // Divide ints as float  (dst mem mem tok)
-				// Divides two integers as a float, i.e. it implements `m / n` where `m` and `n` are
-				// integers. It returns an error constructed from token number n#3 if v#2 is 0.
+				// Divides two integers as a float, i.e. it implements `m / n` where `m` and `n` are 
+				// integers. It returns an error constructed from token number n#3 if v#2 is 0. 
 				divisor := vm.Mem[args[2]].V.(int)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/div/zero/a", args[3])
@@ -616,7 +616,7 @@ loop:
 				}
 			case Divf: // Divide floats  (dst mem mem tok)
 				// Divides two floats, returning a float.
-				// It returns an error constructed from token number n#3 if v#2 is 0.0.
+				// It returns an error constructed from token number n#3 if v#2 is 0.0. 
 				divisor := vm.Mem[args[2]].V.(float64)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/div/zero/b", args[3])
@@ -625,7 +625,7 @@ loop:
 				}
 			case Divi: // Divide ints  (dst mem mem tok)
 				// Divides two integers and returns an integer, i.e. it implements `m div n`.
-				// It returns an error constructed from token number n#3 if v#2 is 0.
+				// It returns an error constructed from token number n#3 if v#2 is 0. 
 				divisor := vm.Mem[args[2]].V.(int)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/div/zero/c", args[3])
@@ -634,7 +634,7 @@ loop:
 				}
 			case Dvfi: // Divide float by int (dst mem mem tok)
 				// Divides a float by an int and returns a float.
-				// It returns an error constructed from token number n#3 if v#2 is 0.
+				// It returns an error constructed from token number n#3 if v#2 is 0. 
 				divisor := vm.Mem[args[2]].V.(int)
 				if divisor == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/div/zero/d", args[3])
@@ -764,7 +764,7 @@ loop:
 				// This evaluates the string v#1 using evaluator number n#2.
 				vm.Mem[args[0]] = vm.Evaluators[args[2]](vm.Mem[args[1]].V.(string))
 			case Extn: // External service call (dst num num mem mem tup)
-				// Operands are:
+				// Operands are: 
 				//     n#1 : the number of the external service to call
 				//     n#2 : whether the function being called is a prefix, infix, postfix or unfix.
 				//     v#2 : the remainder of the namespace of the function as a string
@@ -972,7 +972,7 @@ loop:
 					vm.Mem[args[0]] = vm.makeError("vm/index/tuple", args[3], ix, len(tuple), args[1], args[2])
 				}
 			case Inpt: // Input from keyboard (dst mem mem)
-				// v#1 is of type `terminal.Keyboard` with one field consisting of the prompt. #v2 is a
+				// v#1 is of type `terminal.Keyboard` with one field consisting of the prompt. #v2 is a 
 				// boolean saying whether the input should be masked for privacy.
 				temp := vm.InHandle
 				if vm.Mem[args[2]].V.(bool) {
@@ -1062,7 +1062,7 @@ loop:
 				vm.Mem[args[0]] = (vm.Mem[args[1]].V.([]values.Value))[args[2]]
 			case IxXx: // Index value by value (dst mem mem tok)
 				// In the case where at compile time we can't determine the types of one or other or both
-				// of v#1 and v#2. The token number n#3 can be used to create an error if the index is the
+				// of v#1 and v#2. The token number n#3 can be used to create an error if the index is the 
 				// wrong type or out of bounds.
 				container := vm.Mem[args[1]]
 				if container.T == values.ERROR {
@@ -1416,7 +1416,7 @@ loop:
 					fmt.Println(vm.DefaultDescription(vm.Mem[args[0]]))
 				}
 			case Psql: // Post to SQL (dst mem mem tok)
-				// Here v#1 is the SQL accessor object and v#2 is a snippet. We return either `OK` or an
+				// Here v#1 is the SQL accessor object and v#2 is a snippet. We return either `OK` or an 
 				// error created using the token n#3
 				sqlObj := vm.Mem[args[1]].V.(*sql.DB)
 				snippet := vm.Mem[args[2]].V.(values.Snippet).Data
@@ -1580,7 +1580,7 @@ loop:
 				}
 				continue
 			case Ret: // Return ()
-				// If the height of the return stack is strictly greater than it was when the vm's `.Run`
+				// If the height of the return stack is strictly greater than it was when the vm's `.Run` 
 				// method was called, then we pop the top off the return stack and jump to that location.
 				// Otherwise we've finished exacuting `.Run` and can return.
 				if len(vm.callstack) == stackHeight { // This is so that we can call "Run" when we have things on the stack and it will bottom out at the appropriate time.
@@ -1716,7 +1716,7 @@ loop:
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
 			case Thnk: // Initialize thunk (dst mem loc)
 				// This will set m#0 to be a value of type THUNK with a payload of n#1 and n#2. The first of these
-				// says where the result of unthinking the thunk will end up; the second says where the VM will have
+				// says where the result of unthinking the thunk will end up; the second says where the VM will have 
 				// to jsr to to unthunk it.
 				vm.Mem[args[0]] = values.Value{values.THUNK, values.Thunk{args[1], args[2]}}
 			case Tinf: // Get info for type (dst mem)
@@ -1800,7 +1800,7 @@ loop:
 				}
 				vm.Mem[args[0]] = tup[0]
 			case Trak: // Make tracking data (trk)
-				// This constructs live tracking data saying what the compiler is doing now from the static tracking
+				// This constructs live tracking data saying what the compiler is doing now from the static tracking 
 				// datum number n#0
 				staticData := vm.Tracking[args[0]]
 				newData := TrackingData{staticData.Flavor, staticData.Tok, staticData.LogToLoc, staticData.LogTimeLoc, make([]any, len(staticData.Args))}
@@ -2431,3 +2431,29 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
