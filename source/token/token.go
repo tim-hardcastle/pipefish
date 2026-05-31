@@ -46,17 +46,17 @@ const (
 	GVN_ASSIGN = "=GVN=" // To store hidden data. Probably can be abolished now like the others. TODO.
 
 	// The protected punctuation.
-	COLON               = ":"
-	DOTDOTDOT           = "..."
-	COMMA               = ","
-	LPAREN              = "("
-	LBRACE              = "{"
-	LBRACK              = "["
-	NEWLINE             = "NEWLINE"
-	RBRACE              = "}"
-	RBRACK              = "]"
-	RPAREN              = ")"
-	SEMICOLON           = ";"
+	COLON     = ":"
+	DOTDOTDOT = "..."
+	COMMA     = ","
+	LPAREN    = "("
+	LBRACE    = "{"
+	LBRACK    = "["
+	NEWLINE   = "NEWLINE"
+	RBRACE    = "}"
+	RBRACK    = "]"
+	RPAREN    = ")"
+	SEMICOLON = ";"
 
 	// Literals, comments, and identifiers.
 	COMMENT   = "COMMENT"
@@ -86,12 +86,12 @@ const (
 )
 
 type Token struct {
-	Type    TokenType
-	Literal string
-	Line    int
-	ChStart int
-	ChEnd   int
-	Source  string
+	Type      TokenType
+	Literal   string
+	Line      int
+	ChStart   int
+	ChEnd     int
+	Source    string
 	Namespace string
 }
 

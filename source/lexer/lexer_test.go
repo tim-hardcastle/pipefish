@@ -8,7 +8,6 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/token"
 )
 
-
 func TestLiterals(t *testing.T) {
 	input := `0x0A 0o12 0b1010 'q' '\n' '\r' '\t' '\'' '\\' '\e' "q\n\r\t\e\\\""`
 
@@ -51,8 +50,6 @@ func TestPunctuation(t *testing.T) {
 		{token.RBRACE, "}", 1},
 		{token.LBRACK, "[", 1},
 		{token.RBRACK, "]", 1},
-
-		
 	}
 	testLexingString(t, input, items)
 }
@@ -189,11 +186,11 @@ func TestGolang(t *testing.T) {
 		`golang "qux"
 golang "foo"
 ` +
-"golang `foo`" +
-`
+			"golang `foo`" +
+			`
 golang {
     foo
-}` 
+}`
 
 	items := []testItem{
 		{token.GOLANG, "qux", 1},
@@ -260,8 +257,10 @@ func runTest(t *testing.T, ts lexer.TokenSupplier, items []testItem) {
 	}
 }
 
-type whiteSpaceTest struct{input string
-	                       output string}
+type whiteSpaceTest struct {
+	input  string
+	output string
+}
 
 func TestWhiteSpaceDescriptors(t *testing.T) {
 	items := []whiteSpaceTest{

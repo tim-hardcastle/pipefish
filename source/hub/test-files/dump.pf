@@ -1,0 +1,7 @@
+def 
+
+big (i int) :
+    i >= 100 :
+        "big"
+    else :
+        "small"

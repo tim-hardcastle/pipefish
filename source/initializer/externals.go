@@ -60,6 +60,5 @@ func (es ExternalHttpCallHandler) GetAPI() string {
 	return vm.Do(es.Host, "", "hub serialize \""+es.Service+"\"", es.Username, es.Password)
 }
 
-// A function and a couple of types for making an external service call, used to construct 
+// A function and a couple of types for making an external service call, used to construct
 // an external service.
-

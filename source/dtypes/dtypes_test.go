@@ -45,7 +45,7 @@ func TestStack(t *testing.T) {
 	}
 	if h != 9 {
 		t.Fatal("Wrong head value.")
-	} 
+	}
 	h, ok = st2.HeadValue()
 	if !ok {
 		t.Fatal("Couldn't find head.")

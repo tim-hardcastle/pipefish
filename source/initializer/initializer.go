@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 
+	orderedmap "github.com/wk8/go-ordered-map/v2"
+
 	"strings"
 
 	"github.com/tim-hardcastle/pipefish/source/compiler"
@@ -34,17 +36,17 @@ var folder embed.FS
 
 // Definition of the Initializer type.
 type Initializer struct {
-	cp                                  *compiler.Compiler           // The compiler for the module being intitialized.
-	P                                   *parser.Parser               // The parser for the module being initialized.
-	initializers                        map[string]*Initializer      // The child initializers of this one, to initialize imports and external stubs.
-	tokenizedCode                       [][]tokenizedCode            // Code arranged by declaration type and lightly chunked and validated.
-	parsedCode                          [][]parsedCode               // What you get by parsing that.
-	localConcreteTypes                  dtypes.Set[values.ValueType] // All the struct, enum, and clone types defined in a given module.
-	goBucket                            *goBucket                    // Where the initializer keeps information gathered during parsing the script that will be needed to compile the Go modules.
-	Common                              *commonInitializerBindle     // The information all the initializers have in Common.
-	structDeclarationNumberToTypeNumber map[int]values.ValueType     // Maps the order of the declaration of the struct in the script to its type number in the VM. TODO --- there must be something better than this.
-	unserializableTypes                 dtypes.Set[string]           // Keeps track of which abstract types are mandatory imports/singletons of a concrete type so we don't try to serialize them.
-	reverseAliasMap                     map[string][]string          // Maps a type to the types that alias it.
+	cp                                  *compiler.Compiler                           // The compiler for the module being intitialized.
+	P                                   *parser.Parser                               // The parser for the module being initialized.
+	initializers                        *orderedmap.OrderedMap[string, *Initializer] // The child initializers of this one, to initialize imports and external stubs.
+	tokenizedCode                       [][]tokenizedCode                            // Code arranged by declaration type and lightly chunked and validated.
+	parsedCode                          [][]parsedCode                               // What you get by parsing that.
+	localConcreteTypes                  dtypes.Set[values.ValueType]                 // All the struct, enum, and clone types defined in a given module.
+	goBucket                            *goBucket                                    // Where the initializer keeps information gathered during parsing the script that will be needed to compile the Go modules.
+	Common                              *commonInitializerBindle                     // The information all the initializers have in Common.
+	structDeclarationNumberToTypeNumber map[int]values.ValueType                     // Maps the order of the declaration of the struct in the script to its type number in the VM. TODO --- there must be something better than this.
+	unserializableTypes                 dtypes.Set[string]                           // Keeps track of which abstract types are mandatory imports/singletons of a concrete type so we don't try to serialize them.
+	reverseAliasMap                     map[string][]string                          // Maps a type to the types that alias it.
 
 	functionTable functionTable // Intermediate step towards constructing the FunctinTree used by the compiler.
 
@@ -57,7 +59,7 @@ type Initializer struct {
 // Makes a new initializer.
 func NewInitializer(common *commonInitializerBindle) *Initializer {
 	iz := Initializer{
-		initializers:             make(map[string]*Initializer),
+		initializers:             orderedmap.New[string, *Initializer](),
 		localConcreteTypes:       make(dtypes.Set[values.ValueType]),
 		unserializableTypes:      make(dtypes.Set[string]),
 		tokenizedCode:            make([][]tokenizedCode, 16),
@@ -259,7 +261,8 @@ func (iz *Initializer) ParseEverythingFromSourcecode(mc *vm.Vm, cpb *parser.Comm
 
 func (iz *Initializer) instantiateParameterizedTypes() {
 	// First we recursively call the method on all the dependencies of the module.
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.instantiateParameterizedTypes()
 	}
 	twas := map[string]*parser.TypeWithArguments{}
@@ -472,7 +475,8 @@ func (iz *Initializer) finishMakingAliasTypes() {
 // We find the shareable functions.
 func (iz *Initializer) findAllShareableFunctions() {
 	// First we recursively call the method on all the dependencies of the module.
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.findAllShareableFunctions()
 	}
 	// If at least one of the parameters of a function in the module has a parameter which
@@ -527,7 +531,8 @@ func (iz *Initializer) shareable(f *parsedFunction) bool {
 
 func (iz *Initializer) populateInterfaceTypes() {
 	// First we recursively call the method on all the dependencies of the module.
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.populateInterfaceTypes()
 	}
 	iz.addAbstractTypesToVm() // TODO --- this is the first of two times we're going to do this when what we really need is another topological sort.
@@ -573,7 +578,8 @@ func (iz *Initializer) populateInterfaceTypes() {
 
 func (iz *Initializer) populateAbstractTypes() {
 	// First we recursively call the method on all the dependencies of the module.
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.populateAbstractTypes()
 	}
 	// The vm needs to know how to describe the abstract types in words.
@@ -646,7 +652,8 @@ func (iz *Initializer) makeAlternateTypesFromAbstractTypes() {
 // and order them according to specificity for the purposes of implementing overloading.
 func (iz *Initializer) makeFunctionTables() {
 	// First we recursively call the method on all the dependencies of the module.
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.makeFunctionTables()
 	}
 	iz.makeFunctionTable()
@@ -683,7 +690,8 @@ func (iz *Initializer) makeFunctionTable() {
 
 func (iz *Initializer) makeFunctionForests() {
 	// First we recurse.
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.makeFunctionForests()
 	}
 
@@ -777,7 +785,8 @@ func (iz *Initializer) addSigToTree(tree *compiler.FnTreeNode, fn *parsedFunctio
 // private types, i.e. a struct type declared public can't have field types declared private.
 func (iz *Initializer) addFieldsToStructsAndCheckForConsistency() {
 	// First we recurse.
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.addFieldsToStructsAndCheckForConsistency()
 	}
 	iz.cmI("Adding abstract types of fields to structs.")
@@ -893,7 +902,8 @@ func (iz *Initializer) addParameterizedTypesToVm() {
 // When we start off, we have a list of maps, where the list is indexed by the `Number` of the
 // compiler, and the map is from type numbers to namespaces.
 func (iz *Initializer) makeNamespaceMap() {
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.makeNamespaceMap()
 		for typeNo, path := range iz.cp.Vm.NamespaceInfo[dependencyIz.cp.Number] {
 			existingPath, ok := iz.cp.Vm.NamespaceInfo[iz.cp.Number][typeNo]
@@ -975,7 +985,8 @@ func (iz *Initializer) checkTypesForConsistency() {
 
 func (iz *Initializer) compileGoModules() {
 	// First of all, the recursion.
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.compileGoModules()
 	}
 
@@ -985,7 +996,8 @@ func (iz *Initializer) compileGoModules() {
 // We compile the constants, variables, functions, and commands.
 func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // TODO --- do we do anything with the return type?
 	// First of all, the recursion.
-	for _, dependencyIz := range iz.initializers {
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
 		dependencyIz.compileEverythingElse()
 	}
 	// And now we compile the module.
@@ -996,19 +1008,19 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	// * A variable or constant can't depend on itself.
 	iz.cmI("Mapping variable names to the parsed code chunks in which they occur.")
 	iz.cp.GlobalVars.Ext = iz.cp.GlobalConsts
-	namesToDeclarations := map[string][]labeledParsedCodeChunk{}
+	namesToDeclarations := orderedmap.New[string, []labeledParsedCodeChunk]()
 	result := [][]labeledParsedCodeChunk{}
 	for dT := constantDeclaration; dT <= variableDeclaration; dT++ {
 		for i, pc := range iz.parsedCode[dT] {
 			parsedDec := pc.(*parsedAssignment)
 			names := iz.P.GetVariablesFromAstSig(parsedDec.sig)
 			for _, name := range names {
-				existingName, alreadyExists := namesToDeclarations[name]
+				existingName, alreadyExists := namesToDeclarations.Get(name)
 				if alreadyExists {
 					iz.throw("init/name/exists.a", parsedDec.indexTok, existingName[0].chunk.getToken(), name)
 					return nil
 				}
-				namesToDeclarations[name] = []labeledParsedCodeChunk{{parsedDec, dT, i, name, parsedDec.indexTok}}
+				namesToDeclarations.Set(name, []labeledParsedCodeChunk{{parsedDec, dT, i, name, parsedDec.indexTok}})
 			}
 		}
 	}
@@ -1017,9 +1029,9 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		for i, pc := range iz.parsedCode[dT] {
 			izFn := pc.(*parsedFunction)
 			name := izFn.op.Literal
-			_, alreadyExists := namesToDeclarations[name]
+			_, alreadyExists := namesToDeclarations.Get(name)
 			if alreadyExists {
-				names := namesToDeclarations[name]
+				names, _ := namesToDeclarations.Get(name)
 				for _, existingName := range names {
 					if existingName.decType == variableDeclaration || existingName.decType == constantDeclaration { // We can't redeclare variables or constants.
 						iz.throw("init/name/exists.b", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
@@ -1028,9 +1040,10 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 						iz.throw("init/name/exists.c", &izFn.op, ixPtr(iz.tokenizedCode[existingName.decType][existingName.decNumber]), name)
 					}
 				}
-				namesToDeclarations[name] = append(names, labeledParsedCodeChunk{izFn, dT, i, name, ixPtr(iz.tokenizedCode[dT][i])})
+				names = append(names, labeledParsedCodeChunk{izFn, dT, i, name, ixPtr(iz.tokenizedCode[dT][i])})
+				namesToDeclarations.Set(name, names)
 			} else {
-				namesToDeclarations[name] = []labeledParsedCodeChunk{{izFn, dT, i, name, ixPtr(iz.tokenizedCode[dT][i])}}
+				namesToDeclarations.Set(name, []labeledParsedCodeChunk{{izFn, dT, i, name, ixPtr(iz.tokenizedCode[dT][i])}})
 			}
 		}
 	}
@@ -1041,7 +1054,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		dec := pc.(*parsedTypecheck)
 		if dec.body != nil {
 			name := "*" + dec.indexTok.Literal
-			namesToDeclarations[name] = []labeledParsedCodeChunk{{dec, structDeclaration, i, dec.indexTok.Literal, dec.indexTok}}
+			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, structDeclaration, i, dec.indexTok.Literal, dec.indexTok}})
 		}
 		if iz.errorsExist() {
 			return nil
@@ -1054,7 +1067,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		dec := pc.(*parsedTypecheck)
 		if dec.body != nil {
 			name := "*" + dec.indexTok.Literal
-			namesToDeclarations[name] = []labeledParsedCodeChunk{{dec, cloneDeclaration, i, dec.indexTok.Literal, dec.indexTok}}
+			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, cloneDeclaration, i, dec.indexTok.Literal, dec.indexTok}})
 		}
 		if iz.errorsExist() {
 			return nil
@@ -1074,22 +1087,26 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			instantiatedAt: node.GetToken(), // TODO --- no it isn't.
 			env:            nil,
 		}
-		namesToDeclarations[name] = []labeledParsedCodeChunk{{pc, makeDeclaration, i, name[1:], node.GetToken()}}
+		namesToDeclarations.Set(name, []labeledParsedCodeChunk{{pc, makeDeclaration, i, name[1:], node.GetToken()}})
 		i++
 	}
 
 	iz.cmI("Building digraph of dependencies.")
 	// We build a digraph of the dependencies between the constant/variable/function/command declarations.
 	graph := dtypes.NewDigraph()
-	for name, decs := range namesToDeclarations { // The same name may be used for different overloaded functions.
+	for pair := namesToDeclarations.Oldest(); pair != nil; pair = pair.Next() { // The same name may be used for different overloaded functions.
+		name := pair.Key
+		decs := pair.Value
 		dtypes.Add(graph, name)
 		for _, dec := range decs {
 			rhsNames := iz.extractNamesFromCodeChunk(dec)
 			// IMPORTANT NOTE. 'extractNamesFromCodeChunk' will also slurp up a lot of cruft: type names, for example; bling; local true variables in cmds.
 			// So we do nothing to throw an error if a name doesn't exist. That will happen when we try to compile the function. What we're trying to
 			// do here is establish the relationship between the comds/defs/vars/consts that *do* exist.
-			for rhsName := range rhsNames {
-				rhsDecs, ok := namesToDeclarations[rhsName]
+			rhsSlice := rhsNames.ToSlice()
+			sort.Strings(rhsSlice)
+			for _, rhsName := range rhsSlice {
+				rhsDecs, ok := namesToDeclarations.Get(rhsName)
 				if ok { // Again, we don't care if 'ok' is 'false', just about the relationships between the declarations if it's true.
 					if dec.decType != commandDeclaration {
 						// We check for forbidden relationships.
@@ -1148,9 +1165,10 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	for svName, svData := range serviceVariables {
 		rhs, ok := graph.Get(svName)
 		if ok && compilerDirectives.Contains(svName) { // Then we've declared a service variable which is also a compiler directive, and must compile the declaration.
-			tok := namesToDeclarations[svName][0].chunk.getToken()
-			decType := namesToDeclarations[svName][0].decType
-			decNumber := namesToDeclarations[svName][0].decNumber
+			svDecls, _ := namesToDeclarations.Get(svName)
+			tok := svDecls[0].chunk.getToken()
+			decType := svDecls[0].decType
+			decNumber := svDecls[0].decNumber
 			if rhs.Len() > 0 {
 				iz.throw("init/service/depends", tok, svName)
 				return nil
@@ -1178,7 +1196,8 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	for _, namesToDeclare := range order { // 'namesToDeclare' is one Tarjan partition.
 		groupOfDeclarations := []labeledParsedCodeChunk{}
 		for _, nameToDeclare := range namesToDeclare {
-			groupOfDeclarations = append(groupOfDeclarations, namesToDeclarations[nameToDeclare]...)
+			decs, _ := namesToDeclarations.Get(nameToDeclare)
+			groupOfDeclarations = append(groupOfDeclarations, decs...)
 		}
 		// If the declaration type is constant or variable it must be the only member of its Tarjan partion and there must only be one thing of that name.
 		if groupOfDeclarations[0].decType == constantDeclaration || groupOfDeclarations[0].decType == variableDeclaration {

@@ -250,9 +250,9 @@ func (it *StringIterator) GetKeyValuePair() (values.Value, values.Value) {
 }
 
 type StructIterator struct {
-	Labels []int 
+	Labels []int
 	Values []values.Value
-	pos int
+	pos    int
 }
 
 func (it *StructIterator) Unfinished() bool {
@@ -304,4 +304,3 @@ func (it *TupleIterator) GetKeyValuePair() (values.Value, values.Value) {
 	it.pos++
 	return keyResult, valResult
 }
-

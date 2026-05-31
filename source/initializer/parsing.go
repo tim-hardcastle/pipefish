@@ -244,7 +244,7 @@ func (iz *Initializer) parseImports(startAt int) []*tokenizedExternalOrImportDec
 			continue
 		}
 		newIz := NewInitializer(iz.Common)
-		iz.initializers[path] = newIz
+		iz.initializers.Set(path, newIz)
 		newCp, e := newIz.ParseEverythingFromFilePath(iz.cp.Vm, iz.P.Common, iz.cp.Common, path, iz.P.NamespacePath+name+".")
 		if e != nil { // Then we couldn't open the file.
 			iz.throw("init/import/file", &dec.path, path, e)
@@ -374,7 +374,7 @@ func (iz *Initializer) addAnyExternalService(handlerForService vm.ExternalCallHa
 		println("\n\n")
 	}
 	newIz := NewInitializer(iz.Common)
-	iz.initializers[name] = newIz
+	iz.initializers.Set(name, newIz)
 	newCp := newIz.ParseEverythingFromSourcecode(iz.cp.Vm, iz.P.Common, iz.cp.Common, path, sourcecode, name+"."+iz.P.NamespacePath)
 	newCp.P.Namespace = name
 	iz.P.NamespaceBranch[name] = &parser.ParserData{newCp.P, path}
@@ -718,10 +718,10 @@ func (iz *Initializer) createWrapperTypes() {
 // of declaring the type in the initializer's `hub.pf` file, which would make perfect sense
 // otherwise, we need to kludge it in by hand to avoid having to use `plugin` to build the hub.
 func (iz *Initializer) addHubType() {
-		typeNo := values.ValueType(len(iz.cp.Vm.ConcreteTypeInfo))
-		iz.setDeclaration(decWRAPPER, &token.Token{Type: token.IDENT, Literal: "Hub"}, DUMMY, typeNo)
-		iz.addType("Hub", "wrapper", typeNo)
-		iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.WrapperType{Name: "Hub", Path: "", Private: true, Gotype: "io.Writer"})
+	typeNo := values.ValueType(len(iz.cp.Vm.ConcreteTypeInfo))
+	iz.setDeclaration(decWRAPPER, &token.Token{Type: token.IDENT, Literal: "Hub"}, DUMMY, typeNo)
+	iz.addType("Hub", "wrapper", typeNo)
+	iz.cp.Vm.ConcreteTypeInfo = append(iz.cp.Vm.ConcreteTypeInfo, vm.WrapperType{Name: "Hub", Path: "", Private: true, Gotype: "io.Writer"})
 }
 
 // Just shoves all the identifiers into a string, expanding the namespaces if any.

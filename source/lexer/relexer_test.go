@@ -63,7 +63,7 @@ func TestRelexing(t *testing.T) {
 
 func TestRelexingLogs(t *testing.T) {
 	input :=
-`foo(x): \\ zort
+		`foo(x): \\ zort
 	true : \\ troz
 		1
 	else : 

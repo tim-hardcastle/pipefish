@@ -5,11 +5,11 @@ package lexer
 // simpler than a lexer that we can use in the REPL highlighter and inside of the
 // lexer.
 type RuneSupplier struct {
-	code        []rune
-	pos         int 
-	lineNo      int
-	lineStart   int
-	source      string
+	code      []rune
+	pos       int
+	lineNo    int
+	lineStart int
+	source    string
 }
 
 func NewRuneSupplier(code []rune, source string) *RuneSupplier {
@@ -24,7 +24,7 @@ func (rs *RuneSupplier) CurrentRune() rune {
 }
 
 func (rs *RuneSupplier) PeekRune() rune {
-	if rs.pos + 1 < len(rs.code) {
+	if rs.pos+1 < len(rs.code) {
 		return rs.code[rs.pos+1]
 	}
 	return 0

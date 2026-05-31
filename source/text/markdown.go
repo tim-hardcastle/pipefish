@@ -151,7 +151,7 @@ line:
 						for r[ix] == '\n' {
 							ix++
 						}
-						fmt.Fprint(sb, RESET, "\n", md.leftMargin, sidebar,  "\n", md.leftMargin, sidebar, font)
+						fmt.Fprint(sb, RESET, "\n", md.leftMargin, sidebar, "\n", md.leftMargin, sidebar, font)
 						ox = leftMarginWidth + len(sidebar)
 					} else {
 						word = word + " "

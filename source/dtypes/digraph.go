@@ -10,22 +10,24 @@ import (
 )
 
 // TODO --- why is this a struct, can't it be an assignment type?
-type OrderedSet struct{om *orderedmap.OrderedMap[string, struct{}] }
+type OrderedSet struct {
+	om *orderedmap.OrderedMap[string, struct{}]
+}
 
 func NewOrderedSet() *OrderedSet {
 	return &OrderedSet{orderedmap.New[string, struct{}]()}
 }
 
-func(os *OrderedSet) Add(s string) {
+func (os *OrderedSet) Add(s string) {
 	os.om.Set(s, struct{}{})
 }
 
-func(os *OrderedSet) Contains(s string) bool{
+func (os *OrderedSet) Contains(s string) bool {
 	_, ok := os.om.Get(s)
 	return ok
 }
 
-func (os *OrderedSet) Intersects (ot *OrderedSet) bool {
+func (os *OrderedSet) Intersects(ot *OrderedSet) bool {
 	for pair := ot.om.Oldest(); pair != nil; pair = pair.Next() {
 		if _, ok := os.om.Get(pair.Key); ok {
 			return true
@@ -34,7 +36,7 @@ func (os *OrderedSet) Intersects (ot *OrderedSet) bool {
 	return false
 }
 
-func (os *OrderedSet) Len () int {
+func (os *OrderedSet) Len() int {
 	return os.om.Len()
 }
 
@@ -60,7 +62,7 @@ type node struct {
 
 // This partitions the graph into strongly-connected components, while performing a
 // topological search on them.
-func Tarjan(graph *Digraph)  [][]string {
+func Tarjan(graph *Digraph) [][]string {
 	data := &data{
 		graph: graph,
 		nodes: make([]node, 0, graph.Len()),
@@ -84,7 +86,7 @@ func (data *data) getStronglyConnectedComponent(v string) *node {
 	if !ok { // Can happen with env variables such as $_logTo.
 		R = NewOrderedSet()
 	}
-	for pair := R.om.Oldest(); pair !=nil; pair = pair.Next() {
+	for pair := R.om.Oldest(); pair != nil; pair = pair.Next() {
 		i, seen := data.index[pair.Key]
 		if !seen {
 			n := data.getStronglyConnectedComponent(pair.Key)
@@ -136,7 +138,7 @@ func AddTransitiveArrow(D *Digraph, a, b string) {
 		D.Set(a, NewOrderedSet())
 	}
 	AddArrow(D, a, b)
-	
+
 	// Note again that we depend on the digraph already being transitiviely
 	// closed.
 	// So we don't have to look recursively through the graph to find what
@@ -162,7 +164,7 @@ func AddArrow(D *Digraph, a, b string) {
 	D.Set(a, neighbors)
 }
 
-func  ArrowsTo(D *Digraph, x string) *OrderedSet {
+func ArrowsTo(D *Digraph, x string) *OrderedSet {
 	target := NewOrderedSet()
 	target.Add(x)
 	results := NewOrderedSet()
@@ -186,5 +188,3 @@ func  ArrowsTo(D *Digraph, x string) *OrderedSet {
 func Add(D *Digraph, name string) {
 	D.Set(name, NewOrderedSet())
 }
-
-

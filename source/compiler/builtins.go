@@ -36,7 +36,7 @@ var BUILTINS = map[string]functionAndReturnType{
 	"divide_integers":           {(*Compiler).btDivideIntegers, AltType(values.ERROR, values.INT)},
 	"divide_integer_by_float":   {(*Compiler).btDivideIntegerByFloat, AltType(values.ERROR, values.FLOAT)},
 	"divide_integers_to_float":  {(*Compiler).btDivideIntegersToFloat, AltType(values.ERROR, values.FLOAT)},
-	"eval":						 {(*Compiler).btEval, AltType()},
+	"eval":                      {(*Compiler).btEval, AltType()},
 	"first_in_tuple":            {(*Compiler).btFirstInTuple, AltType()}, // Types need to be added by the caller.
 	"float_of_int":              {(*Compiler).btFloatOfInt, AltType(values.FLOAT)},
 	"float_of_string":           {(*Compiler).btFloatOfString, AltType(values.ERROR, values.FLOAT)},
@@ -481,9 +481,9 @@ func (cp *Compiler) btTypeUnion(tok *token.Token, dest uint32, args []uint32) {
 	cp.Emit(vm.Typu, dest, args[0], args[2])
 }
 
-	func (cp *Compiler) btWriteToHub(tok *token.Token, dest uint32, args []uint32) {
-		cp.Emit(vm.WrHb, dest, args[0], args[1])
-	}
+func (cp *Compiler) btWriteToHub(tok *token.Token, dest uint32, args []uint32) {
+	cp.Emit(vm.WrHb, dest, args[0], args[1])
+}
 
 func (cp *Compiler) btTypeWith(tok *token.Token, dest uint32, args []uint32) {
 	newArgs := append([]uint32{dest, args[0], cp.ReserveToken(tok)}, args[2:]...)

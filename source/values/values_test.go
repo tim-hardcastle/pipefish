@@ -11,7 +11,7 @@ func TestAbstractType(t *testing.T) {
 	if numbers.Len() != 2 {
 		t.Fatal("Can't do type creation.")
 	}
-	if ! numbers.Contains(values.INT) {
+	if !numbers.Contains(values.INT) {
 		t.Fatal("Can't do type creation.")
 	}
 	containers := values.AbT(values.LIST, values.PAIR, values.MAP)
@@ -23,16 +23,16 @@ func TestAbstractType(t *testing.T) {
 		t.Fatal("Can't do union.")
 	}
 	bothAgain := containers.Union(numbers)
-	if ! bothAgain.Equals(both) {
+	if !bothAgain.Equals(both) {
 		t.Fatal("Union isn't commutative.")
 	}
-	if ! numbers.IsSubtypeOf(both) {
+	if !numbers.IsSubtypeOf(both) {
 		t.Fatal("Can't do union.")
 	}
-	if ! containers.IsProperSubtypeOf(both) {
+	if !containers.IsProperSubtypeOf(both) {
 		t.Fatal("Can't do union.")
 	}
-	if ! both.IsSubtypeOf(both) {
+	if !both.IsSubtypeOf(both) {
 		t.Fatal("Can't do subtypes.")
 	}
 	if both.IsProperSubtypeOf(both) {
@@ -56,69 +56,69 @@ func TestAbstractType(t *testing.T) {
 	if withoutStringAgain.Contains(values.STRING) {
 		t.Fatal("Can't do without.")
 	}
-	if ! withoutStringAgain.Equals(both) {
+	if !withoutStringAgain.Equals(both) {
 		t.Fatal("Can't do equals.")
 	}
 	numbersAndNull := numbers.Insert(values.NULL)
-	if ! (numbersAndNull.Intersect(bothAndString)).Equals(numbers) {
+	if !(numbersAndNull.Intersect(bothAndString)).Equals(numbers) {
 		t.Fatal("Can't do intersection.")
 	}
-	if ! (numbersAndNull.PartlyIntersects((bothAndString))) {
+	if !(numbersAndNull.PartlyIntersects((bothAndString))) {
 		t.Fatal("Can't check partial intersection.")
 	}
-	if  (numbersAndNull.PartlyIntersects((containers))) {
+	if numbersAndNull.PartlyIntersects((containers)) {
 		t.Fatal("Can't check partial intersection.")
 	}
 	if numbersAndNull.Equals(containers) {
 		t.Fatal("Can't check equality.")
 	}
-	if ! numbers.Without(values.AbT(values.INT)).Is(values.FLOAT) {
+	if !numbers.Without(values.AbT(values.INT)).Is(values.FLOAT) {
 		t.Fatal("Can't check Is.")
 	}
 	if numbers.Is(values.FLOAT) {
 		t.Fatal("Can't check Is.")
 	}
-	if ! (values.AbT(values.ValueType(7), values.ValueType(6)).String() == "[6, 7]") {
+	if !(values.AbT(values.ValueType(7), values.ValueType(6)).String() == "[6, 7]") {
 		println(values.AbT(values.ValueType(7), values.ValueType(6)).String())
 		t.Fatal("Can't make string.")
 	}
 }
 
 func TestCompare(t *testing.T) {
-	if ! (values.Value{values.FLOAT, 0.2}).Compare(values.Value{values.FLOAT, 0.3}) {
+	if !(values.Value{values.FLOAT, 0.2}).Compare(values.Value{values.FLOAT, 0.3}) {
 		t.Fatal("Float comparison failed.")
 	}
 	if (values.Value{values.FLOAT, 0.2}).Compare(values.Value{values.FLOAT, 0.2}) {
 		t.Fatal("Float comparison failed.")
 	}
-	if ! (values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}). 
-			Compare(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 99.9}}}) {
+	if !(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}).
+		Compare(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 99.9}}}) {
 		t.Fatal("Struct comparison failed.")
 	}
-	if ! (values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}). 
-			Compare(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 99.9}, {values.STRING, "aardvark"}}}) {
+	if !(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}).
+		Compare(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 99.9}, {values.STRING, "aardvark"}}}) {
 		t.Fatal("Struct comparison failed.")
 	}
-	if (values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}). 
-			Compare(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}) {
+	if (values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}).
+		Compare(values.Value{values.ValueType(99), []values.Value{{values.FLOAT, 0.3}}}) {
 		t.Fatal("Struct comparison failed.")
 	}
-	if ! (values.Value{values.STRING, "aardvark"}).Compare(values.Value{values.STRING, "zebra"}) {
+	if !(values.Value{values.STRING, "aardvark"}).Compare(values.Value{values.STRING, "zebra"}) {
 		t.Fatal("String comparison failed.")
 	}
 	if (values.Value{values.STRING, "aardvark"}).Compare(values.Value{values.STRING, "aardvark"}) {
 		t.Fatal("String comparison failed.")
 	}
-	if ! (values.Value{values.TYPE, values.AbT(values.ValueType(7))}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(8))}) {
+	if !(values.Value{values.TYPE, values.AbT(values.ValueType(7))}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(8))}) {
 		t.Fatal("Type comparison failed.")
 	}
-	if ! (values.Value{values.TYPE, values.AbT(values.ValueType(7))}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(8))}) {
+	if !(values.Value{values.TYPE, values.AbT(values.ValueType(7))}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(8))}) {
 		t.Fatal("Type comparison failed.")
 	}
-	if ! (values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(6))}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(8))}) {
+	if !(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(6))}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(8))}) {
 		t.Fatal("Type comparison failed.")
 	}
-	if ! (values.Value{values.TYPE, values.AbT()}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(8))}) {
+	if !(values.Value{values.TYPE, values.AbT()}).Compare(values.Value{values.TYPE, values.AbT(values.ValueType(7), values.ValueType(8))}) {
 		t.Fatal("Type comparison failed.")
 	}
 }
@@ -185,7 +185,7 @@ func TestMap(t *testing.T) {
 	}
 	numbers2 := values.Map{}.Set(values.Value{values.INT, 1}, values.Value{values.RUNE, 'a'}).
 		Set(values.Value{values.INT, 2}, values.Value{values.RUNE, 'a'}).
-		Set(values.Value{values.INT, 3}, values.Value{values.RUNE, 'a'})	
+		Set(values.Value{values.INT, 3}, values.Value{values.RUNE, 'a'})
 	vec := numbers2.KeysAsVector()
 	sum = 0
 	for i := range vec.Len() {

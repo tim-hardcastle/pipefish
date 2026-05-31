@@ -83,7 +83,7 @@ func (vm *Vm) evalGetSQL(db *sql.DB, typeNumber values.ValueType, query string, 
 			} else {
 				keyVal = values.Value{innerType, keyVals}
 			}
-			if NON_CONTAINERS.Contains(secondType) || vm.ConcreteTypeInfo[secondType].IsEnum()  {
+			if NON_CONTAINERS.Contains(secondType) || vm.ConcreteTypeInfo[secondType].IsEnum() {
 				valVal = valVals[0]
 			} else {
 				valVal = values.Value{secondType, valVals}

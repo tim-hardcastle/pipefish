@@ -445,7 +445,7 @@ func IsUserInGroup(db *sql.DB, username, groupName string) (bool, error) {
 
 func UnRegisterUser(db *sql.DB, username string) error {
 	query :=
-`DELETE FROM PipefishUsers
+		`DELETE FROM PipefishUsers
 WHERE username = $1`
 	_, err := db.Exec(query, username)
 

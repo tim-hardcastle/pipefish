@@ -182,4 +182,3 @@ func (a AbstractType) Without(b AbstractType) AbstractType {
 	}
 	return AbstractType{rTypes}
 }
-

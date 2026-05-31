@@ -12,8 +12,6 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/vm"
 )
 
-
-
 // TODO --- the serializer doesn't send details of the sources, and until it does,
 // we can't tell if two types are meant to be the same type.
 

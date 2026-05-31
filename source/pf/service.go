@@ -282,7 +282,7 @@ func (sv *Service) GetVariable(vname string) (values.Value, error) {
 	return sv.cp.Vm.Mem[v.MLoc], nil
 }
 
-func(sv *Service) DumpCode(functionName string, showMemory bool) string {
+func (sv *Service) DumpCode(functionName string, showMemory bool) string {
 	return sv.cp.DumpFunction(functionName, showMemory)
 }
 
@@ -520,13 +520,14 @@ func (sv *Service) GetMarkdowner(leftMargin string, rightMargin int, fonts value
 
 // Wraps ToGoWithType for better ergonomics.
 func ToGo[T any](sv *Service, pfValue Value) (T, error) {
-	goVal, e := sv.ToGoWithType(pfValue, reflect.TypeFor[T]()) 
+	goVal, e := sv.ToGoWithType(pfValue, reflect.TypeFor[T]())
 	if e != nil {
 		var zero T
 		return zero, e
 	}
 	return goVal.(T), nil
 }
+
 // Tries to turn a given Pipefish value into a given Go type. As it necessarily has return
 // type `any` (plus an error if the coercion is impossible) the value returned will then
 // still need downcasting to the type it was coerced to.

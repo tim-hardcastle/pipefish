@@ -1073,5 +1073,3 @@ func (p *Parser) ReturnErrors() string {
 func (p *Parser) ResetAfterError() {
 	p.Common.Errors = []*err.Error{}
 }
-
-

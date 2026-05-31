@@ -10,7 +10,7 @@ func MakeFromSlice[E comparable](slice []E) Set[E] {
 	return S
 }
 
-func From[E comparable](slice ... E) Set[E] {
+func From[E comparable](slice ...E) Set[E] {
 	S := Set[E]{}
 	for _, v := range slice {
 		S.Add(v)
@@ -64,4 +64,3 @@ func (S Set[E]) Contains(e E) bool {
 	_, found := S[e]
 	return found
 }
-

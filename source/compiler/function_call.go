@@ -516,7 +516,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 					cp.emitCallOpcode(fNo, b.valLocs) // As the fNo doesn't exist this will just fill in dummy values for addresses and locations.
 					cp.Emit(vm.Rpop)
 					cp.Emit(vm.Asgm, b.outLoc, DUMMY) // We don't know where the function's output will be yet.
-					if b.access == CMD { // TODO --- this all seems kludgy.
+					if b.access == CMD {              // TODO --- this all seems kludgy.
 						return AltType(values.UNSATISFIED_CONDITIONAL, values.SUCCESSFUL_VALUE, values.ERROR), true
 					}
 					return cp.rtnTypesToTypeScheme(branch.Node.CallInfo.Compiler.MakeAbstractSigFromAstSig(branch.Node.CallInfo.ReturnTypes)), true

@@ -134,6 +134,3 @@ func MakeSimpleInHandler(in io.Reader) *SimpleInHandler {
 func MakeStandardInHandler(prompt string) *StandardInHandler {
 	return &StandardInHandler{prompt}
 }
-
-
-

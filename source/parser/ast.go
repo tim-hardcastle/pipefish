@@ -145,7 +145,7 @@ func (fe *ForExpression) String() string {
 	}
 	if fe.Update != nil {
 		out.WriteString(fe.Update.String())
-	} 
+	}
 	if fe.BoundVariables != nil || fe.ConditionOrRange != nil || fe.Update != nil {
 		out.WriteString(" ")
 	}
@@ -330,11 +330,10 @@ func (ne *Nothing) Children() []Node       { return []Node{} }
 func (ne *Nothing) GetToken() *token.Token { return &ne.Token }
 func (ne *Nothing) String() string         { return "" }
 
-
 type PeekExpression struct {
-	Token    token.Token
-	Peeks    []token.Token
-	Body     Node 
+	Token token.Token
+	Peeks []token.Token
+	Body  Node
 }
 
 func (pe *PeekExpression) Children() []Node       { return []Node{pe.Body} }
@@ -435,7 +434,7 @@ func (sl *SnippetLiteral) Children() []Node {
 	return result
 }
 func (sl *SnippetLiteral) GetToken() *token.Token { return &sl.Token }
-func (sl *SnippetLiteral) String() string         { return "(-- " + sl.Value + ")"}
+func (sl *SnippetLiteral) String() string         { return "(-- " + sl.Value + ")" }
 
 type StringLiteral struct {
 	Token token.Token
@@ -489,7 +488,7 @@ func (t *TryExpression) String() string {
 	if t.VarName == "" {
 		return "try : (" + t.Right.String() + ")"
 	} else {
-		return "try " + t.VarName + " : (" + t.Right.String() + ")" 
+		return "try " + t.VarName + " : (" + t.Right.String() + ")"
 	}
 }
 
@@ -509,7 +508,7 @@ func (t *TypeExpression) String() string {
 		sep := ""
 		for _, v := range t.TypeArgs {
 			out.WriteString(sep)
-            out.WriteString(v.String())
+			out.WriteString(v.String())
 			sep = ", "
 		}
 		out.WriteString("}")

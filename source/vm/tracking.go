@@ -42,7 +42,7 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 	time := time.Now()
 	if len(tdL) == 0 {
 		return ("\nNo tracking data exists.\n")
-	} 
+	}
 	var out bytes.Buffer
 	for i, td := range tdL {
 		logTime := vm.Mem[td.LogTimeLoc].V.(bool)

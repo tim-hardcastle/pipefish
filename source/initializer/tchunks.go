@@ -718,10 +718,10 @@ func (iz *Initializer) chunkInterface(opTok token.Token, private bool, docString
 			iz.finishChunk()
 			return &tokenizedInterfaceDeclaration{}, false
 		}
-		hasSelf := false 
+		hasSelf := false
 		for _, pair := range sig.sig {
 			if len(pair.Typename) == 1 && pair.Typename[0].Literal == "self" {
-				hasSelf = true 
+				hasSelf = true
 				break
 			}
 		}

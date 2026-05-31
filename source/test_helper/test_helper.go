@@ -28,7 +28,7 @@ type TestItem struct {
 }
 
 type UserItem struct {
-	Username string 
+	Username string
 	Password string
 	Input    string
 	Want     string
@@ -64,7 +64,6 @@ func RunTest(t *testing.T, filename string, tests []TestItem, F func(cp *compile
 		}
 	}
 }
-
 
 // NOTE: this is here to test some internal workings of the initializer. It only initializes
 // a blank service.
@@ -148,8 +147,8 @@ func TestInitializationErrors(cp *compiler.Compiler, s string) (string, error) {
 		return "", errors.New("unexpected successful compilation")
 	}
 	topError := cp.P.Common.Errors[0]
-	
-		// This will at least crash if the explanation mistypes the arguments.
+
+	// This will at least crash if the explanation mistypes the arguments.
 	if ec, ok := err.GetErrorCreator(topError.ErrorId); ok {
 		ec.Explanation(topError.Token, topError.Args...)
 	}
@@ -231,7 +230,7 @@ var LogToFileResult = `- Log at line 7 : We're here.
 - Log at line 11 : And we return "odd".
 `
 
-func Teardown(testFiles ... string) {
+func Teardown(testFiles ...string) {
 	for _, nameOfTestFile := range testFiles {
 		currentDirectory, _ := os.Getwd()
 		absolutePathToGobucket, _ := filepath.Abs(currentDirectory + "/../../source/initializer/gobucket/")

@@ -374,7 +374,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 	case "dump":
 		dump := h.Services[h.CurrentServiceName()].DumpCode(args[0], args[2] == "true")
-		print("\n" + dump)
+		h.WriteString("\n" + dump)
 		if args[1] == "true" {
 			os.WriteFile(filepath.Join(settings.PipefishHomeDirectory, args[3]), []byte(dump), 0666)
 		}

@@ -3,27 +3,27 @@ package text_test
 import (
 	"testing"
 
-	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
+	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
 func TestColors(t *testing.T) {
-	if ! (text.Red("foo") == "[31mfoo[0m") {
-		t.Fatalf("Can't make things red.", )
+	if !(text.Red("foo") == "[31mfoo[0m") {
+		t.Fatalf("Can't make things red.")
 	}
-	if ! (text.Cyan("foo") == "[36mfoo[0m") {
+	if !(text.Cyan("foo") == "[36mfoo[0m") {
 		t.Fatalf("Can't make things cyan.")
 	}
-	if ! (text.Green("foo") == "[32mfoo[0m") {
+	if !(text.Green("foo") == "[32mfoo[0m") {
 		t.Fatalf("Can't make things green.")
 	}
-	if ! (text.Yellow("foo") == "[33mfoo[0m") {
+	if !(text.Yellow("foo") == "[33mfoo[0m") {
 		t.Fatalf("Can't make things green.")
 	}
-	if ! (text.Emph("foo") == "`foo`") {
+	if !(text.Emph("foo") == "`foo`") {
 		t.Fatalf("Can't emphasize things.")
 	}
-	if ! (text.ErrorFont("foo") == "[38;2;244;71;71m[4mfoo[0m") {
+	if !(text.ErrorFont("foo") == "[38;2;244;71;71m[4mfoo[0m") {
 		t.Fatalf("Can't make error font.")
 	}
 }
@@ -39,7 +39,7 @@ func TestMarkdown(t *testing.T) {
 		{"- Bullet point", "\n[0m  ▪ Bullet point "},
 		{"```\ncode\nmore code\n```", "\n  ¦ code\n  ¦ more code\n"},
 	}
-	md := text.NewMarkdown("", 92, func(s string) string {return s})
+	md := text.NewMarkdown("", 92, func(s string) string { return s })
 	for _, test := range tests {
 		got := md.RenderString(test.Input)
 		println(got)
@@ -50,25 +50,25 @@ func TestMarkdown(t *testing.T) {
 }
 
 func TestTextUtils(t *testing.T) {
-	if ! (text.Flatten("foo/bar.troz") == "foo_bar_troz") {
+	if !(text.Flatten("foo/bar.troz") == "foo_bar_troz") {
 		t.Fatalf("Flatten failed")
 	}
-	if ! (text.Head("foolish", "foo")) {
+	if !(text.Head("foolish", "foo")) {
 		t.Fatalf("Head failed")
 	}
-	if (text.Head("aardvark", "foo")) {
+	if text.Head("aardvark", "foo") {
 		t.Fatalf("Head failed")
 	}
-	if (text.Head("aa", "foo")) {
+	if text.Head("aa", "foo") {
 		t.Fatalf("Head failed")
 	}
-	if ! (text.Tail("proof", "oof")) {
+	if !(text.Tail("proof", "oof")) {
 		t.Fatalf("Tail failed")
 	}
-	if (text.Tail("aardvark", "oof")) {
+	if text.Tail("aardvark", "oof") {
 		t.Fatalf("Tail failed")
 	}
-	if (text.Tail("aa", "oof")) {
+	if text.Tail("aa", "oof") {
 		t.Fatalf("Tail failed")
 	}
 }

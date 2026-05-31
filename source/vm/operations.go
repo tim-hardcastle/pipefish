@@ -23,485 +23,484 @@ type Opcode uint8
 const (
 	// Add floats (dst mem mem)
 	Addf Opcode = iota
-	
+
 	// Add ints (dst mem mem)
 	Addi
-	
+
 	// Add lists (dst mem mem)
 	AddL
-	
+
 	// Add sets (dst mem mem)
 	AddS
-	
+
 	// Add strings (dst mem mem)
 	Adds
-	
+
 	// Prepend rune to string (dst mem mem)
 	Adrs
-	
+
 	// Append rune to string (dst mem mem)
 	Adsr
-	
+
 	// Add token  (dst mem tok)
 	Adtk
-	
+
 	// Boolean and (dst mem mem)
 	Andb
-	
+
 	// Assign to ref variable (dst mem)
 	Aref
-	
+
 	// Assign to memory (dst mem)
 	Asgm
-	
+
 	// Autogenerate tracking (trk)
 	Auto
-	
+
 	// Function call  (loc mem mem tup)
 	Call
-	
+
 	// Add floats (dst mem mem)
 	CalT
-	
+
 	// Cast to parameterized clone type (dst tok mem mem)
 	CasP
-	
+
 	// Cast type (dst mem typ)
 	Cast
-	
+
 	// Try to cast type (dst mem typ tok)
 	Casx
-	
+
 	// Concatenate non-tuples (dst mem mem)
 	Cc11
-	
+
 	// Concatenate non-tuple and tuple (dst mem mem)
 	Cc1T
-	
+
 	// Concatenate tuple and non-tuple (dst mem mem)
 	CcT1
-	
+
 	// Concatenate tuples (dst mem mem)
 	CcTT
-	
+
 	// Concatenate unknowns (dst mem mem)
 	Ccxx
-	
+
 	// Finish type validation (dst mem mem chk)
 	Chck
-	
+
 	// Check reference variable (dst mem)
 	Chrf
-	
+
 	// Clones of type  (dst mem)
 	Clon
-	
+
 	// Append element to list  (dst mem mem)
 	ConL
-	
+
 	// Add element to set (dst mem mem)
 	ConS
-	
+
 	// Add floats (dst mem mem)
 	CoSn
-	
+
 	// Codepoint of rune (dst mem)
 	Cpnt
-	
+
 	// Convert element to tuple (dst mem)
 	Cv1T
-	
+
 	// Create tuple (dst tup)
 	CvTT
-	
+
 	// Divide ints as float  (dst mem mem tok)
 	Diif
-	
+
 	// Divide floats  (dst mem mem tok)
 	Divf
-	
+
 	// Divide ints  (dst mem mem tok)
 	Divi
-	
+
 	// Apply lambda function (dst mem tup)
 	Dofn
-	
+
 	// Dereference ref variable (dst mem)
 	Dref
-	
+
 	// Divide float by int (dst mem mem tok)
 	Dvfi
-	
+
 	// Divide int by float (dst mem mem tok)
 	Dvif
-	
+
 	// Boolean comparison with == (dst mem mem)
 	Equb
-	
+
 	// Float comparison with == (dst mem mem)
 	Equf
-	
+
 	// Integer comparison with == (dst mem mem)
 	Equi
-	
+
 	// String comparison with == (dst mem mem)
 	Equs
-	
+
 	// Type comparison with == (dst mem mem)
 	Equt
-	
+
 	// Comparison with == (dst mem mem tok)
 	Eqxx
-	
+
 	// Eval (dst mem num)
 	Eval
-	
+
 	// External service call (dst num num mem mem tup)
 	Extn
-	
+
 	// Pop peek flags ()
 	Flpp
-	
+
 	// Push peek flags (mem)
 	Flps
-	
+
 	// Float from int (dst mem)
 	Flti
-	
+
 	// Float from string (dst mem tok)
 	Flts
-	
+
 	// Call Go function (dst mem gfn tup)
 	Gofn
-	
+
 	// Get from SQL (dst mem mem mem mem num tok)
 	Gsql
-	
+
 	// Float comparison with >= (dst mem mem)
 	Gtef
-	
+
 	// Int comparison with >= (dst mem mem)
 	Gtei
-	
+
 	// Float comparison with > (dst mem mem)
 	Gthf
-	
+
 	// Int comparison with > (dst mem mem)
 	Gthi
-	
+
 	// Add floats (dst mem mem)
 	IctS
-	
+
 	// Index list  (dst mem mem tok)
 	IdxL
-	
+
 	// Add floats (dst mem mem)
 	IdxM
-	
+
 	// Index pair  (dst mem mem tok)
 	Idxp
-	
+
 	// Index string (dst mem mem tok)
 	Idxs
-	
+
 	// Index tuple (dst mem mem tok)
 	IdxT
-	
+
 	// Input from keyboard (dst mem mem)
 	Inpt
-	
+
 	// Is element in list (dst mem mem)
 	InxL
-	
+
 	// Hard-index snippet (dst mem num)
 	InxS
-	
+
 	// Is element in type (dst mem mem)
 	Inxt
-	
+
 	// Is element in tuple (dst mem mem)
 	InxT
-	
+
 	// Integer from enum (dst mem)
 	Inte
-	
+
 	// Integer from float (dst mem)
 	Intf
-	
+
 	// Integer from string  (dst mem tok)
 	Ints
-	
+
 	// Get key from iterator (dst mem)
 	Itgk
-	
+
 	// Get key and value from iterator (dst dst mem)
 	Itkv
-	
+
 	// Get value from iterator (dst mem)
 	Itgv
-	
+
 	// Integer to rune (dst mem)
 	Itor
-	
+
 	// Index snippet (dst mem mem tok)
 	IxSn
-	
+
 	// Hard-index tuple (dst mem num)
 	IxTn
-	
+
 	// Index value by value (dst mem mem tok)
 	IxXx
-	
+
 	// Index struct by label (dst mem mem tok)
 	IxZl
-	
+
 	// Hard-index struct (dst mem num)
 	IxZn
-	
+
 	// Jump (loc)
 	Jmp
-	
+
 	// Json to Pipefish (dst mem mem num tok)
 	Json
-	
+
 	// Jump to subroutine (loc)
 	Jsr
-	
+
 	// Keys of map (dst mem)
 	KeyM
-	
+
 	// Keys of struct (dst mem)
 	KeyZ
-	
+
 	// Label from string (dst mem tok)
 	Lbls
-	
+
 	// Length of list (dst mem)
 	LenL
-	
+
 	// Length of string (dst mem)
 	Lens
-	
+
 	// Length of map (dst mem)
 	LenM
-	
+
 	// Length of set (dst mem)
 	LenS
-	
+
 	// Length of tuple (dst mem)
 	LenT
-	
+
 	// List from tuple (dst mem)
 	List
-	
+
 	// Literal of value (dst mem num tok)
 	Litx
-	
+
 	// Length of snippet (dst mem)
 	LnSn
-	
+
 	// Turn logging off ()
 	Logn
-	
+
 	// Turn logging on ()
 	Logy
-	
+
 	// Error from string (dst mem tok)
 	Mker
-	
+
 	// Make lambda (dst lfc)
 	Mkfn
-	
+
 	// Make iterator (dst mem num tok)
 	Mkit
-	
+
 	// Enum element from int (dst typ mem tok)
 	MkEn
-	
+
 	// Make map (dst mem tok)
 	Mkmp
-	
+
 	// Make pair (dst mem mem)
 	Mkpr
-	
+
 	// Make snippet (dst sfc)
 	MkSn
-	
+
 	// Make set (dst mem tok)
 	Mkst
-	
+
 	// Add floats (dst mem mem)
 	Mlfi
-	
+
 	// Modulus of integers (dst mem mem tok)
 	Modi
-	
+
 	// Multiply floats (dst mem mem)
 	Mulf
-	
+
 	// Multiply ints (dst mem mem)
 	Muli
-	
+
 	// Negate flaot (dst mem)
 	Negf
-	
+
 	// Negate int (dst mem)
 	Negi
-	
+
 	// Binary not (dst mem)
 	Notb
-	
+
 	// Post to output (mem)
 	Outp
-	
+
 	// Post to terminal (mem)
 	Outt
-	
+
 	// Post to SQL (dst mem mem tok)
 	Psql
-	
+
 	// Make parameterized type (dst ptp tok tup)
 	Mpar
-	
+
 	// Test abstract type  (mem tup loc)
 	Qabt
-	
+
 	// Test for false (mem loc)
 	Qfls
-	
+
 	// Test for end of iterator (mem loc)
 	Qitr
-	
+
 	// Test length of tuple <= n (mem num loc)
 	QleT
-	
+
 	// Test length of tuple < n (mem num loc)
 	QlnT
-	
+
 	// Jumps to location number n#0 if logging is turned off (loc)
 	Qlog
-	
+
 	// Test not in abstract type  (mem tup loc)
 	Qnab
-	
+
 	// Test not of type  (mem typ loc)
 	Qntp
-	
+
 	// Test not `UNSAT` (mem loc)
 	Qsat
-	
+
 	// Test singleton (mem loc)
 	Qsnq
-	
+
 	// Add floats (dst mem mem)
 	Qspt
-	
+
 	// Add floats (dst mem mem)
 	Qspq
-	
+
 	// Test tuple types (mem num tup loc)
 	Qtpt
-	
+
 	// Test true (mem loc)
 	Qtru
-	
+
 	// Test type membership (mem typ loc)
 	Qtyp
-	
+
 	// Return ()
 	Ret
-	
+
 	// Pop recursion data ()
 	Rpop
-	
+
 	// Push recursion data (num num)
 	Rpsh
-	
+
 	// Slice of list (dst mem mem tok)
 	SliL
-	
+
 	// Slice of string (dst mem mem tok)
 	Slis
-	
+
 	// Slice of tuple (dst mem mem tok)
 	SliT
-	
+
 	// Hard slice tuple (dst mem num)
 	SlTn
-	
+
 	// Make struct (dst typ tup)
 	Strc
-	
+
 	// Make parameterized struct. (dst tok tup)
 	StrP
-	
+
 	// String of value (dst mem)
 	Strx
-	
+
 	// Subtract floats (dst mem mem)
 	Subf
-	
+
 	// Subtract integers (dst mem mem)
 	Subi
-	
+
 	// Subtract sets (dst mem mem)
 	SubS
-	
+
 	// Initialize thunk (dst mem loc)
 	Thnk
-	
+
 	// Get info for type (dst mem)
 	Tinf
-	
+
 	// Add floats (dst mem mem)
 	Tplf
-	
+
 	// Make tracking data (trk)
 	Trak
-	
+
 	// Tuple of list (dst mem)
 	TupL
-	
+
 	// Tuple of possible list (dst mem tok)
 	TuLx
-	
+
 	// Type union (dst mem mem)
 	Typu
-	
+
 	// Type of value (dst mem)
 	Typx
-	
+
 	// Unthunk error (dst mem)
 	UntE
-	
+
 	// Unthunk (dst)
 	Untk
-	
+
 	// Unwrap error (dst mem tok)
 	Uwrp
-	
+
 	// Valid (dst mem)
 	Vlid
-	
+
 	// Write to hub (mem mem)
 	WrHb
-	
+
 	// List with (dst mem tok tup)
 	WthL
-	
+
 	// Map with (dst mem tok tup)
 	WthM
-	
+
 	// Tuple with (dst mem tok tup)
 	WthT
-	
+
 	// Struct with (dst mem tok tup)
 	WthZ
-	
+
 	// Map without (dst mem tok tup)
 	WtoM
-	
+
 	// Yeet type parameters (dst mem)
 	Yeet
-	
 )
