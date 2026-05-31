@@ -9,6 +9,7 @@ import (
 	"github.com/wk8/go-ordered-map/v2"
 )
 
+// TODO --- why is this a struct, can't it be an assignment type?
 type OrderedSet struct{om *orderedmap.OrderedMap[string, struct{}] }
 
 func NewOrderedSet() *OrderedSet {
@@ -17,6 +18,11 @@ func NewOrderedSet() *OrderedSet {
 
 func(os *OrderedSet) Add(s string) {
 	os.om.Set(s, struct{}{})
+}
+
+func(os *OrderedSet) Contains(s string) bool{
+	_, ok := os.om.Get(s)
+	return ok
 }
 
 func (os *OrderedSet) Intersects (ot *OrderedSet) bool {
@@ -140,11 +146,11 @@ func AddTransitiveArrow(D *Digraph, a, b string) {
 	for pair := arrowsFromB.om.Oldest(); pair != nil; pair = pair.Next() {
 		AddArrow(D, a, pair.Key)
 	}
-	for k := range ArrowsTo(D, a) {
-		AddArrow(D, k, b)
+	for k := ArrowsTo(D, a).om.Oldest(); k != nil; k = k.Next() {
+		AddArrow(D, k.Key, b)
 		ns, _ := D.Get(b)
 		for pair := ns.om.Oldest(); pair != nil; pair = pair.Next() {
-			AddArrow(D, k, pair.Key)
+			AddArrow(D, k.Key, pair.Key)
 		}
 	}
 }
@@ -156,10 +162,10 @@ func AddArrow(D *Digraph, a, b string) {
 	D.Set(a, neighbors)
 }
 
-func  ArrowsTo(D *Digraph, x string) Set[string] {
+func  ArrowsTo(D *Digraph, x string) *OrderedSet {
 	target := NewOrderedSet()
 	target.Add(x)
-	results := Set[string]{}
+	results := NewOrderedSet()
 	for {
 		newResults := false
 		for pair := D.Oldest(); pair != nil; pair = pair.Next() {
