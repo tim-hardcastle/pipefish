@@ -1,0 +1,12 @@
+var 
+
+$_logging = $_LOG_SELECTED
+$_logTo = $_HUB
+
+def 
+
+big (i int) :    \\ Called `big`.
+    i >= 100 :   \\ 
+        "big"    \\
+    else :       \\
+        "small"  \\
