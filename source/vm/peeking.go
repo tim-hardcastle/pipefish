@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"testing"
 	"unicode"
 
 	"github.com/tim-hardcastle/pipefish/source/settings"
@@ -56,68 +55,67 @@ func init() {
 		}
 	}
 	// Add comments to operations.go.
-	if !testing.Testing() {
-		operationsFile := filepath.Join(settings.PipefishHomeDirectory, "source/vm/operations.go")
-		content, _ = os.ReadFile(operationsFile)
-		lines = strings.Split(string(content), "\n")
-		result := ""
-		i = 0
-		for ; lines[i] != "const ("; i++ {
-			result = result + lines[i] + "\n"
+	operationsFile := filepath.Join(settings.PipefishHomeDirectory, "source/vm/operations.go")
+	content, _ = os.ReadFile(operationsFile)
+	lines = strings.Split(string(content), "\n")
+	result := ""
+	i = 0
+	for ; lines[i] != "const ("; i++ {
+		result = result + lines[i] + "\n"
+	}
+	result = result + "const (\n"
+	i++
+	commentRegexp, _ := regexp.Compile(`^\s*//*.`)
+	for ; lines[i] != ")"; i++ {
+		if commentRegexp.MatchString(lines[i]) || lines[i] == "\t" {
+			continue
 		}
-		result = result + "const (\n"
-		i++
-		commentRegexp, _ := regexp.Compile(`^\s*//*.`)
-		for ; lines[i] != ")"; i++ {
-			if commentRegexp.MatchString(lines[i]) || lines[i] == "\t" {
-				continue
-			}
-			opcodeEnd := strings.Index(lines[i], " ")
-			if opcodeEnd == -1 {
-				opcodeEnd = len(lines[i])
-			}
-			opcode := lines[i][1:opcodeEnd]
+		opcodeEnd := strings.Index(lines[i], " ")
+		if opcodeEnd == -1 {
+			opcodeEnd = len(lines[i])
+		}
+		opcode := lines[i][1:opcodeEnd]
+		runes := []rune(opcode)
+		runes[0] = unicode.ToLower(runes[0])
+		opcode = string(runes)
+		opNumber := OPCODES[opcode]
+		result = result + "\t// " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
+		result = result + lines[i] + "\n"
+	}
+	result = result + ")\n"
+	os.WriteFile(operationsFile, []byte(result), 0666)
+
+	// Now the comments to vm.go.
+	caseRegexp, _ := regexp.Compile(`(\t\t\tcase [A-Z][A-Za-z1]{2,3}:)\s*(|//.*)`)
+	vmFile := filepath.Join(settings.PipefishHomeDirectory, "source/vm/vm.go")
+	content, _ = os.ReadFile(vmFile)
+	lines = strings.Split(string(content), "\n")
+	result = ""
+	eatComments := false
+	for i = 0; i < len(lines); i++ {
+		line := lines[i]
+		if eatComments && commentRegexp.MatchString(line) {
+			continue
+		}
+		eatComments = false
+		if match := caseRegexp.FindString(line); match != "" {
+			line = caseRegexp.ReplaceAllString(match, `$1`)
+			opcode := line[8 : len(line)-1]
 			runes := []rune(opcode)
 			runes[0] = unicode.ToLower(runes[0])
 			opcode = string(runes)
 			opNumber := OPCODES[opcode]
-			result = result + "\t// " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
-			result = result + lines[i] + "\n"
-		}
-		result = result + ")\n"
-		os.WriteFile(operationsFile, []byte(result), 0666)
-
-		// Now the comments to vm.go.
-		caseRegexp, _ := regexp.Compile(`(\t\t\tcase [A-Z][A-Za-z1]{2,3}:)\s*(|//.*)`)
-		vmFile := filepath.Join(settings.PipefishHomeDirectory, "source/vm/vm.go")
-		content, _ = os.ReadFile(vmFile)
-		lines = strings.Split(string(content), "\n")
-		result = ""
-		eatComments := false
-		for i = 0; i < len(lines); i++ {
-			line := lines[i]
-			if eatComments && commentRegexp.MatchString(line) {
-				continue
+			result = result + line + " // " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
+			for _, noteLine := range opInfo[opNumber].notes {
+				result = result + "\t\t\t\t// " + noteLine + "\n"
 			}
-			eatComments = false
-			if match := caseRegexp.FindString(line); match != "" {
-				line = caseRegexp.ReplaceAllString(match, `$1`)
-				opcode := line[8 : len(line)-1]
-				runes := []rune(opcode)
-				runes[0] = unicode.ToLower(runes[0])
-				opcode = string(runes)
-				opNumber := OPCODES[opcode]
-				result = result + line + " // " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
-				for _, noteLine := range opInfo[opNumber].notes {
-					result = result + "\t\t\t\t// " + noteLine + "\n"
-				}
-				eatComments = true
-				continue
-			}
-			result = result + line + "\n"
+			eatComments = true
+			continue
 		}
-		os.WriteFile(vmFile, []byte(result), 0666)
+		result = result + line + "\n"
 	}
+	os.WriteFile(vmFile, []byte(result), 0666)
+
 }
 
 // This will just be a whitespace-separated string like "foo bar !qux", where ! indicates a flag
