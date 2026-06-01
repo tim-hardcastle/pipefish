@@ -218,6 +218,13 @@ func TestParserItes(t *testing.T) {
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
 
+func TestPeek(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`peek c : 2 + 2`, `peek c : (2 + 2)`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestParserOutput)
+}
+
 func TestPrettyPrint(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`func(x int) : x`, "func(x int) :\n    x"},
