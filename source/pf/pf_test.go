@@ -11,34 +11,23 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
-// We can test the `pf` package by rerunning the tests for the hub, since the hub wraps
-// around the `pf` package.
-
-func TestServices(t *testing.T) {
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{"2 + 2", "4"},
-		{`hub services`, `The hub isn't running any services.`},
-		{`hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
-		{`hub services`, "The hub is running the following services:\n\n[32m  ▪ [0mService [36m\"foo\"[39m running script [36m\"foo.pf\"[39m."},
-		{`foo 2`, `4`},
-		{`hub run "../hub/test-files/bar.pf"`, `Starting script [36m"bar.pf"[39m as service [36m"bar"[39m.`},
-		{`bar 2`, `6`},
-		{`hub switch "foo"`, `OK`},
-		{`foo 2`, `4`},
-		{`hub halt "foo"`, `OK`},
-		{`hub halt "bar"`, `OK`},
-		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
-	}
-	test_helper.RunHubTest(t, "default", test)
-}
-
 func TestApi(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
 		{`hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
 		{`hub api`, "\x1b[1m\x1b[3m≡≡≡≡ foo ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\n\x1b[0m\n\x1b[3m―――― Functions ――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――\n\x1b[0m\n\x1b[0m  ▪ foo\x1b[38;2;255;215;0m(\x1b[0mx \x1b[38;2;78;201;176many?\x1b[0m\x1b[38;2;255;215;0m)\x1b[0m"},
 		{`hub halt "foo"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
+func TestBrokenService(t *testing.T) { // We want to make sure that if the service is broken, queries get handed off to the empty service.
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub run "../hub/test-files/broken.pf"`, "Starting script [36m\"broken.pf\"[39m as service [36m\"broken\"[39m. [0] [31mError[39m: unexpected occurrence of [0m[48;2;0;0;64m[97mfnurgle[0m without a headword at line [33m1:0-7[39m of [36m\"../hub/[0m\n[33m[39m[36mtest-files/broken.pf\"[39m."},
+		{"2 + 2", "4"},
+		{`hub halt "broken"`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
@@ -78,17 +67,6 @@ func TestEnv(t *testing.T) {
 	test_helper.RunHubTest(t, "default", test)
 }
 
-func TestBrokenService(t *testing.T) { // We want to make sure that if the service is broken, queries get handed off to the empty service.
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{`hub run "../hub/test-files/broken.pf"`, "Starting script [36m\"broken.pf\"[39m as service [36m\"broken\"[39m. [0] [31mError[39m: unexpected occurrence of [0m[48;2;0;0;64m[97mfnurgle[0m without a headword at line [33m1:0-7[39m of [36m\"../hub/[0m\n[33m[39m[36mtest-files/broken.pf\"[39m."},
-		{"2 + 2", "4"},
-		{`hub halt "broken"`, `OK`},
-		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
-	}
-	test_helper.RunHubTest(t, "default", test)
-}
-
 func TestLog(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
@@ -97,30 +75,6 @@ func TestLog(t *testing.T) {
 		{`hub log`, "\x1b[0m  ▪ Log at line 8 : Called \x1b[0m\x1b[48;2;0;0;64m\x1b[97mbig\x1b[0m. \n\x1b[0m  ▪ At line 9 we evaluated the condition \x1b[0m\x1b[48;2;0;0;64m\x1b[97mi >= 100\x1b[0m. The condition failed. \n\x1b[0m  ▪ At line 11 we took the \x1b[0m\x1b[48;2;0;0;64m\x1b[97melse\x1b[0m branch, so at line 12 function \x1b[0m\x1b[48;2;0;0;64m\x1b[97mbig\x1b[0m returned \"small\". \n\n\x1b[0m"},
 		{`hub halt "log"`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
-	}
-	test_helper.RunHubTest(t, "default", test)
-}
-
-func TestTrace(t *testing.T) {
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{`hub run "../hub/test-files/trace.pf"`, "Starting script [36m\"trace.pf\"[39m as service [36m\"trace\"[39m."},
-		{"foo 0", "[0] \x1b[31mError\x1b[39m: division by zero at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/trace.pf\"\x1b[39m."},
-		{"hub trace", "\x1b[31mError\x1b[39m: division by zero \nFrom: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mfoo\x1b[0m at line \x1b[33m1:0-3\x1b[39m of REPL input. From: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mdiv\x1b[0m at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/\x1b[0m\n\x1b[33m\x1b[39m\x1b[36mtrace.pf\"\x1b[39m. From: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mdiv\x1b[0m at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/trace.pf\"\x1b[39m."},
-		{`hub halt "trace"`, "OK"},
-		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
-	}
-	test_helper.RunHubTest(t, "default", test)
-}
-
-func TestValues(t *testing.T) {
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{`hub values`, "\x1b[31mHub error\x1b[39m: there are no recent errors."},
-		{`flibble`, "[0] \x1b[31mError\x1b[39m: identifier \x1b[0m\x1b[48;2;0;0;64m\x1b[97mflibble\x1b[0m is undeclared at line \x1b[33m1:0-7\x1b[39m of REPL input."},
-		{`hub values`, "\x1b[31mHub error\x1b[39m: no values were passed."},
-		{`"foo"[3]`, "[0] \x1b[31mError\x1b[39m: index \x1b[0m\x1b[48;2;0;0;64m\x1b[97m3\x1b[0m is out of range 0::3 at line \x1b[33m1:5-6\x1b[39m of REPL input. \n\nValues are available with \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub values\x1b[0m."},
-		{`hub values`, "Values passed were:\n\n  ▪ \"foo\"\n  ▪ 3"},
 	}
 	test_helper.RunHubTest(t, "default", test)
 }
@@ -188,6 +142,25 @@ func TestMisc(t *testing.T) {
 	if srv.ToLiteral(green) != "GREEN" {
 		t.Fatal("ToLiteral is broken.")
 	}
+}
+
+func TestServices(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{"2 + 2", "4"},
+		{`hub services`, `The hub isn't running any services.`},
+		{`hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
+		{`hub services`, "The hub is running the following services:\n\n[32m  ▪ [0mService [36m\"foo\"[39m running script [36m\"foo.pf\"[39m."},
+		{`foo 2`, `4`},
+		{`hub run "../hub/test-files/bar.pf"`, `Starting script [36m"bar.pf"[39m as service [36m"bar"[39m.`},
+		{`bar 2`, `6`},
+		{`hub switch "foo"`, `OK`},
+		{`foo 2`, `4`},
+		{`hub halt "foo"`, `OK`},
+		{`hub halt "bar"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
 }
 
 func TestToGo(t *testing.T) {
@@ -315,3 +288,31 @@ func TestToGo(t *testing.T) {
 		t.Fatal("Can't convert struct.")
 	}
 }
+
+func TestTrace(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub run "../hub/test-files/trace.pf"`, "Starting script [36m\"trace.pf\"[39m as service [36m\"trace\"[39m."},
+		{"foo 0", "[0] \x1b[31mError\x1b[39m: division by zero at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/trace.pf\"\x1b[39m."},
+		{"hub trace", "\x1b[31mError\x1b[39m: division by zero \nFrom: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mfoo\x1b[0m at line \x1b[33m1:0-3\x1b[39m of REPL input. From: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mdiv\x1b[0m at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/\x1b[0m\n\x1b[33m\x1b[39m\x1b[36mtrace.pf\"\x1b[39m. From: \x1b[0m\x1b[48;2;0;0;64m\x1b[97mdiv\x1b[0m at line \x1b[33m4:7-10\x1b[39m of \x1b[36m\"../hub/test-files/trace.pf\"\x1b[39m."},
+		{`hub halt "trace"`, "OK"},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
+func TestValues(t *testing.T) {
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub values`, "\x1b[31mHub error\x1b[39m: there are no recent errors."},
+		{`flibble`, "[0] \x1b[31mError\x1b[39m: identifier \x1b[0m\x1b[48;2;0;0;64m\x1b[97mflibble\x1b[0m is undeclared at line \x1b[33m1:0-7\x1b[39m of REPL input."},
+		{`hub values`, "\x1b[31mHub error\x1b[39m: no values were passed."},
+		{`"foo"[3]`, "[0] \x1b[31mError\x1b[39m: index \x1b[0m\x1b[48;2;0;0;64m\x1b[97m3\x1b[0m is out of range 0::3 at line \x1b[33m1:5-6\x1b[39m of REPL input. \n\nValues are available with \x1b[0m\x1b[48;2;0;0;64m\x1b[97mhub values\x1b[0m."},
+		{`hub values`, "Values passed were:\n\n  ▪ \"foo\"\n  ▪ 3"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
+
+
+

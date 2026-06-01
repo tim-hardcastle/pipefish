@@ -8,6 +8,16 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
+func TestAlias(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`Strings == list{string}`, `true`},
+		{`Strings["foo", "bar"] == list{string}["foo", "bar"]`, `true`},
+		{`OtherList["foo", "bar"] == ["foo", "bar"]`, `true`},
+		{`OtherFoo("foo", "bar") == Foo("foo", "bar")`, `true`},
+	}
+	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
+}
+
 func TestApi(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
@@ -17,85 +27,6 @@ func TestApi(t *testing.T) {
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)
-}
-
-func TestDump(t *testing.T) { // We want to make sure that if the service is broken, queries get handed off to the empty service.
-	// no t.Parallel()
-	test := []test_helper.TestItem{
-		{`hub run "../hub/test-files/dump.pf"`, `Starting script [36m"dump.pf"[39m as service [36m"dump"[39m.`},
-		{`hub dump "big"`, "# Function dump of `big`\n\n## Code dump for function `big` with sig int\n\n@71 : asgm m261 <- m259  // Assign to memory.\n@72 : gtei m260 <- m261 m263  // Int comparison with >=.\n@73 : asgm m264 <- m260  // Assign to memory.\n@74 : qtru m264 @77  // Test true.\n@75 : asgm m266 <- m265  // Assign to memory.\n@76 : jmp @78  // Jump.\n@77 : asgm m266 <- m3  // Assign to memory.\n@78 : qsat m266 @81  // Test not `UNSAT`.\n@79 : asgm m268 <- m266  // Assign to memory.\n@80 : jmp @82  // Jump.\n@81 : asgm m268 <- m267  // Assign to memory.\n@82 : ret  // Return."},
-		{`hub dump m "big"`, "# Function dump of `big`\n\n## Code dump for function `big` with sig int\n\n@71 : asgm m261 <- m259  // Assign to memory.\n@72 : gtei m260 <- m261 m263  // Int comparison with >=.\n@73 : asgm m264 <- m260  // Assign to memory.\n@74 : qtru m264 @77  // Test true.\n@75 : asgm m266 <- m265  // Assign to memory.\n@76 : jmp @78  // Jump.\n@77 : asgm m266 <- m3  // Assign to memory.\n@78 : qsat m266 @81  // Test not `UNSAT`.\n@79 : asgm m268 <- m266  // Assign to memory.\n@80 : jmp @82  // Jump.\n@81 : asgm m268 <- m267  // Assign to memory.\n@82 : ret  // Return.\n\n### Memory dump for function `big` with sig int`\n\nm259 : UNDEFINED VALUE::UNDEFINED VALUE!\nm260 : error::\x1b[31mError\x1b[39m: something unexpected has gone wrong at line \x1b[33m4:6-8\x1b[39m of \x1b[36m\"../hub/test-files/dump.pf\"\x1b[39m. \nm261 : UNDEFINED VALUE::UNDEFINED VALUE!\nm262 : BLING::>=\nm263 : int::100\nm264 : UNDEFINED VALUE::UNDEFINED VALUE!\nm265 : string::\"big\"\nm266 : UNDEFINED VALUE::UNDEFINED VALUE!\nm267 : string::\"small\"\nm268 : UNDEFINED VALUE::UNDEFINED VALUE!"}, 
-		{`hub halt "dump"`, `OK`},
-		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
-	}
-	test_helper.RunHubTest(t, "default", test)
-}
-
-func TestForLoopCtes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`break 2 == true`, `comp/break/a`},
-		{`from a == 0 for _::i = range 0::5 : a + i`, `comp/for/assign.a`},
-		{`from a, a = 0, 0 for _::i = range z : a + i, a`, `comp/for/bound/exists`},
-		{`from a = 0 for i == 0; i < 5; i + 1 : a + i`, `comp/for/assign.b`},
-		{`from a = 0 for i, i = 0, 0; i < 5; i + 1 : a + i`, `comp/for/index/exists`},
-		{`from a = 0 for true::i = range 0::5 : a + i`, `comp/for/range.a`},
-		{`from a = 0 for i::true = range 0::5 : a + i`, `comp/for/range.b`},
-		{`from a = 0 for _::_ = range true : a + i`, `comp/for/range/discard`},
-		{`from a = 0 for i::j = range true : a + i`, `comp/for/range/types`},
-		{`from a = 0 for a::j = range 5 : a + i`, `comp/for/exists/key`},
-		{`from a = 0 for i::a = range 5 : a + i`, `comp/for/exists/value`},
-		{`from a = 0 for i+j = range 5 : a + i`, `comp/for/range.c`},
-		{`from a = 0 for i = 0; 1/0; i + 1 : a + i`, `comp/for/condition`},
-		{`from a, b = 0, 1 for i::v = range 5 : 1`, `comp/types/length/for`},
-		{`from a, b = 0, 1 for i::v = range 5 : 1, 2, 3`, `comp/types/for`},
-		{`from a = 0 for i::v = range 5 : "foo"`, `comp/types/for`},
-	}
-	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
-}
-
-// Tests that when compiling the node of a child fails, it then returns `FAIL` and we get the error
-// belonging to the child.
-func TestFailingUpward(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`2 == 'q' or true`, `comp/eq/types`},
-		{`false or 2 == true`, `comp/eq/types`},
-		{`2 == 'q' and true`, `comp/eq/types`},
-		{`true and 2 == true`, `comp/eq/types`},
-		{`2 == 'q' : true`, `comp/eq/types`},
-		{`true : 2 == true`, `comp/eq/types`},
-		{`2 == 'q' ; true`, `comp/eq/types`},
-		{`true ; 2 == true`, `comp/eq/types`},
-		{`not 2 == true`, `comp/eq/types`},
-		{`unwrap (2 == true)`, `comp/eq/types`},
-		{`len (2 == true)`, `comp/eq/types`},
-		{`f (2 == true)`, `comp/eq/types`},
-		{`clones{z}`, `comp/ident/known`},
-		{`list{z}`, `comp/ident/known`},
-		{`z == 1`, `comp/ident/known`},
-		{`1 == z`, `comp/ident/known`},
-		{`$log_To = z`, `comp/ident/known`},
-		{`-- z |z| z`, `comp/ident/known`},
-		{`z[0]`, `comp/ident/known`},
-		{`"foo"[z]`, `comp/ident/known`},
-		{`valid z`, `comp/ident/known`},
-		{`from true = 0 for _::i = range 0::5 : a + i`, `parse/sig/c`},
-		{`from a = z for _::i = range 0::5 : a + i`, `comp/ident/known`},
-		{`from a = 0 for true = 0; i < 5; i + 1 : a + i`, `parse/sig/c`},
-		{`from a = 0 for i = z; i < 5; i + 1 : a + i`, `comp/ident/known`},
-		{`from a = 0 for i = 0; z; i + 1 : a + i`, `comp/ident/known`},
-		{`from a = 0 for i = 0; i < 5; i + z : a + i`, `comp/ident/known`},
-	}
-	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
-}
-
-func TestAlias(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Strings == list{string}`, `true`},
-		{`Strings["foo", "bar"] == list{string}["foo", "bar"]`, `true`},
-		{`OtherList["foo", "bar"] == ["foo", "bar"]`, `true`},
-		{`OtherFoo("foo", "bar") == Foo("foo", "bar")`, `true`},
-	}
-	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
 }
 
 func TestAssignment(t *testing.T) {
@@ -250,6 +181,7 @@ func TestBuiltins(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
+
 func TestCast(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`cast "foo", string`, `"foo"`},
@@ -260,6 +192,7 @@ func TestCast(t *testing.T) {
 	}
 	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
 }
+
 func TestClones(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`FloatClone(4.2) == FloatClone(4.2)`, `true`},
@@ -287,6 +220,7 @@ func TestClones(t *testing.T) {
 	}
 	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
 }
+
 func TestCorners(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`boo x`, `(1, 2, 3)`},
@@ -295,6 +229,19 @@ func TestCorners(t *testing.T) {
 	}
 	test_helper.RunTest(t, "corners_test.pf", tests, test_helper.TestValues)
 }
+
+func TestDump(t *testing.T) { // We want to make sure that if the service is broken, queries get handed off to the empty service.
+	// no t.Parallel()
+	test := []test_helper.TestItem{
+		{`hub run "../hub/test-files/dump.pf"`, `Starting script [36m"dump.pf"[39m as service [36m"dump"[39m.`},
+		{`hub dump "big"`, "# Function dump of `big`\n\n## Code dump for function `big` with sig int\n\n@71 : asgm m261 <- m259  // Assign to memory.\n@72 : gtei m260 <- m261 m263  // Int comparison with >=.\n@73 : asgm m264 <- m260  // Assign to memory.\n@74 : qtru m264 @77  // Test true.\n@75 : asgm m266 <- m265  // Assign to memory.\n@76 : jmp @78  // Jump.\n@77 : asgm m266 <- m3  // Assign to memory.\n@78 : qsat m266 @81  // Test not `UNSAT`.\n@79 : asgm m268 <- m266  // Assign to memory.\n@80 : jmp @82  // Jump.\n@81 : asgm m268 <- m267  // Assign to memory.\n@82 : ret  // Return."},
+		{`hub dump m "big"`, "# Function dump of `big`\n\n## Code dump for function `big` with sig int\n\n@71 : asgm m261 <- m259  // Assign to memory.\n@72 : gtei m260 <- m261 m263  // Int comparison with >=.\n@73 : asgm m264 <- m260  // Assign to memory.\n@74 : qtru m264 @77  // Test true.\n@75 : asgm m266 <- m265  // Assign to memory.\n@76 : jmp @78  // Jump.\n@77 : asgm m266 <- m3  // Assign to memory.\n@78 : qsat m266 @81  // Test not `UNSAT`.\n@79 : asgm m268 <- m266  // Assign to memory.\n@80 : jmp @82  // Jump.\n@81 : asgm m268 <- m267  // Assign to memory.\n@82 : ret  // Return.\n\n### Memory dump for function `big` with sig int`\n\nm259 : UNDEFINED VALUE::UNDEFINED VALUE!\nm260 : error::\x1b[31mError\x1b[39m: something unexpected has gone wrong at line \x1b[33m4:6-8\x1b[39m of \x1b[36m\"../hub/test-files/dump.pf\"\x1b[39m. \nm261 : UNDEFINED VALUE::UNDEFINED VALUE!\nm262 : BLING::>=\nm263 : int::100\nm264 : UNDEFINED VALUE::UNDEFINED VALUE!\nm265 : string::\"big\"\nm266 : UNDEFINED VALUE::UNDEFINED VALUE!\nm267 : string::\"small\"\nm268 : UNDEFINED VALUE::UNDEFINED VALUE!"}, 
+		{`hub halt "dump"`, `OK`},
+		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
+	}
+	test_helper.RunHubTest(t, "default", test)
+}
+
 func TestEnums(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Color 2`, `BLUE`},
@@ -302,6 +249,7 @@ func TestEnums(t *testing.T) {
 	}
 	test_helper.RunTest(t, "enums_test.pf", tests, test_helper.TestValues)
 }
+
 func TestEquality(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`5.0 == 2.0`, `false`},
@@ -334,6 +282,7 @@ func TestEquality(t *testing.T) {
 	}
 	test_helper.RunTest(t, "equality_test", tests, test_helper.TestValues)
 }
+
 func TestEqualityCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`(error "foo") == 42`, `comp/error/eq/a`},
@@ -343,6 +292,7 @@ func TestEqualityCompilerErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
 func TestEval(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`eval "4"`, `4`},
@@ -373,6 +323,7 @@ func TestExternals(t *testing.T) {
 	}
 	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
 }
+
 func TestFancyFunctions(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 99`, `"foo _"`},
@@ -392,6 +343,42 @@ func TestFancyFunctions(t *testing.T) {
 	}
 	test_helper.RunTest(t, "fancy_function_test.pf", tests, test_helper.TestValues)
 }
+
+// Tests that when compiling the node of a child fails, it then returns `FAIL` and we get the error
+// belonging to the child.
+func TestFailingUpward(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`2 == 'q' or true`, `comp/eq/types`},
+		{`false or 2 == true`, `comp/eq/types`},
+		{`2 == 'q' and true`, `comp/eq/types`},
+		{`true and 2 == true`, `comp/eq/types`},
+		{`2 == 'q' : true`, `comp/eq/types`},
+		{`true : 2 == true`, `comp/eq/types`},
+		{`2 == 'q' ; true`, `comp/eq/types`},
+		{`true ; 2 == true`, `comp/eq/types`},
+		{`not 2 == true`, `comp/eq/types`},
+		{`unwrap (2 == true)`, `comp/eq/types`},
+		{`len (2 == true)`, `comp/eq/types`},
+		{`f (2 == true)`, `comp/eq/types`},
+		{`clones{z}`, `comp/ident/known`},
+		{`list{z}`, `comp/ident/known`},
+		{`z == 1`, `comp/ident/known`},
+		{`1 == z`, `comp/ident/known`},
+		{`$log_To = z`, `comp/ident/known`},
+		{`-- z |z| z`, `comp/ident/known`},
+		{`z[0]`, `comp/ident/known`},
+		{`"foo"[z]`, `comp/ident/known`},
+		{`valid z`, `comp/ident/known`},
+		{`from true = 0 for _::i = range 0::5 : a + i`, `parse/sig/c`},
+		{`from a = z for _::i = range 0::5 : a + i`, `comp/ident/known`},
+		{`from a = 0 for true = 0; i < 5; i + 1 : a + i`, `parse/sig/c`},
+		{`from a = 0 for i = z; i < 5; i + 1 : a + i`, `comp/ident/known`},
+		{`from a = 0 for i = 0; z; i + 1 : a + i`, `comp/ident/known`},
+		{`from a = 0 for i = 0; i < 5; i + z : a + i`, `comp/ident/known`},
+	}
+	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
+}
+
 func TestFcisItes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`return/cmd`, `OK`},
@@ -399,6 +386,29 @@ func TestFcisItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
+
+func TestForLoopCtes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`break 2 == true`, `comp/break/a`},
+		{`from a == 0 for _::i = range 0::5 : a + i`, `comp/for/assign.a`},
+		{`from a, a = 0, 0 for _::i = range z : a + i, a`, `comp/for/bound/exists`},
+		{`from a = 0 for i == 0; i < 5; i + 1 : a + i`, `comp/for/assign.b`},
+		{`from a = 0 for i, i = 0, 0; i < 5; i + 1 : a + i`, `comp/for/index/exists`},
+		{`from a = 0 for true::i = range 0::5 : a + i`, `comp/for/range.a`},
+		{`from a = 0 for i::true = range 0::5 : a + i`, `comp/for/range.b`},
+		{`from a = 0 for _::_ = range true : a + i`, `comp/for/range/discard`},
+		{`from a = 0 for i::j = range true : a + i`, `comp/for/range/types`},
+		{`from a = 0 for a::j = range 5 : a + i`, `comp/for/exists/key`},
+		{`from a = 0 for i::a = range 5 : a + i`, `comp/for/exists/value`},
+		{`from a = 0 for i+j = range 5 : a + i`, `comp/for/range.c`},
+		{`from a = 0 for i = 0; 1/0; i + 1 : a + i`, `comp/for/condition`},
+		{`from a, b = 0, 1 for i::v = range 5 : 1`, `comp/types/length/for`},
+		{`from a, b = 0, 1 for i::v = range 5 : 1, 2, 3`, `comp/types/for`},
+		{`from a = 0 for i::v = range 5 : "foo"`, `comp/types/for`},
+	}
+	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
+}
+
 func TestForLoopRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`bar 5`, `vm/typecheck/bound/init`},
@@ -410,6 +420,7 @@ func TestForLoopRtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
+
 func TestForLoops(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`fib 8`, `21`},
@@ -435,6 +446,7 @@ func TestForLoops(t *testing.T) {
 	}
 	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
 }
+
 func TestFunctionErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Varchar{8}(42)`, `comp/types.a`},
@@ -442,6 +454,7 @@ func TestFunctionErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "function_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
 func TestFunctionOverloading(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 42`, `"int"`},
@@ -452,6 +465,7 @@ func TestFunctionOverloading(t *testing.T) {
 	}
 	test_helper.RunTest(t, "overloading_test.pf", tests, test_helper.TestValues)
 }
+
 func TestFunctionSharing(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`C(1, 2) in Addable`, `true`},
@@ -462,6 +476,7 @@ func TestFunctionSharing(t *testing.T) {
 	}
 	test_helper.RunTest(t, "function_sharing_test.pf", tests, test_helper.TestValues)
 }
+
 func TestFunctionSyntaxCalls(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo "bing"`, `"foo bing"`},
@@ -473,6 +488,7 @@ func TestFunctionSyntaxCalls(t *testing.T) {
 	}
 	test_helper.RunTest(t, "function_call_test.pf", tests, test_helper.TestValues)
 }
+
 func TestGivenErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`func(x) : x given: 42`, `comp/given/assign`},
@@ -482,6 +498,7 @@ func TestGivenErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
+
 func TestGocode(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		return
@@ -522,6 +539,7 @@ func TestGocode(t *testing.T) {
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
 	test_helper.Teardown("gocode_test.pf")
 }
+
 func TestHighlighter(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Type`, `[38;2;78;201;176mType[0m`},
@@ -565,6 +583,7 @@ func TestItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test compiler errors", tests, test_helper.TestInitializationErrorsInCompiler)
 }
+
 func TestImports(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`qux.square 5`, `25`},
@@ -579,6 +598,7 @@ func TestImports(t *testing.T) {
 	}
 	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
 }
+
 func TestIndexing(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`DARK_BLUE[shade]`, `DARK`},
@@ -608,6 +628,7 @@ func TestIndexing(t *testing.T) {
 	}
 	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
 }
+
 func TestIndexingCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`[1, 2, 3][4.0]`, `comp/index/list`},
@@ -621,12 +642,14 @@ func TestIndexingCompilerErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
 func TestImperative(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`zort false`, `7`},
 	}
 	test_helper.RunTest(t, "imperative_test.pf", tests, test_helper.TestOutput)
 }
+
 func TestInnerFunctionsAndVariables(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 42`, `42`},
@@ -635,6 +658,7 @@ func TestInnerFunctionsAndVariables(t *testing.T) {
 	}
 	test_helper.RunTest(t, "inner_test.pf", tests, test_helper.TestValues)
 }
+
 func TestInterfaces(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`BLERP in Addable`, `true`},
@@ -645,12 +669,14 @@ func TestInterfaces(t *testing.T) {
 	}
 	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
 }
+
 func TestLabels(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`label "qux"`, `qux`},
 	}
 	test_helper.RunTest(t, "labels_test.pf", tests, test_helper.TestValues)
 }
+
 func TestLambdas(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`apply DOUBLE, 42`, `84`},
@@ -658,12 +684,14 @@ func TestLambdas(t *testing.T) {
 	}
 	test_helper.RunTest(t, "lambda_test.pf", tests, test_helper.TestValues)
 }
+
 func TestLambdaCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`func(x) : x * y`, `comp/body/known`},
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
+
 func TestLiterals(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`"foo"`, `"foo"`},
@@ -681,6 +709,7 @@ func TestLiterals(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestValues)
 }
+
 func TestLog(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
@@ -692,12 +721,14 @@ func TestLog(t *testing.T) {
 	}
 	test_helper.RunHubTest(t, "default", test)
 }
+
 func TestLogging(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 8`, test_helper.Foo8Result},
 	}
 	test_helper.RunTest(t, "logging_test.pf", tests, test_helper.TestOutput)
 }
+
 func TestLoggingCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`42 \\ | forty-two`, `comp/log/close`},
@@ -706,6 +737,7 @@ func TestLoggingCtes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
 }
+
 func TestMiscellaneousCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`[error "foo"]`, `comp/list/err`},
@@ -723,6 +755,7 @@ func TestMiscellaneousCompilerErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
 func TestParameterizedTypes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
@@ -754,6 +787,7 @@ func TestPiping(t *testing.T) {
 	}
 	test_helper.RunTest(t, "piping_test.pf", tests, test_helper.TestValues)
 }
+
 func TestRecursion(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`fac 5`, `120`},
@@ -762,6 +796,7 @@ func TestRecursion(t *testing.T) {
 	}
 	test_helper.RunTest(t, "recursion_test.pf", tests, test_helper.TestValues)
 }
+
 func TestRecursion2(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo [1, 2, 3, 4]`, `10`},
@@ -769,12 +804,14 @@ func TestRecursion2(t *testing.T) {
 	}
 	test_helper.RunTest(t, "recursion_test_2.pf", tests, test_helper.TestValues)
 }
+
 func TestReflection(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`reflect.isStruct Varchar{8}`, `false`},
 	}
 	test_helper.RunTest(t, "reflect_test.pf", tests, test_helper.TestValues)
 }
+
 func TestRef(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`x ++`, `OK`},
@@ -807,6 +844,7 @@ func TestSnippets(t *testing.T) {
 	}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
 }
+
 func TestSql(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		return
@@ -816,6 +854,7 @@ func TestSql(t *testing.T) {
 	}
 	test_helper.RunTest(t, "sql_test.pf", tests, test_helper.TestOutput)
 }
+
 func TestStructs(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`doug`, `Person with (name::"Douglas", age::42)`},
@@ -824,6 +863,7 @@ func TestStructs(t *testing.T) {
 	}
 	test_helper.RunTest(t, "struct_test.pf", tests, test_helper.TestValues)
 }
+
 func TestTry(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 3`, `4`},
@@ -831,6 +871,7 @@ func TestTry(t *testing.T) {
 	}
 	test_helper.RunTest(t, "try_test.pf", tests, test_helper.TestOutput)
 }
+
 func TestTuples(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`(1, 2), 3`, `(1, 2, 3)`},
@@ -850,6 +891,7 @@ func TestTuples(t *testing.T) {
 	}
 	test_helper.RunTest(t, "tuples_test.pf", tests, test_helper.TestValues)
 }
+
 func TestTypes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Color(4)`, `BLUE`},
@@ -874,6 +916,7 @@ func TestTypes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
 }
+
 func TestTypeAccessErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Pair 1, 2`, `comp/private`},
@@ -897,12 +940,14 @@ func TestTypeExpressionCompilerErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
 func TestTypeInstances(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Z{3}(2) in Z{3}`, `true`},
 	}
 	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
 }
+
 func TestValid(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 3`, `4`},
@@ -910,6 +955,7 @@ func TestValid(t *testing.T) {
 	}
 	test_helper.RunTest(t, "valid_test.pf", tests, test_helper.TestValues)
 }
+
 func TestVariablesAndConsts(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`A`, `42`},
@@ -921,6 +967,7 @@ func TestVariablesAndConsts(t *testing.T) {
 	}
 	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
 }
+
 func TestVariableAccessErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`B`, `comp/ident/private`},
@@ -931,6 +978,7 @@ func TestVariableAccessErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
 func TestVariableCompilerErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`i * i = 4`, `parse/sig/c`},
@@ -942,6 +990,7 @@ func TestVariableCompilerErrors(t *testing.T) {
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
+
 func TestWith(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
@@ -957,6 +1006,7 @@ func TestWith(t *testing.T) {
 	}
 	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
 }
+
 func TestWrappers(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		return

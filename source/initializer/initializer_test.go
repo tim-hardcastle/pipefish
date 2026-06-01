@@ -21,87 +21,23 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/text"
 )
 
-func TestExternalItes(t *testing.T) {
+func TestAlias(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`external/exist`, `OK`},
-		{`external/file`, `OK`},
-		{`external/path`, `OK`},
+		{`Strings == list{string}`, `true`},
+		{`Strings["foo", "bar"] == list{string}["foo", "bar"]`, `true`},
+		{`OtherList["foo", "bar"] == ["foo", "bar"]`, `true`},
+		{`OtherFoo("foo", "bar") == Foo("foo", "bar")`, `true`},
 	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
 }
-func TestGettersItes(t *testing.T) {
+func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`param/missing`, `OK`},
+		{`x`, `'q'`},
+		{`y`, `2`},
+		{`s`, `(1, 2)`},
+		{`t`, `tuple(42)`},
 	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
-}
-
-func TestGolangItes(t *testing.T) {
-	// no t.Parallel()
-	tests := []test_helper.TestItem{
-		{`golang/type_a`, `golang/type.a`},
-		{`golang/type_b`, `golang/type.b`},
-		{`golang/type_c`, `golang/type.c`},
-		{`golang/concrete`, `golang/concrete`},
-		{`golang/build`, `golang/build`},
-	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
-	test_helper.Teardown(
-		"initialization-error-tests/golang_type_a.pf",
-		"initialization-error-tests/golang_type_b.pf",
-		"initialization-error-tests/golang_type_c.pf",
-		"initialization-error-tests/golang_concrete.pf",
-		"initialization-error-tests/golang_build.pf",
-	)
-	for counter := 1; counter <= 4; counter++ {
-		goFile := filepath.Join(settings.PipefishHomeDirectory, "gocode_"+strconv.Itoa(counter)+".go")
-		os.Remove(goFile)
-	}
-}
-
-// This apparent tautology refers to errors from the `intializer.go` file specifically.
-func TestInitializerItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`depend/cmd`, `OK`},
-		{`depend/var`, `OK`},
-		{`make/ident`, `OK`},
-		{`make/instance`, `OK`},
-		{`name/exists.a`, `OK`},
-		{`name/exists.b`, `OK`},
-		{`overload.a`, `OK`},
-		{`overload/ref`, `OK`},
-		{`param/type`, `OK`},
-		{`param/var`, `OK`},
-		{`private/abstract`, `OK`},
-		{`private/struct`, `OK`},
-		{`service/depends`, `OK`},
-		{`service/type`, `OK`},
-		{`type/known`, `OK`},
-		{`validation/bool`, `OK`},
-	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
-}
-
-// Whereas these are from `parsing.go`.
-func TestParsingItes(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`clone/exists`, `OK`},
-		{`clone/type.c`, `OK`},
-		{`enum/element`, `OK`},
-		{`head`, `OK`},
-		{`import/file`, `OK`},
-		{`label/exists`, `OK`},
-		{`request/float`, `OK`},
-		{`request/int`, `OK`},
-		{`request/list`, `OK`},
-		{`request/map`, `OK`},
-		{`request/pair`, `OK`},
-		{`request/rune`, `OK`},
-		{`request/set`, `OK`},
-		{`request/snippet`, `OK`},
-		{`request/string`, `OK`},
-	}
-	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
 }
 
 func TestChunkingItes(t *testing.T) {
@@ -141,24 +77,7 @@ func TestChunkingItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
-func TestAlias(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`Strings == list{string}`, `true`},
-		{`Strings["foo", "bar"] == list{string}["foo", "bar"]`, `true`},
-		{`OtherList["foo", "bar"] == ["foo", "bar"]`, `true`},
-		{`OtherFoo("foo", "bar") == Foo("foo", "bar")`, `true`},
-	}
-	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
-}
-func TestAssignment(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`x`, `'q'`},
-		{`y`, `2`},
-		{`s`, `(1, 2)`},
-		{`t`, `tuple(42)`},
-	}
-	test_helper.RunTest(t, "assignment_test.pf", tests, test_helper.TestValues)
-}
+
 func TestClones(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`FloatClone(4.2) == FloatClone(4.2)`, `true`},
@@ -166,18 +85,23 @@ func TestClones(t *testing.T) {
 	}
 	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
 }
+
+func TestExternalItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`external/exist`, `OK`},
+		{`external/file`, `OK`},
+		{`external/path`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
 func TestExternals(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`zort.square 5`, `25`},
 	}
 	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
 }
-func TestFunctionSyntaxCalls(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`foo "bing"`, `"foo bing"`},
-	}
-	test_helper.RunTest(t, "function_call_test.pf", tests, test_helper.TestValues)
-}
+
 func TestForLoops(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`fib 8`, `21`},
@@ -185,12 +109,28 @@ func TestForLoops(t *testing.T) {
 	}
 	test_helper.RunTest(t, "for_loop_test.pf", tests, test_helper.TestValues)
 }
+
+func TestFunctionSyntaxCalls(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo "bing"`, `"foo bing"`},
+	}
+	test_helper.RunTest(t, "function_call_test.pf", tests, test_helper.TestValues)
+}
+
 func TestFunctionSharing(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`C(1, 2) in Addable`, `true`},
 	}
 	test_helper.RunTest(t, "function_sharing_test.pf", tests, test_helper.TestValues)
 }
+
+func TestGettersItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`param/missing`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
 func TestGocode(t *testing.T) {
 	// no t.Parallel()
 	if runtime.GOOS == "windows" {
@@ -202,6 +142,29 @@ func TestGocode(t *testing.T) {
 	}
 	test_helper.RunTest(t, "gocode_test.pf", tests, test_helper.TestValues)
 	test_helper.Teardown("gocode_test.pf")
+}
+
+func TestGolangItes(t *testing.T) {
+	// no t.Parallel()
+	tests := []test_helper.TestItem{
+		{`golang/type_a`, `golang/type.a`},
+		{`golang/type_b`, `golang/type.b`},
+		{`golang/type_c`, `golang/type.c`},
+		{`golang/concrete`, `golang/concrete`},
+		{`golang/build`, `golang/build`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+	test_helper.Teardown(
+		"initialization-error-tests/golang_type_a.pf",
+		"initialization-error-tests/golang_type_b.pf",
+		"initialization-error-tests/golang_type_c.pf",
+		"initialization-error-tests/golang_concrete.pf",
+		"initialization-error-tests/golang_build.pf",
+	)
+	for counter := 1; counter <= 4; counter++ {
+		goFile := filepath.Join(settings.PipefishHomeDirectory, "gocode_"+strconv.Itoa(counter)+".go")
+		os.Remove(goFile)
+	}
 }
 
 func TestHttp(t *testing.T) {
@@ -218,18 +181,13 @@ func TestHttp(t *testing.T) {
 	test_helper.RunHubTest(t, "default", test)
 }
 
-func TestIndexing(t *testing.T) {
-	tests := []test_helper.TestItem{
-		{`DARK_BLUE[shade]`, `DARK`},
-	}
-	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
-}
 func TestImperative(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`zort false`, `7`},
 	}
 	test_helper.RunTest(t, "imperative_test.pf", tests, test_helper.TestOutput)
 }
+
 func TestImports(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`qux.square 5`, `25`},
@@ -237,6 +195,38 @@ func TestImports(t *testing.T) {
 	}
 	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
 }
+
+func TestIndexing(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`DARK_BLUE[shade]`, `DARK`},
+	}
+	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
+}
+
+// This apparent tautology refers to errors from the `intializer.go` file specifically.
+func TestInitializerItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`depend/cmd`, `OK`},
+		{`depend/var`, `OK`},
+		{`make/ident`, `OK`},
+		{`make/instance`, `OK`},
+		{`name/exists.a`, `OK`},
+		{`name/exists.b`, `OK`},
+		{`overload.a`, `OK`},
+		{`overload/ref`, `OK`},
+		{`param/type`, `OK`},
+		{`param/var`, `OK`},
+		{`private/abstract`, `OK`},
+		{`private/struct`, `OK`},
+		{`service/depends`, `OK`},
+		{`service/type`, `OK`},
+		{`type/known`, `OK`},
+		{`validation/bool`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
+
 func TestInnerFunctionsAndVariables(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 42`, `42`},
@@ -284,6 +274,28 @@ func TestParameterizedTypes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
 }
+
+func TestParsingItes(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`clone/exists`, `OK`},
+		{`clone/type.c`, `OK`},
+		{`enum/element`, `OK`},
+		{`head`, `OK`},
+		{`import/file`, `OK`},
+		{`label/exists`, `OK`},
+		{`request/float`, `OK`},
+		{`request/int`, `OK`},
+		{`request/list`, `OK`},
+		{`request/map`, `OK`},
+		{`request/pair`, `OK`},
+		{`request/rune`, `OK`},
+		{`request/set`, `OK`},
+		{`request/snippet`, `OK`},
+		{`request/string`, `OK`},
+	}
+	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
+}
+
 func TestRecursion(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`fac 5`, `120`},
