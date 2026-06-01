@@ -133,22 +133,22 @@ func (hub *Hub) getFonts() values.Map {
 }
 
 // This takes the input from the REPL, interprets it as a hub command if it begins with 'hub';
-// as an instruction to the os if it begins with 'os', and as an expression to be passed to
+// as an instruction to the os if it begins with '$', and as an expression to be passed to
 // the current service if none of the above hold.
-func (hub *Hub) Do(line, username, password, service string, external bool) (string, bool) {
+func (hub *Hub) Do(line, username, password, service string, external bool) {
 
 	// We may be talking to the hub itself.
 	hubWords := strings.Fields(line)
 	if len(hubWords) > 0 && hubWords[0] == "hub" {
 		if len(hubWords) == 1 {
 			hub.WriteError("you need to say what you want the hub to do.")
-			return service, false
+			return
 		}
 		hub.username = username
 		hub.password = password
 		hub.setSV("$_external", pf.BOOL, external)
 		hub.DoHubCommand(strings.Join(hubWords[1:], " "))
-		return service, false
+		return
 	}
 
 	// We may be talking to the os
@@ -157,42 +157,42 @@ func (hub *Hub) Do(line, username, password, service string, external bool) (str
 			isAdmin, err := IsUserAdmin(hub.Db, username)
 			if err != nil {
 				hub.WriteError(err.Error())
-				return service, false
+				return
 			}
 			if !isAdmin {
 				hub.WriteError("Only administrators can use the shell remotely.")
-				return service, false
+				return
 			}
 		} else {
 			if external {
 				hub.WriteError("on an unadministered hub, for reasons of security and sanity, you can't use the shell remotely.")
-				return service, false
+				return
 			}
 		}
 		command := exec.Command("sh", "-c", line[2:])
 		out, err := command.Output()
 		if err != nil {
 			hub.WriteError(err.Error())
-			return service, false
+			return
 		}
 		if len(out) == 0 {
 			hub.WriteString(GREEN_OK)
-			return service, false
+			return
 		}
 		hub.WriteString(string(out))
-		return service, false
+		return
 	}
 	hub.Sources["REPL input"] = []string{line}
 	_, ok := hub.Services[service]
 	if !ok {
 		hub.WriteError("the hub can't find the service <C>\"" + service + "\"</>.")
-		return service, false
+		return
 	}
 	if hub.administered() {
 		if !userHasService(hub.Db, username, service) {
 			if isAdmin, _ := IsUserAdmin(hub.Db, username); !isAdmin {
 				hub.WriteError("you have no access to a service named <C>\"" + service + "\"</> on this hub.")
-				return service, false
+				return
 			}
 		}
 	}
@@ -202,7 +202,7 @@ func (hub *Hub) Do(line, username, password, service string, external bool) (str
 	// trigger recompilation of code.
 	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
 		hub.WriteString("")
-		return service, false
+		return
 	}
 	// The service may be broken, in which case we'll let the empty service handle the input.
 	if serviceToUse.IsBroken() {
@@ -215,10 +215,10 @@ func (hub *Hub) Do(line, username, password, service string, external bool) (str
 	errorsExist, _ := serviceToUse.ErrorsExist()
 	if errorsExist { // Any lex-parse-compile errors should end up in the parser of the compiler of the service, returned in p.
 		hub.GetAndReportErrors(serviceToUse)
-		return service, false
+		return
 	}
 	hub.outputVal(val, serviceToUse, external)
-	return service, false
+	return
 }
 
 func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external bool) {
@@ -1149,7 +1149,7 @@ type jsonRequest = struct {
 
 type jsonResponse = struct {
 	Body    string
-	Service string
+	Service string     // TODO --- deprecate field.
 }
 
 func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
@@ -1159,7 +1159,6 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	var serviceName string
 	if h.administered() && !((!h.listeningToHttpOrHttps) && (request.Body == "hub register" || request.Body == "hub sign on")) {
 		err = ValidateUser(h.Db, request.Username, request.Password)
 		if err != nil {
@@ -1172,9 +1171,9 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 	h.Out = &buf
 	sv := h.Services[request.Service]
 	sv.SetOutHandler(sv.MakeLiteralOutHandler(&buf))
-	serviceName, _ = h.Do(request.Body, request.Username, request.Password, request.Service, true)
+	h.Do(request.Body, request.Username, request.Password, request.Service, true)
 	h.Out = oldOut
-	response := jsonResponse{Body: buf.String(), Service: serviceName}
+	response := jsonResponse{Body: buf.String(), Service: request.Service}
 	json.NewEncoder(w).Encode(response)
 }
 

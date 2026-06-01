@@ -75,10 +75,7 @@ func (hub *Hub) Repl() {
 		input = strings.TrimSpace(input)
 		sv := hub.Services[hub.CurrentServiceName()]
 		sv.SetOutHandler(sv.MakeTerminalOutHandler())
-		_, quit := hub.Do(input, hub.TerminalUsername, hub.TerminalPassword, hub.CurrentServiceName(), false)
-		if quit {
-			break
-		}
+		hub.Do(input, hub.TerminalUsername, hub.TerminalPassword, hub.CurrentServiceName(), false)
 	}
 }
 
