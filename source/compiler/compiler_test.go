@@ -500,10 +500,10 @@ func TestGivenErrors(t *testing.T) {
 }
 
 func TestGocode(t *testing.T) {
+	// no t.Parallel()
 	if runtime.GOOS == "windows" {
 		return
 	}
-	// no t.Parallel()
 	tests := []test_helper.TestItem{
 		{`anyTest 42`, `42`},
 		{`variadicAnyTest 2, 42, true, "foo", 9.9`, `"foo"`},

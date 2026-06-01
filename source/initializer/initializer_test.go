@@ -161,7 +161,7 @@ func TestGolangItes(t *testing.T) {
 		"initialization-error-tests/golang_concrete.pf",
 		"initialization-error-tests/golang_build.pf",
 	)
-	for counter := 1; counter <= 4; counter++ {
+	for counter := 1; counter <= 6; counter++ {
 		goFile := filepath.Join(settings.PipefishHomeDirectory, "gocode_"+strconv.Itoa(counter)+".go")
 		os.Remove(goFile)
 	}

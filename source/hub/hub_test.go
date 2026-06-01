@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"testing"
 
@@ -34,6 +35,10 @@ func TestBrokenService(t *testing.T) { // We want to make sure that if the servi
 }
 
 func TestCli(t *testing.T) { 
+	// no t.Parallel()
+	if runtime.GOOS == "windows" {
+		return
+	}
 	wd, _ := os.Getwd()
 	tmpExe := filepath.Join(t.TempDir(), "pipefish")
 
