@@ -35,7 +35,7 @@ func TestBrokenService(t *testing.T) { // We want to make sure that if the servi
 
 func TestCli(t *testing.T) { 
 	wd, _ := os.Getwd()                                     // The working directory is the directory containing the package being tested.
-	pfPath := filepath.Join(wd, "/../../pipefish")
+	pfPath := filepath.Join(wd, "..", "..", "pipefish")
 	println(pfPath)
 	result, err := exec.Command(pfPath, "run", "./test-files/cli.pf").Output()
 	if err != nil {
