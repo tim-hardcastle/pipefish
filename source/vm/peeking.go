@@ -27,7 +27,10 @@ var opInfo = map[Opcode]operatorInfo{}
 
 func init() {
 	// Set up the operations map.
-	content, _ := os.ReadFile(filepath.Join(settings.PipefishHomeDirectory, "source/vm/operations.md"))
+	content, err := os.ReadFile(filepath.Join(settings.PipefishHomeDirectory, "source/vm/operations.md"))
+	if err != nil { // Then we don't have access to the source.
+		return
+	}
 	lines := strings.Split(string(content), "\n")
 	i := 0
 	for ; lines[i] != "## Operators"; i++ {

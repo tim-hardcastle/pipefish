@@ -34,12 +34,16 @@ func TestBrokenService(t *testing.T) { // We want to make sure that if the servi
 }
 
 func TestCli(t *testing.T) { 
-	wd, _ := os.Getwd()                                     // The working directory is the directory containing the package being tested.
-	pfPath := filepath.Join(wd, "..", "..", "pipefish")
-	println(pfPath)
-	result, err := exec.Command(pfPath, "run", "./test-files/cli.pf").Output()
+	wd, _ := os.Getwd()
+	tmpExe := filepath.Join(t.TempDir(), "pipefish")
+
+    cmd := exec.Command("go", "build", "-o", tmpExe, "../../")
+    if out, err := cmd.CombinedOutput(); err != nil {
+        t.Fatalf("build failed: %v\n%s", err, out)
+    }
+    result, err := exec.Command(tmpExe, "run", filepath.Join(wd, "test-files/cli.pf")).CombinedOutput()
 	if err != nil {
-		t.Fatal(err.Error())
+		t.Fatalf("build failed: %v\n%s", err, result)
 	}
 	if string(result) != "Hello world!\n" {
 		t.Fatal("Expected \"Hello world!\\n\"`; got " + strconv.Quote(string(result)))
