@@ -182,7 +182,7 @@ func TestSigChunking(iz *initializer.Initializer, s string) string {
 
 func TestFunctionChunking(iz *initializer.Initializer, s string) string {
 	iz.P.PrimeWithString("test", s)
-	fn, _ := iz.ChunkFunction(false, false, "")
+	fn, _ := iz.ChunkFunction(token.DEF, false, "")
 	return initializer.SummaryString(fn)
 }
 

@@ -870,8 +870,21 @@ func (iz *Initializer) finishChunk() {
 // As with all the chunkers, this assumes that the p.curToken is the first token of
 // the thing we're trying to slurp.
 // It will end with the p.curTok being the EOF/NEWLINE terminating the declaration.
-func (iz *Initializer) ChunkFunction(cmd, private bool, docString string) (*tokenizedFunctionDeclaration, bool) {
+// The `flavor` will be either token.CMD, token.DEF, or token.TEST.
+func (iz *Initializer) ChunkFunction(flavor token.TokenType, private bool, docString string) (*tokenizedFunctionDeclaration, bool) {
 	fn, ok := iz.ChunkFunctionSignature()
+	if flavor == token.TEST { // We check it has no parameters, and mangle the sig from `foo` to `test foo.`
+		for _, pair := range fn.sig {
+			if !pair.IsBling() {
+				iz.throw("init/test/args", &pair.Name)
+				return &tokenizedFunctionDeclaration{}, false
+			}
+		}
+		blingToken := fn.op
+		blingToken.Literal = "bling"
+		fn.sig = append(parser.TokSig{parser.TokPair{fn.op, []token.Token{blingToken}}}, fn.sig...)
+		fn.op.Literal = "*_test"
+	}
 	if !ok {
 		return &tokenizedFunctionDeclaration{}, false
 	}
@@ -883,10 +896,16 @@ func (iz *Initializer) ChunkFunction(cmd, private bool, docString string) (*toke
 			return &tokenizedFunctionDeclaration{}, false
 		}
 	}
-	if cmd {
+	switch flavor {
+	case token.CMD:
 		fn.decType = commandDeclaration
-	} else {
+	case token.DEF:
 		fn.decType = functionDeclaration
+	case token.TEST:
+		fn.decType = testDeclaration
+		fn.pos = prefix
+	default:
+		panic("Unhandled case.")
 	}
 	fn.private = private
 	fn.docString = docString

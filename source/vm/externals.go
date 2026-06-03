@@ -18,7 +18,6 @@ type jsonRequest = struct {
 
 type jsonResponse = struct {
 	Body    string
-	Service string
 }
 
 func Do(host, service, line, username, password string) string {
@@ -26,7 +25,7 @@ func Do(host, service, line, username, password string) string {
 	body, _ := json.Marshal(jRq)
 	request, err := http.NewRequest("POST", host, bytes.NewBuffer(body))
 	if err != nil {
-		return "error \"Can't parse request\"" // Obviously this one shouldn't happen.
+		return "error \"Can't parse request\"" 
 	}
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 

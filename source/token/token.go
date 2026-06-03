@@ -20,14 +20,18 @@ const (
 	VALID    = "valid"
 
 	// Headwords
-	IMPORT   = "import"
-	VAR      = "var"
 	CMD      = "cmd"
-	DEF      = "def"
-	PRIVATE  = "private"
-	EXTERNAL = "external"
 	CONST    = "const"
+	DEF      = "def"
+	EXTERNAL = "external"
+	IMPORT   = "import"
+	INCLUDE  = "include"
 	NEWTYPE  = "newtype"
+	VAR      = "var"
+
+	// Nearly-headwords
+	PRIVATE  = "private"
+	TEST     = "test"
 
 	// Special operations
 	AND = "and"
@@ -116,8 +120,10 @@ var Keywords = map[string]TokenType{
 	"def":      DEF,
 	"external": EXTERNAL,
 	"import":   IMPORT,
+	"include":  INCLUDE,
 	"newtype":  NEWTYPE,
 	"private":  PRIVATE,
+	"test":     TEST,
 	"var":      VAR,
 
 	//Special operators.
@@ -139,4 +145,4 @@ var Keywords = map[string]TokenType{
 	"xcall": XCALL,
 }
 
-var HEADWORDS = dtypes.From[TokenType](CMD, CONST, DEF, EXTERNAL, IMPORT, NEWTYPE, VAR)
+var HEADWORDS = dtypes.From[TokenType](CMD, CONST, DEF, EXTERNAL, IMPORT, INCLUDE, NEWTYPE, TEST, VAR)

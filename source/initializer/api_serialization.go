@@ -142,6 +142,9 @@ func (iz *Initializer) SerializeApi() string {
 	for name, fns := range iz.functionTable {
 		for defOrCmd := 0; defOrCmd < 2; defOrCmd++ { // In the function table the commands and functions are all jumbled up. But we want the commands first, for neatness, so we'll do two passes.
 			for _, fn := range fns {
+				if fn.decType == testDeclaration {
+					continue
+				}
 				_, ok := fn.body.(*parser.BuiltInExpression) // Which includes the constructors, which don't need exporting.
 				if fn.isBoilerplate || fn.private || settings.MandatoryImportSet().Contains(filepath.ToSlash(fn.op.Source)) || ok {
 					continue

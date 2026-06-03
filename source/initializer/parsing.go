@@ -389,8 +389,9 @@ func (iz *Initializer) addAnyExternalService(handlerForService vm.ExternalCallHa
 // its bling, its parameters, their types, its body, its `given` block, and validate that they
 // have at least the correct lexical form.
 func (iz *Initializer) getTokenizedCode(forcePrivate bool) { // `forceprivate`` allows us to suppress things privately imported into the namespace.
-	var headword token.TokenType
+	var headword, lastHeadword token.TokenType
 	headword = token.ILLEGAL
+	lastHeadword = token.ILLEGAL
 	private := forcePrivate
 	if iz.P.CurToken.Type == token.EOF {
 		iz.P.NextToken()
@@ -422,13 +423,16 @@ loop:
 			case token.ILLEGAL:
 				iz.throw("init/head", &iz.P.CurToken)
 				return
-			case token.CMD, token.DEF:
+			case token.CMD, token.DEF, token.TEST:
 				if iz.P.CurToken.Type == token.GOLANG { // Then we have a block of pure Go.
 					result = &tokenizedGolangDeclaration{private, iz.P.CurToken}
 				} else {
-					result, _ = iz.ChunkFunction(headword == token.CMD, private, docString)
+					result, _ = iz.ChunkFunction(headword, private, docString)
 				}
 				docString = ""
+				if headword == token.TEST {
+					headword = lastHeadword
+				}
 			case token.VAR, token.CONST:
 				result, _ = iz.ChunkConstOrVarDeclaration(headword == token.CONST, private, docString)
 				docString = ""
@@ -1288,7 +1292,7 @@ func (iz *Initializer) addToBuiltins(sig parser.AstSig, builtinTag string, retur
 // Having declared the names of the various types and functions of the namespaces, we can now parse the
 // chunks of actual code in the function bodies, `given` blocks, assignments, validation.
 var PARSEABLE = []declarationType{cloneDeclaration, structDeclaration, constantDeclaration,
-	variableDeclaration, functionDeclaration, commandDeclaration}
+	variableDeclaration, functionDeclaration, commandDeclaration, testDeclaration}
 
 func (iz *Initializer) parseEverythingElse() {
 	iz.parsedCode = make([][]parsedCode, len(iz.tokenizedCode))

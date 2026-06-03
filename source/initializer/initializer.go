@@ -62,7 +62,7 @@ func NewInitializer(common *commonInitializerBindle) *Initializer {
 		initializers:             orderedmap.New[string, *Initializer](),
 		localConcreteTypes:       make(dtypes.Set[values.ValueType]),
 		unserializableTypes:      make(dtypes.Set[string]),
-		tokenizedCode:            make([][]tokenizedCode, 16),
+		tokenizedCode:            make([][]tokenizedCode, DECLARATION_COUNT),
 		functionTable:            make(functionTable),
 		parameterizedTypes:       make(map[string][]parameterInfo),
 		parameterizedInstanceMap: make(map[string]parameterizedTypeInstance),
@@ -665,7 +665,7 @@ func (iz *Initializer) makeFunctionTables() {
 
 // Function auxillary to the above for making one function table.
 func (iz *Initializer) makeFunctionTable() {
-	for j := functionDeclaration; j <= commandDeclaration; j++ {
+	for j := functionDeclaration; j <= testDeclaration; j++ {
 		for i, dec := range iz.parsedCode[j] {
 			fn := dec.(*parsedFunction)
 			tok := fn.op
@@ -993,6 +993,8 @@ func (iz *Initializer) compileGoModules() {
 	iz.compileGo() // This is in 'gohandler.go' in this package.
 }
 
+var IMPERATIVES = dtypes.From(commandDeclaration, testDeclaration)
+
 // We compile the constants, variables, functions, and commands.
 func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // TODO --- do we do anything with the return type?
 	// First of all, the recursion.
@@ -1025,7 +1027,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		}
 	}
 	iz.cmI("Mapping names of functions to their declarations.")
-	for dT := functionDeclaration; dT <= commandDeclaration; dT++ {
+	for dT := functionDeclaration; dT <= testDeclaration; dT++ {
 		for i, pc := range iz.parsedCode[dT] {
 			izFn := pc.(*parsedFunction)
 			name := izFn.op.Literal
@@ -1108,10 +1110,10 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			for _, rhsName := range rhsSlice {
 				rhsDecs, ok := namesToDeclarations.Get(rhsName)
 				if ok { // Again, we don't care if 'ok' is 'false', just about the relationships between the declarations if it's true.
-					if dec.decType != commandDeclaration {
+					if !IMPERATIVES.Contains(dec.decType) {
 						// We check for forbidden relationships.
 						for _, rhsDec := range rhsDecs {
-							if rhsDec.decType == commandDeclaration {
+							if IMPERATIVES.Contains(rhsDec.decType) {
 								iz.throw("init/depend/cmd", dec.chunk.getToken())
 								return nil
 							}
@@ -1160,7 +1162,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	// Service variables which tell the compiler how to compile things must be
 	// set before we compile the functions, and so can't be calculated but must
 	// be literal.
-	compilerDirectives := dtypes.From[string]("$_logging", "$_logTo", "$_logTime")
+	compilerDirectives := dtypes.From("$_logging", "$_logTo", "$_logTime")
 	// Add variables to environment.
 	for svName, svData := range serviceVariables {
 		rhs, ok := graph.Get(svName)
@@ -1213,7 +1215,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		iz.cp.RecurringFunctions = map[uint32]dtypes.Set[uint32]{}
 		fCount := uint32(len(iz.cp.Fns)) // We can give the function data in the parser the right numbers for the group of functions in the parser before compiling them, since we know what order they come in.
 		for _, dec := range groupOfDeclarations {
-			if dec.decType == functionDeclaration || dec.decType == commandDeclaration {
+			if dec.decType == functionDeclaration || dec.decType == commandDeclaration || dec.decType == testDeclaration {
 				iz.parsedCode[dec.decType][dec.decNumber].(*parsedFunction).callInfo.Number = fCount
 				iz.parsedCode[dec.decType][dec.decNumber].(*parsedFunction).callInfo.Compiler = iz.cp
 				fCount++
@@ -1236,8 +1238,8 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 				switch parsedCode.decType {
 				case functionDeclaration:
 					iz.compileFunction(functionDeclaration, dec.decNumber, iz.cp.GlobalConsts)
-				case commandDeclaration:
-					iz.compileFunction(commandDeclaration, dec.decNumber, iz.cp.GlobalVars)
+				case commandDeclaration, testDeclaration:
+					iz.compileFunction(parsedCode.decType, dec.decNumber, iz.cp.GlobalVars)
 				}
 			}
 		}
@@ -1728,6 +1730,7 @@ type declarationType int
 
 const ( // Most of these names are self-explanatory.
 	importDeclaration    declarationType = iota
+	includeDeclaration                   //
 	externalDeclaration                  //
 	enumDeclaration                      //
 	structDeclaration                    //
@@ -1740,9 +1743,11 @@ const ( // Most of these names are self-explanatory.
 	variableDeclaration                  //
 	functionDeclaration                  //
 	commandDeclaration                   //
+	testDeclaration                      //
 	golangDeclaration                    // Pure golang in a block; the Pipefish functions with golang bodies don't go here but under function or command as they were declared.
 	makeDeclarations                     // Instantiates parameterized types.
 	makeDeclaration                      // We break the makeDeclarations chunks down into this for convenience.
+	DECLARATION_COUNT
 )
 
 type labeledParsedCodeChunk struct {

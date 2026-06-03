@@ -1149,7 +1149,6 @@ type jsonRequest = struct {
 
 type jsonResponse = struct {
 	Body    string
-	Service string     // TODO --- deprecate field.
 }
 
 func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
@@ -1173,7 +1172,7 @@ func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {
 	sv.SetOutHandler(sv.MakeLiteralOutHandler(&buf))
 	h.Do(request.Body, request.Username, request.Password, request.Service, true)
 	h.Out = oldOut
-	response := jsonResponse{Body: buf.String(), Service: request.Service}
+	response := jsonResponse{Body: buf.String()}
 	json.NewEncoder(w).Encode(response)
 }
 
