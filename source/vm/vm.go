@@ -50,6 +50,8 @@ type Vm struct {
 	// of a value; it is indexed first by the number of the compiler and second by the number of
 	// the type.
 	NamespaceInfo []map[values.ValueType]string
+	// This contains the information necessary to call the tests of a given compiler.
+	Tests         [][]TestInfo
 
 	Labels                     []string // Array from the number of a field label to its name.
 	ValidationErrors           []*ValidationError
@@ -95,7 +97,13 @@ type UsefulValues struct {
 	OutputAs uint32
 }
 
+type TestInfo struct {
+	CallTo uint32  // The address to call to run a given test.
+	Return uint32  // Where it puts its return value.
+}
+
 // Contains a Go function in the form of a reflect.Value, and, currently, nothing else.
+// TODO --- this has been the case for a long time, you could probably refactor now.
 type GoFn struct {
 	Code reflect.Value
 }
@@ -1716,8 +1724,14 @@ loop:
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
 			case Test: // Run tests (dst num)
 				// This runs all the tests for a module, with the number being the compiler number.
-				println("Running tests for compiler number", args[1])
 				vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
+				for _, test := range vm.Tests[args[1]] {
+					vm.run(test.CallTo, ctx)
+					if vm.Mem[test.Return].T == values.ERROR {
+						vm.Mem[args[0]] = vm.Mem[test.Return]
+						break
+					}
+				}
 			case Thnk: // Initialize thunk (dst mem loc)
 				// This will set m#0 to be a value of type THUNK with a payload of n#1 and n#2. The first of these
 				// says where the result of unthinking the thunk will end up; the second says where the VM will have 
@@ -2435,6 +2449,23 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

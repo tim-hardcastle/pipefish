@@ -949,7 +949,8 @@ func (p *Parser) parseTestExpression() Node {
 	if resolvingParser == nil {
 		return nil
 	}
-	if p.PeekToken.Literal == token.EOF || p.PeekToken.Literal == token.NEWLINE || p.PeekToken.Literal == token.SEMICOLON {
+	if p.PeekToken.Type == token.EOF || p.PeekToken.Type == token.NEWLINE || 
+	   p.PeekToken.Type == token.SEMICOLON || p.PeekToken.Type == token.RPAREN {
 		return &UnfixExpression{
 			Token:    testToken,
 			Operator: "*test",

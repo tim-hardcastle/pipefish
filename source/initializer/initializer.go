@@ -113,16 +113,17 @@ type typeOperatorInfo struct {
 }
 
 // Initializes a compiler given the filepath and sourcecode.
-func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompilerBindle, scriptFilepath, sourcecode string, vm *vm.Vm, namespacePath string) *compiler.Compiler {
+func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompilerBindle, scriptFilepath, sourcecode string, mc *vm.Vm, namespacePath string) *compiler.Compiler {
 	p := parser.New(Common, scriptFilepath, sourcecode, namespacePath)
 	cp := compiler.NewCompiler(p, ccb)
 	cp.ScriptFilepath = scriptFilepath
-	cp.Vm = vm
-	vm.Evaluators = append(vm.Evaluators, func(s string) values.Value { return cp.Do(s) })
+	cp.Vm = mc
+	mc.Tests = append(mc.Tests, []vm.TestInfo{})
+	mc.Evaluators = append(mc.Evaluators, func(s string) values.Value { return cp.Do(s) })
 	cp.TupleType = cp.Reserve(values.TYPE, values.AbstractType{[]values.ValueType{values.TUPLE}}, &token.Token{Source: "Builtin constant"})
-	vm.NamespaceInfo = append(vm.NamespaceInfo, make(map[values.ValueType]string))
+	mc.NamespaceInfo = append(mc.NamespaceInfo, make(map[values.ValueType]string))
 	for i := values.TUPLE; i < values.FIRST_DEFINED_TYPE; i++ {
-		vm.NamespaceInfo[cp.Number][i] = ""
+		mc.NamespaceInfo[cp.Number][i] = ""
 	}
 	return cp
 }
@@ -1261,7 +1262,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	if iz.errorsExist() {
 		return result
 	}
-	// We make a note of where "stringify" is.
+	// We make a note of where "stringify" is. 
 	callInfoForStringify := iz.cp.FunctionForest["stringify"].Tree.Branch[0].Node.Branch[0].Node.CallInfo
 	stringifyFn := callInfoForStringify.Compiler.Fns[callInfoForStringify.Number]
 	iz.cp.Vm.StringifyLoReg = stringifyFn.LoReg
@@ -1423,15 +1424,15 @@ func (iz *Initializer) compileValidation(name string, node parser.Node, newEnv *
 }
 
 // Method for compiling a top-level function.
-func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv *compiler.Environment) *compiler.CpFunc {
-	izFn := iz.parsedCode[dec][decNo].(*parsedFunction)
+func (iz *Initializer) compileFunction(decType declarationType, decNo int, outerEnv *compiler.Environment) *compiler.CpFunc {
+	izFn := iz.parsedCode[decType][decNo].(*parsedFunction)
 	if info, functionExists := iz.getDeclaration(decFUNCTION, &izFn.op, DUMMY); functionExists {
 		iz.cp.Fns = append(iz.cp.Fns, info.(*compiler.CpFunc))
 		return info.(*compiler.CpFunc)
 	}
 	cpFn := compiler.CpFunc{}
 	var ac compiler.CpAccess
-	if dec == functionDeclaration {
+	if decType == functionDeclaration {
 		ac = compiler.DEF
 	} else {
 		ac = compiler.CMD
@@ -1615,7 +1616,9 @@ func (iz *Initializer) compileFunction(dec declarationType, decNo int, outerEnv 
 		iz.throw("comp/return/cmd", &izFn.op)
 	}
 	iz.setDeclaration(decFUNCTION, &izFn.op, DUMMY, &cpFn)
-
+	if decType == testDeclaration {
+		iz.cp.Vm.Tests[iz.cp.Number] = append(iz.cp.Vm.Tests[iz.cp.Number], vm.TestInfo{cpFn.CallTo, cpFn.OutReg})
+	}
 	return &cpFn
 }
 
