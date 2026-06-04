@@ -1,8 +1,9 @@
 var private
 
-allServices = map(`hub`::`/home/tim/Pipefish/user/hub/hub.hub`)
+allServices = map(`hub`::`/home/tim/Pipefish/user/hub/hub.hub`,
+               .. `temp`::`/home/tim/Pipefish/temp.pf`)
 
-currentService string? = NULL
+currentService string? = `temp`
 
 isLive = true
 

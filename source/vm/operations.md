@@ -651,10 +651,9 @@ Subtract integers
 subS : dst mem mem
 Subtract sets
 
-test : dst tup
+test : dst num
 Run tests
-This runs all the tests for a module, with the tuple being of indices into the `Tests` list in 
-the VM.
+This runs all the tests for a module, with the number being the compiler number.
 
 thnk : dst mem loc
 Initialize thunk

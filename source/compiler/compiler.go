@@ -1206,12 +1206,12 @@ NodeTypeSwitch:
 			return FAIL
 		}
 	case *parser.UnfixExpression:
+		resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 		if node.GetToken().Literal == "*test" {
-			cp.Put(vm.Test)
+			cp.Put(vm.Test, resolvingCompiler.Number)
 			result = cpResult{AltType(values.ERROR, values.SUCCESSFUL_VALUE), false, false}
 			break
 		}
-		resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
 		result = resolvingCompiler.createFunctionCall(resolvingCompiler, node, ctxt.x(), len(node.Namespace) > 0)
 		if result.Failed {
 			return FAIL
