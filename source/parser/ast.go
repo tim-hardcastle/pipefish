@@ -476,6 +476,17 @@ func (se *SuffixExpression) String() string {
 	return out.String()
 }
 
+type TestExpression struct {
+	Token   token.Token
+	Body   Node
+}
+
+func (t *TestExpression) Children() []Node       { return []Node{t.Body} }
+func (t *TestExpression) GetToken() *token.Token { return &t.Token }
+func (t *TestExpression) String() string {
+	return "test : (" + t.Body.String() + ")"
+}
+
 type TryExpression struct {
 	Token   token.Token
 	VarName string

@@ -1090,6 +1090,10 @@ NodeTypeSwitch:
 		if result.Failed {
 			return FAIL
 		}
+	case *parser.TestExpression:
+		println("Compiling expression", node.String())
+		cp.Put(vm.Asgm, values.C_OK)
+		result = cpResult{Types: AltType(values.UNSATISFIED_CONDITIONAL, values.ERROR, values.SUCCESSFUL_VALUE)}
 	case *parser.TryExpression:
 		// We may have a variable to store an identifier in, which may or may not already have
 		// been declared.

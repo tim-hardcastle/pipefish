@@ -944,6 +944,11 @@ func (p *Parser) parseSuffixExpression(left Node) Node {
 
 func (p *Parser) parseTestExpression() Node {
 	testToken := p.CurToken
+	if p.PeekToken.Type == token.COLON { // We're parsing a test block.
+		p.NextToken()
+		p.NextToken()
+		return &TestExpression{testToken, p.ParseExpression(COLON)}	
+	}
 	testToken.Literal = "*test"
 	_, resolvingParser := p.CanParse(testToken, PREFIX)
 	if resolvingParser == nil {

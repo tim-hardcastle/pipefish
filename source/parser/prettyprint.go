@@ -355,6 +355,16 @@ func (p *Parser) prettyPrint(node Node, ctxt printContext) string {
 			}
 		}
 		out.WriteString(")")
+	case *TestExpression:
+		out.WriteString("test :")
+		switch ctxt.flavor {
+		case ppOUTER:
+			out.WriteString("\n")
+			out.WriteString(p.prettyPrint(node.Body, ctxt.in()))
+		case ppINLINE:
+			out.WriteString(" ")
+			out.WriteString(p.prettyPrint(node.Body, inlineCtxt))
+		}
 	case *TryExpression:
 		out.WriteString("try ")
 		if node.VarName != "" {
