@@ -651,6 +651,11 @@ Subtract integers
 subS : dst mem mem
 Subtract sets
 
+test : dst tup
+Run tests
+This runs all the tests for a module, with the tuple being of indices into the `Tests` list in 
+the VM.
+
 thnk : dst mem loc
 Initialize thunk
 This will set m#0 to be a value of type THUNK with a payload of n#1 and n#2. The first of these
@@ -662,22 +667,22 @@ Get info for type
 This dumps the type info for the type into a list returned in m#0. This is done under the hood,
 the user never sees the raw list.
 
-tupf : dst mem tok
-First element of tuple
-Returns the first element of a tuple, or an element created from token n#2 if the tuple is empty.
-
 trak : trk
 Make tracking data
 This constructs live tracking data saying what the compiler is doing now from the static tracking 
 datum number n#0
 
-tupL : dst mem
-Tuple of list
-That is, this implements the splat operator `L ...`.
-
 tuLx : dst mem tok
 Tuple of possible list
 Splats the list if it is a list, otherwise returns an error constructed from token t#2.
+
+tupf : dst mem tok
+First element of tuple
+Returns the first element of a tuple, or an element created from token n#2 if the tuple is empty.
+
+tupL : dst mem
+Tuple of list
+That is, this implements the splat operator `L ...`.
 
 typu : dst mem mem
 Type union

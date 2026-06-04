@@ -219,6 +219,8 @@ func (p *Parser) ParseExpression(precedence int) Node {
 		leftExp = p.parseNativePrefixExpression()
 	case token.RUNE:
 		leftExp = p.parseRuneLiteral()
+	case token.TEST:
+		leftExp = p.parseTestExpression()
 	case token.TRUE:
 		leftExp = p.parseBooleanLiteral()
 	case token.TRY:
@@ -938,6 +940,31 @@ func (p *Parser) parseSuffixExpression(left Node) Node {
 		Args:     p.RecursivelyListify(left),
 	}
 	return expression
+}
+
+func (p *Parser) parseTestExpression() Node {
+	testToken := p.CurToken
+	testToken.Literal = "*test"
+	_, resolvingParser := p.CanParse(testToken, PREFIX)
+	if resolvingParser == nil {
+		return nil
+	}
+	p.NextToken()
+	if p.CurTokenIs(token.EOF) || p.CurTokenIs(token.NEWLINE) || p.CurTokenIs(token.COLON) {
+		return &UnfixExpression{
+			Token:    testToken,
+			Operator: "*test",
+		}
+	}
+	var right Node
+	p.Common.BlingManager.startFunction("*test", PREFIX, resolvingParser.BlingTree)
+	right = p.ParseExpression(FPREFIX)
+	p.Common.BlingManager.stopFunction()
+	return &PrefixExpression{
+		Token:    testToken,
+		Operator: "*test",
+		Args:     p.RecursivelyListify(right),
+	}
 }
 
 func (p *Parser) parseTryExpression() Node {

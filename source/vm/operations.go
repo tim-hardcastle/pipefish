@@ -21,7 +21,7 @@ type Opcode uint8
 // Comments on the opcodes are auto-generated from `operations.md` and so should not be edited by hand.
 // The meanings of the operand flavors are also explained in `operations.md`.
 const (
-	// Add floats (dst mem mem)
+	// Run tests (dst tup)
 	Addf Opcode = iota
 	// Add ints (dst mem mem)
 	Addi
@@ -47,7 +47,7 @@ const (
 	Auto
 	// Function call  (loc mem mem tup)
 	Call
-	// Add floats (dst mem mem)
+	// Run tests (dst tup)
 	CalT
 	// Cast to parameterized clone type (dst tok mem mem)
 	CasP
@@ -75,7 +75,7 @@ const (
 	ConL
 	// Add element to set (dst mem mem)
 	ConS
-	// Add floats (dst mem mem)
+	// Run tests (dst tup)
 	CoSn
 	// Codepoint of rune (dst mem)
 	Cpnt
@@ -133,11 +133,11 @@ const (
 	Gthf
 	// Int comparison with > (dst mem mem)
 	Gthi
-	// Add floats (dst mem mem)
+	// Run tests (dst tup)
 	IctS
 	// Index list  (dst mem mem tok)
 	IdxL
-	// Add floats (dst mem mem)
+	// Run tests (dst tup)
 	IdxM
 	// Index pair  (dst mem mem tok)
 	Idxp
@@ -227,7 +227,7 @@ const (
 	MkSn
 	// Make set (dst mem tok)
 	Mkst
-	// Add floats (dst mem mem)
+	// Run tests (dst tup)
 	Mlfi
 	// Modulus of integers (dst mem mem tok)
 	Modi
@@ -269,9 +269,9 @@ const (
 	Qsat
 	// Test singleton (mem loc)
 	Qsnq
-	// Add floats (dst mem mem)
+	// Run tests (dst tup)
 	Qspt
-	// Add floats (dst mem mem)
+	// Run tests (dst tup)
 	Qspq
 	// Test tuple types (mem num tup loc)
 	Qtpt
@@ -305,11 +305,13 @@ const (
 	Subi
 	// Subtract sets (dst mem mem)
 	SubS
+	// Run tests (dst tup)
+	Test
 	// Initialize thunk (dst mem loc)
 	Thnk
 	// Get info for type (dst mem)
 	Tinf
-	// Add floats (dst mem mem)
+	// Run tests (dst tup)
 	Tplf
 	// Make tracking data (trk)
 	Trak

@@ -883,7 +883,7 @@ func (iz *Initializer) ChunkFunction(flavor token.TokenType, private bool, docSt
 		blingToken := fn.op
 		blingToken.Literal = "bling"
 		fn.sig = append(parser.TokSig{parser.TokPair{fn.op, []token.Token{blingToken}}}, fn.sig...)
-		fn.op.Literal = "*_test"
+		fn.op.Literal = "*test"
 	}
 	if !ok {
 		return &tokenizedFunctionDeclaration{}, false

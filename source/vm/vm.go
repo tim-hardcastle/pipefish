@@ -261,8 +261,9 @@ loop:
 			args := vm.Code[loc].Args
 		Switch:
 			switch vm.Code[loc].Opcode {
-			case Addf: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case Addf: // Run tests (dst tup)
+				// This runs all the tests for a module, with the tuple being of indices into the `Tests` list in 
+				// the VM.
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(float64) + vm.Mem[args[2]].V.(float64)}
 			case Addi: // Add ints (dst mem mem)
 				// Adds two ints, returning an int.
@@ -367,8 +368,9 @@ loop:
 				vm.callstack = append(vm.callstack, loc)
 				loc = args[0]
 				continue
-			case CalT: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case CalT: // Run tests (dst tup)
+				// This runs all the tests for a module, with the tuple being of indices into the `Tests` list in 
+				// the VM.
 				paramNumber := args[1]
 				argNumber := 3
 				tupleOrVarargsData := vm.Mem[args[2]].V.([]uint32)
@@ -579,8 +581,9 @@ loop:
 					abType = abType.Union(clones)
 				}
 				vm.Mem[args[0]] = values.Value{values.TYPE, abType}
-			case CoSn: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case CoSn: // Run tests (dst tup)
+				// This runs all the tests for a module, with the tuple being of indices into the `Tests` list in 
+				// the VM.
 				vm.Mem[args[0]] = values.Value{values.SNIPPET, values.Snippet{vm.Mem[args[1]].V.([]values.Value), nil}}
 			case ConL: // Append element to list  (dst mem mem)
 				// Appends an element to a list, i.e. implements `L & x` where `L` is a list.
@@ -921,8 +924,9 @@ loop:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(float64) > vm.Mem[args[2]].V.(float64)}
 			case Gthi: // Int comparison with > (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(int) > vm.Mem[args[2]].V.(int)}
-			case IctS: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case IctS: // Run tests (dst tup)
+				// This runs all the tests for a module, with the tuple being of indices into the `Tests` list in 
+				// the VM.
 				leftSet := vm.Mem[args[1]].V.(values.Set)
 				result := leftSet.Intersect(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
@@ -1367,8 +1371,9 @@ loop:
 					vals[i] = vm.Mem[v]
 				}
 				vm.Mem[args[0]] = values.Value{values.SNIPPET, values.Snippet{vals, sFac.Bindle}}
-			case Mlfi: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case Mlfi: // Run tests (dst tup)
+				// This runs all the tests for a module, with the tuple being of indices into the `Tests` list in 
+				// the VM.
 				vm.Mem[args[0]] = values.Value{values.FLOAT, vm.Mem[args[1]].V.(float64) * float64(vm.Mem[args[2]].V.(int))}
 			case Modi: // Modulus of integers (dst mem mem tok)
 				divisor := vm.Mem[args[2]].V.(int)
@@ -1714,6 +1719,11 @@ loop:
 			case SubS: // Subtract sets (dst mem mem)
 				result := vm.Mem[args[1]].V.(values.Set).Subtract(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
+			case Test: // Run tests (dst tup)
+				// This runs all the tests for a module, with the tuple being of indices into the `Tests` list in 
+				// the VM.
+				println("Here!")
+				vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
 			case Thnk: // Initialize thunk (dst mem loc)
 				// This will set m#0 to be a value of type THUNK with a payload of n#1 and n#2. The first of these
 				// says where the result of unthinking the thunk will end up; the second says where the VM will have 
@@ -1791,8 +1801,9 @@ loop:
 					result = result.Conj(values.Value{values.NULL, nil})
 				}
 				vm.Mem[args[0]] = values.Value{values.LIST, result}
-			case Tplf: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case Tplf: // Run tests (dst tup)
+				// This runs all the tests for a module, with the tuple being of indices into the `Tests` list in 
+				// the VM.
 				tup := vm.Mem[args[1]].V.([]values.Value)
 				if len(tup) == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/tup/first", args[2])
@@ -2431,6 +2442,26 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

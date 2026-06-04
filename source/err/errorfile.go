@@ -1681,7 +1681,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"lex/namespace/right": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "namespaced entity must be identifier"
+			return "namespaced entity must be identifier or `test`"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "From your use of `.`, Pipefish supposes that you're trying to refer to an entity " +
