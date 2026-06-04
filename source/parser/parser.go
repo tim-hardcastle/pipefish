@@ -949,13 +949,13 @@ func (p *Parser) parseTestExpression() Node {
 	if resolvingParser == nil {
 		return nil
 	}
-	p.NextToken()
-	if p.CurTokenIs(token.EOF) || p.CurTokenIs(token.NEWLINE) || p.CurTokenIs(token.COLON) {
+	if p.PeekToken.Literal == token.EOF || p.PeekToken.Literal == token.NEWLINE || p.PeekToken.Literal == token.SEMICOLON {
 		return &UnfixExpression{
 			Token:    testToken,
 			Operator: "*test",
 		}
 	}
+	p.NextToken()
 	var right Node
 	p.Common.BlingManager.startFunction("*test", PREFIX, resolvingParser.BlingTree)
 	right = p.ParseExpression(FPREFIX)
