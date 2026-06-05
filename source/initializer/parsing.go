@@ -432,6 +432,8 @@ loop:
 				docString = ""
 				if headword == token.TEST {
 					headword = lastHeadword
+				} else {
+					lastHeadword = headword
 				}
 			case token.VAR, token.CONST:
 				result, _ = iz.ChunkConstOrVarDeclaration(headword == token.CONST, private, docString)
@@ -440,6 +442,7 @@ loop:
 				result, _ = iz.ChunkImportOrExternalDeclaration(headword == token.EXTERNAL, private, docString)
 				docString = ""
 			case token.NEWTYPE:
+				lastHeadword = token.NEWTYPE
 				result, _ = iz.ChunkTypeDeclaration(private, docString)
 				docString = ""
 				if result.getDeclarationType() == makeDeclarations {
