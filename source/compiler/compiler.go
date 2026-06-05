@@ -146,6 +146,7 @@ type Context struct {
 	LogFlavor      LogFlavor        // Whether we should be logging something and if so what.
 	ForReturns     AlternateType    // What (besides an error) we may expect 'for' to return, and therefor the expected result of a 'continue' or a 'break' without a value after it.
 	Typecheck      *ReturnTypeCheck // If non-nil, tells us whether we're typechecking the expression being compiled and if so why.
+	NoFold         bool             // Suppresses constant folding.
 }
 
 type ReturnTypeCheck = struct {
@@ -158,6 +159,7 @@ type ReturnTypeCheck = struct {
 // This function concisely removes it.
 func (ctxt Context) x() Context {
 	ctxt.Typecheck = nil
+	ctxt.NoFold = false
 	return ctxt
 }
 
@@ -1091,8 +1093,54 @@ NodeTypeSwitch:
 			return FAIL
 		}
 	case *parser.TestExpression:
-		println("Compiling expression", node.String())
-		cp.Put(vm.Asgm, values.C_OK)
+		chunks := cp.SplitOnNewlines(node.Body)
+		newContext := ctxt.x()
+		newContext.NoFold = true
+		comeFrom := []any{}
+		for _, chunk := range chunks {
+			oldTop := cp.CodeTop()
+			cp.CompileNode(chunk, newContext)
+			testBoolean := cp.That()
+			// This is slightly gross in that we're going to find out what we just did by looking at the code we just emitted.
+			lastCode := cp.Vm.Code[cp.CodeTop()-1]
+			penultimateCode := cp.Vm.Code[cp.CodeTop()-2]
+			lhs := uint32(DUMMY)
+			rhs := uint32(DUMMY)
+			switch chunk := chunk.(type) {
+			case *parser.InfixExpression :
+			    if dtypes.From(vm.Gthf, vm.Gtef, vm.Gthi, vm.Gtei).Contains(penultimateCode.Opcode) && oldTop + 2 == cp.CodeTop() {
+					switch chunk.Operator {
+					case ">", ">=":
+						lhs = penultimateCode.Args[1]
+						rhs = penultimateCode.Args[2]
+					case "<", "<=":
+						lhs = penultimateCode.Args[2]
+						rhs = penultimateCode.Args[1]
+					}
+				}
+			case *parser.ComparisonExpression :
+			    if dtypes.From(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(lastCode.Opcode) {
+						lhs = lastCode.Args[1]
+						rhs = lastCode.Args[2]
+					} else {
+						if dtypes.From(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(penultimateCode.Opcode) && oldTop + 2 == cp.CodeTop() {
+						lhs = penultimateCode.Args[1]
+						rhs = penultimateCode.Args[2]
+					}
+				}
+			}
+			// At this point either `lhs` and `rhs` are still DUMMY, and we haven't found anything we can special-case, or 
+			// they aren't and we have.
+			tokenNumber := cp.ReserveToken(chunk.GetToken())
+			conditionString := cp.Reserve(values.STRING, cp.P.PrettyPrintInline(chunk), chunk.GetToken())
+			if lhs == DUMMY {
+				comeFrom = append(comeFrom, cp.vmNonStandardTest(testBoolean, conditionString, tokenNumber))
+			} else {
+				comeFrom = append(comeFrom, cp.vmStandardTest(testBoolean, conditionString, lhs, rhs, tokenNumber))
+			}
+		}
+		cp.Reserve(values.UNDEFINED_TYPE, nil, node.GetToken()) // A location to put the answer.
+		cp.VmComeFrom(comeFrom...)
 		result = cpResult{Types: AltType(values.UNSATISFIED_CONDITIONAL, values.ERROR, values.SUCCESSFUL_VALUE)}
 	case *parser.TryExpression:
 		// We may have a variable to store an identifier in, which may or may not already have
@@ -1258,7 +1306,7 @@ NodeTypeSwitch:
 	}
 	// If we have a foldable constant, we run the code, roll back the vm, and put the result we got
 	// from the code on top of memory.
-	if result.Foldable && (!result.Types.hasSideEffects()) && cp.CodeTop() > cT && !cp.Vm.IsSet("f") {
+	if result.Foldable && (!result.Types.hasSideEffects()) && cp.CodeTop() > cT && !ctxt.NoFold && !cp.Vm.IsSet("f") {
 		cp.Emit(vm.Ret)
 		cp.Cm("Calling Run from end of CompileNode as part of routine constant folding.", node.GetToken())
 		cp.Vm.IsCompiling = true
@@ -2801,17 +2849,31 @@ type bkBreakWithValue int
 
 type bkBreakWithoutValue int
 
+type bkStandardTest int
+
+type bkNonStandardTest int
+
+type BkEarlyReturn int
+
 func (cp *Compiler) vmGoTo() bkGoto {
 	cp.Emit(vm.Jmp, DUMMY)
 	return bkGoto(cp.CodeTop() - 1)
 }
 
-type BkEarlyReturn int
-
 func (cp *Compiler) vmEarlyReturn(mLoc uint32) BkEarlyReturn {
 	cp.Emit(vm.Asgm, DUMMY, mLoc)
 	cp.Emit(vm.Jmp, DUMMY)
 	return BkEarlyReturn(cp.CodeTop() - 2)
+}
+
+func (cp *Compiler) vmNonStandardTest(bAddress, dAddress, tok uint32) bkNonStandardTest {
+	cp.Emit(vm.Tnst, DUMMY, bAddress, dAddress, DUMMY, tok)
+	return bkNonStandardTest(cp.CodeTop() - 1)
+}
+
+func (cp *Compiler) vmStandardTest(bAddress, dAddress, lhsAddress, rhsAddress, tok uint32) bkStandardTest {
+	cp.Emit(vm.Tstd, DUMMY, bAddress, dAddress, lhsAddress, rhsAddress, DUMMY, tok)
+	return bkStandardTest(cp.CodeTop() - 1)
 }
 
 func (cp *Compiler) VmConditionalEarlyReturn(oc vm.Opcode, args ...uint32) BkEarlyReturn {
@@ -2878,6 +2940,18 @@ func (cp *Compiler) VmComeFrom(items ...any) {
 			}
 			cp.Vm.Code[uint32(item)].Args[0] = cp.That()
 			cp.Vm.Code[uint32(item)+1].MakeLastArg(cp.CodeTop())
+		case bkNonStandardTest:
+			if uint32(item) == DUMMY {
+				continue
+			}
+			cp.Vm.Code[uint32(item)].Args[0] = cp.That()
+			cp.Vm.Code[uint32(item)].Args[3] = cp.CodeTop()
+		case bkStandardTest:
+			if uint32(item) == DUMMY {
+				continue
+			}
+			cp.Vm.Code[uint32(item)].Args[0] = cp.That()
+			cp.Vm.Code[uint32(item)].Args[5] = cp.CodeTop()
 		default:
 			panic("Can't ComeFrom that!")
 		}

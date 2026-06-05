@@ -123,7 +123,7 @@ func (EnumType) IsClonedBy() values.AbstractType {
 
 // Contains the information necessary to perform the runtime checks on type constructors
 // on structs and clones.
-type TypeCheck struct {
+type ValidationInfo struct {
 	CallAddress  uint32 // The address we `jsr`` to to perform the typecheck.
 	InLoc        uint32 // The location of the first argument of the constructor.
 	ResultLoc    uint32 // Where we put the error/ok.
@@ -140,7 +140,7 @@ type CloneType struct {
 	IsMappable    bool
 	IsMI          bool
 	Using         []token.Token // TODO --- this is used during API serialization only and can be stored somewhere else once we move that to initialization time.
-	Validation    *TypeCheck
+	Validation    *ValidationInfo
 	TypeArguments []values.Value
 }
 
@@ -183,7 +183,7 @@ func (CloneType) IsClonedBy() values.AbstractType {
 	return values.AbT()
 }
 
-func (t CloneType) AddValidation(tc *TypeCheck) CloneType {
+func (t CloneType) AddValidation(tc *ValidationInfo) CloneType {
 	t.Validation = tc
 	return t
 }
@@ -198,7 +198,7 @@ type StructType struct {
 	AbstractStructFields []values.AbstractType
 	ResolvingMap         map[int]int // TODO --- it would probably be better to implment this as a linear search below a given threshhold and a binary search above it.
 	IsMI                 bool
-	Validation           *TypeCheck
+	Validation           *ValidationInfo
 	TypeArguments        []values.Value
 }
 
@@ -261,7 +261,7 @@ func (t StructType) Resolve(labelNumber int) int {
 	return -1
 }
 
-func (t StructType) AddValidation(tc *TypeCheck) StructType {
+func (t StructType) AddValidation(tc *ValidationInfo) StructType {
 	t.Validation = tc
 	return t
 }

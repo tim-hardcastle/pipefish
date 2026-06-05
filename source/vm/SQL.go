@@ -229,7 +229,7 @@ func (vm *Vm) getPfRow(rows *sql.Rows, pointerList []any, typeNumber values.Valu
 	return values.Value{typeNumber, fields}
 }
 
-func (vm *Vm) getTypecheck(typeNumber values.ValueType) *TypeCheck {
+func (vm *Vm) getTypecheck(typeNumber values.ValueType) *ValidationInfo {
 	info := vm.ConcreteTypeInfo[typeNumber]
 	if info, ok := info.(StructType); ok {
 		return info.Validation

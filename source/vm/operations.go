@@ -21,7 +21,7 @@ type Opcode uint8
 // Comments on the opcodes are auto-generated from `operations.md` and so should not be edited by hand.
 // The meanings of the operand flavors are also explained in `operations.md`.
 const (
-	// Run tests (dst num)
+	// Add floats (dst mem mem)
 	Addf Opcode = iota
 	// Add ints (dst mem mem)
 	Addi
@@ -47,7 +47,7 @@ const (
 	Auto
 	// Function call  (loc mem mem tup)
 	Call
-	// Run tests (dst num)
+	// Add floats (dst mem mem)
 	CalT
 	// Cast to parameterized clone type (dst tok mem mem)
 	CasP
@@ -75,7 +75,7 @@ const (
 	ConL
 	// Add element to set (dst mem mem)
 	ConS
-	// Run tests (dst num)
+	// Add floats (dst mem mem)
 	CoSn
 	// Codepoint of rune (dst mem)
 	Cpnt
@@ -133,11 +133,11 @@ const (
 	Gthf
 	// Int comparison with > (dst mem mem)
 	Gthi
-	// Run tests (dst num)
+	// Add floats (dst mem mem)
 	IctS
 	// Index list  (dst mem mem tok)
 	IdxL
-	// Run tests (dst num)
+	// Add floats (dst mem mem)
 	IdxM
 	// Index pair  (dst mem mem tok)
 	Idxp
@@ -227,7 +227,7 @@ const (
 	MkSn
 	// Make set (dst mem tok)
 	Mkst
-	// Run tests (dst num)
+	// Add floats (dst mem mem)
 	Mlfi
 	// Modulus of integers (dst mem mem tok)
 	Modi
@@ -269,9 +269,9 @@ const (
 	Qsat
 	// Test singleton (mem loc)
 	Qsnq
-	// Run tests (dst num)
+	// Add floats (dst mem mem)
 	Qspt
-	// Run tests (dst num)
+	// Add floats (dst mem mem)
 	Qspq
 	// Test tuple types (mem num tup loc)
 	Qtpt
@@ -311,10 +311,14 @@ const (
 	Thnk
 	// Get info for type (dst mem)
 	Tinf
-	// Run tests (dst num)
+	// Nonstandard test (dst mem mem loc tok)
+	Tnst
+	// First element of tuple (dst mem tok)
 	Tplf
 	// Make tracking data (trk)
 	Trak
+	// Standard test (dst mem mem mem mem loc tok)
+	Tstd
 	// Tuple of list (dst mem)
 	TupL
 	// Tuple of possible list (dst mem tok)
@@ -337,7 +341,7 @@ const (
 	WthL
 	// Map with (dst mem tok tup)
 	WthM
-	// Tuple with (dst mem tok tup)
+	// Long-form type constructor (dst mem tok tup)
 	WthT
 	// Struct with (dst mem tok tup)
 	WthZ

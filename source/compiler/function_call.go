@@ -637,7 +637,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 				typeNumber, ok := cp.GetConcreteType(builtinTag)
 				typeInfo := cp.Vm.ConcreteTypeInfo[typeNumber]
 				if ok && (typeInfo.IsStruct() || typeInfo.IsClone()) {
-					var typeCheck *vm.TypeCheck
+					var typeCheck *vm.ValidationInfo
 					// It might be a short-form struct constructor.
 					if typeInfo.IsStruct() {
 						args := append([]uint32{b.outLoc, uint32(typeNumber)}, b.valLocs...)

@@ -269,8 +269,8 @@ loop:
 			args := vm.Code[loc].Args
 		Switch:
 			switch vm.Code[loc].Opcode {
-			case Addf: // Run tests (dst num)
-				// This runs all the tests for a module, with the number being the compiler number.
+			case Addf: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(float64) + vm.Mem[args[2]].V.(float64)}
 			case Addi: // Add ints (dst mem mem)
 				// Adds two ints, returning an int.
@@ -375,8 +375,8 @@ loop:
 				vm.callstack = append(vm.callstack, loc)
 				loc = args[0]
 				continue
-			case CalT: // Run tests (dst num)
-				// This runs all the tests for a module, with the number being the compiler number.
+			case CalT: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				paramNumber := args[1]
 				argNumber := 3
 				tupleOrVarargsData := vm.Mem[args[2]].V.([]uint32)
@@ -587,8 +587,8 @@ loop:
 					abType = abType.Union(clones)
 				}
 				vm.Mem[args[0]] = values.Value{values.TYPE, abType}
-			case CoSn: // Run tests (dst num)
-				// This runs all the tests for a module, with the number being the compiler number.
+			case CoSn: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				vm.Mem[args[0]] = values.Value{values.SNIPPET, values.Snippet{vm.Mem[args[1]].V.([]values.Value), nil}}
 			case ConL: // Append element to list  (dst mem mem)
 				// Appends an element to a list, i.e. implements `L & x` where `L` is a list.
@@ -929,8 +929,8 @@ loop:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(float64) > vm.Mem[args[2]].V.(float64)}
 			case Gthi: // Int comparison with > (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(int) > vm.Mem[args[2]].V.(int)}
-			case IctS: // Run tests (dst num)
-				// This runs all the tests for a module, with the number being the compiler number.
+			case IctS: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				leftSet := vm.Mem[args[1]].V.(values.Set)
 				result := leftSet.Intersect(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
@@ -1375,8 +1375,8 @@ loop:
 					vals[i] = vm.Mem[v]
 				}
 				vm.Mem[args[0]] = values.Value{values.SNIPPET, values.Snippet{vals, sFac.Bindle}}
-			case Mlfi: // Run tests (dst num)
-				// This runs all the tests for a module, with the number being the compiler number.
+			case Mlfi: // Add floats (dst mem mem)
+				// Adds two floats, returning a float.
 				vm.Mem[args[0]] = values.Value{values.FLOAT, vm.Mem[args[1]].V.(float64) * float64(vm.Mem[args[2]].V.(int))}
 			case Modi: // Modulus of integers (dst mem mem tok)
 				divisor := vm.Mem[args[2]].V.(int)
@@ -1809,8 +1809,65 @@ loop:
 					result = result.Conj(values.Value{values.NULL, nil})
 				}
 				vm.Mem[args[0]] = values.Value{values.LIST, result}
-			case Tplf: // Run tests (dst num)
-				// This runs all the tests for a module, with the number being the compiler number.
+			case Tnst: // Nonstandard test (dst mem mem loc tok)
+				// Converts a boolean false or true into an error or OK and puts the result in dst, jumping to the loc
+				// if it's an error. The test is "nonstandard" in that the boolean we're testing isn't produced by the
+				// built-in comparison operators.
+				// Operands :
+				//     m#1 : the address of the boolean value
+				//     m#2 : the condition being tested, as a string
+				//     #3  : the location to jump to
+				//     n#4 : the index of the token to use if producing an error
+				switch vm.Mem[args[1]].T {
+				case values.BOOL :
+					if vm.Mem[args[1]].V.(bool) {
+						vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
+						loc = loc + 1
+					} else {
+						vm.Mem[args[0]] = vm.makeError("vm/test/nstd", args[4], vm.Mem[args[2]].V.(string))
+						loc = args[3]
+					}
+				case values.SUCCESSFUL_VALUE:
+					vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
+					loc = loc + 1
+				case values.ERROR :					
+					vm.Mem[args[0]] = vm.Mem[args[1]]
+					loc = args[3]
+				default :
+					vm.Mem[args[0]] = vm.makeError("vm/test/bool.a", args[4], vm.Mem[args[2]].V.(string), args[1])
+					loc = args[3]
+				}
+				continue
+			case Tstd: // Standard test (dst mem mem mem mem loc tok)
+				// Converts a boolean false or true into an error or OK and puts the result in dst, jumping to the loc
+				// if it's an error. The test is "standard" in that the boolean we're testing is produced by the
+				// built-in comparison operators.
+				// Operands :
+				//     m#1 : the address of the boolean value
+				//     m#2 : the condition being tested, as a string
+				//     m#3 : the address of the lhs of the comparion.
+				//     m#4 : the address of the rhs of the comparison
+				//     #5  : the location to jump to
+				//     n#6 : the index of the token to use if producing an error
+				switch vm.Mem[args[1]].T {
+				case values.BOOL :
+					if vm.Mem[args[1]].V.(bool) {
+						vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
+						loc = loc + 1
+					} else {
+						vm.Mem[args[0]] = vm.makeError("vm/test/std", args[6], vm.Mem[args[2]].V.(string), vm.Literal(vm.Mem[args[3]], 0), vm.Literal(vm.Mem[args[4]], 0))
+						loc = args[5]
+					}
+				case values.ERROR :					
+					vm.Mem[args[0]] = vm.Mem[args[1]]
+					loc = args[5]
+				default :
+					vm.Mem[args[0]] = vm.makeError("vm/test/bool.b", args[6], vm.Mem[args[2]].V.(string), args[1])
+					loc = args[5]
+				}
+				continue
+			case Tplf: // First element of tuple (dst mem tok)
+				// Returns the first element of a tuple, or an error created from token n#2 if the tuple is empty.
 				tup := vm.Mem[args[1]].V.([]values.Value)
 				if len(tup) == 0 {
 					vm.Mem[args[0]] = vm.makeError("vm/tup/first", args[2])
@@ -1975,9 +2032,8 @@ loop:
 					}
 				}
 				vm.Mem[args[0]] = result
-			case WthT: // Tuple with (dst mem tok tup)
-				// The `with` operator for tuples. v#1 is a tuple, #2 is a tuple of pairs, and token n#2 is for constructing
-				// an error if the pairs are wrong, e.g. if the key of a pair is outside the bounds of the tuple.
+			case WthT: // Long-form type constructor (dst mem tok tup)
+				// v#1 is a type, token n#2 is for constructing an error, and the tup is or should be pairs of labels and values.
 				typL := vm.Mem[args[1]].V.(values.AbstractType)
 				if typL.Len() != 1 {
 					vm.Mem[args[0]] = vm.makeError("vm/with/type/a", args[2], vm.DescribeAbstractType(typL, LITERAL, 0))
@@ -2029,7 +2085,7 @@ loop:
 				if typecheck == nil {
 					vm.Mem[args[0]] = values.Value{typ, outVals}
 				} else {
-					vm.Mem[typecheck.TokNumberLoc] = values.Value{values.INT, int(args[3])}
+					vm.Mem[typecheck.TokNumberLoc] = values.Value{values.INT, int(args[2])}
 					for i, v := range outVals {
 						vm.Mem[typecheck.InLoc+uint32(i)] = v
 					}
@@ -2449,6 +2505,72 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

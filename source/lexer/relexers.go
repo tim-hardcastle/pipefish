@@ -92,7 +92,7 @@ func (r *removeNewlineAfter) getTokens() []token.Token {
 	result := []token.Token{head}
 	r.acc.next()
 	_, ok := token.HEADWORDS[head.Type]
-	if ok || REMOVE_NEWLINE_AFTER.Contains(head.Type) {
+	if ok && head.Type != token.TEST || REMOVE_NEWLINE_AFTER.Contains(head.Type) {
 		for r.acc.tok(0).Type == token.NEWLINE {
 			r.acc.next()
 		}

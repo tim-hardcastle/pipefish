@@ -29,7 +29,7 @@ func (vm *Vm) goToPf(goValue *astjson.Value, ty values.AbstractType, as bool, to
 	var pfType values.ValueType
 	result := vm.makeError("vm/json/convert", tok)
 	var isGeneric bool
-	var typecheck *TypeCheck
+	var typecheck *ValidationInfo
 	vals := []values.Value{} // The fields of the struct or the value put into the clone constructor.
 	switch ty.Len() {
 	case 1:

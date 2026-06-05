@@ -81,6 +81,16 @@ func TestBlockSnippetEndingWithZeroChar(t *testing.T) {
 	testLexingString(t, input, items)
 }
 
+func TestTest(t *testing.T) {
+	input := "test\nOK"
+	items := []testItem{
+		{token.TEST, "test", 1},
+		{token.NEWLINE, ";", 1},
+		{token.IDENT, "OK", 2},
+	}
+	testLexingString(t, input, items)
+}
+
 func TestCommentsAndIndents(t *testing.T) {
 	input :=
 		`line one

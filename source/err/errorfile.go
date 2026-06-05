@@ -3013,6 +3013,34 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"vm/test/bool": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "test result isn't boolean"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "The tests in a 'test' block must be boolean-valued expressions."
+		},
+	},
+
+	"vm/test/nstd": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "failed test " + emph(args[0]) 
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "The condition you were testing returned `false`, so the test failed"
+		},
+	},
+
+	"vm/test/std": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "failed test " + emph(args[0]) + ".\n\n" +
+			"- lhs was : " + emph(args[1]) + "\n- rhs was : " + emph(args[2]) + "\n\nTest failed at"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "The condition you were testing returned `false`, so the test failed"
+		},
+	},
+
 	"vm/tup/first": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to take the first element of an empty tuple"

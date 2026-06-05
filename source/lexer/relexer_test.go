@@ -33,6 +33,16 @@ func TestNextTokenForRelexer(t *testing.T) {
 	testRelexingString(t, input, items)
 }
 
+func TestRelexingTest(t *testing.T) {
+	input := "test\nOK"
+	items := []testItem{
+		{token.TEST, "test", 1},
+		{token.NEWLINE, ";", 1},
+		{token.IDENT, "OK", 2},
+	}
+	testRelexingString(t, input, items)
+}
+
 func TestRelexing(t *testing.T) {
 	input :=
 		`foo = func(x): 1 given : y = 2 ; qux(z) : 3`

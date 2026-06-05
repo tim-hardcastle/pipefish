@@ -1262,7 +1262,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	if iz.errorsExist() {
 		return result
 	}
-	// We make a note of where "stringify" is. 
+	// We make a note of where "stringify" is.
 	callInfoForStringify := iz.cp.FunctionForest["stringify"].Tree.Branch[0].Node.Branch[0].Node.CallInfo
 	stringifyFn := callInfoForStringify.Compiler.Fns[callInfoForStringify.Number]
 	iz.cp.Vm.StringifyLoReg = stringifyFn.LoReg
@@ -1413,7 +1413,7 @@ func (iz *Initializer) compileValidation(name string, node parser.Node, newEnv *
 		iz.cp.Emit(vm.Chck, resultLoc, booleanLoc, tokNumberLoc, errNo) // This will do its own early return from the validation.
 	}
 	iz.cp.Emit(vm.Ret)
-	validation := &vm.TypeCheck{CallAddress: callAddress, InLoc: inLoc, ResultLoc: resultLoc, TokNumberLoc: tokNumberLoc}
+	validation := &vm.ValidationInfo{CallAddress: callAddress, InLoc: inLoc, ResultLoc: resultLoc, TokNumberLoc: tokNumberLoc}
 	if info.IsClone() {
 		info = info.(vm.CloneType).AddValidation(validation)
 	} else {
@@ -1565,7 +1565,7 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 		}
 		if izFn.given != nil {
 			iz.cp.ThunkList = []compiler.ThunkData{}
-			givenContext := compiler.Context{fnenv, functionName, compiler.DEF, cpFn.LoReg, trackingOn, compiler.LF_NONE, altType(), nil}
+			givenContext := compiler.Context{fnenv, functionName, compiler.DEF, cpFn.LoReg, trackingOn, compiler.LF_NONE, altType(), nil, false}
 			ok := iz.cp.CompileGivenBlock(izFn.given, givenContext)
 			if !ok {
 				return nil
@@ -1585,7 +1585,7 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 			iz.cp.TrackOrLog(vm.TR_FNCALL, areWeTracking, &izFn.op, functionName, izFn.sig, cpFn.LoReg)
 		}
 		// We compile a check on the return types.
-		bodyContext := compiler.Context{fnenv, functionName, ac, cpFn.LoReg, trackingOn, compiler.LF_NONE, altType(), &compiler.ReturnTypeCheck{&izFn.op, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), compiler.CHECK_GIVEN_ASSIGNMENTS}}
+		bodyContext := compiler.Context{fnenv, functionName, ac, cpFn.LoReg, trackingOn, compiler.LF_NONE, altType(), &compiler.ReturnTypeCheck{&izFn.op, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), compiler.CHECK_GIVEN_ASSIGNMENTS}, false}
 		bodyResult := iz.cp.CompileNode(izFn.body, bodyContext) // TODO --- could we in fact do anything useful if we knew it was a constant?
 		if bodyResult.Failed {
 			return nil

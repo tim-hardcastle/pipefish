@@ -666,18 +666,42 @@ Get info for type
 This dumps the type info for the type into a list returned in m#0. This is done under the hood,
 the user never sees the raw list.
 
+tnst : dst mem mem loc tok
+Nonstandard test
+Converts a boolean false or true into an error or OK and puts the result in dst, jumping to the loc
+if it's an error. The test is "nonstandard" in that the boolean we're testing isn't produced by the
+built-in comparison operators.
+Operands :
+    m#1 : the address of the boolean value
+    m#2 : the condition being tested, as a string
+    #3  : the location to jump to
+    n#4 : the index of the token to use if producing an error
+
 trak : trk
 Make tracking data
 This constructs live tracking data saying what the compiler is doing now from the static tracking 
 datum number n#0
 
+tstd : dst mem mem mem mem loc tok
+Standard test
+Converts a boolean false or true into an error or OK and puts the result in dst, jumping to the loc
+if it's an error. The test is "standard" in that the boolean we're testing is produced by the
+built-in comparison operators.
+Operands :
+    m#1 : the address of the boolean value
+    m#2 : the condition being tested, as a string
+    m#3 : the address of the lhs of the comparion.
+    m#4 : the address of the rhs of the comparison
+    #5  : the location to jump to
+    n#6 : the index of the token to use if producing an error
+
 tuLx : dst mem tok
 Tuple of possible list
 Splats the list if it is a list, otherwise returns an error constructed from token t#2.
 
-tupf : dst mem tok
+tplf : dst mem tok
 First element of tuple
-Returns the first element of a tuple, or an element created from token n#2 if the tuple is empty.
+Returns the first element of a tuple, or an error created from token n#2 if the tuple is empty.
 
 tupL : dst mem
 Tuple of list
@@ -726,9 +750,8 @@ The `with` operator for maps. v#1 is a map, #2 is a tuple of pairs, and token n#
 an error if the pairs are wrong, e.g. if the key of a pair is unhashable.
 
 wthT : dst mem tok tup
-Tuple with
-The `with` operator for tuples. v#1 is a tuple, #2 is a tuple of pairs, and token n#2 is for constructing
-an error if the pairs are wrong, e.g. if the key of a pair is outside the bounds of the tuple.
+Long-form type constructor
+v#1 is a type, token n#2 is for constructing an error, and the tup is or should be pairs of labels and values.
 
 wthZ : dst mem tok tup
 Struct with
