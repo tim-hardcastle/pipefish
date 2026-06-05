@@ -864,6 +864,13 @@ func TestStructs(t *testing.T) {
 	test_helper.RunTest(t, "struct_test.pf", tests, test_helper.TestValues)
 }
 
+func TestTests(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`test`, `OK`},
+	}
+	test_helper.RunTest(t, "test_test.pf", tests, test_helper.TestValues)
+}
+
 func TestTry(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`foo 3`, `4`},

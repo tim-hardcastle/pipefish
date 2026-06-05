@@ -314,6 +314,12 @@ func TestSnippet(t *testing.T) {
 	tests := []test_helper.TestItem{}
 	test_helper.RunTest(t, "snippets_test.pf", tests, test_helper.TestValues)
 }
+func TestTests(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`test`, `OK`},
+	}
+	test_helper.RunTest(t, "test_test.pf", tests, test_helper.TestValues)
+}
 func TestTypeInstances(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Z{3}(2) in Z{3}`, `true`},
