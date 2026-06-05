@@ -1056,7 +1056,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	for i, pc := range iz.parsedCode[structDeclaration] {
 		dec := pc.(*parsedTypecheck)
 		if dec.body != nil {
-			name := "*" + dec.indexTok.Literal
+			name := dec.indexTok.Literal
 			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, structDeclaration, i, dec.indexTok.Literal, dec.indexTok}})
 		}
 		if iz.errorsExist() {
