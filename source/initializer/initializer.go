@@ -13,6 +13,7 @@ import (
 
 	"github.com/tim-hardcastle/pipefish/source/compiler"
 	"github.com/tim-hardcastle/pipefish/source/dtypes"
+	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/parser"
 	"github.com/tim-hardcastle/pipefish/source/settings"
 	"github.com/tim-hardcastle/pipefish/source/text"
@@ -1009,6 +1010,10 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	// * A function, variable or constant can't depend on a command.
 	// * A constant can't depend on a variable.
 	// * A variable or constant can't depend on itself.
+
+
+	
+
 	iz.cmI("Mapping variable names to the parsed code chunks in which they occur.")
 	iz.cp.GlobalVars.Ext = iz.cp.GlobalConsts
 	namesToDeclarations := orderedmap.New[string, []labeledParsedCodeChunk]()
@@ -1027,6 +1032,20 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			}
 		}
 	}
+
+
+	iz.cmI("Adding clone validation to declarations.")
+	for i, pc := range iz.parsedCode[cloneDeclaration] {
+		dec := pc.(*parsedTypecheck)
+		if dec.body != nil {
+			name := dec.indexTok.Literal
+			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, cloneDeclaration, i, name, dec.indexTok}})
+		}
+		if iz.errorsExist() {
+			return nil
+		}
+	}
+
 	iz.cmI("Mapping names of functions to their declarations.")
 	for dT := functionDeclaration; dT <= testDeclaration; dT++ {
 		for i, pc := range iz.parsedCode[dT] {
@@ -1051,37 +1070,23 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		}
 	}
 	iz.cmI("Adding struct typechecks to declarations.")
-	// Since the name of a type will appear already in the map as the name of the function
-	// constructing it, we'll mangle the names by adding a `*` to the front of each.
 	for i, pc := range iz.parsedCode[structDeclaration] {
 		dec := pc.(*parsedTypecheck)
 		if dec.body != nil {
 			name := dec.indexTok.Literal
-			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, structDeclaration, i, dec.indexTok.Literal, dec.indexTok}})
+			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, structDeclaration, i, name, dec.indexTok}})
 		}
 		if iz.errorsExist() {
 			return nil
 		}
 	}
-	iz.cmI("Adding clone validation to declarations.")
-	// Since the name of a type will appear already in the map as the name of the function
-	// constructing it, we'll mangle the names by adding a `*` to the front of each.
-	for i, pc := range iz.parsedCode[cloneDeclaration] {
-		dec := pc.(*parsedTypecheck)
-		if dec.body != nil {
-			name := "*" + dec.indexTok.Literal
-			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, cloneDeclaration, i, dec.indexTok.Literal, dec.indexTok}})
-		}
-		if iz.errorsExist() {
-			return nil
-		}
-	}
+	
 	i := 0
 	for _, v := range iz.parameterizedInstanceMap {
 		if v.validation.Length() == 0 {
 			continue
 		}
-		name := "*" + v.astType.String() // Again we mangle the name with a '*' to distinguish is from the constructor.
+		name := v.astType.String() 
 		v.validation.ToStart()
 		iz.P.TokenizedCode = v.validation
 		node := iz.P.ParseTokenizedChunk()
@@ -1090,7 +1095,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			instantiatedAt: node.GetToken(), // TODO --- no it isn't.
 			env:            nil,
 		}
-		namesToDeclarations.Set(name, []labeledParsedCodeChunk{{pc, makeDeclaration, i, name[1:], node.GetToken()}})
+		namesToDeclarations.Set(name, []labeledParsedCodeChunk{{pc, makeDeclaration, i, name, node.GetToken()}})
 		i++
 	}
 
@@ -1271,7 +1276,10 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 
 	// We call `init`.
 	iz.cmI("Calling 'init' if it exists.")
-	iz.cp.CallIfExists("init")
+	v, _ := iz.cp.CallIfExists("init")
+	if v.T == values.ERROR {
+		iz.cp.P.Common.Errors = append(iz.cp.P.Common.Errors, v.V.(*err.Error))
+	}
 	return result
 }
 
