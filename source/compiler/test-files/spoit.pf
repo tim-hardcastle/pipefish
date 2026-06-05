@@ -1,0 +1,10 @@
+// Exists to be tested by `test_test.pf``
+
+test imperative :
+    test :
+        OK
+
+test arithmetic :
+    test :
+        2 + 2 == 4
+        2 * 3 == 6

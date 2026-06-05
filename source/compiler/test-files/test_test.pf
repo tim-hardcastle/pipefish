@@ -1,0 +1,38 @@
+import
+
+"spoit.pf"
+
+test dependencies :
+	spoit.test
+
+newtype
+
+Person = struct(name string, age int) :
+   age >= 0
+
+test validation :
+	test :
+		valid Person("Joseph", 22)
+		not valid Person("Joseph", -99)
+
+def
+
+inc(i int) :
+    i + 1
+    
+dec(i int) :
+    i - 1
+
+test inc is inverse of dec :
+    for _::x = range [-3, -1, 0, 1, 86, 47] :
+        test :
+            inc dec x == x
+            dec inc x == x
+
+double(x int/float) :
+    2 * x
+
+test double :
+    for _::x = range [-99, -1, 0, 1, 42, 3.2, 0.0, 99.9] :
+        test :
+            double x == x + x
