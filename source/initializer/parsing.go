@@ -223,23 +223,31 @@ func (iz *Initializer) addToNamespace(thingsToImport []tokenizedCode) {
 		case *tokenizedIncludeDeclaration:
 			pathTok = dec.path
 			private = dec.private
+			absSource, _ := filepath.Abs(dec.path.Source)
+			absPath, _ := filepath.Abs(dec.path.Literal)
+			relativePath, _ := filepath.Rel(filepath.Dir(absSource), absPath)
+			if strings.HasPrefix(relativePath, "..") {
+				iz.throw("init/include/filepath", &pathTok)
+				continue
+			}
 		default:
 			panic("Unhandled case.")
 		}
 		path := pathTok.Literal
-			_, path = TweakNameAndPath("", path, pathTok.Source)
-			iz.cmI("Adding '" + path + "' to namespace")
-			var libDat []byte
-			if strings.HasPrefix(filepath.ToSlash(path), "rsc-pf/") {
-				libDat, _ = folder.ReadFile(filepath.ToSlash(path))
-			} else {
-				libDat, _ = os.ReadFile(path)
-			}
-			stdImp := strings.TrimRight(string(libDat), "\n") + "\n"
-			iz.cmI("Making new relexer with filepath '" + path + "'")
-			iz.P.TokenizedCode = lexer.NewRelexer(path, stdImp)
-			iz.getTokenizedCode(private) // This is cumulative, it throws them all into the parser together.
-			iz.P.Common.Sources[path] = strings.Split(stdImp, "\n")
+		source := pathTok.Source
+		_, path = TweakNameAndPath("", path, source)
+		iz.cmI("Adding '" + path + "' to namespace")
+		var libDat []byte
+		if strings.HasPrefix(filepath.ToSlash(path), "rsc-pf/") {
+			libDat, _ = folder.ReadFile(filepath.ToSlash(path))
+		} else {
+			libDat, _ = os.ReadFile(path)
+		}
+		stdImp := strings.TrimRight(string(libDat), "\n") + "\n"
+		iz.cmI("Making new relexer with filepath '" + path + "'")
+		iz.P.TokenizedCode = lexer.NewRelexer(path, stdImp)
+		iz.getTokenizedCode(private) // This is cumulative, it throws them all into the parser together.
+		iz.P.Common.Sources[path] = strings.Split(stdImp, "\n")
 	}
 }
 
