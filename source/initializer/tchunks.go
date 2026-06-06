@@ -240,6 +240,21 @@ func (tc *tokenizedFunctionDeclaration) api() (string, string, bool) {
 	return result, tc.docString, true
 }
 
+type tokenizedIncludeDeclaration struct {
+	private   bool            // Whether it's declared private.
+	path      token.Token     // The name of the service as an identifier.
+}
+
+func (tc *tokenizedIncludeDeclaration) getDeclarationType() declarationType {
+	return includeDeclaration
+}
+
+func (tc *tokenizedIncludeDeclaration) indexToken() token.Token { return tc.path }
+
+func (tc *tokenizedIncludeDeclaration) api() (string, string, bool) {
+	return "", "", false
+}
+
 type tokenizedInterfaceDeclaration struct {
 	private   bool                            // Whether it's declared private.
 	op        token.Token                     // The type operator.
@@ -437,6 +452,21 @@ func (iz *Initializer) ChunkImportOrExternalDeclaration(isExternal, private bool
 		return &tokenizedExternalOrImportDeclaration{}, false
 	}
 	return &tokenizedExternalOrImportDeclaration{decType, private, golang, name, path, docString}, true
+}
+
+func (iz *Initializer) ChunkIncludeDeclaration(private bool, docString string) (tokenizedCode, bool) {
+	if iz.P.CurToken.Type != token.STRING {
+		iz.throw("init/include/string", &iz.P.CurToken)
+		iz.finishChunk()
+		return  &tokenizedIncludeDeclaration{}, false
+	}
+	path := iz.P.CurToken
+	iz.P.NextToken()
+	if !(iz.P.CurTokenIs(token.NEWLINE) || iz.P.CurTokenIs(token.EOF)) {
+		iz.throw("init/include/expect", &iz.P.CurToken)
+		iz.finishChunk()
+	}
+	return &tokenizedIncludeDeclaration{private: private, path: path}, true
 }
 
 // As with all the chunkers, this assumes that the p.curToken is the first token of

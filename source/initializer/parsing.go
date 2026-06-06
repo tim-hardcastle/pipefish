@@ -68,11 +68,11 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 
 	if !settings.OMIT_BUILTINS {
 		iz.cmI("Adding mandatory imports to namespace.")
-		iz.addToNameSpaceByFilename(settings.MandatoryImports)
+		iz.addToNamespaceByFilename(settings.MandatoryImports)
 	}
 	if filepath.Base(scriptFilepath) == "hub.hub" {
 		iz.cmI("Adding hub.pf files and themes.pf to hub namespace.")
-		iz.addToNameSpaceByFilename([]string{filepath.Join(settings.PipefishHomeDirectory, "source/hub/hub.pf"),
+		iz.addToNamespaceByFilename([]string{filepath.Join(settings.PipefishHomeDirectory, "source/hub/hub.pf"),
 			filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf"),
 			filepath.Join(filepath.Dir(scriptFilepath), "hub.pf")})
 	}
@@ -95,12 +95,15 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 	// of imports and externals so we don't do anything twice.
 	importsStartAt := 0
 	externalsStartAt := 0
+	includesStartAt := 0
 	for {
 		iz.cmI("Initializing imports.")
 		unnamespacedImports := iz.parseImports(importsStartAt)
 		if iz.errorsExist() {
 			return
 		}
+
+		unnamespacedImports = append(unnamespacedImports, iz.tokenizedCode[includeDeclaration][includesStartAt:]...)
 
 		iz.cmI("Initializing external services.")
 		iz.initializeExternals(externalsStartAt)
@@ -110,14 +113,16 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 
 		importsStartAt = len(iz.tokenizedCode[importDeclaration])
 		externalsStartAt = len(iz.tokenizedCode[externalDeclaration])
+		includesStartAt = len(iz.tokenizedCode[includeDeclaration])
 
 		iz.cmI("Adding unnamespaced imports to namespace.")
-		iz.addToNameSpace(unnamespacedImports)
+		iz.addToNamespace(unnamespacedImports)
 		if iz.errorsExist() {
 			return
 		}
 		if importsStartAt == len(iz.tokenizedCode[importDeclaration]) &&
-			externalsStartAt == len(iz.tokenizedCode[externalDeclaration]) {
+			externalsStartAt == len(iz.tokenizedCode[externalDeclaration]) && 
+			includesStartAt == len(iz.tokenizedCode[includeDeclaration]) {
 			break
 		}
 	}
@@ -192,7 +197,8 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 	// We hand back flow of control to initializer.go.
 }
 
-func (iz *Initializer) addToNameSpaceByFilename(thingsToImport []string) {
+// This is used to add in things like the mandatory imports and the themes for the hub under the hood.
+func (iz *Initializer) addToNamespaceByFilename(thingsToImport []string) {
 	for _, path := range thingsToImport {
 		dummyToken := token.Token{Literal: path}
 		importObect := tokenizedExternalOrImportDeclaration{
@@ -200,36 +206,51 @@ func (iz *Initializer) addToNameSpaceByFilename(thingsToImport []string) {
 			name:    dummyToken,
 			path:    dummyToken,
 		}
-		iz.addToNameSpace([]*tokenizedExternalOrImportDeclaration{&importObect})
+		iz.addToNamespace([]tokenizedCode{&importObect})
 	}
 }
 
 // Besides the script being initialized, we want its namespace to contain NULL-namespaced
 // imports and the built-in Pipefish functions, interfaces, generics, etc.
-func (iz *Initializer) addToNameSpace(thingsToImport []*tokenizedExternalOrImportDeclaration) {
+func (iz *Initializer) addToNamespace(thingsToImport []tokenizedCode) {
 	for _, dec := range thingsToImport {
-		path := dec.path.Literal
-		_, path = TweakNameAndPath("", path, dec.path.Source)
-		iz.cmI("Adding '" + path + "' to namespace")
-		var libDat []byte
-		if strings.HasPrefix(filepath.ToSlash(path), "rsc-pf/") {
-			libDat, _ = folder.ReadFile(filepath.ToSlash(path))
-		} else {
-			libDat, _ = os.ReadFile(path)
+		var pathTok token.Token
+		private := false
+		switch dec := dec.(type) {	
+		case *tokenizedExternalOrImportDeclaration:
+			pathTok = dec.path
+			private = dec.private
+		case *tokenizedIncludeDeclaration:
+			pathTok = dec.path
+			private = dec.private
+		default:
+			panic("Unhandled case.")
 		}
-		stdImp := strings.TrimRight(string(libDat), "\n") + "\n"
-		iz.cmI("Making new relexer with filepath '" + path + "'")
-		iz.P.TokenizedCode = lexer.NewRelexer(path, stdImp)
-		iz.getTokenizedCode(dec.private) // This is cumulative, it throws them all into the parser together.
-		iz.P.Common.Sources[path] = strings.Split(stdImp, "\n")
+		path := pathTok.Literal
+			_, path = TweakNameAndPath("", path, pathTok.Source)
+			iz.cmI("Adding '" + path + "' to namespace")
+			var libDat []byte
+			if strings.HasPrefix(filepath.ToSlash(path), "rsc-pf/") {
+				libDat, _ = folder.ReadFile(filepath.ToSlash(path))
+			} else {
+				libDat, _ = os.ReadFile(path)
+			}
+			stdImp := strings.TrimRight(string(libDat), "\n") + "\n"
+			iz.cmI("Making new relexer with filepath '" + path + "'")
+			iz.P.TokenizedCode = lexer.NewRelexer(path, stdImp)
+			iz.getTokenizedCode(private) // This is cumulative, it throws them all into the parser together.
+			iz.P.Common.Sources[path] = strings.Split(stdImp, "\n")
 	}
 }
 
 // This spawns a child initializer for each namespaced import and then calls its
 // `parseEverythingFromFilepath` method. It returns a list of `NULL`-namespaced imports which
 // can then be thrown into the parent initializer's namespace using the `addToNamespace` method.
-func (iz *Initializer) parseImports(startAt int) []*tokenizedExternalOrImportDeclaration {
-	unnamespacedImports := []*tokenizedExternalOrImportDeclaration{}
+//
+// `startAt` is used to ensure it doesn't revisit things, since this will be called recursively
+// to build up `NULL` imports and included files.
+func (iz *Initializer) parseImports(startAt int) []tokenizedCode {
+	unnamespacedImports := []tokenizedCode{}
 	for _, tc := range iz.tokenizedCode[importDeclaration][startAt:] {
 		dec := tc.(*tokenizedExternalOrImportDeclaration)
 		if dec.golang {
@@ -248,7 +269,7 @@ func (iz *Initializer) parseImports(startAt int) []*tokenizedExternalOrImportDec
 		newCp, e := newIz.ParseEverythingFromFilePath(iz.cp.Vm, iz.P.Common, iz.cp.Common, path, iz.P.NamespacePath+name+".")
 		if e != nil { // Then we couldn't open the file.
 			iz.throw("init/import/file", &dec.path, path, e)
-			return []*tokenizedExternalOrImportDeclaration{}
+			return []tokenizedCode{}
 		}
 		iz.cp.Modules[name] = newCp
 		newCp.P.Namespace = name
@@ -440,6 +461,9 @@ loop:
 				docString = ""
 			case token.IMPORT, token.EXTERNAL:
 				result, _ = iz.ChunkImportOrExternalDeclaration(headword == token.EXTERNAL, private, docString)
+				docString = ""
+			case token.INCLUDE:
+				result, _ = iz.ChunkIncludeDeclaration(private, docString)
 				docString = ""
 			case token.NEWTYPE:
 				lastHeadword = token.NEWTYPE
