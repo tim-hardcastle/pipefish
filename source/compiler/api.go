@@ -1,6 +1,8 @@
 package compiler
 
 import (
+	"strings"
+
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
@@ -29,20 +31,21 @@ func (cp *Compiler) Api(name string, fonts values.Map, width int) string {
 		hasContents = true
 		result = result + "\n" + markdowner.Render([]string{"### " + headings[i]})
 		for _, item := range items {
-			stringToRender := "- " + cp.Highlight(item.Declaration, fonts)
+			heading := item.Declaration
 			if item.DocString != "" {
-				stringToRender = stringToRender + " — " + item.DocString
+				heading = append(heading, ' ', ':')
 			}
-			result = result + markdowner.Render([]string{stringToRender})
+			result = result + "\n" + text.Cyan("•") + " " + cp.Highlight(heading, fonts) + "\n"
+			if item.DocString != "" {
+				result = result + "\n" + markdowner.Render(strings.Split(item.DocString,"\n"))
+			}
 		}
-		result = result + "\n"
 	}
 	if !hasContents {
 		result = result + "\nNothing has been declared.\n\n"
 		return result
 	}
-	result = result + "\n"
-	return result
+	return result + "\n"
 }
 
 type ApiItem struct {
