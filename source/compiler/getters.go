@@ -176,18 +176,18 @@ func val(T values.ValueType, V any) values.Value {
 }
 
 var (
-	nondecimalIndicators = dtypes.From[rune]('b', 'B', 'o', 'O', 'x', 'X')
-	control              = dtypes.From[string]("break", "continue", "else", "try")
-	reserved             = dtypes.From[string]("and", "false", "given", "not", "or", "true", "->", ">>", "?>", "--")
-	illegalInRepl        = dtypes.From[string]("cmd", "const", "def", "external", "global", "golang", "import", "newtype", "private", "var", "\\\\", "~~")
+	nondecimalIndicators = dtypes.From('b', 'B', 'o', 'O', 'x', 'X')
+	control              = dtypes.From("break", "continue", "else", "test", "try")
+	reserved             = dtypes.From("and", "false", "given", "not", "or", "true", "->", ">>", "?>", "--")
+	illegalInRepl        = dtypes.From("cmd", "const", "def", "external", "global", "golang", "import", "include", "newtype", "private", "var", "\\\\", "~~")
 	// Used by the syntax highlighter; should not be used by anything else without much forethought.
 	// TODO --- there must be some principled way to generate this from something else.
-	nativeTypes   = dtypes.From[string]("ok", "int", "string", "rune", "bool", "float", "error", "type", "pair", "list", "map", "set", "label", "func", "null", "snippet", "clone", "clones", "enum", "struct", "any", "ref", "tuple")
+	nativeTypes   = dtypes.From("ok", "int", "string", "rune", "bool", "float", "error", "type", "pair", "list", "map", "set", "label", "func", "null", "snippet", "clone", "clones", "enum", "struct", "any", "ref", "tuple")
 	enumlike, _   = regexp.Compile(`^[A-Z][A-Z_]+$`)
 	typelike, _   = regexp.Compile(`^[A-Z][A-Z]*[a-z]+[A-Za-z]*$`)
 	bracketMatch  = map[rune]rune{'(': ')', '[': ']', '{': '}'}
-	leftBrackets  = dtypes.From[rune]('(', '[', '{')
-	rightBrackets = dtypes.From[rune](')', ']', '}')
+	leftBrackets  = dtypes.From('(', '[', '{')
+	rightBrackets = dtypes.From(')', ']', '}')
 )
 
 // We can't just lex it beause we need the whitespace intact. But we can

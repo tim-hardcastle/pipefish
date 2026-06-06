@@ -1,0 +1,51 @@
+import
+
+"foo.pf"
+"spoit.pf"
+
+test dependencies :
+    foo.test 
+    spoit.test
+
+newtype
+
+Person = struct(name string, age int) :
+   age >= 0
+
+test validation :
+	test :
+		valid Person("Joseph", 22)
+		not valid Person("Joseph", -99)
+
+def
+
+inc(i int) :
+    i + 1
+    
+dec(i int) :
+    i - 1
+
+test inc is inverse of dec :
+    for _::x = range [-3, -1, 0, 1, 86, 47] :
+        test :
+            inc dec x == x
+            dec inc x == x
+
+
+
+/// Example of testing in a normal command.
+
+const
+
+TEST_VALUES = [-99, -1, 0, 1, 42, 1000000]
+
+cmd
+
+testArithmeticStillWorks :
+    for _::x = range TEST_VALUES :
+        for _::y = range TEST_VALUES :
+            test :
+                x * y == y * x
+                x + y - y == x
+
+
