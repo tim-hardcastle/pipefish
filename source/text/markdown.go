@@ -120,9 +120,11 @@ line:
 			ox = ox + len(BULLET)
 		} else {
 			if listItem {
-				fmt.Fprint(sb, "\n", RESET, md.leftMargin, font)
-				ox = leftMarginWidth
-				listItem = false
+				if i != len(text)-1 {
+					fmt.Fprint(sb, "\n", RESET, md.leftMargin, font)
+					ox = leftMarginWidth
+					listItem = false
+				}
 			}
 		}
 
