@@ -119,6 +119,12 @@ func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompiler
 	p := parser.New(Common, scriptFilepath, sourcecode, namespacePath)
 	cp := compiler.NewCompiler(p, ccb)
 	cp.ScriptFilepath = scriptFilepath
+	file, _ := os.Stat(scriptFilepath)
+	if file == nil { // E.g. the empty service.
+		cp.Sources = map[string]int64{}
+	} else { 
+		cp.Sources = map[string]int64{scriptFilepath:file.ModTime().UnixMilli()}
+	}
 	cp.Vm = mc
 	mc.Tests = append(mc.Tests, []vm.TestInfo{})
 	mc.Evaluators = append(mc.Evaluators, func(s string) values.Value { return cp.Do(s) })
@@ -255,8 +261,6 @@ func (iz *Initializer) ParseEverythingFromSourcecode(mc *vm.Vm, cpb *parser.Comm
 	if !(scriptFilepath == "" || scriptFilepath == "InitializeFromCode" ||
 		(len(scriptFilepath) >= 5 && scriptFilepath[0:5] == "http:")) &&
 		!(len(scriptFilepath) >= 11 && scriptFilepath[:11] == "test-files/") {
-		file, _ := os.Stat(MakeFilepath(scriptFilepath))
-		iz.cp.Timestamp = file.ModTime().UnixMilli()
 	}
 	iz.P.Common.Sources[scriptFilepath] = strings.Split(sourcecode, "\n")
 	return iz.cp

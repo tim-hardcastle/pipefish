@@ -332,13 +332,14 @@ func needsUpdate(cp *compiler.Compiler) (bool, error) {
 	if len(cp.ScriptFilepath) >= 5 && cp.ScriptFilepath[0:5] == "http:" || len(cp.ScriptFilepath) >= 11 && cp.ScriptFilepath[0:11] == "test-files/" {
 		return false, nil
 	}
-	file, err := os.Stat(cp.ScriptFilepath)
-	if err != nil {
-		return false, err
-	}
-	currentTimeStamp := file.ModTime().UnixMilli()
-	if cp.Timestamp != currentTimeStamp {
-		return true, nil
+	for fname, timestamp := range cp.Sources {
+		file, _ := os.Stat(fname)
+		if file != nil { // Exempts things like the builtins.
+		currentTimeStamp := file.ModTime().UnixMilli()
+			if timestamp != currentTimeStamp {
+				return true, nil
+			}
+		}
 	}
 	for _, importedCp := range cp.Modules {
 		impNeedsUpdate, impError := needsUpdate(importedCp)

@@ -34,9 +34,8 @@ type Compiler struct {
 	TypeNameToTypeScheme     map[string]AlternateType           // A map from the names of built-in or declared concrete or abstract types to an AlternateType typescheme representing them.
 	Modules                  map[string]*Compiler               // Both internal services, and stubs that call the externals.
 	CallHandlerNumbersByName map[string]uint32                  // Map from the names of external services to their index as stored in the vm.
-	Timestamp                int64                              // The timestamp from the source file. TODO --- "the" source file? Wat about NULL-imports?
 	ScriptFilepath           string                             // Where the script for the module is (where "the" script is the one that supplies the namespace, not the NULL-imports).
-	Sources                  dtypes.Set[string]                 // Where we got the code for the module from (the root file, `NULL` imports, inclusions).
+	Sources                  map[string]int64                   // A map from where we got the code for the module from (the root file, `NULL` imports, inclusions) to a timestamp for each file.
 	TypeToCloneGroup         map[values.ValueType]AlternateType // A map from any clonable or clone type to an alt type containing the parent type and its clones.
 	labelResolvingCompilers  []*Compiler                        // We use this to resolve the meaning of labels and enums.
 	TupleType                uint32                             // Location of a constant saying {TYPE, <type number of tuples>}, so that 'type (x tuple)' in the builtins has something to return. Query, why not just define 'type (x tuple) : tuple' ?
