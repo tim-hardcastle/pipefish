@@ -9,6 +9,7 @@ import (
 
 	"github.com/lmorg/readline/v4"
 	"github.com/tim-hardcastle/pipefish/source/compiler"
+	"github.com/tim-hardcastle/pipefish/source/dtypes"
 	"github.com/tim-hardcastle/pipefish/source/err"
 	"github.com/tim-hardcastle/pipefish/source/lexer"
 	"github.com/tim-hardcastle/pipefish/source/parser"
@@ -60,6 +61,8 @@ func GetSourceCode(scriptFilepath string) (string, error) {
 
 // This is broken into separate named steps basically so that I can in fact give the steps names.
 func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
+	iz.cp.Sources = dtypes.From(iz.cp.ScriptFilepath)
+	iz.inclusions = dtypes.From(iz.cp.ScriptFilepath)
 	iz.cmI("Starting parseEverything for script " + scriptFilepath + ".")
 
 	for k, _ := range compiler.BASE_TYPES {
@@ -236,6 +239,10 @@ func (iz *Initializer) addToNamespace(thingsToImport []tokenizedCode) {
 		path := pathTok.Literal
 		source := pathTok.Source
 		_, path = TweakNameAndPath("", path, source)
+		iz.cp.Sources = iz.cp.Sources.Add(path)
+		if dec.getDeclarationType() == includeDeclaration {
+			iz.inclusions = iz.inclusions.Add(path)
+		}
 		iz.cmI("Adding '" + path + "' to namespace")
 		var libDat []byte
 		if strings.HasPrefix(filepath.ToSlash(path), "rsc-pf/") {

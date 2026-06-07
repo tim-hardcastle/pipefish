@@ -48,6 +48,7 @@ type Initializer struct {
 	structDeclarationNumberToTypeNumber map[int]values.ValueType                     // Maps the order of the declaration of the struct in the script to its type number in the VM. TODO --- there must be something better than this.
 	unserializableTypes                 dtypes.Set[string]                           // Keeps track of which abstract types are mandatory imports/singletons of a concrete type so we don't try to serialize them.
 	reverseAliasMap                     map[string][]string                          // Maps a type to the types that alias it.
+	inclusions                          dtypes.Set[string]                           // Sources included into the root file of the module, 
 
 	functionTable functionTable // Intermediate step towards constructing the FunctinTree used by the compiler.
 

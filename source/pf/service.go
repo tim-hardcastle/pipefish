@@ -328,7 +328,6 @@ func (sv *Service) NeedsUpdate() (bool, error) {
 	return needsUpdate(sv.cp)
 }
 
-// TODO --- because of `NULL` imports there isn't such a thing as "the" source, you need a list.
 func needsUpdate(cp *compiler.Compiler) (bool, error) {
 	if len(cp.ScriptFilepath) >= 5 && cp.ScriptFilepath[0:5] == "http:" || len(cp.ScriptFilepath) >= 11 && cp.ScriptFilepath[0:11] == "test-files/" {
 		return false, nil
