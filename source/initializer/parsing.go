@@ -107,6 +107,12 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 
 		unnamespacedImports = append(unnamespacedImports, iz.tokenizedCode[includeDeclaration][includesStartAt:]...)
 
+		for _, incDec := range iz.tokenizedCode[includeDeclaration][includesStartAt:] {
+			pathTok := incDec.(*tokenizedIncludeDeclaration).path
+			_, incPath := TweakNameAndPath("", pathTok.Literal, pathTok.Source)
+			iz.cp.Pool.Add(pathTok.Source, incPath)
+		}
+
 		iz.cmI("Initializing external services.")
 		iz.initializeExternals(externalsStartAt)
 		if iz.errorsExist() {
@@ -728,6 +734,7 @@ func (iz *Initializer) createEnums() {
 					MLoc:   iz.cp.Reserve(typeNo, ord, &dec.op),
 					Access: acc,
 					Types:  altType(typeNo),
+					Token:  &tok,
 				}
 			vec = vec.Conj(values.Value{typeNo, ord})
 			elementNameList = append(elementNameList, tok.Literal)
@@ -1321,7 +1328,7 @@ func (iz *Initializer) createAliasTypes() {
 
 // Auxilliary function to the type-defining function which adds the constructors to the builtins.
 func (iz *Initializer) addToBuiltins(sig parser.AstSig, builtinTag string, returnTypes compiler.AlternateType, private bool, tok *token.Token) uint32 {
-	cpF := &compiler.CpFunc{RtnTypes: returnTypes, Builtin: builtinTag}
+	cpF := &compiler.CpFunc{RtnTypes: returnTypes, Builtin: builtinTag, Token: tok}
 	fnenv := compiler.NewEnvironment() // Note that we don't use this for anything, we just need some environment to pass to addVariables.
 	cpF.LoReg = iz.cp.MemTop()
 	for _, pair := range sig {

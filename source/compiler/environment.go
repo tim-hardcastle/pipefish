@@ -2,7 +2,10 @@ package compiler
 
 // How the compiler keeps track of where in memory the variables are stored, and what the access to them is like.
 
-import "github.com/tim-hardcastle/pipefish/source/dtypes"
+import (
+	"github.com/tim-hardcastle/pipefish/source/dtypes"
+	"github.com/tim-hardcastle/pipefish/source/token"
+)
 
 type VarAccess int
 
@@ -27,13 +30,14 @@ const (
 )
 
 // Update with:
-var ALL_CONSTANT_ACCESS = dtypes.From[VarAccess](GLOBAL_CONSTANT_PUBLIC, GLOBAL_CONSTANT_PRIVATE, LOCAL_CONSTANT, VERY_LOCAL_CONSTANT)
-var ALL_PRIVATE_ACCESS = dtypes.From[VarAccess](GLOBAL_CONSTANT_PRIVATE, GLOBAL_VARIABLE_PRIVATE)
+var ALL_CONSTANT_ACCESS = dtypes.From(GLOBAL_CONSTANT_PUBLIC, GLOBAL_CONSTANT_PRIVATE, LOCAL_CONSTANT, VERY_LOCAL_CONSTANT)
+var ALL_PRIVATE_ACCESS = dtypes.From(GLOBAL_CONSTANT_PRIVATE, GLOBAL_VARIABLE_PRIVATE)
 
 type Variable struct {
 	MLoc   uint32
 	Access VarAccess
 	Types  AlternateType
+	Token *token.Token
 }
 
 type Environment struct {

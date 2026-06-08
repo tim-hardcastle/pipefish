@@ -541,10 +541,10 @@ func TestSqlErrors(t *testing.T) {
 }
 func TestTypeAccessCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`Pair 1, 2`, `comp/private`},
-		{`Suit`, `comp/private/type`},
-		{`HEARTS`, `comp/ident/private`},
-		{`one`, `comp/ident/private`},
+		{`Pair 1, 2`, `comp/private/call.a`},
+		{`Suit`, `comp/private/type.a`},
+		{`HEARTS`, `comp/private/ident.a`},
+		{`one`, `comp/private/ident.a`},
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
 }
@@ -576,11 +576,11 @@ func TestValidationRtes(t *testing.T) {
 }
 func TestVariableAccessCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`B`, `comp/ident/private`},
+		{`B`, `comp/private/ident.a`},
 		{`A = 43`, `comp/assign/const`},
-		{`z`, `comp/ident/private`},
-		{`secretB`, `comp/private`},
-		{`secretZ`, `comp/private`},
+		{`z`, `comp/private/ident.a`},
+		{`secretB`, `comp/private/call.a`},
+		{`secretZ`, `comp/private/call.a`},
 	}
 	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestCompilerErrors)
 }
@@ -591,7 +591,7 @@ func TestVariableCtes(t *testing.T) {
 		{`X = 42`, `comp/assign/const`},
 		{`noVar = 0`, `comp/assign/repl`},
 		{`blerp`, `comp/ident/known`},
-		{`w`, `comp/ident/private`},
+		{`w`, `comp/private/ident.a`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }

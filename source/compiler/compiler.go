@@ -46,6 +46,7 @@ type Compiler struct {
 	API                      string                             // If the compiler is the root of the service, this will contain the serialized API of the service.
 	ApiDescription           [][]ApiItem                        // Data used to generate a description of the API.
 	AbstractTypesByName      TypeSys                            // Abstract types indexed by name.
+	Pool                     InclusionPool                      // Records what includes what. It's used by the compiler, but only at initialization time, and therefore is nil-ed out after initialization as a way to say we can ignore it from then on.
 
 	// Temporary state.
 	ThunkList          []ThunkData                   // Records what thunks we made so we know what to unthunk at the top of the function.
@@ -73,6 +74,7 @@ func NewCompiler(p *parser.Parser, ccb *CommonCompilerBindle) *Compiler {
 		GeneratedAbstractTypes:   make(dtypes.Set[string]),
 		FunctionForest:           make(map[string]*FunctionTree),
 		AbstractTypesByName:      TypeSys{},
+		Pool:                     make(InclusionPool),
 	}
 	for name := range ClonableTypes {
 		newC.GeneratedAbstractTypes.Add("clones{" + name + "}")
@@ -392,11 +394,18 @@ NodeTypeSwitch:
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}
-		if (v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == GLOBAL_VARIABLE_PRIVATE) && ac == REPL {
-			cp.Throw("comp/ident/private", node.GetToken())
+		if (v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == GLOBAL_VARIABLE_PRIVATE) && (ac == REPL || resolvingCompiler != cp) {
+			cp.Throw("comp/private/ident.a", node.GetToken())
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}
+		if cp.Pool != nil && resolvingCompiler != cp && v.Token != nil && 
+		   v.Access == GLOBAL_CONSTANT_PRIVATE && !cp.Pool.Check(node.Token.Source, v.Token.Source) {
+			cp.Throw("comp/private/ident.b", node.GetToken())
+			cp.GlobalConsts.Ext = nil
+			return FAIL
+		}
+
 		if v.Access == LOCAL_VARIABLE_THUNK || v.Access == LOCAL_FUNCTION_THUNK {
 			cp.Emit(vm.Untk, v.MLoc)
 		}
@@ -1107,8 +1116,8 @@ NodeTypeSwitch:
 			lhs := uint32(DUMMY)
 			rhs := uint32(DUMMY)
 			switch chunk := chunk.(type) {
-			case *parser.InfixExpression :
-			    if dtypes.From(vm.Gthf, vm.Gtef, vm.Gthi, vm.Gtei).Contains(penultimateCode.Opcode) && oldTop + 2 == cp.CodeTop() {
+			case *parser.InfixExpression:
+				if dtypes.From(vm.Gthf, vm.Gtef, vm.Gthi, vm.Gtei).Contains(penultimateCode.Opcode) && oldTop+2 == cp.CodeTop() {
 					switch chunk.Operator {
 					case ">", ">=":
 						lhs = penultimateCode.Args[1]
@@ -1118,18 +1127,18 @@ NodeTypeSwitch:
 						rhs = penultimateCode.Args[1]
 					}
 				}
-			case *parser.ComparisonExpression :
-			    if dtypes.From(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(lastCode.Opcode) {
-						lhs = lastCode.Args[1]
-						rhs = lastCode.Args[2]
-					} else {
-						if dtypes.From(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(penultimateCode.Opcode) && oldTop + 2 == cp.CodeTop() {
+			case *parser.ComparisonExpression:
+				if dtypes.From(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(lastCode.Opcode) {
+					lhs = lastCode.Args[1]
+					rhs = lastCode.Args[2]
+				} else {
+					if dtypes.From(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(penultimateCode.Opcode) && oldTop+2 == cp.CodeTop() {
 						lhs = penultimateCode.Args[1]
 						rhs = penultimateCode.Args[2]
 					}
 				}
 			}
-			// At this point either `lhs` and `rhs` are still DUMMY, and we haven't found anything we can special-case, or 
+			// At this point either `lhs` and `rhs` are still DUMMY, and we haven't found anything we can special-case, or
 			// they aren't and we have.
 			tokenNumber := cp.ReserveToken(chunk.GetToken())
 			conditionString := cp.Reserve(values.STRING, cp.P.PrettyPrintInline(chunk), chunk.GetToken())
@@ -1182,7 +1191,7 @@ NodeTypeSwitch:
 		if len(node.TypeArgs) == 0 {
 			abType := resolvingCompiler.GetAbstractTypeFromTypeName(node.Operator, node.Token)
 			if (ac == REPL || resolvingCompiler != cp) && cp.IsPrivate(abType) {
-				cp.Throw("comp/private/type", node.GetToken())
+				cp.Throw("comp/private/type.a", node.GetToken())
 				return FAIL
 			}
 			cp.Reserve(values.TYPE, abType, node.GetToken())
@@ -2776,7 +2785,7 @@ func (cp *Compiler) EmitTypeChecks(
 // Adds a variable to a given environment.
 func (cp *Compiler) AddThatAsVariable(env *Environment, name string, acc VarAccess, types AlternateType, tok *token.Token) {
 	cp.Cm("Adding variable name "+text.Emph(name)+" bound to memory location m"+strconv.Itoa(int(cp.That()))+" with type "+types.describe(cp.Vm), tok)
-	env.Data[name] = Variable{MLoc: cp.That(), Access: acc, Types: types}
+	env.Data[name] = Variable{MLoc: cp.That(), Access: acc, Types: types, Token: tok}
 }
 
 // A couple of types to support thunking.
@@ -2804,6 +2813,7 @@ type CpFunc struct {
 	GoNumber                uint32
 	HasGo                   bool
 	Top                     uint32 // Needed to know when to stop dumping the data.
+	Token                   *token.Token
 }
 
 // Information we need in the CpFunc struct to call an external service.

@@ -246,6 +246,8 @@ func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*co
 	iz.cmI("Making description of API for compiler.")
 	iz.describeApi()
 
+	iz.cp.Pool =  nil
+
 	return result
 
 }
@@ -348,7 +350,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		vals := []values.Value{}
 		for i, name := range parTypeInfo.Names {
 			iz.cp.Reserve(ty.Arguments[i].Type, ty.Arguments[i].Value, &ty.Arguments[i].Token)
-			newEnv.Data[name] = compiler.Variable{iz.cp.That(), compiler.LOCAL_CONSTANT, altType(ty.Arguments[i].Type)}
+			newEnv.Data[name] = compiler.Variable{iz.cp.That(), compiler.LOCAL_CONSTANT, altType(ty.Arguments[i].Type), nil}
 			vals = append(vals, values.Value{ty.Arguments[i].Type, ty.Arguments[i].Value})
 		}
 		newTypeName := ty.String()
@@ -1443,7 +1445,7 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 		iz.cp.Fns = append(iz.cp.Fns, info.(*compiler.CpFunc))
 		return info.(*compiler.CpFunc)
 	}
-	cpFn := compiler.CpFunc{}
+	cpFn := compiler.CpFunc{Token: &izFn.op}
 	var ac compiler.CpAccess
 	if decType == functionDeclaration {
 		ac = compiler.DEF

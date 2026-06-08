@@ -433,15 +433,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/ident/private": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "attempt to access private identifier " + emph(tok.Literal)
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Once a value has been declared private, it can only be accessed from within the service that owns it."
-		},
-	},
-
 	"comp/index/list": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "list index is not of type " + emph("int") + " or " + emph("pair")
@@ -570,12 +561,21 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"comp/private": {
+	"comp/private/call": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "trying to access a private function or command " + emph(tok.Literal)
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "When a service declares something as private, that means that this is for its own use and cannot be used by a client service or from the REPL."
+		},
+	},
+
+	"comp/private/ident": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "attempt to access private identifier " + emph(tok.Literal)
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "Once a value has been declared private, it can only be accessed from within the service that owns it."
 		},
 	},
 
@@ -3024,7 +3024,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"vm/test/nstd": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "failed test " + emph(args[0]) 
+			return "failed test " + emph(args[0])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The condition you were testing returned `false`, so the test failed"
@@ -3034,7 +3034,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 	"vm/test/std": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "failed test " + emph(args[0]) + ".\n\n" +
-			"- lhs was : " + emph(args[1]) + "\n- rhs was : " + emph(args[2]) + "\n\nTest failed at"
+				"- lhs was : " + emph(args[1]) + "\n- rhs was : " + emph(args[2]) + "\n\nTest failed at"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The condition you were testing returned `false`, so the test failed"

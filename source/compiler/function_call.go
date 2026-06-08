@@ -83,7 +83,7 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node parser.Callab
 					return FAIL
 				} else { // We must be in a command. We can create a local variable.
 					cp.Reserve(values.UNDEFINED_TYPE, nil, node.GetToken())
-					newVar := Variable{cp.That(), LOCAL_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)}
+					newVar := Variable{cp.That(), LOCAL_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), nil}
 					env.Data[arg.GetToken().Literal] = newVar
 					v = &newVar
 				}
@@ -537,7 +537,12 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 
 				if (b.access == REPL || b.libcall) && F.Private {
 					cp.cmP("REPL trying to access private function. Returning error.", b.tok)
-					cp.Throw("comp/private", b.tok)
+					cp.Throw("comp/private/call.a", b.tok)
+					return nil, false
+				}
+				if cp.Pool != nil && F.Private && !cp.Pool.Check(b.tok.Source, F.Token.Source) {
+					cp.cmP("REPL trying to access private function. Returning error.", b.tok)
+					cp.Throw("comp/private/call.b", b.tok)
 					return nil, false
 				}
 				// Deal with the case where the function is a builtin.

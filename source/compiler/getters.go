@@ -414,3 +414,28 @@ func (cp *Compiler) DumpFunction(name string, mem bool) string {
 		return result
 	}
 }
+
+// This is used at initialization to check that we don't improperly use the private parts of a NULL import.
+type InclusionPool map[string]dtypes.Set[string]
+
+func (ic InclusionPool) Add(s, t string) {
+	if set, ok := ic[s]; ok {
+		set = set.Add(t)
+		ic[s] = set
+	} else {
+		ic[s] = dtypes.From(s, t)
+	}
+	for _, set := range ic {
+		for otherEl, _ := range set {
+			ic[otherEl] = set
+		}
+	}
+}
+
+func (ic InclusionPool) Check(s, t string) bool {
+	if s == t { // Deals with various off little cases.
+		return true
+	}
+	return ic[s].Contains(t)
+}
+

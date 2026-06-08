@@ -204,7 +204,7 @@ func TestDump(t *testing.T) { // We want to make sure that if the service is bro
 	test := []test_helper.TestItem{
 		{`hub run "../hub/test-files/dump.pf"`, `Starting script [36m"dump.pf"[39m as service [36m"dump"[39m.`},
 		{`hub dump "big"`, "# Function dump of `big`\n\n## Code dump for function `big` with sig int\n\n@71 : asgm m261 <- m259  // Assign to memory.\n@72 : gtei m260 <- m261 m263  // Int comparison with >=.\n@73 : asgm m264 <- m260  // Assign to memory.\n@74 : qtru m264 @77  // Test true.\n@75 : asgm m266 <- m265  // Assign to memory.\n@76 : jmp @78  // Jump.\n@77 : asgm m266 <- m3  // Assign to memory.\n@78 : qsat m266 @81  // Test not `UNSAT`.\n@79 : asgm m268 <- m266  // Assign to memory.\n@80 : jmp @82  // Jump.\n@81 : asgm m268 <- m267  // Assign to memory.\n@82 : ret  // Return."},
-		{`hub dump m "big"`, "# Function dump of `big`\n\n## Code dump for function `big` with sig int\n\n@71 : asgm m261 <- m259  // Assign to memory.\n@72 : gtei m260 <- m261 m263  // Int comparison with >=.\n@73 : asgm m264 <- m260  // Assign to memory.\n@74 : qtru m264 @77  // Test true.\n@75 : asgm m266 <- m265  // Assign to memory.\n@76 : jmp @78  // Jump.\n@77 : asgm m266 <- m3  // Assign to memory.\n@78 : qsat m266 @81  // Test not `UNSAT`.\n@79 : asgm m268 <- m266  // Assign to memory.\n@80 : jmp @82  // Jump.\n@81 : asgm m268 <- m267  // Assign to memory.\n@82 : ret  // Return.\n\n### Memory dump for function `big` with sig int`\n\nm259 : UNDEFINED VALUE::UNDEFINED VALUE!\nm260 : error::\x1b[31mError\x1b[39m: something unexpected has gone wrong at line \x1b[33m4:6-8\x1b[39m of \x1b[36m\"../hub/test-files/dump.pf\"\x1b[39m. \nm261 : UNDEFINED VALUE::UNDEFINED VALUE!\nm262 : BLING::>=\nm263 : int::100\nm264 : UNDEFINED VALUE::UNDEFINED VALUE!\nm265 : string::\"big\"\nm266 : UNDEFINED VALUE::UNDEFINED VALUE!\nm267 : string::\"small\"\nm268 : UNDEFINED VALUE::UNDEFINED VALUE!"}, 
+		{`hub dump m "big"`, "# Function dump of `big`\n\n## Code dump for function `big` with sig int\n\n@71 : asgm m261 <- m259  // Assign to memory.\n@72 : gtei m260 <- m261 m263  // Int comparison with >=.\n@73 : asgm m264 <- m260  // Assign to memory.\n@74 : qtru m264 @77  // Test true.\n@75 : asgm m266 <- m265  // Assign to memory.\n@76 : jmp @78  // Jump.\n@77 : asgm m266 <- m3  // Assign to memory.\n@78 : qsat m266 @81  // Test not `UNSAT`.\n@79 : asgm m268 <- m266  // Assign to memory.\n@80 : jmp @82  // Jump.\n@81 : asgm m268 <- m267  // Assign to memory.\n@82 : ret  // Return.\n\n### Memory dump for function `big` with sig int`\n\nm259 : UNDEFINED VALUE::UNDEFINED VALUE!\nm260 : error::\x1b[31mError\x1b[39m: something unexpected has gone wrong at line \x1b[33m4:6-8\x1b[39m of \x1b[36m\"../hub/test-files/dump.pf\"\x1b[39m. \nm261 : UNDEFINED VALUE::UNDEFINED VALUE!\nm262 : BLING::>=\nm263 : int::100\nm264 : UNDEFINED VALUE::UNDEFINED VALUE!\nm265 : string::\"big\"\nm266 : UNDEFINED VALUE::UNDEFINED VALUE!\nm267 : string::\"small\"\nm268 : UNDEFINED VALUE::UNDEFINED VALUE!"},
 		{`hub halt "dump"`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
@@ -865,10 +865,10 @@ func TestTuples(t *testing.T) {
 }
 func TestTypeAccessErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`Pair 1, 2`, `comp/private`},
-		{`Suit`, `comp/private/type`},
-		{`HEARTS`, `comp/ident/private`},
-		{`one`, `comp/ident/private`},
+		{`Pair 1, 2`, `comp/private/call.a`},
+		{`Suit`, `comp/private/type.a`},
+		{`HEARTS`, `comp/private/ident.a`},
+		{`one`, `comp/private/ident.a`},
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
 }

@@ -23,7 +23,6 @@ def
 (x set) & (y any?) -> set : builtin "concat_to_set"
 (x float) / (y float) -> float : builtin "divide_floats"
 (x float) / (y int) -> float : builtin "divide_float_by_integer"
-(x int) div (y int) -> int : builtin "divide_integers"
 (x int) / (y int) -> int : builtin "divide_integers_to_float"
 (x int) / (y float) -> float : builtin "divide_integer_by_float"
 (x float) > (y float) -> bool : builtin "gt_floats"
@@ -36,7 +35,6 @@ def
 (x int) < (y int) -> bool : builtin "lt_ints"
 (x int) <= (y int) -> bool : builtin "lte_ints"
 (x any?) :: (y any?) -> pair : builtin "make_pair"
-(x int) mod (y int) -> int : builtin "modulo_integers"
 (x float) * (y float) -> float : builtin "multiply_floats"
 (x float) * (y int) -> float : builtin "multiply_float_by_integer"
 (x int) * (y int) -> int : builtin "multiply_integers"
@@ -51,7 +49,8 @@ def
 // Ordinary functions are in order of their function name.
 
 cast(x any?, y type) -> any : builtin "cast"
-codepoint(x clones{rune}) -> int : builtin "codepoint"   
+codepoint(x clones{rune}) -> int : builtin "codepoint"  
+(x int) div (y int) -> int : builtin "divide_integers" 
 error(x string) -> error : builtin "make_error"
 eval(x string) : builtin "eval"
 float(x clones{float}) -> float : builtin "cast_to_float"
@@ -83,6 +82,7 @@ literal(x tuple) -> string : builtin "literal"
 map(x clones{map}) -> map : builtin "cast_to_map"
 map(x ... pair) -> map : makeMap(x)
 makeMap(x tuple) -> map : builtin "make_map"
+(x int) mod (y int) -> int : builtin "modulo_integers"
 pair(x clones{pair}) -> pair : builtin "cast_to_pair"
 rune(x int) -> rune : builtin "rune"
 set(x clones{set}) -> set : builtin "cast_to_set"
