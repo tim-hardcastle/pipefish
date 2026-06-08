@@ -45,7 +45,7 @@ func (p *Parser) GetVariablesFromSig(node Node) []string {
 		return nil
 	}
 	for _, pair := range sig {
-		result = append(result, pair.VarName)
+		result = append(result, pair.VarName.Literal)
 	}
 	return result
 }
@@ -53,7 +53,7 @@ func (p *Parser) GetVariablesFromSig(node Node) []string {
 func (p *Parser) GetVariablesFromAstSig(sig AstSig) []string {
 	result := []string{}
 	for _, pair := range sig {
-		result = append(result, pair.VarName)
+		result = append(result, pair.VarName.Literal)
 	}
 	return result
 }
@@ -74,12 +74,12 @@ func (p *Parser) RecursivelySlurpReturnTypes(node Node) AstSig {
 		}
 	case *TypeExpression:
 		if typednode.TypeArgs == nil {
-			return AstSig{NameTypeAstPair{VarName: "", VarType: &TypeWithName{typednode.Token, typednode.Operator}}}
+			return AstSig{NameTypeAstPair{VarName: &token.Token{}, VarType: &TypeWithName{typednode.Token, typednode.Operator}}}
 		}
-		return AstSig{NameTypeAstPair{VarName: "", VarType: typednode}}
+		return AstSig{NameTypeAstPair{VarName: &token.Token{}, VarType: typednode}}
 	case *SuffixExpression:
 		if typednode.Operator == "?" || typednode.Operator == "!" {
-			return AstSig{NameTypeAstPair{VarName: "", VarType: &TypeSuffix{typednode.Token, typednode.Operator, p.RecursivelySlurpReturnTypes(typednode.Args[0])[0].VarType}}}
+			return AstSig{NameTypeAstPair{VarName: &token.Token{}, VarType: &TypeSuffix{typednode.Token, typednode.Operator, p.RecursivelySlurpReturnTypes(typednode.Args[0])[0].VarType}}}
 		}
 	default:
 		println("node is", typednode.String(), reflect.TypeOf(typednode).String())
@@ -123,7 +123,7 @@ func (p *Parser) toTypeWithParameters(te *TypeExpression) *TypeWithParameters {
 	}
 	params := []*Parameter{}
 	for _, pair := range sig {
-		newParameter := &Parameter{pair.VarName, pair.VarType.String()}
+		newParameter := &Parameter{pair.VarName.Literal, pair.VarType.String()}
 		params = append(params, newParameter)
 	}
 	return &TypeWithParameters{te.Token, te.Operator, params}
@@ -258,7 +258,7 @@ func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
 	}
 	switch node := node.(type) {
 	case *Identifier:
-		return AstSig{NameTypeAstPair{node.Token.Literal, dflt}}, true
+		return AstSig{NameTypeAstPair{&node.Token, dflt}}, true
 	case *InfixExpression:
 		if node.Token.Type == token.COMMA {
 			if len(node.GetArgs()) != 3 {
@@ -278,13 +278,13 @@ func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
 			return append(left, right...), true
 		}
 	case *PrefixExpression:
-		result := AstSig{NameTypeAstPair{node.Token.Literal, dflt}}
+		result := AstSig{NameTypeAstPair{&node.Token, dflt}}
 		for _, arg := range node.Args {
 			reparsedArg, ok := p.ReparseSig(arg, dflt)
 			if !ok {
 				return nil, false
 			}
-			if reparsedArg[0].VarName == "" {
+			if reparsedArg[0].VarName.Literal == "" {
 				result[len(result)-1].VarType = reparsedArg[0].VarType
 				reparsedArg = reparsedArg[1:]
 			}
@@ -292,7 +292,7 @@ func (p *Parser) ReparseSig(node Node, dflt TypeNode) (AstSig, bool) {
 		}
 		return result, true
 	case *TypeExpression:
-		return AstSig{NameTypeAstPair{"", p.ToAstType(node)}}, true
+		return AstSig{NameTypeAstPair{&token.Token{}, p.ToAstType(node)}}, true
 	case *SuffixExpression:
 		if len(node.Args) == 1 && node.Operator == "?" || node.Operator == "!" {
 			left, ok := p.ReparseSig(node.Args[0], dflt)

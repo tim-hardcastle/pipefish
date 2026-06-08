@@ -1,13 +1,14 @@
 package parser
 
 import (
+	"github.com/tim-hardcastle/pipefish/source/token"
 	"github.com/tim-hardcastle/pipefish/source/values"
 )
 
 // Sigs where the type is represented as a TypeNode.
 
 type NameTypeAstPair struct {
-	VarName string
+	VarName *token.Token
 	VarType TypeNode
 }
 
@@ -52,9 +53,9 @@ func (ns AstSig) String() (result string) {
 			result = result + ", "
 		}
 		if v.VarType == nil {
-			result = result + v.VarName + " " + "no type"
+			result = result + v.VarName.Literal + " " + "no type"
 		} else {
-			result = result + v.VarName + " " + v.VarType.String()
+			result = result + v.VarName.Literal + " " + v.VarType.String()
 		}
 	}
 	result = "(" + result + ")"

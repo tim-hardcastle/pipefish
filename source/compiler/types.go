@@ -129,7 +129,7 @@ func (cp *Compiler) MakeAbstractSigFromAstSig(sig parser.AstSig) parser.Abstract
 			typeToUse = typename.Right
 		}
 		abType := cp.GetAbstractTypeFromAstType(typeToUse)
-		result[i] = parser.NameAbstractTypePair{pair.VarName, abType}
+		result[i] = parser.NameAbstractTypePair{pair.VarName.Literal, abType}
 	}
 	return result
 }

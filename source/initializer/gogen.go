@@ -166,8 +166,8 @@ func (iz *Initializer) printSig(sb *strings.Builder, sig parser.AstSig, tok toke
 		if !ok {
 			iz.throw("golang/type.b", &tok, param.VarType)
 		}
-		fmt.Fprint(sb, sep, param.VarName)
-		if param.VarName != "" { // In which case it would be a return signature.
+		fmt.Fprint(sb, sep, param.VarName.Literal)
+		if param.VarName.Literal != "" { // In which case it would be a return signature.
 			fmt.Fprint(sb, " ")
 		}
 		fmt.Fprint(sb, goType)

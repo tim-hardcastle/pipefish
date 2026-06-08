@@ -54,7 +54,7 @@ func (iz *Initializer) getMatches(sigToMatch fnSigInfo, fnToTry *parsedFunction)
 			}
 		} else {
 			if !iz.cp.GetAbstractTypeFromAstType(sigToMatch.sig[i].VarType).IsSubtypeOf(abSig[i].VarType) ||
-				parser.IsAstBling(sigToMatch.sig[i].VarType) && sigToMatch.sig[i].VarName != abSig[i].VarName {
+				parser.IsAstBling(sigToMatch.sig[i].VarType) && sigToMatch.sig[i].VarName.Literal != abSig[i].VarName {
 				return values.AbT()
 			}
 		}
@@ -92,10 +92,10 @@ func (iz *Initializer) makeAstSigFromTokenizedSig(ts parser.TokSig) parser.AstSi
 	for _, pair := range ts {
 		if len(pair.Typename) == 1 && (pair.Typename[0].Literal == "bling") {
 			bling := parser.TypeBling{pair.Typename[0], pair.Name.Literal}
-			as = append(as, parser.NameTypeAstPair{pair.Name.Literal, &bling})
+			as = append(as, parser.NameTypeAstPair{&pair.Name, &bling})
 		} else {
 			typeAst := iz.makeTypeAstFromTokens(pair.Typename)
-			as = append(as, parser.NameTypeAstPair{pair.Name.Literal, typeAst})
+			as = append(as, parser.NameTypeAstPair{&pair.Name, typeAst})
 		}
 	}
 	return as
@@ -104,7 +104,7 @@ func (iz *Initializer) makeAstSigFromTokenizedSig(ts parser.TokSig) parser.AstSi
 func (iz *Initializer) makeRetsFromTokenizedReturns(ts parser.TokReturns) parser.AstSig {
 	var as parser.AstSig
 	for _, ty := range ts {
-		as = append(as, parser.NameTypeAstPair{"", iz.makeReturnTypeFromTokens(ty)})
+		as = append(as, parser.NameTypeAstPair{&token.Token{}, iz.makeReturnTypeFromTokens(ty)})
 	}
 	return as
 }
@@ -164,7 +164,7 @@ func (iz *Initializer) extractNamesFromCodeChunk(dec labeledParsedCodeChunk) dty
 		sigNames := dtypes.Set[string]{}
 		for _, pair := range pc.sig {
 			if _, ok := pair.VarType.(*parser.TypeBling); !ok {
-				sigNames = sigNames.Add(pair.VarName)
+				sigNames = sigNames.Add(pair.VarName.Literal)
 			}
 		}
 		bodyNames := parser.ExtractAllNames(pc.body)

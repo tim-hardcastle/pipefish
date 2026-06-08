@@ -258,32 +258,32 @@ NodeTypeSwitch:
 		// We need to do typechecking differently according to whether anything on the LHS is a global, in which case we need to early-return an error from the typechecking.
 		flavor := CHECK_LOCAL_CMD_ASSIGNMENTS
 		for i, pair := range sig {
-			v, ok := env.GetVar(pair.VarName)
+			v, ok := env.GetVar(pair.VarName.Literal)
 			if ok {
-				cp.Cm("Inferring the type of a variable "+text.Emph(pair.VarName)+" already defined", &node.Token)
+				cp.Cm("Inferring the type of a variable "+text.Emph(pair.VarName.Literal)+" already defined", &node.Token)
 				if sig[i].VarType != parser.INFERRED_TYPE_AST { // Then as we can't change the type of an existing variable, we must check that we're defining it the same way.
 					if !Equals(v.Types, cp.GetAlternateTypeFromTypeAst(sig[i].VarType)) {
-						cp.Throw("comp/assign/type/b", node.GetToken(), pair.VarName, pair.VarType.String())
+						cp.Throw("comp/assign/type/b", node.GetToken(), pair.VarName.Literal, pair.VarType.String())
 						return FAIL
 					}
 				}
 				if v.Access != REFERENCE_VARIABLE { // TODO --- There's probably a more elgant way of dealing with the reference variable thing if I think about it, but as I intend to type them anyway and this will get refactored away it's not a big deal.
-					newSig = append(newSig, NameAlternateTypePair{pair.VarName, v.Types})
+					newSig = append(newSig, NameAlternateTypePair{pair.VarName.Literal, v.Types})
 				} else {
-					newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)})
+					newSig = append(newSig, NameAlternateTypePair{pair.VarName.Literal, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)})
 				}
 				if v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == LOCAL_VARIABLE_THUNK || v.Access == LOCAL_CONSTANT || v.Access == LOCAL_FUNCTION_CONSTANT ||
 					v.Access == VERY_LOCAL_CONSTANT || v.Access == VERY_LOCAL_VARIABLE || v.Access == FUNCTION_ARGUMENT || v.Access == LOCAL_FUNCTION_THUNK ||
 					v.Access == TYPE_ARGUMENT {
-					cp.Throw("comp/assign/immutable", node.Left.GetToken(), pair.VarName)
+					cp.Throw("comp/assign/immutable", node.Left.GetToken(), pair.VarName.Literal)
 					return FAIL
 				}
 				if ac == REPL && (ALL_PRIVATE_ACCESS.Contains(v.Access)) {
-					cp.Throw("comp/assign/private", node.Left.GetToken(), pair.VarName)
+					cp.Throw("comp/assign/private", node.Left.GetToken(), pair.VarName.Literal)
 					return FAIL
 				}
 				if ac == REPL && (ALL_CONSTANT_ACCESS.Contains(v.Access)) {
-					cp.Throw("comp/assign/const", node.Left.GetToken(), pair.VarName)
+					cp.Throw("comp/assign/const", node.Left.GetToken(), pair.VarName.Literal)
 					return FAIL
 				}
 				if v.Access == GLOBAL_VARIABLE_PUBLIC {
@@ -292,22 +292,22 @@ NodeTypeSwitch:
 			} else { // The variable doesn't already exist.
 				cp.Cm("Assignment creating local variable "+text.Emph(sig.String())+".", &node.Token)
 				if ac == REPL {
-					cp.Throw("comp/assign/repl", node.Left.GetToken(), pair.VarName)
+					cp.Throw("comp/assign/repl", node.Left.GetToken(), pair.VarName.Literal)
 					return FAIL
 				}
 				cp.Reserve(values.UNDEFINED_TYPE, DUMMY, node.GetToken())
 				if vType, ok := pair.VarType.(*parser.TypeWithName); ok && vType.OperatorName == "tuple" {
 					cp.Cm("Adding variable in ASSIGN, 1", node.GetToken())
-					cp.AddThatAsVariable(env, pair.VarName, LOCAL_VARIABLE, cp.Common.AnyTuple, node.GetToken())
-					newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.Common.AnyTuple})
+					cp.AddThatAsVariable(env, pair.VarName.Literal, LOCAL_VARIABLE, cp.Common.AnyTuple, node.GetToken())
+					newSig = append(newSig, NameAlternateTypePair{pair.VarName.Literal, cp.Common.AnyTuple})
 				} else {
 					typesAtIndex := typesAtIndex(types, i)
 					cp.Cm("Adding variable in ASSIGN, 2", node.GetToken())
-					cp.AddThatAsVariable(env, pair.VarName, LOCAL_VARIABLE, typesAtIndex, node.GetToken())
+					cp.AddThatAsVariable(env, pair.VarName.Literal, LOCAL_VARIABLE, typesAtIndex, node.GetToken())
 					if sig[i].VarType == parser.INFERRED_TYPE_AST {
-						newSig = append(newSig, NameAlternateTypePair{pair.VarName, typesAtIndex})
+						newSig = append(newSig, NameAlternateTypePair{pair.VarName.Literal, typesAtIndex})
 					} else {
-						newSig = append(newSig, NameAlternateTypePair{pair.VarName, cp.GetAlternateTypeFromTypeAst(sig[i].VarType)})
+						newSig = append(newSig, NameAlternateTypePair{pair.VarName.Literal, cp.GetAlternateTypeFromTypeAst(sig[i].VarType)})
 					}
 				}
 			}
@@ -399,13 +399,12 @@ NodeTypeSwitch:
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}
-		if cp.Pool != nil && resolvingCompiler != cp && v.Token != nil && 
+		if cp.Pool != nil && resolvingCompiler == cp && v.Token != nil && 
 		   v.Access == GLOBAL_CONSTANT_PRIVATE && !cp.Pool.Check(node.Token.Source, v.Token.Source) {
 			cp.Throw("comp/private/ident.b", node.GetToken())
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}
-
 		if v.Access == LOCAL_VARIABLE_THUNK || v.Access == LOCAL_FUNCTION_THUNK {
 			cp.Emit(vm.Untk, v.MLoc)
 		}
@@ -961,9 +960,17 @@ NodeTypeSwitch:
 			for _, v := range node.Args {
 				switch arg := v.(type) {
 				case *parser.Identifier:
-					variable, ok := cp.GlobalVars.GetVar(arg.Value)
+					resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
+					variable, ok := resolvingCompiler.GlobalVars.GetVar(arg.Value)
 					if !ok {
 						cp.Throw("comp/global/global", arg.GetToken())
+						return FAIL
+					}
+					if cp.Pool != nil && resolvingCompiler == cp && variable.Token != nil && 
+		   				variable.Access == GLOBAL_VARIABLE_PRIVATE && !cp.Pool.Check(node.Token.Source, variable.Token.Source) {
+						cp.Throw("comp/private/global", variable.Token)
+						panic("Varible is " + arg.Value)
+						cp.GlobalConsts.Ext = nil
 						return FAIL
 					}
 					env.Data[arg.Value] = *variable
@@ -1575,9 +1582,9 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		}
 		boundResultLoc = cp.That()
 		for i, pair := range boundSig {
-			_, exists := newEnv.GetVar(pair.VarName)
+			_, exists := newEnv.GetVar(pair.VarName.Literal)
 			if exists {
-				cp.Throw("comp/for/bound/exists", node.BoundVariables.GetToken(), pair.VarName)
+				cp.Throw("comp/for/bound/exists", node.BoundVariables.GetToken(), pair.VarName.Literal)
 				return FAIL
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
@@ -1587,8 +1594,8 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			} else {
 				types = cp.GetAlternateTypeFromTypeAst(pair.VarType)
 			}
-			cp.AddThatAsVariable(newEnv, pair.VarName, FOR_LOOP_BOUND_VARIABLE, types, tok)
-			boundCpSig = append(boundCpSig, NameAlternateTypePair{pair.VarName, types})
+			cp.AddThatAsVariable(newEnv, pair.VarName.Literal, FOR_LOOP_BOUND_VARIABLE, types, tok)
+			boundCpSig = append(boundCpSig, NameAlternateTypePair{pair.VarName.Literal, types})
 		}
 	}
 
@@ -1619,9 +1626,9 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		}
 		indexResultLoc = cp.That()
 		for i, pair := range indexSig {
-			_, exists := newEnv.GetVar(pair.VarName)
+			_, exists := newEnv.GetVar(pair.VarName.Literal)
 			if exists {
-				cp.Throw("comp/for/index/exists", node.Initializer.GetToken(), pair.VarName)
+				cp.Throw("comp/for/index/exists", node.Initializer.GetToken(), pair.VarName.Literal)
 				return FAIL
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
@@ -1631,8 +1638,8 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			} else {
 				types = cp.GetAlternateTypeFromTypeAst(pair.VarType)
 			}
-			cp.AddThatAsVariable(newEnv, pair.VarName, FOR_LOOP_INDEX_VARIABLE, types, tok)
-			indexCpSig = append(indexCpSig, NameAlternateTypePair{pair.VarName, types})
+			cp.AddThatAsVariable(newEnv, pair.VarName.Literal, FOR_LOOP_INDEX_VARIABLE, types, tok)
+			indexCpSig = append(indexCpSig, NameAlternateTypePair{pair.VarName.Literal, types})
 		}
 	case node.ConditionOrRange == nil:
 		flavor = INFINITE_LOOP
@@ -1951,7 +1958,7 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *parser
 	// We get the function parameters. These shadow anything we might otherwise capture.
 	params := dtypes.Set[string]{}
 	for _, pair := range nameSig {
-		params = params.Add(pair.VarName)
+		params = params.Add(pair.VarName.Literal)
 		if parser.IsAnyNullableType(pair.VarType) {
 			LF.Model.Sig = append(LF.Model.Sig, values.AbstractType{nil}) // 'nil' in a sig in this context means we don't need to typecheck.
 		} else {
@@ -1998,8 +2005,8 @@ func (cp *Compiler) compileLambda(env *Environment, ctxt Context, fnNode *parser
 	// Add the function parameters.
 	for _, pair := range nameSig { // It doesn't matter what we put in here either, because we're going to have to copy the values any time we call the function.
 		cp.Reserve(0, DUMMY, fnNode.GetToken())
-		cp.Cm("Adding parameter '"+pair.VarName+"' to lambda.", fnNode.GetToken())
-		cp.AddThatAsVariable(newEnv, pair.VarName, FUNCTION_ARGUMENT, cp.GetAlternateTypeFromTypeAst(pair.VarType), fnNode.GetToken())
+		cp.Cm("Adding parameter '"+pair.VarName.Literal+"' to lambda.", fnNode.GetToken())
+		cp.AddThatAsVariable(newEnv, pair.VarName.Literal, FUNCTION_ARGUMENT, cp.GetAlternateTypeFromTypeAst(pair.VarType), fnNode.GetToken())
 	}
 	LF.Model.ParametersEnd = cp.MemTop()
 
@@ -2089,33 +2096,33 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 		}
 		rhs := parser.GetVariableNames(assEx.Right)
 		for _, pair := range lhsSig {
-			_, exists := ctxt.Env.GetVar(pair.VarName)
+			_, exists := ctxt.Env.GetVar(pair.VarName.Literal)
 			if exists {
-				cp.Throw("comp/given/exists", chunk.GetToken(), pair.VarName)
+				cp.Throw("comp/given/exists", chunk.GetToken(), pair.VarName.Literal)
 				return false
 			}
-			if namesUsed.Contains(pair.VarName) {
-				cp.Throw("comp/given/redeclared", chunk.GetToken(), pair.VarName)
+			if namesUsed.Contains(pair.VarName.Literal) {
+				cp.Throw("comp/given/redeclared", chunk.GetToken(), pair.VarName.Literal)
 				return false
 			}
-			namesUsed = namesUsed.Add(pair.VarName)
-			nameToNode[pair.VarName] = assEx
+			namesUsed = namesUsed.Add(pair.VarName.Literal)
+			nameToNode[pair.VarName.Literal] = assEx
 			if reflect.TypeOf(assEx.Right) == reflect.TypeFor[*parser.FuncExpression]() {
 				if len(rhs) == 0 { // Then the lambda has no captures and so is a constant.
-					cp.Cm("Reserving dummy local function "+text.Emph(pair.VarName)+".", assEx.GetToken())
+					cp.Cm("Reserving dummy local function "+text.Emph(pair.VarName.Literal)+".", assEx.GetToken())
 					cp.Reserve(values.FUNC, nil, chunk.GetToken())
-					cp.AddThatAsVariable(ctxt.Env, pair.VarName, LOCAL_FUNCTION_CONSTANT, altType(values.FUNC), assEx.GetToken())
+					cp.AddThatAsVariable(ctxt.Env, pair.VarName.Literal, LOCAL_FUNCTION_CONSTANT, altType(values.FUNC), assEx.GetToken())
 				} else {
-					cp.Cm("Reserving dummy local function thunk "+text.Emph(pair.VarName)+".", assEx.GetToken())
+					cp.Cm("Reserving dummy local function thunk "+text.Emph(pair.VarName.Literal)+".", assEx.GetToken())
 					cp.Reserve(values.THUNK, nil, chunk.GetToken())
-					cp.AddThatAsVariable(ctxt.Env, pair.VarName, LOCAL_FUNCTION_THUNK, altType(values.FUNC), assEx.GetToken())
+					cp.AddThatAsVariable(ctxt.Env, pair.VarName.Literal, LOCAL_FUNCTION_THUNK, altType(values.FUNC), assEx.GetToken())
 				}
 			}
 			for v := range rhs {
-				dtypes.AddTransitiveArrow(nameGraph, pair.VarName, v)
+				dtypes.AddTransitiveArrow(nameGraph, pair.VarName.Literal, v)
 			}
 			if len(rhs) == 0 {
-				dtypes.AddTransitiveArrow(nameGraph, pair.VarName, "")
+				dtypes.AddTransitiveArrow(nameGraph, pair.VarName.Literal, "")
 			}
 		}
 	}
@@ -2179,7 +2186,7 @@ func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt
 		return false
 	}
 	for i, pair := range sig {
-		v, alreadyExists := ctxt.Env.GetVar(pair.VarName) // In that case we have an inner function declaration and the sig will have length 1.
+		v, alreadyExists := ctxt.Env.GetVar(pair.VarName.Literal) // In that case we have an inner function declaration and the sig will have length 1.
 		var typeToUse AlternateType                       // TODO: we can extract more meaningful information about the tuple from the types.
 		if t, ok := pair.VarType.(*parser.TypeWithName); ok && t.OperatorName == "tuple" {
 			typeToUse = cp.Common.AnyTuple
@@ -2189,27 +2196,27 @@ func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt
 		if result.Foldable { // TODO --- we should implement constant folding of course, but there's no big hurry because hardly enyone will declare constant here, why would they?
 			if !result.Types.containsAnyOf(cp.Common.CodeGeneratingTypes.ToSlice()...) {
 				cp.Cm("Adding foldable constant from compileOneGivenChunk.", node.GetToken())
-				cp.AddThatAsVariable(ctxt.Env, pair.VarName, LOCAL_CONSTANT, typeToUse, node.GetToken())
+				cp.AddThatAsVariable(ctxt.Env, pair.VarName.Literal, LOCAL_CONSTANT, typeToUse, node.GetToken())
 				continue
 			} else {
 				cp.Cm("Adding unfoldable constant from compileOneGivenChunk.", node.GetToken())
-				cp.AddThatAsVariable(ctxt.Env, pair.VarName, LOCAL_CONSTANT, typeToUse, node.GetToken())
+				cp.AddThatAsVariable(ctxt.Env, pair.VarName.Literal, LOCAL_CONSTANT, typeToUse, node.GetToken())
 			}
 		} else {
 			if alreadyExists {
 				switch { // The case where neither of these is true has been checked for above.
 				case v.Access == LOCAL_FUNCTION_THUNK:
-					cp.Cm("Reassigning local function thunk "+text.Emph(pair.VarName)+" from dummy value.", node.GetToken())
+					cp.Cm("Reassigning local function thunk "+text.Emph(pair.VarName.Literal)+" from dummy value.", node.GetToken())
 					cp.Vm.Mem[v.MLoc] = val(values.THUNK, values.Thunk{cp.That(), thunkStart})
 					cp.ThunkList = append(cp.ThunkList, ThunkData{v.MLoc, values.Thunk{cp.That(), thunkStart}})
 				case v.Access == LOCAL_FUNCTION_CONSTANT:
-					cp.Cm("Reassigning local function constant "+text.Emph(pair.VarName)+" from dummy value in compileOneGivenChunk.", node.GetToken())
+					cp.Cm("Reassigning local function constant "+text.Emph(pair.VarName.Literal)+" from dummy value in compileOneGivenChunk.", node.GetToken())
 					cp.Vm.Mem[v.MLoc] = cp.Vm.Mem[cp.That()]
 				}
 			} else {
 				cp.Cm("Reserving local thunk in compileOneGivenChunk.", node.GetToken())
 				cp.Reserve(values.THUNK, values.Thunk{cp.That(), thunkStart}, node.GetToken())
-				cp.AddThatAsVariable(ctxt.Env, pair.VarName, LOCAL_VARIABLE_THUNK, typeToUse, node.GetToken())
+				cp.AddThatAsVariable(ctxt.Env, pair.VarName.Literal, LOCAL_VARIABLE_THUNK, typeToUse, node.GetToken())
 				cp.ThunkList = append(cp.ThunkList, ThunkData{cp.That(), values.Thunk{cp.That(), thunkStart}})
 			}
 		}

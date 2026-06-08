@@ -296,7 +296,7 @@ func (cp Compiler) typeNodeToAlternateType(tn parser.TypeNode) AlternateType {
 func (cp Compiler) AstSigToAltSig(sig parser.AstSig) alternateSig {
 	result := alternateSig{}
 	for _, pair := range sig {
-		result = append(result, NameAlternateTypePair{pair.VarName, cp.typeNodeToAlternateType(pair.VarType)})
+		result = append(result, NameAlternateTypePair{pair.VarName.Literal, cp.typeNodeToAlternateType(pair.VarType)})
 	}
 	return result
 }

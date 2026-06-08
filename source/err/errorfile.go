@@ -570,6 +570,15 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"comp/private/global": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "attempt to access private identifier " + emph(tok.Literal)
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "Once a value has been declared private, it can only be accessed from within the service that owns it."
+		},
+	},
+
 	"comp/private/ident": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "attempt to access private identifier " + emph(tok.Literal)

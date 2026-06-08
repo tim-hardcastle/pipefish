@@ -73,10 +73,14 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 		iz.addToNamespaceByFilename(settings.MandatoryImports)
 	}
 	if filepath.Base(scriptFilepath) == "hub.hub" {
+		hubPath := filepath.Join(settings.PipefishHomeDirectory, "source/hub/hub.pf")
+		themePath := filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf")
+		userPfPath := filepath.Join(filepath.Dir(scriptFilepath), "hub.pf")
 		iz.cmI("Adding hub.pf files and themes.pf to hub namespace.")
-		iz.addToNamespaceByFilename([]string{filepath.Join(settings.PipefishHomeDirectory, "source/hub/hub.pf"),
-			filepath.Join(settings.PipefishHomeDirectory, "user/themes.pf"),
-			filepath.Join(filepath.Dir(scriptFilepath), "hub.pf")})
+		iz.addToNamespaceByFilename([]string{hubPath, themePath, userPfPath})
+		iz.cp.Pool.Add(scriptFilepath, hubPath)
+		iz.cp.Pool.Add(scriptFilepath, themePath)
+		iz.cp.Pool.Add(scriptFilepath, userPfPath)
 	}
 	iz.cmI("Making new relexer with filepath '" + scriptFilepath + "'")
 	iz.P.TokenizedCode = lexer.NewRelexer(scriptFilepath, sourcecode)
@@ -699,8 +703,8 @@ func (iz *Initializer) createEnums() {
 
 		// We make the constructor function.
 		iz.P.Functions.Add(name)
-		sig := parser.AstSig{parser.NameTypeAstPair{"x", &parser.TypeWithName{token.Token{}, "int"}}}
-		rtnSig := parser.AstSig{parser.NameTypeAstPair{"*dummy*", &parser.TypeWithName{token.Token{}, name}}}
+		sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, &parser.TypeWithName{token.Token{}, "int"}}}
+		rtnSig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "*dummy*"}, &parser.TypeWithName{token.Token{}, name}}}
 		fnNo := iz.addToBuiltins(sig, name, altType(typeNo), dec.private, &dec.op)
 		fn := &parsedFunction{
 			decType:   functionDeclaration,
@@ -811,13 +815,13 @@ func (iz *Initializer) createClones() {
 		}
 
 		typeNo, fn := iz.addCloneTypeAndConstructor(name, typeToClone, dec.private, ixPtr(dec))
-		sig := parser.AstSig{parser.NameTypeAstPair{VarName: "x", VarType: MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
+		sig := parser.AstSig{parser.NameTypeAstPair{VarName: &token.Token{Literal: "x"}, VarType: MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
 		fn.callInfo.Number = iz.addToBuiltins(sig, name, altType(typeNo), dec.private, ixPtr(dec))
 		iz.createOperations(&parser.TypeWithName{token.Token{}, name}, typeNo, dec.requests, parentTypeNo, dec.private)
 		// If we're cloning a set or a map, they need extra constructors to construct the type from varargs.
 		if typeToClone == "map" {
-			sig := parser.AstSig{parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, &parser.TypeWithName{token.Token{}, "pair"}}}}
-			rtnSig := parser.AstSig{parser.NameTypeAstPair{"*dummy*", &parser.TypeWithName{token.Token{}, name}}}
+			sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, &parser.TypeDotDotDot{token.Token{}, &parser.TypeWithName{token.Token{}, "pair"}}}}
+			rtnSig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "*dummy*"}, &parser.TypeWithName{token.Token{}, name}}}
 			fn := &parsedFunction{
 				decType:   functionDeclaration,
 				decNumber: DUMMY,
@@ -832,8 +836,8 @@ func (iz *Initializer) createClones() {
 			fn.callInfo.Number = iz.addToBuiltins(sig, "$m_"+name, altType(typeNo), dec.private, ixPtr(dec))
 		}
 		if typeToClone == "set" {
-			sig := parser.AstSig{parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, parser.ANY_NULLABLE_TYPE_AST}}}
-			rtnSig := parser.AstSig{parser.NameTypeAstPair{"*dummy*", &parser.TypeWithName{token.Token{}, name}}}
+			sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, &parser.TypeDotDotDot{token.Token{}, parser.ANY_NULLABLE_TYPE_AST}}}
+			rtnSig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "*dummy*"}, &parser.TypeWithName{token.Token{}, name}}}
 			fn := &parsedFunction{
 				decType:   functionDeclaration,
 				decNumber: DUMMY,
@@ -857,8 +861,8 @@ func (iz *Initializer) addCloneTypeAndConstructor(name, typeToClone string, priv
 	}
 	// We make the conversion function.
 	iz.P.Functions.Add(name)
-	sig := parser.AstSig{parser.NameTypeAstPair{"x", &parser.TypeWithName{token.Token{}, typeToClone}}}
-	rtnSig := parser.AstSig{parser.NameTypeAstPair{"*dummy*", &parser.TypeWithName{token.Token{}, name}}}
+	sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, &parser.TypeWithName{token.Token{}, typeToClone}}}
+	rtnSig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "*dummy*"}, &parser.TypeWithName{token.Token{}, name}}}
 	fn := &parsedFunction{
 		decType:   functionDeclaration,
 		decNumber: DUMMY,
@@ -911,23 +915,23 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 	for i, opTok := range opList {
 		op := opTok.Literal
 		tok1 := &(opList[i])
-		rtnSig := parser.AstSig{{"", nameAst}}
+		rtnSig := parser.AstSig{{&token.Token{}, nameAst}}
 		switch parentTypeNo {
 		case values.FLOAT:
 			switch op {
 			case "+":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "+"}, AsBling("+")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("+", sig, "add_floats", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "-":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"-", AsBling("-")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "-"}, AsBling("-")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("-", sig, "subtract_floats", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
-				sig = parser.AstSig{parser.NameTypeAstPair{"x", nameAst}}
+				sig = parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}}
 				iz.makeCloneFunction("-", sig, "negate_float", altType(typeNo), rtnSig, private, vm.PREFIX, tok1)
 			case "*":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"*", AsBling("*")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "*"}, AsBling("*")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("*", sig, "multiply_floats", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "/":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"/", AsBling("/")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "/"}, AsBling("/")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("/", sig, "divide_floats", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
 				iz.throw("init/request/float", tok1, op)
@@ -935,21 +939,21 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 		case values.INT:
 			switch op {
 			case "+":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "+"}, AsBling("+")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("+", sig, "add_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "-":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"-", AsBling("-")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "-"}, AsBling("-")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("-", sig, "subtract_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
-				sig = parser.AstSig{parser.NameTypeAstPair{"x", nameAst}}
+				sig = parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}}
 				iz.makeCloneFunction("-", sig, "negate_integer", altType(typeNo), rtnSig, private, vm.PREFIX, tok1)
 			case "*":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"*", AsBling("*")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "*"}, AsBling("*")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("*", sig, "multiply_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "div":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"/", AsBling("/")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "/"}, AsBling("/")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("div", sig, "divide_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "mod":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"%", AsBling("&")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "%"}, AsBling("&")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("mod", sig, "modulo_integers", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
 				iz.throw("init/request/int", tok1, op)
@@ -957,13 +961,13 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 		case values.LIST:
 			switch op {
 			case "+":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "+"}, AsBling("+")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("+", sig, "add_lists", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "&":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"&", AsBling("&")}, parser.NameTypeAstPair{"y", parser.ANY_NULLABLE_TYPE_AST}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "&"}, AsBling("&")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, parser.ANY_NULLABLE_TYPE_AST}}
 				iz.makeCloneFunction("&", sig, "concat_to_list", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "with":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"with", AsBling("with")}, parser.NameTypeAstPair{"y", parser.DOTDOTDOT_PAIR}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "with"}, AsBling("with")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, parser.DOTDOTDOT_PAIR}}
 				iz.makeCloneFunction("with", sig, "list_with", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "?>":
 				cloneData := iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType)
@@ -983,10 +987,10 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 		case values.MAP:
 			switch op {
 			case "with":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"with", AsBling("with")}, parser.NameTypeAstPair{"y", parser.DOTDOTDOT_PAIR}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "with"}, AsBling("with")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, parser.DOTDOTDOT_PAIR}}
 				iz.makeCloneFunction("with", sig, "map_with", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "without":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"without", AsBling("without")}, parser.NameTypeAstPair{"y", parser.DOTDOTDOT_ANY_NULLABLE}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "without"}, AsBling("without")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, parser.DOTDOTDOT_ANY_NULLABLE}}
 				iz.makeCloneFunction("without", sig, "map_without", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
 				iz.throw("init/request/map", tok1, op)
@@ -998,16 +1002,16 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 		case values.SET:
 			switch op {
 			case "+":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "+"}, AsBling("+")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("+", sig, "add_sets", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "&":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"&", AsBling("&")}, parser.NameTypeAstPair{"y", parser.ANY_NULLABLE_TYPE_AST}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "&"}, AsBling("&")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, parser.ANY_NULLABLE_TYPE_AST}}
 				iz.makeCloneFunction("&", sig, "concat_to_set", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "-":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"-", AsBling("-")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "-"}, AsBling("-")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("-", sig, "subtract_sets", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "/\\":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"/\\", AsBling("/\\")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "/\\"}, AsBling("/\\")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("/\\", sig, "intersect_sets", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			default:
 				iz.throw("init/request/set", tok1, op)
@@ -1017,7 +1021,7 @@ func (iz *Initializer) createOperations(nameAst parser.TypeNode, typeNo values.V
 		case values.STRING:
 			switch op {
 			case "+":
-				sig := parser.AstSig{parser.NameTypeAstPair{"x", nameAst}, parser.NameTypeAstPair{"+", AsBling("+")}, parser.NameTypeAstPair{"y", nameAst}}
+				sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "x"}, nameAst}, parser.NameTypeAstPair{&token.Token{Literal: "+"}, AsBling("+")}, parser.NameTypeAstPair{&token.Token{Literal: "y"}, nameAst}}
 				iz.makeCloneFunction("+", sig, "add_strings", altType(typeNo), rtnSig, private, vm.INFIX, tok1)
 			case "slice":
 				cloneData := iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType)
@@ -1150,12 +1154,12 @@ func (iz *Initializer) makeLabelsFromSig(sig parser.AstSig, private bool, indexT
 	for j, labelNameAndType := range sig {
 		labelName := labelNameAndType.VarName
 		info, alreadyDeclared := iz.getDeclaration(decLABEL, indexTok, j)
-		global, alreadyExists := iz.cp.GlobalConsts.Data[labelName]
+		global, alreadyExists := iz.cp.GlobalConsts.Data[labelName.Literal]
 		switch {
 		case alreadyDeclared: // That is, we're parsing the same piece of code a second time.
 			mLoc := info.(labelInfo).loc
 			labelsForStruct = append(labelsForStruct, iz.cp.Vm.Mem[mLoc].V.(int))
-			iz.cp.GlobalConsts.Data[labelName] =
+			iz.cp.GlobalConsts.Data[labelName.Literal] =
 				compiler.Variable{
 					MLoc:   mLoc,
 					Access: acc,
@@ -1170,8 +1174,8 @@ func (iz *Initializer) makeLabelsFromSig(sig parser.AstSig, private bool, indexT
 			iz.setDeclaration(decLABEL, indexTok, j, labelInfo{labelLocation, private})
 		default:
 			mLoc := iz.cp.Reserve(values.LABEL, len(iz.cp.Vm.Labels), indexTok)
-			iz.cp.Vm.FieldLabelsInMem[labelName] = iz.cp.That()
-			iz.cp.GlobalConsts.Data[labelName] =
+			iz.cp.Vm.FieldLabelsInMem[labelName.Literal] = iz.cp.That()
+			iz.cp.GlobalConsts.Data[labelName.Literal] =
 				compiler.Variable{
 					MLoc:   mLoc,
 					Access: acc,
@@ -1179,7 +1183,7 @@ func (iz *Initializer) makeLabelsFromSig(sig parser.AstSig, private bool, indexT
 				}
 			iz.setDeclaration(decLABEL, indexTok, j, labelInfo{iz.cp.That(), true})
 			labelsForStruct = append(labelsForStruct, len(iz.cp.Vm.Labels))
-			iz.cp.Vm.Labels = append(iz.cp.Vm.Labels, labelName)
+			iz.cp.Vm.Labels = append(iz.cp.Vm.Labels, labelName.Literal)
 			iz.cp.Common.LabelIsPrivate = append(iz.cp.Common.LabelIsPrivate, private)
 		}
 	}
@@ -1332,7 +1336,7 @@ func (iz *Initializer) addToBuiltins(sig parser.AstSig, builtinTag string, retur
 	fnenv := compiler.NewEnvironment() // Note that we don't use this for anything, we just need some environment to pass to addVariables.
 	cpF.LoReg = iz.cp.MemTop()
 	for _, pair := range sig {
-		iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.FUNCTION_ARGUMENT, iz.cp.GetAlternateTypeFromTypeAst(pair.VarType), tok)
+		iz.cp.AddThatAsVariable(fnenv, pair.VarName.Literal, compiler.FUNCTION_ARGUMENT, iz.cp.GetAlternateTypeFromTypeAst(pair.VarType), tok)
 	}
 	cpF.HiReg = iz.cp.MemTop()
 	cpF.Private = private

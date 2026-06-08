@@ -366,7 +366,7 @@ func (iz *Initializer) instantiateParameterizedTypes() {
 		if isClone {
 			typeNo, _ = iz.addCloneType(ty.String(), parTypeInfo.ParentType, false, &ty.Token)
 			iz.createOperations(ty, typeNo, parTypeInfo.Operations, parentTypeNo, parTypeInfo.IsPrivate)
-			sig = parser.AstSig{parser.NameTypeAstPair{VarName: "x", VarType: MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
+			sig = parser.AstSig{parser.NameTypeAstPair{VarName: &token.Token{Literal: "x"}, VarType: MakeAstTypeFrom(iz.cp.Vm.ConcreteTypeInfo[iz.cp.Vm.ConcreteTypeInfo[typeNo].(vm.CloneType).Parent].GetName(vm.DEFAULT))}}
 		} else {
 			typeNo = iz.addStructType(ty.String(), parTypeInfo.IsPrivate, &ty.Token)
 			sig = parTypeInfo.Sig
@@ -442,13 +442,13 @@ func (iz Initializer) makeParameterizedTypeConstructor(typeOperator string, oper
 	name := typeOperator + "{}"
 	tag := name // The builtin tag will tell `seekFunctionCall` which opcode to emit.
 	// We start with the sig having just the one secret parameter in it that passes the type.
-	sig := parser.AstSig{parser.NameTypeAstPair{"+t", &parser.TypeWithName{*operatorInfo.definedAt[0], "type"}}}
+	sig := parser.AstSig{parser.NameTypeAstPair{&token.Token{Literal: "+t"}, &parser.TypeWithName{*operatorInfo.definedAt[0], "type"}}}
 	switch ty {
 	case values.MAP:
 		tag = "&m_" + name
-		sig = append(sig, parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, &parser.TypeWithName{token.Token{}, "pair"}}})
+		sig = append(sig, parser.NameTypeAstPair{&token.Token{Literal: "x"}, &parser.TypeDotDotDot{token.Token{}, &parser.TypeWithName{token.Token{}, "pair"}}})
 	case values.SET:
-		sig = append(sig, parser.NameTypeAstPair{"x", &parser.TypeDotDotDot{token.Token{}, parser.ANY_NULLABLE_TYPE_AST}})
+		sig = append(sig, parser.NameTypeAstPair{&token.Token{Literal: "x"}, &parser.TypeDotDotDot{token.Token{}, parser.ANY_NULLABLE_TYPE_AST}})
 		tag = "&s_" + name
 	default:
 		sig = append(sig, operatorInfo.constructorSig...)
@@ -748,14 +748,14 @@ func (iz *Initializer) addSigToTree(tree *compiler.FnTreeNode, fn *parsedFunctio
 	if pos < len(sig) {
 		var currentTypeName string
 		currentAbstractType := sig[pos].VarType
-		currentTypeName = nameSig[pos].VarName
+		currentTypeName = nameSig[pos].VarName.Literal
 		if blingIs, ok := nameSig[pos].VarType.(*parser.TypeBling); ok { // There's no reason why these should both exist.
 			bling = blingIs.Bling //
 		} else { //
 			currentTypeName = nameSig[pos].VarType.String() //
 		} //
 		if currentTypeName == "bling" { //
-			bling = nameSig[pos].VarName //
+			bling = nameSig[pos].VarName.Literal //
 		} //
 		isVararg := len(currentTypeName) >= 3 && currentTypeName[:3] == "..."
 		if isVararg {
@@ -1197,7 +1197,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		} else if !ok { // Then the service variable isn't declared, and we need to stick in a default value.
 			dummyTok := token.Token{}
 			iz.cp.Reserve(svData.t, svData.v, &dummyTok)
-			iz.cp.AddThatAsVariable(iz.cp.GlobalVars, svName, compiler.GLOBAL_VARIABLE_PRIVATE, svData.alt, &dummyTok)
+			iz.cp.AddThatAsVariable(iz.cp.GlobalVars, svName, compiler.GLOBAL_VARIABLE_PRIVATE, svData.alt, nil)
 		}
 		// The third possibility here is that we've declared a service variable which isn't
 		// a compiler directive. In that case, it can be compiled in the usual way.
@@ -1343,7 +1343,7 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 				iz.cp.Reserve(values.TUPLE, []values.Value{result}, rhs.GetToken())
 			}
 		}
-		iz.cp.AddThatAsVariable(envToAddTo, sig[last].VarName, vAcc, altType(values.TUPLE), rhs.GetToken())
+		iz.cp.AddThatAsVariable(envToAddTo, sig[last].VarName.Literal, vAcc, altType(values.TUPLE), sig[last].VarName)
 	} else {
 		if rhsIsTuple {
 			head = result.V.([]values.Value)
@@ -1352,14 +1352,14 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 	for i := 0; i < loopTop; i++ {
 		iz.cp.Reserve(head[i].T, head[i].V, rhs.GetToken())
 		if varType, ok := sig[i].VarType.(*parser.TypeWithName); ok && varType.OperatorName == "*inferred*" {
-			iz.cp.AddThatAsVariable(envToAddTo, sig[i].VarName, vAcc, altType(head[i].T), rhs.GetToken())
+			iz.cp.AddThatAsVariable(envToAddTo, sig[i].VarName.Literal, vAcc, altType(head[i].T), sig[i].VarName)
 		} else {
 			allowedTypes := iz.cp.GetAlternateTypeFromTypeAst(sig[i].VarType)
 			if allowedTypes.IsNoneOf(head[i].T) {
-				iz.throw("comp/assign/type/a", asgn.indexTok, sig[i].VarName, iz.cp.GetTypeNameFromNumber(head[i].T))
+				iz.throw("comp/assign/type/a", asgn.indexTok, sig[i].VarName.Literal, iz.cp.GetTypeNameFromNumber(head[i].T))
 				return
 			} else {
-				iz.cp.AddThatAsVariable(envToAddTo, sig[i].VarName, vAcc, allowedTypes, rhs.GetToken())
+				iz.cp.AddThatAsVariable(envToAddTo, sig[i].VarName.Literal, vAcc, allowedTypes, sig[i].VarName)
 			}
 		}
 	}
@@ -1477,11 +1477,11 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 		iz.cp.Reserve(values.UNDEFINED_TYPE, DUMMY, &izFn.op)
 		if parser.IsRef(pair.VarType) {
 			referenceVariables = append(referenceVariables, iz.cp.That())
-			iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.REFERENCE_VARIABLE, iz.cp.Common.AnyTypeScheme, &izFn.op)
+			iz.cp.AddThatAsVariable(fnenv, pair.VarName.Literal, compiler.REFERENCE_VARIABLE, iz.cp.Common.AnyTypeScheme, &izFn.op)
 			continue
 		}
 		if !parser.IsAstBling(pair.VarType) {
-			iz.cp.AddThatAsVariable(fnenv, pair.VarName, compiler.FUNCTION_ARGUMENT, iz.cp.GetAlternateTypeFromTypeAst(pair.VarType), &izFn.op)
+			iz.cp.AddThatAsVariable(fnenv, pair.VarName.Literal, compiler.FUNCTION_ARGUMENT, iz.cp.GetAlternateTypeFromTypeAst(pair.VarType), &izFn.op)
 		}
 	}
 	cpFn.HiReg = iz.cp.MemTop()
@@ -1518,7 +1518,7 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 				}
 				iz.cp.AddThatAsVariable(fnenv, param.Name, compiler.TYPE_ARGUMENT, iz.cp.GetAlternateTypeFromConcreteTypeName(param.Type), &izFn.op)
 			}
-			variable, _ := fnenv.GetVar(pair.VarName)
+			variable, _ := fnenv.GetVar(pair.VarName.Literal)
 			iz.cp.Emit(vm.Yeet, yeetTo, variable.MLoc)
 		}
 	}

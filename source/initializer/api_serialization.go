@@ -41,7 +41,7 @@ func (iz *Initializer) SerializeApi() string {
 			if info.ParentType == "struct" {
 				for _, pair := range info.Sig { // We iterate by the label and not by the value so that we can have hidden fields in the structs, as we do for efficiency when making a compilable snippet.
 					buf.WriteString(" | ")
-					buf.WriteString(pair.VarName)
+					buf.WriteString(pair.VarName.Literal)
 					buf.WriteString(" ")
 					buf.WriteString(iz.serializeAbstractType(iz.cp.GetAbstractTypeFromAstType(pair.VarType)))
 				}
@@ -165,7 +165,7 @@ func (iz *Initializer) SerializeApi() string {
 				buf.WriteString(strconv.Itoa(int(fn.pos)))
 				for _, ntp := range fn.sig {
 					buf.WriteString(" | ")
-					buf.WriteString(ntp.VarName)
+					buf.WriteString(ntp.VarName.Literal)
 					buf.WriteString(" ")
 					if _, ok := ntp.VarType.(*parser.TypeBling); ok {
 						buf.WriteString("bling")

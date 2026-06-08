@@ -646,7 +646,7 @@ func GetVariableNames(n Node) dtypes.Set[string] {
 	case *FuncExpression:
 		params := dtypes.Set[string]{}
 		for _, pair := range n.NameSig {
-			params.Add(pair.VarName)
+			params.Add(pair.VarName.Literal)
 		}
 		// We find all the identifiers that we declare in the 'given' block.
 		locals, rhs := GetVariablesFromLhsAndRhsOfAssignments(n.Given)
@@ -690,7 +690,7 @@ func GetPrefixes(n Node) dtypes.Set[string] {
 	case *FuncExpression:
 		params := dtypes.Set[string]{}
 		for _, pair := range n.NameSig {
-			params.Add(pair.VarName)
+			params.Add(pair.VarName.Literal)
 		}
 		// We find all the identifiers that we declare in the 'given' block of the lambda.
 		locals, rhs := GetPrefixesFromLhsAndRhsOfAssignments(n.Given)
@@ -746,7 +746,7 @@ func ExtractAllNames(node Node) dtypes.Set[string] {
 	case *FuncExpression:
 		params := dtypes.Set[string]{}
 		for _, pair := range n.NameSig {
-			params.Add(pair.VarName)
+			params.Add(pair.VarName.Literal)
 		}
 		// We find all the identifiers that we declare in the 'given' block of the lambda.
 		locals, rhs := ExtractNamesFromLhsAndRhsOfGivenBlock(n.Given)
