@@ -969,7 +969,6 @@ NodeTypeSwitch:
 					if cp.Pool != nil && resolvingCompiler == cp && variable.Token != nil && 
 		   				variable.Access == GLOBAL_VARIABLE_PRIVATE && !cp.Pool.Check(node.Token.Source, variable.Token.Source) {
 						cp.Throw("comp/private/global", variable.Token)
-						panic("Varible is " + arg.Value)
 						cp.GlobalConsts.Ext = nil
 						return FAIL
 					}

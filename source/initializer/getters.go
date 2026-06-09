@@ -275,3 +275,21 @@ func ExtractFileName(s string) string {
 	filenameWithExt := filepath.Base(s)
 	return strings.TrimSuffix(filenameWithExt, filepath.Ext(filenameWithExt))
 }
+
+func fileCanInclude(fileA, fileB string) bool {
+	sysRoot := filepath.VolumeName(fileA)
+	if sysRoot == "" {
+		sysRoot = "/" 
+	}
+	absA := filepath.Join(sysRoot, fileA)
+	absB := filepath.Join(sysRoot, fileB)
+	dirA := filepath.Dir(absA)
+	dirB := filepath.Dir(absB)
+	if !strings.HasSuffix(dirA, string(filepath.Separator)) {
+		dirA += string(filepath.Separator)
+	}
+	if !strings.HasSuffix(dirB, string(filepath.Separator)) {
+		dirB += string(filepath.Separator)
+	}
+	return strings.HasPrefix(dirB, dirA)
+}

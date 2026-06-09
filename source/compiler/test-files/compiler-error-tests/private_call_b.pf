@@ -1,0 +1,8 @@
+import
+
+NULL::"foo.pf"
+
+def
+
+double(i int) :
+    twice i 

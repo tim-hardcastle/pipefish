@@ -1,0 +1,17 @@
+include 
+
+"foo.pf"
+
+def
+
+double(i int) :
+    twice i 
+
+quxify(i int) :
+    QUX * i
+
+cmd 
+
+getZort :
+    global zort 
+    post zort 

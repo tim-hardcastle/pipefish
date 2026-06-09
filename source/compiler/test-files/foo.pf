@@ -1,0 +1,12 @@
+const private 
+
+QUX = 42
+
+var private
+
+zort = 99
+
+def private
+
+twice(i int) :
+    i + i

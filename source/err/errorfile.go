@@ -1215,6 +1215,15 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"init/include/file": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "file " + emph(args[0]) + " to be included is not in scope of file " + emph(args[1])
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "What it says. Pipefish is trying to import something from the given filepath and failing."
+		},
+	},
+
 	"init/interface/colon": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "unexpected occurrence of " + emph(tok.Literal)

@@ -578,6 +578,10 @@ func TestItes(t *testing.T) {
 		{`try/return`, `OK`},
 		{`try/var`, `OK`},
 		{`type/known`, `OK`},
+		// These check that NULL imports don't behave like `include`s.
+		{`private/global`, `OK`},
+		{`private/ident.b`, `OK`},
+		{`private/call.b`, `OK`},
 		// Tests for failing upwards.
 		{`break fail`, `comp/eq/types`},
 		{`try fail`, `comp/eq/types`},
@@ -599,6 +603,17 @@ func TestImports(t *testing.T) {
 	}
 	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
 }
+
+func TestInclude(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`double 7`, `14`},
+		{`quxify 1`, `42`},
+		{`getZort`, `OK`},
+	
+	}
+	test_helper.RunTest(t, "include_test.pf", tests, test_helper.TestValues)
+}
+
 
 func TestIndexing(t *testing.T) {
 	tests := []test_helper.TestItem{

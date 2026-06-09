@@ -70,7 +70,7 @@
 		"headwords": {
 			"patterns": [{
 					"name": "keyword.control",
-					"match": "\\b(cmd|const|def|external|import|newtype|private|test|var)\\b"
+					"match": "\\b(cmd|const|def|external|import|include|newtype|private|test|var)\\b"
 			}]
 		},
 		"types": {

@@ -1,0 +1,9 @@
+import
+
+NULL::"foo.pf"
+
+cmd 
+
+getZort :
+    global zort 
+    post zort 

@@ -234,12 +234,14 @@ func (iz *Initializer) addToNamespace(thingsToImport []tokenizedCode) {
 			private = dec.private
 		case *tokenizedIncludeDeclaration:
 			pathTok = dec.path
+			path := pathTok.Literal
 			private = dec.private
 			absSource, _ := filepath.Abs(dec.path.Source)
-			absPath, _ := filepath.Abs(dec.path.Literal)
-			relativePath, _ := filepath.Rel(filepath.Dir(absSource), absPath)
-			if strings.HasPrefix(relativePath, "..") {
-				iz.throw("init/include/filepath", &pathTok)
+			if !filepath.IsAbs(path) {
+				path, _ = filepath.Abs(filepath.Join(filepath.Dir(absSource), path))
+			}
+			if !fileCanInclude(absSource, path) {
+				iz.throw("init/include/file", &pathTok, path, absSource)
 				continue
 			}
 		default:

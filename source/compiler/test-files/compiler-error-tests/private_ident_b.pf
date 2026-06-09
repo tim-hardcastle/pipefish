@@ -1,0 +1,8 @@
+import
+
+NULL::"foo.pf"
+
+def
+
+quxify(i int) :
+    QUX * i
