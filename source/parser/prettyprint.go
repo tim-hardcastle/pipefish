@@ -218,6 +218,8 @@ func (p *Parser) prettyPrint(node Node, ctxt printContext) string {
 		out.WriteString("[")
 		out.WriteString(p.prettyPrint(node.List, inlineCtxt))
 		out.WriteString("]")
+	case *LogExpression:
+		out.WriteString(node.String())
 	case *Nothing:
 		out.WriteString("()")
 	case *PipingExpression:
@@ -383,6 +385,9 @@ func (p *Parser) prettyPrint(node Node, ctxt printContext) string {
 	case *UnfixExpression:
 		out.WriteString(node.Operator)
 	default:
+		if node == nil {
+			panic("Trying to prettyprint nil node")
+		}
 		panic("Unhandled case in prettyprint: " + reflect.TypeOf(node).String())
 	}
 	return out.String()
