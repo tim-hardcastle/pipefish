@@ -15,7 +15,7 @@ cmd
 get (x ref) from (b BmpFile) :
     x = goGetBmpFile(b[name])
 
-save (I Image, b BmpFile) :
+post(I Image) to (b BmpFile) :
     goSaveBmpFile(I, width(I), height(I), b[name])
 
 private

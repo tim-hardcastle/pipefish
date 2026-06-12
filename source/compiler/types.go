@@ -75,7 +75,7 @@ func IsMoreSpecific(sigA, sigB parser.AbstractSig) (result bool, ok bool) {
 			if sigA[i].VarName == sigB[i].VarName {
 				continue
 			} else {
-				return false, true
+				return aIsMoreSpecific, true
 			}
 		}
 		if i >= len(sigB) || i >= len(sigA) {
@@ -101,7 +101,7 @@ func IsMoreSpecific(sigA, sigB parser.AbstractSig) (result bool, ok bool) {
 			}
 		}
 		if !(asubb || bsuba || sigA[i].VarType.Equals(sigB[i].VarType)) {
-			return false, true
+			return aIsMoreSpecific, true
 		}
 	}
 	if !(aIsMoreSpecific || bIsMoreSpecific) {

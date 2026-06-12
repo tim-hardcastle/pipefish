@@ -1,7 +1,7 @@
 newtype 
 
 Keyboard = struct(prompt string)
-Screen = struct()
+Terminal = struct()
 
 cmd private
 
@@ -9,7 +9,7 @@ posttoterminalmaker(x any?) : builtin "post_to_terminal"
 
 cmd
 
-post (x any?) to (s Screen): posttoterminalmaker(x)
+post (x any?) to (s Terminal): posttoterminalmaker(x)
 
 get (x ref) from (k Keyboard) : builtin "get_from_input"
 
