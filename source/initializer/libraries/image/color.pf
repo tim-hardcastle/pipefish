@@ -40,8 +40,8 @@ YCbCr = struct(y, cb, cr int) :
     0 <= cr and cr < 256
 
 ~~ Represents a shade of gray in 8-bit gray scale.
-Gray = clone int :
-    0 <= that and that < 256
+Gray = struct(g int) :
+    0 <= g and g < 256
 
 ~~ The abstract type containing the various color types, `Rgb`, `Rgba`, `Cmyk`, etc.
 Color = abstract Cmyk/Rgb/Rgba
@@ -56,3 +56,5 @@ swatch(c Color) :
         "\e[38;2;" + string(c[r] div 256) + ";" + string(c[g] div 256) + ";" + string(c[b] div 256) + "m█\e[0m"
     else :
         error "I don't know how to do that"
+
+

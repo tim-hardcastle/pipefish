@@ -59,4 +59,3 @@ string(I Image) :
     "Image of width " + string(width I) + " and height " + string(height I) + modelDescription
 given :
     modelDescription = (valid(model I) : " with color model " + string(model I) ; else : "")
-

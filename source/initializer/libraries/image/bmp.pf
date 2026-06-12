@@ -26,29 +26,7 @@ goSaveBmpFile(I Image, width, height int, filename string) : golang {
 		return err
 	}
 	defer file.Close()
-    img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{width, height}})
-    for x, col := range I {
-        for y, pixel := range col.([]any) {
-            switch pixel := pixel.(type) {
-            case Cmyk :
-                img.Set(x, y, color.CMYK{uint8(pixel.C), uint8(pixel.M), uint8(pixel.Y), uint8(pixel.K)})
-            case Gray :
-                img.Set(x, y, color.Gray{uint8(pixel)})
-            case Rgb :
-                img.Set(x, y, color.RGBA{uint8(pixel.R), uint8(pixel.G), uint8(pixel.B), 255})
-            case Rgb_64 :
-                img.Set(x, y, color.RGBA{uint8(pixel.R/256), uint8(pixel.G/256), uint8(pixel.B/256), 255})
-            case Rgba :
-                img.Set(x, y, color.RGBA{uint8(pixel.R), uint8(pixel.G), uint8(pixel.B), uint8(pixel.A)})
-            case Rgba_64 :
-                img.Set(x, y, color.RGBA{uint8(pixel.R/256), uint8(pixel.G/256), uint8(pixel.B/256), uint8(pixel.A/256)})
-            case YCbCr :
-                img.Set(x, y, color.YCbCr{uint8(pixel.Y), uint8(pixel.Cb), uint8(pixel.Cr)})
-            default:
-                panic("Unhandled case")
-            }
-        }
-    }
+    img := pfImageToGoImage(I, width, height)
 	err = bmp.Encode(file, img)
 	if err != nil {
 		return err
@@ -81,10 +59,39 @@ goGetBmpFile(filename string) -> Image/error : golang {
     return result
 }
 
+private
+
 golang {
     func goColorToPfColor(pixel color.Color) Rgba {
         r, g, b, a  := pixel.RGBA()
         return Rgba{int(r)/256, int(g)/256, int(b)/256, int(a)/256}
+    }
+
+    func pfImageToGoImage(I Image, width, height int) image.Image {
+        img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{width, height}})
+        for x, col := range I {
+            for y, pixel := range col.([]any) {
+                switch pixel := pixel.(type) {
+                case Cmyk :
+                    img.Set(x, y, color.CMYK{uint8(pixel.C), uint8(pixel.M), uint8(pixel.Y), uint8(pixel.K)})
+                case Gray :
+                    img.Set(x, y, color.Gray{uint8(pixel.G)})
+                case Rgb :
+                    img.Set(x, y, color.RGBA{uint8(pixel.R), uint8(pixel.G), uint8(pixel.B), 255})
+                case Rgb_64 :
+                    img.Set(x, y, color.RGBA{uint8(pixel.R/256), uint8(pixel.G/256), uint8(pixel.B/256), 255})
+                case Rgba :
+                    img.Set(x, y, color.RGBA{uint8(pixel.R), uint8(pixel.G), uint8(pixel.B), uint8(pixel.A)})
+                case Rgba_64 :
+                    img.Set(x, y, color.RGBA{uint8(pixel.R/256), uint8(pixel.G/256), uint8(pixel.B/256), uint8(pixel.A/256)})
+                case YCbCr :
+                    img.Set(x, y, color.YCbCr{uint8(pixel.Y), uint8(pixel.Cb), uint8(pixel.Cr)})
+                default:
+                    panic("Unhandled case")
+                }
+            }
+        }
+        return img
     }
 }
 
