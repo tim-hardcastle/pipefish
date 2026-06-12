@@ -3,65 +3,6 @@ import
 golang "fmt" // TODO --- we only need this 'cos we can't handle escapes properly in the lexer.
 NULL::"image/color"
 
-newtype 
-
-~~ Represents a fully opaque color in the CMYK color model, with 8 bit for each dimension.
-Cmyk = struct(c, m, y, k int) :
-    0 <= c and c < 256
-    0 <= m and m < 256
-    0 <= y and y < 256
-    0 <= k and k < 256
-
-~~ Represents a color in the RGBA color model, with 8 bits for each dimension.
-Rgba = struct(r, g, b, a int) :
-    0 <= r and r < 256
-    0 <= g and g < 256
-    0 <= b and b < 256
-    0 <= a and a < 256
-
-~~ Like `Rgba`, but every color is fully opaque.
-Rgb = struct(r, g, b int) :
-    0 <= r and r < 256
-    0 <= g and g < 256
-    0 <= b and b < 256
-
-~~ Represents a color in the RGBA color model, with 16 bits for each dimension.
-Rgba_64 = struct(r, g, b, a int) :
-    0 <= r and r < 65536
-    0 <= g and g < 65536
-    0 <= b and b < 65536
-    0 <= a and a < 65536
-
-~~ Like `Rgba_64`, but every color is fully opaque.
-Rgb_64 = struct(r, g, b int) :
-    0 <= r and r < 65536
-    0 <= g and g < 65536
-    0 <= b and b < 65536
-
-~~ Representation of a fully opaque 24-bit Y'CbCr color, having 8 bits each for one luma and two chroma components.
-YCbCr = struct(y, cb, cr) :
-    0 <= y and y < 256
-    0 <= cb and cb < 256
-    0 <= cr and cr < 256
-
-~~ Represents a shade of gray in 8-bit gray scale.
-Gray = clone int :
-    0 <= that and that < 256
-
-~~ The abstract type containing the various color types, `Rgb`, `Rgba`, `Cmyk`, etc.
-Color = abstract Cmyk/Rgb/Rgba
-
-def
-
-~~ Returns a string consisting of "█" with control codes so that it'll display the given color.
-swatch(c Color) :
-    c in Rgb/Rgba :
-        "\e[38;2;" + string(c[r]) + ";" + string(c[g]) + ";" + string(c[b]) + "m█\e[0m"
-    c in Rgb_64/Rgba_64 :
-        "\e[38;2;" + string(c[r] div 256) + ";" + string(c[g] div 256) + ";" + string(c[b] div 256) + "m█\e[0m"
-    else :
-        error "I don't know how to do that"
-
 newtype
 
 ~~ The metadata for an `Image`.
@@ -119,7 +60,3 @@ string(I Image) :
 given :
     modelDescription = (valid(model I) : " with color model " + string(model I) ; else : "")
 
-
-const
-
-COL = [Rgb(25, 30, 35), Rgb(225, 230, 235), Rgb(25, 30, 35), Rgb(225, 230, 235)]
