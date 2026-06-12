@@ -1,8 +1,8 @@
 module github.com/tim-hardcastle/pipefish
 
-go 1.25
+go 1.25.0
 
-require golang.org/x/sys v0.38.0 // indirect
+require golang.org/x/sys v0.44.0 // indirect
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.13.0 // indirect
@@ -61,12 +61,13 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
-	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/image v0.42.0 // indirect
+	golang.org/x/mod v0.36.0 // indirect
+	golang.org/x/net v0.54.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/tools v0.45.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
 	gonum.org/v1/gonum v0.12.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -90,8 +91,8 @@ require (
 	github.com/sijms/go-ora v1.3.2
 	github.com/wk8/go-ordered-map/v2 v2.1.8
 	github.com/wundergraph/astjson v1.0.0
-	golang.org/x/crypto v0.41.0
-	golang.org/x/term v0.37.0
+	golang.org/x/crypto v0.51.0
+	golang.org/x/term v0.43.0
 	modernc.org/sqlite v1.31.1
 	src.elv.sh v0.20.1
 )

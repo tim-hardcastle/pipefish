@@ -399,8 +399,8 @@ NodeTypeSwitch:
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}
-		if cp.Pool != nil && resolvingCompiler == cp && v.Token != nil && 
-		   v.Access == GLOBAL_CONSTANT_PRIVATE && !cp.Pool.Check(node.Token.Source, v.Token.Source) {
+		if cp.Pool != nil && resolvingCompiler == cp && v.Token != nil &&
+			v.Access == GLOBAL_CONSTANT_PRIVATE && !cp.Pool.Check(node.Token.Source, v.Token.Source) {
 			cp.Throw("comp/private/ident.b", node.GetToken())
 			cp.GlobalConsts.Ext = nil
 			return FAIL
@@ -966,8 +966,8 @@ NodeTypeSwitch:
 						cp.Throw("comp/global/global", arg.GetToken())
 						return FAIL
 					}
-					if cp.Pool != nil && resolvingCompiler == cp && variable.Token != nil && 
-		   				variable.Access == GLOBAL_VARIABLE_PRIVATE && !cp.Pool.Check(node.Token.Source, variable.Token.Source) {
+					if cp.Pool != nil && resolvingCompiler == cp && variable.Token != nil &&
+						variable.Access == GLOBAL_VARIABLE_PRIVATE && !cp.Pool.Check(node.Token.Source, variable.Token.Source) {
 						cp.Throw("comp/private/global", variable.Token)
 						cp.GlobalConsts.Ext = nil
 						return FAIL
@@ -1123,7 +1123,7 @@ NodeTypeSwitch:
 			rhs := uint32(DUMMY)
 			switch chunk := chunk.(type) {
 			case *parser.InfixExpression:
-				if dtypes.From(vm.Gthf, vm.Gtef, vm.Gthi, vm.Gtei).Contains(penultimateCode.Opcode) && oldTop+2 == cp.CodeTop() {
+				if dtypes.SetOf(vm.Gthf, vm.Gtef, vm.Gthi, vm.Gtei).Contains(penultimateCode.Opcode) && oldTop+2 == cp.CodeTop() {
 					switch chunk.Operator {
 					case ">", ">=":
 						lhs = penultimateCode.Args[1]
@@ -1134,11 +1134,11 @@ NodeTypeSwitch:
 					}
 				}
 			case *parser.ComparisonExpression:
-				if dtypes.From(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(lastCode.Opcode) {
+				if dtypes.SetOf(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(lastCode.Opcode) {
 					lhs = lastCode.Args[1]
 					rhs = lastCode.Args[2]
 				} else {
-					if dtypes.From(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(penultimateCode.Opcode) && oldTop+2 == cp.CodeTop() {
+					if dtypes.SetOf(vm.Equi, vm.Equs, vm.Equb, vm.Equf, vm.Equt, vm.Eqxx).Contains(penultimateCode.Opcode) && oldTop+2 == cp.CodeTop() {
 						lhs = penultimateCode.Args[1]
 						rhs = penultimateCode.Args[2]
 					}
@@ -2186,7 +2186,7 @@ func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt
 	}
 	for i, pair := range sig {
 		v, alreadyExists := ctxt.Env.GetVar(pair.VarName.Literal) // In that case we have an inner function declaration and the sig will have length 1.
-		var typeToUse AlternateType                       // TODO: we can extract more meaningful information about the tuple from the types.
+		var typeToUse AlternateType                               // TODO: we can extract more meaningful information about the tuple from the types.
 		if t, ok := pair.VarType.(*parser.TypeWithName); ok && t.OperatorName == "tuple" {
 			typeToUse = cp.Common.AnyTuple
 		} else {
@@ -2560,7 +2560,7 @@ var errorCodes = map[typeCheckFlavor]string{
 
 // When these encounter an error as a value, or when the typecheck fails and produces an error,
 // these flavors of typecheck return a `BkEarlyReturn` which can be used to return the error to wherever.
-var earlyReturners = dtypes.From[typeCheckFlavor](
+var earlyReturners = dtypes.SetOf[typeCheckFlavor](
 	CHECK_GLOBAL_ASSIGNMENTS,
 	CHECK_LAMBDA_PARAMETERS,
 	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION,
@@ -2570,7 +2570,7 @@ var earlyReturners = dtypes.From[typeCheckFlavor](
 )
 
 // Things that should show the expression that was the source of the value in their error messages.
-var showExpression = dtypes.From[typeCheckFlavor](
+var showExpression = dtypes.SetOf[typeCheckFlavor](
 	CHECK_GIVEN_ASSIGNMENTS,
 	CHECK_LOOP_BOUND_VARIABLE_INITIALIZATION,
 	CHECK_LOOP_INDEX_VARIABLE_INITIALIZATION,

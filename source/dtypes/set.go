@@ -10,7 +10,7 @@ func MakeFromSlice[E comparable](slice []E) Set[E] {
 	return S
 }
 
-func From[E comparable](slice ...E) Set[E] {
+func SetOf[E comparable](slice ...E) Set[E] {
 	S := Set[E]{}
 	for _, v := range slice {
 		S.Add(v)

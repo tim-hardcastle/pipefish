@@ -269,13 +269,13 @@ type hubWriter struct {
 }
 
 // Things that only make sense if we have RBAM set up.
-var rbamVerbs = dtypes.From("add", "change-password", "create-group", "forgot-password", "groups",
+var rbamVerbs = dtypes.SetOf("add", "change-password", "create-group", "forgot-password", "groups",
 	"groups-of-service", "groups-of-user", "let-own", "let-use", "log-off", "log-on",
 	"nuke-account", "nuke-admin", "register", "services of group", "services-of-user", "unadd", "uncreate",
 	"unlet-own", "unlet-use", "unregister", "users-of-service", "users-of-group")
 
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
-var greenList = dtypes.From("change-password", "forgot-password", "log-on", "log-off", "groups",
+var greenList = dtypes.SetOf("change-password", "forgot-password", "log-on", "log-off", "groups",
 	"nuke-account", "register", "services", "switch")
 
 func (hw hubWriter) Write(b []byte) (int, error) {
@@ -1148,7 +1148,7 @@ type jsonRequest = struct {
 }
 
 type jsonResponse = struct {
-	Body    string
+	Body string
 }
 
 func (h *Hub) handleJsonRequest(w http.ResponseWriter, r *http.Request) {

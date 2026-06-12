@@ -240,7 +240,7 @@ func (vm *Vm) getTypecheck(typeNumber values.ValueType) *ValidationInfo {
 	return nil
 }
 
-var NON_CONTAINERS = dtypes.From[values.ValueType](values.BOOL, values.INT, values.STRING, values.TYPE)
+var NON_CONTAINERS = dtypes.SetOf[values.ValueType](values.BOOL, values.INT, values.STRING, values.TYPE)
 
 func (vm *Vm) getFields(pointerList []any, typeList []values.AbstractType, tok uint32) ([]values.Value, values.Value) {
 	fields := make([]values.Value, 0, len(pointerList))

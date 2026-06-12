@@ -176,18 +176,18 @@ func val(T values.ValueType, V any) values.Value {
 }
 
 var (
-	nondecimalIndicators = dtypes.From('b', 'B', 'o', 'O', 'x', 'X')
-	control              = dtypes.From("break", "continue", "else", "test", "try")
-	reserved             = dtypes.From("and", "false", "given", "not", "or", "true", "->", ">>", "?>", "--")
-	illegalInRepl        = dtypes.From("cmd", "const", "def", "external", "global", "golang", "import", "include", "newtype", "private", "var", "\\\\", "~~")
+	nondecimalIndicators = dtypes.SetOf('b', 'B', 'o', 'O', 'x', 'X')
+	control              = dtypes.SetOf("break", "continue", "else", "test", "try")
+	reserved             = dtypes.SetOf("and", "false", "given", "not", "or", "true", "->", ">>", "?>", "--")
+	illegalInRepl        = dtypes.SetOf("cmd", "const", "def", "external", "global", "golang", "import", "include", "newtype", "private", "var", "\\\\", "~~")
 	// Used by the syntax highlighter; should not be used by anything else without much forethought.
 	// TODO --- there must be some principled way to generate this from something else.
-	nativeTypes   = dtypes.From("ok", "int", "string", "rune", "bool", "float", "error", "type", "pair", "list", "map", "set", "label", "func", "null", "snippet", "clone", "clones", "enum", "struct", "any", "ref", "tuple")
+	nativeTypes   = dtypes.SetOf("ok", "int", "string", "rune", "bool", "float", "error", "type", "pair", "list", "map", "set", "label", "func", "null", "snippet", "clone", "clones", "enum", "struct", "any", "ref", "tuple")
 	enumlike, _   = regexp.Compile(`^[A-Z][A-Z_]+$`)
 	typelike, _   = regexp.Compile(`^[A-Z][A-Z]*[a-z]+[A-Za-z]*$`)
 	bracketMatch  = map[rune]rune{'(': ')', '[': ']', '{': '}'}
-	leftBrackets  = dtypes.From('(', '[', '{')
-	rightBrackets = dtypes.From(')', ']', '}')
+	leftBrackets  = dtypes.SetOf('(', '[', '{')
+	rightBrackets = dtypes.SetOf(')', ']', '}')
 )
 
 // We can't just lex it beause we need the whitespace intact. But we can
@@ -423,7 +423,7 @@ func (ic InclusionPool) Add(s, t string) {
 		set = set.Add(t)
 		ic[s] = set
 	} else {
-		ic[s] = dtypes.From(s, t)
+		ic[s] = dtypes.SetOf(s, t)
 	}
 	for _, set := range ic {
 		for otherEl, _ := range set {
@@ -438,4 +438,3 @@ func (ic InclusionPool) Check(s, t string) bool {
 	}
 	return ic[s].Contains(t)
 }
-

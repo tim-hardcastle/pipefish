@@ -234,12 +234,13 @@ func AsBling(s string) parser.TypeNode {
 	return &parser.TypeBling{token.Token{}, s}
 }
 
-var StandardLibraries = dtypes.From[string]("crypto/aes", "crypto/bcrypt",
-	"crypto/rand", "crypto/rsa", "crypto/sha_256", "crypto/sha_512", "database/sql",
-	"encoding/csv", "encoding/base_32", "encoding/base_64", "encoding/json", "files",
-	"fmt", "html", "lists", "markdown", "math", "math/big", "math/cmplx", "math/rand",
-	"net/http", "net/mail", "net/smtp", "net/url", "os/exec", "path", "path/filepath",
-	"reflect", "regexp", "strings", "strconv", "terminal", "time", "unicode")
+var StandardLibraries = dtypes.SetOf("crypto/aes", "crypto/bcrypt", "crypto/rand",
+	"crypto/rsa", "crypto/sha_256", "crypto/sha_512", "database/sql", "encoding/csv",
+	"encoding/base_32", "encoding/base_64", "encoding/json", "files", "fmt", "html",
+	"image", "image/bmp", "image/color", "image/jpeg", "image/png", "lists", "markdown",
+	"math", "math/big", "math/cmplx", "math/rand", "net/http", "net/mail", "net/smtp",
+	"net/url", "os/exec", "path", "path/filepath", "reflect", "regexp", "strings",
+	"strconv", "terminal", "time", "unicode")
 
 func MakeFilepath(scriptFilepath string) string {
 	doctoredFilepath := strings.Clone(scriptFilepath)
@@ -279,7 +280,7 @@ func ExtractFileName(s string) string {
 func fileCanInclude(fileA, fileB string) bool {
 	sysRoot := filepath.VolumeName(fileA)
 	if sysRoot == "" {
-		sysRoot = "/" 
+		sysRoot = "/"
 	}
 	absA := filepath.Join(sysRoot, fileA)
 	absB := filepath.Join(sysRoot, fileB)

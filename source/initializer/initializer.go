@@ -48,7 +48,7 @@ type Initializer struct {
 	structDeclarationNumberToTypeNumber map[int]values.ValueType                     // Maps the order of the declaration of the struct in the script to its type number in the VM. TODO --- there must be something better than this.
 	unserializableTypes                 dtypes.Set[string]                           // Keeps track of which abstract types are mandatory imports/singletons of a concrete type so we don't try to serialize them.
 	reverseAliasMap                     map[string][]string                          // Maps a type to the types that alias it.
-	inclusions                          dtypes.Set[string]                           // Sources included into the root file of the module, 
+	inclusions                          dtypes.Set[string]                           // Sources included into the root file of the module,
 
 	functionTable functionTable // Intermediate step towards constructing the FunctinTree used by the compiler.
 
@@ -122,8 +122,8 @@ func newCompiler(Common *parser.CommonParserBindle, ccb *compiler.CommonCompiler
 	file, _ := os.Stat(scriptFilepath)
 	if file == nil { // E.g. the empty service.
 		cp.Sources = map[string]int64{}
-	} else { 
-		cp.Sources = map[string]int64{scriptFilepath:file.ModTime().UnixMilli()}
+	} else {
+		cp.Sources = map[string]int64{scriptFilepath: file.ModTime().UnixMilli()}
 	}
 	cp.Vm = mc
 	mc.Tests = append(mc.Tests, []vm.TestInfo{})
@@ -246,7 +246,7 @@ func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*co
 	iz.cmI("Making description of API for compiler.")
 	iz.describeApi()
 
-	iz.cp.Pool =  nil
+	iz.cp.Pool = nil
 
 	return result
 
@@ -1002,7 +1002,7 @@ func (iz *Initializer) compileGoModules() {
 	iz.compileGo() // This is in 'gohandler.go' in this package.
 }
 
-var IMPERATIVES = dtypes.From(commandDeclaration, testDeclaration)
+var IMPERATIVES = dtypes.SetOf(commandDeclaration, testDeclaration)
 
 // We compile the constants, variables, functions, and commands.
 func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // TODO --- do we do anything with the return type?
@@ -1017,9 +1017,6 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	// * A function, variable or constant can't depend on a command.
 	// * A constant can't depend on a variable.
 	// * A variable or constant can't depend on itself.
-
-
-	
 
 	iz.cmI("Mapping variable names to the parsed code chunks in which they occur.")
 	iz.cp.GlobalVars.Ext = iz.cp.GlobalConsts
@@ -1039,7 +1036,6 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			}
 		}
 	}
-
 
 	iz.cmI("Adding clone validation to declarations.")
 	for i, pc := range iz.parsedCode[cloneDeclaration] {
@@ -1087,13 +1083,13 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			return nil
 		}
 	}
-	
+
 	i := 0
 	for _, v := range iz.parameterizedInstanceMap {
 		if v.validation.Length() == 0 {
 			continue
 		}
-		name := v.astType.String() 
+		name := v.astType.String()
 		v.validation.ToStart()
 		iz.P.TokenizedCode = v.validation
 		node := iz.P.ParseTokenizedChunk()
@@ -1175,7 +1171,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	// Service variables which tell the compiler how to compile things must be
 	// set before we compile the functions, and so can't be calculated but must
 	// be literal.
-	compilerDirectives := dtypes.From("$_logging", "$_logTo", "$_logTime")
+	compilerDirectives := dtypes.SetOf("$_logging", "$_logTo", "$_logTime")
 	// Add variables to environment.
 	for svName, svData := range serviceVariables {
 		rhs, ok := graph.Get(svName)

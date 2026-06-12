@@ -83,7 +83,7 @@ func (r *removeNewlineAfter) chain(ts tokensSupplier) {
 }
 
 // Headwords are added in the method.
-var REMOVE_NEWLINE_AFTER = dtypes.From[token.TokenType](
+var REMOVE_NEWLINE_AFTER = dtypes.SetOf[token.TokenType](
 	token.COLON, token.GIVEN, token.NEWLINE, token.PRIVATE,
 )
 
@@ -109,7 +109,7 @@ func (r *removeNewlineBefore) chain(ts tokensSupplier) {
 	r.acc = newAccessor(ts)
 }
 
-var REMOVE_NEWLINE_BEFORE = dtypes.From[token.TokenType](
+var REMOVE_NEWLINE_BEFORE = dtypes.SetOf[token.TokenType](
 	token.EOF, token.END, token.GIVEN, token.NEWLINE, token.RPAREN,
 )
 
@@ -134,7 +134,7 @@ func (r *removeTrailingCommas) chain(ts tokensSupplier) {
 	r.acc = newAccessor(ts)
 }
 
-var REMOVE_COMMA_BEFORE = dtypes.From[token.TokenType](
+var REMOVE_COMMA_BEFORE = dtypes.SetOf[token.TokenType](
 	token.END, token.RBRACK, token.RPAREN,
 )
 

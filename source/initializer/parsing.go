@@ -61,7 +61,7 @@ func GetSourceCode(scriptFilepath string) (string, error) {
 
 // This is broken into separate named steps basically so that I can in fact give the steps names.
 func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
-	iz.inclusions = dtypes.From(scriptFilepath)
+	iz.inclusions = dtypes.SetOf(scriptFilepath)
 	iz.cmI("Starting parseEverything for script " + scriptFilepath + ".")
 
 	for k, _ := range compiler.BASE_TYPES {
@@ -133,7 +133,7 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 			return
 		}
 		if importsStartAt == len(iz.tokenizedCode[importDeclaration]) &&
-			externalsStartAt == len(iz.tokenizedCode[externalDeclaration]) && 
+			externalsStartAt == len(iz.tokenizedCode[externalDeclaration]) &&
 			includesStartAt == len(iz.tokenizedCode[includeDeclaration]) {
 			break
 		}
@@ -228,7 +228,7 @@ func (iz *Initializer) addToNamespace(thingsToImport []tokenizedCode) {
 	for _, dec := range thingsToImport {
 		var pathTok token.Token
 		private := false
-		switch dec := dec.(type) {	
+		switch dec := dec.(type) {
 		case *tokenizedExternalOrImportDeclaration:
 			pathTok = dec.path
 			private = dec.private

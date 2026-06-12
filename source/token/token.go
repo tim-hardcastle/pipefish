@@ -30,8 +30,8 @@ const (
 	VAR      = "var"
 
 	// Nearly-headwords
-	PRIVATE  = "private"
-	TEST     = "test"
+	PRIVATE = "private"
+	TEST    = "test"
 
 	// Special operations
 	AND = "and"
@@ -145,4 +145,4 @@ var Keywords = map[string]TokenType{
 	"xcall": XCALL,
 }
 
-var HEADWORDS = dtypes.From[TokenType](CMD, CONST, DEF, EXTERNAL, IMPORT, INCLUDE, NEWTYPE, TEST, VAR)
+var HEADWORDS = dtypes.SetOf[TokenType](CMD, CONST, DEF, EXTERNAL, IMPORT, INCLUDE, NEWTYPE, TEST, VAR)

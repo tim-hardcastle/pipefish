@@ -353,7 +353,7 @@ func needsUpdate(cp *compiler.Compiler) (bool, error) {
 // Returns `true` if the last thing the service did produced errors, whether runtime
 // or compile time.
 func (sv *Service) ErrorsExist() (bool, error) {
-	if sv.cp == nil {
+	if sv == nil || sv.cp == nil {
 		return false, errors.New("service is uninitialized")
 	}
 	return sv.cp.P.ErrorsExist(), nil

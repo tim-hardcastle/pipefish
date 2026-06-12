@@ -77,7 +77,7 @@ func TestStack(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
-	st1 := dtypes.From(6, 7, 8, 9)
+	st1 := dtypes.SetOf(6, 7, 8, 9)
 	st2 := dtypes.MakeFromSlice([]int{6, 7, 8}).Add(9)
 	st3 := dtypes.MakeFromSlice([]int{3, 4, 5, 6, 7})
 	if st1.IsEmpty() {

@@ -199,11 +199,11 @@ func (p *Parser) isPositionallyFunctional() bool {
 }
 
 var (
-	nativeInfixes = dtypes.From[token.TokenType](
+	nativeInfixes = dtypes.SetOf[token.TokenType](
 		token.COMMA, token.EQ, token.NOT_EQ, token.ASSIGN, token.GVN_ASSIGN, token.FOR,
 		token.GIVEN, token.LBRACK, token.MAGIC_COLON, token.MAGIC_SEMICOLON, token.PIPE, token.MAPPING,
 		token.FILTER, token.IFLOG)
-	lazyInfixes = dtypes.From[token.TokenType](token.AND,
+	lazyInfixes = dtypes.SetOf[token.TokenType](token.AND,
 		token.OR, token.COLON, token.SEMICOLON, token.NEWLINE)
 )
 
