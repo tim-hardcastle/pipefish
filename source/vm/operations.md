@@ -714,6 +714,11 @@ That is, this implements `typeA/typeB`.
 typx : dst mem
 Type of value
 
+unsf : dst mem mem tok
+Unsafe cast to parameterized clone type
+Casts the value v#1 to the type v#2, where v#2 is (presumably) a parameterized clone type.
+Token n#3 can be used to return an error if the conversion is impossible.
+
 untE : dst mem
 Unthunk error
 This takes the error v#1, converts all the arguments of the error of type uint32 to the values

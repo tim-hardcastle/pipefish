@@ -269,8 +269,9 @@ loop:
 			args := vm.Code[loc].Args
 		Switch:
 			switch vm.Code[loc].Opcode {
-			case Addf: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case Addf: // Unsafe cast to parameterized clone type (dst mem mem tok)
+				// Casts the value v#1 to the type v#2, where v#2 is (presumably) a parameterized clone type.
+				// Token n#3 can be used to return an error if the conversion is impossible.
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(float64) + vm.Mem[args[2]].V.(float64)}
 			case Addi: // Add ints (dst mem mem)
 				// Adds two ints, returning an int.
@@ -375,8 +376,9 @@ loop:
 				vm.callstack = append(vm.callstack, loc)
 				loc = args[0]
 				continue
-			case CalT: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case CalT: // Unsafe cast to parameterized clone type (dst mem mem tok)
+				// Casts the value v#1 to the type v#2, where v#2 is (presumably) a parameterized clone type.
+				// Token n#3 can be used to return an error if the conversion is impossible.
 				paramNumber := args[1]
 				argNumber := 3
 				tupleOrVarargsData := vm.Mem[args[2]].V.([]uint32)
@@ -435,6 +437,10 @@ loop:
 			case CasP: // Cast to parameterized clone type (dst tok mem mem)
 				// Casts the value v#3 to the type v#2, where v#2 is a parameterized clone type.
 				// Token n#1 can be used to return an error if the conversion is impossible.
+				abtype := vm.Mem[args[2]].V.(values.AbstractType).Types
+				if len(abtype) != 0 {
+					vm.Mem[args[0]] = vm.makeError("vm/cast/concrete.b", args[1])
+				}
 				typeNo := vm.Mem[args[2]].V.(values.AbstractType).Types[0]
 				if typeCheck := vm.ConcreteTypeInfo[typeNo].(CloneType).Validation; typeCheck != nil {
 					vm.Mem[typeCheck.TokNumberLoc] = values.Value{values.INT, int(args[1])}
@@ -587,8 +593,9 @@ loop:
 					abType = abType.Union(clones)
 				}
 				vm.Mem[args[0]] = values.Value{values.TYPE, abType}
-			case CoSn: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case CoSn: // Unsafe cast to parameterized clone type (dst mem mem tok)
+				// Casts the value v#1 to the type v#2, where v#2 is (presumably) a parameterized clone type.
+				// Token n#3 can be used to return an error if the conversion is impossible.
 				vm.Mem[args[0]] = values.Value{values.SNIPPET, values.Snippet{vm.Mem[args[1]].V.([]values.Value), nil}}
 			case ConL: // Append element to list  (dst mem mem)
 				// Appends an element to a list, i.e. implements `L & x` where `L` is a list.
@@ -929,8 +936,9 @@ loop:
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(float64) > vm.Mem[args[2]].V.(float64)}
 			case Gthi: // Int comparison with > (dst mem mem)
 				vm.Mem[args[0]] = values.Value{values.BOOL, vm.Mem[args[1]].V.(int) > vm.Mem[args[2]].V.(int)}
-			case IctS: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case IctS: // Unsafe cast to parameterized clone type (dst mem mem tok)
+				// Casts the value v#1 to the type v#2, where v#2 is (presumably) a parameterized clone type.
+				// Token n#3 can be used to return an error if the conversion is impossible.
 				leftSet := vm.Mem[args[1]].V.(values.Set)
 				result := leftSet.Intersect(vm.Mem[args[2]].V.(values.Set))
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, result}
@@ -1375,8 +1383,9 @@ loop:
 					vals[i] = vm.Mem[v]
 				}
 				vm.Mem[args[0]] = values.Value{values.SNIPPET, values.Snippet{vals, sFac.Bindle}}
-			case Mlfi: // Add floats (dst mem mem)
-				// Adds two floats, returning a float.
+			case Mlfi: // Unsafe cast to parameterized clone type (dst mem mem tok)
+				// Casts the value v#1 to the type v#2, where v#2 is (presumably) a parameterized clone type.
+				// Token n#3 can be used to return an error if the conversion is impossible.
 				vm.Mem[args[0]] = values.Value{values.FLOAT, vm.Mem[args[1]].V.(float64) * float64(vm.Mem[args[2]].V.(int))}
 			case Modi: // Modulus of integers (dst mem mem tok)
 				divisor := vm.Mem[args[2]].V.(int)
@@ -1917,6 +1926,28 @@ loop:
 				vm.Mem[args[0]] = values.Value{values.TYPE, lhs.Union(rhs)}
 			case Typx: // Type of value (dst mem)
 				vm.Mem[args[0]] = values.Value{values.TYPE, values.AbstractType{[]values.ValueType{vm.Mem[args[1]].T}}}
+			case Unsf: // Unsafe cast to parameterized clone type (dst mem mem tok)
+				// Casts the value v#1 to the type v#2, where v#2 is (presumably) a parameterized clone type.
+				// Token n#3 can be used to return an error if the conversion is impossible.
+				abtype := vm.Mem[args[2]].V.(values.AbstractType).Types
+				if len(abtype) != 1 {
+					println("concrete.b")
+					vm.Mem[args[0]] = vm.makeError("vm/cast/concrete.b", args[3])
+					break Switch
+				}
+				typeNo := vm.Mem[args[2]].V.(values.AbstractType).Types[0]
+				if info, ok := vm.ConcreteTypeInfo[typeNo].(CloneType); !ok {
+					println("unsafe/clone")
+					vm.Mem[args[0]] = vm.makeError("vm/unsafe/clone", args[3])
+						break Switch
+				} else {
+					if info.Parent != vm.Mem[args[1]].T {
+						println("cast/parent")
+						vm.Mem[args[0]] = vm.makeError("vm/cast/parent", args[3])
+						break Switch
+					}
+				}
+				vm.Mem[args[0]] = values.Value{typeNo, vm.Mem[args[1]].V}
 			case UntE: // Unthunk error (dst mem)
 				// This takes the error v#1, converts all the arguments of the error of type uint32 to the values
 				// in the corresponding memory locations, and returns it in m#0.
@@ -2505,6 +2536,39 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

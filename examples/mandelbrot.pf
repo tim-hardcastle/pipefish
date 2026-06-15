@@ -1,0 +1,38 @@
+import private
+
+NULL::"image/bmp"
+NULL::"math/cmplx"
+
+const private
+
+MAX_ITERATIONS = 80
+ZERO = Complex(0.0, 0.0)
+
+cmd 
+
+~~ Draws the Mandelbrot set and dumps it to a file.
+main :
+    post mbrot() to BmpFile("mb.bmp")
+
+def private
+
+mbrot() :
+    from imX = newImage(800, 800, Rgb(255, 255, 255)) for _::xc = range 800 :
+        from imY = imX for _::yc = range 800 :
+            iterationCount == MAX_ITERATIONS :
+                imY with [xc,yc]::Rgb(0, 0, 0)
+            else :
+                iterationCount mod 2 == 0 :
+                    imY with [xc,yc]::Rgb(0, 0, 255)
+                else :
+                    continue
+        given :
+            iterationCount = iterations(Complex((xc-400)/200, (yc-400)/200))
+
+iterations(c Complex) :
+    from i = 1 for z = ZERO; abs(z) < 2.0; z * z + c :
+        i == MAX_ITERATIONS :
+            break 
+        else :
+            i + 1
+

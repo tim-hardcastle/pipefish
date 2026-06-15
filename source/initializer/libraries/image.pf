@@ -34,6 +34,16 @@ Image = clone list :
 
 def 
 
+~~Constructs a new image of the given dimensions and filled with the given color.
+// TODO --- just make this overload `Image` after bugfix.
+newImage(w, h int, fillColor Color) :
+    unsafe pixelList, Image 
+given :
+    column = from result = [] for _::i = range h :
+        result & fillColor
+    pixelList = from result = [] for _::i = range w :
+        result & column
+
 ~~ Returns the width of the image.
 width(I Image) -> int :
     len I
@@ -44,6 +54,18 @@ height(I Image) -> int :
         len I[0]
     else :
         0
+
+~~ Overloads the standard `with` to perform validation.
+(I Image) with (args ... pair) -> Image :
+    argsAreValid :        
+        cast(I, list) -> (that with args) -> unsafe(that, Image)
+given :
+    colorModelOfImage = model(I)
+    argsAreValid = from result = true for _::arg = range args :
+        arg[1] in colorModelOfImage :
+            continue
+        else :
+            error "can't put pixel of type " + (string type arg[1]) + " into `Image` containing pixels of type " + string(colorModel)
 
 ~~ Returns the color model of the image, i.e. a type in the abstract type `Color`.
 model(I Image) -> type :

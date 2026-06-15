@@ -7,6 +7,10 @@ Cmyk = struct(c, m, y, k int) :
     0 <= y and y < 256
     0 <= k and k < 256
 
+~~ Represents a shade of gray in 8-bit gray scale.
+Gray = struct(g int) :
+    0 <= g and g < 256
+
 ~~ Represents a color in the RGBA color model, with 8 bits for each dimension.
 Rgba = struct(r, g, b, a int) :
     0 <= r and r < 256
@@ -39,12 +43,8 @@ YCbCr = struct(y, cb, cr int) :
     0 <= cb and cb < 256
     0 <= cr and cr < 256
 
-~~ Represents a shade of gray in 8-bit gray scale.
-Gray = struct(g int) :
-    0 <= g and g < 256
-
 ~~ The abstract type containing the various color types, `Rgb`, `Rgba`, `Cmyk`, etc.
-Color = abstract Cmyk/Rgb/Rgba
+Color = abstract Cmyk/Gray/Rgb/Rgba/Rgb_64/Rgba_64/YCbCr
 
 def
 

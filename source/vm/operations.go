@@ -21,7 +21,7 @@ type Opcode uint8
 // Comments on the opcodes are auto-generated from `operations.md` and so should not be edited by hand.
 // The meanings of the operand flavors are also explained in `operations.md`.
 const (
-	// Add floats (dst mem mem)
+	// Unsafe cast to parameterized clone type (dst mem mem tok)
 	Addf Opcode = iota
 	// Add ints (dst mem mem)
 	Addi
@@ -47,7 +47,7 @@ const (
 	Auto
 	// Function call  (loc mem mem tup)
 	Call
-	// Add floats (dst mem mem)
+	// Unsafe cast to parameterized clone type (dst mem mem tok)
 	CalT
 	// Cast to parameterized clone type (dst tok mem mem)
 	CasP
@@ -75,7 +75,7 @@ const (
 	ConL
 	// Add element to set (dst mem mem)
 	ConS
-	// Add floats (dst mem mem)
+	// Unsafe cast to parameterized clone type (dst mem mem tok)
 	CoSn
 	// Codepoint of rune (dst mem)
 	Cpnt
@@ -133,11 +133,11 @@ const (
 	Gthf
 	// Int comparison with > (dst mem mem)
 	Gthi
-	// Add floats (dst mem mem)
+	// Unsafe cast to parameterized clone type (dst mem mem tok)
 	IctS
 	// Index list  (dst mem mem tok)
 	IdxL
-	// Add floats (dst mem mem)
+	// Unsafe cast to parameterized clone type (dst mem mem tok)
 	IdxM
 	// Index pair  (dst mem mem tok)
 	Idxp
@@ -227,7 +227,7 @@ const (
 	MkSn
 	// Make set (dst mem tok)
 	Mkst
-	// Add floats (dst mem mem)
+	// Unsafe cast to parameterized clone type (dst mem mem tok)
 	Mlfi
 	// Modulus of integers (dst mem mem tok)
 	Modi
@@ -269,9 +269,9 @@ const (
 	Qsat
 	// Test singleton (mem loc)
 	Qsnq
-	// Add floats (dst mem mem)
+	// Unsafe cast to parameterized clone type (dst mem mem tok)
 	Qspt
-	// Add floats (dst mem mem)
+	// Unsafe cast to parameterized clone type (dst mem mem tok)
 	Qspq
 	// Test tuple types (mem num tup loc)
 	Qtpt
@@ -327,6 +327,8 @@ const (
 	Typu
 	// Type of value (dst mem)
 	Typx
+	// Unsafe cast to parameterized clone type (dst mem mem tok)
+	Unsf
 	// Unthunk error (dst mem)
 	UntE
 	// Unthunk (dst)

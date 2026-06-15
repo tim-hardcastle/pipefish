@@ -595,6 +595,17 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 							}
 						}
 						// TODO --- if the rhs is const, as it often will be, we can infer further.
+					case "unsafe":
+						cp.Cm("Builtin is unsafe", b.tok)
+						functionAndType.T = altType(values.ERROR)
+						for _, ty := range typesAtIndex(b.types[0], 0) { // The result may be a clone of any of the input types.
+							st := values.ValueType(ty.(SimpleType))
+							cp.Cm("Simple type is "+cp.Vm.DescribeType(values.ValueType(st), vm.LITERAL, 0), b.tok)
+							cp.Cm("Clone group is "+cp.TypeToCloneGroup[st].describe(cp.Vm), b.tok)
+							functionAndType.T = functionAndType.T.Union(cp.TypeToCloneGroup[st])
+							functionAndType.T = functionAndType.T.Union(AltType(st))
+						}
+						// TODO --- if the rhs is const, as it often will be, we can infer further.
 					case "first_in_tuple":
 						if len(b.types) == 0 {
 							return nil, false

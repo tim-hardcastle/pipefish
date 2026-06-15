@@ -104,6 +104,7 @@ var BUILTINS = map[string]functionAndReturnType{
 	"type_with":                 {(*Compiler).btTypeWith, AltType()},
 	"type_of_tuple":             {(*Compiler).btTypeOfTuple, AltType(values.TYPE)},
 	"type_union":                {(*Compiler).btTypeUnion, AltType(values.TYPE)},
+	"unsafe":                    {(*Compiler).btUnsafe, AltType()},
 	"write_to_hub":              {(*Compiler).btWriteToHub, AltType(values.SUCCESSFUL_VALUE)},
 }
 
@@ -488,4 +489,8 @@ func (cp *Compiler) btWriteToHub(tok *token.Token, dest uint32, args []uint32) {
 func (cp *Compiler) btTypeWith(tok *token.Token, dest uint32, args []uint32) {
 	newArgs := append([]uint32{dest, args[0], cp.ReserveToken(tok)}, args[2:]...)
 	cp.Emit(vm.WthT, newArgs...)
+}
+
+func (cp *Compiler) btUnsafe(tok *token.Token, dest uint32, args []uint32) {
+	cp.Emit(vm.Unsf, dest, args[0], args[1], cp.ReserveToken(tok))
 }
