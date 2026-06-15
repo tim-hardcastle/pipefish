@@ -907,9 +907,10 @@ func (iz *Initializer) addCloneType(name, typeToClone string, private bool, decT
 			iz.cp.Common.IsRangeable = iz.cp.Common.IsRangeable.Union(altType(typeNo))
 		}
 	}
+	iz.addType(name, supertype, typeNo)
 	cloneGroup := iz.cp.Common.SharedTypenameToTypeList[supertype]
 	iz.cp.TypeToCloneGroup[typeNo] = cloneGroup
-	iz.addType(name, supertype, typeNo)
+	iz.cp.TypeToCloneGroup[parentTypeNo] = cloneGroup
 	return typeNo, true
 }
 
