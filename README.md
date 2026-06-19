@@ -30,7 +30,7 @@ It is still buggy and unsuitable for use in production, but if you want to downl
 
 There are [batteries included](https://github.com/tim-hardcastle/pipefish/wiki/Imports-and-libraries#libraries); there is [tooling](https://github.com/tim-hardcastle/pipefish/wiki/Developing-in-Pipefish); there is [a wiki](https://github.com/tim-hardcastle/pipefish/wiki); there are plenty of features including some you've never heard or thought of.
 
-It is my hope either that Pipefish itself will one day be used in production, or (given my amateur status and lack of time) that this project will get enough attention that my ideas will be copied by people with more money and personnel and expertise. To this end, please add a star to the repo! Thank you!
+It is intended that Pipefish itself will one day be used in production, or alternatively that this project will get enough attention that my ideas will be copied by people with more money and personnel and expertise, and that, if not Pipefish, then some Pipefish-style language will one day make people's lives easier. To this end, please add a star to the repo! Thank you!
 
 Instructions for installing Pipefish can be found [here](https://github.com/tim-hardcastle/pipefish/wiki/Installing-and-using-Pipefish), as part of [a general manual/tutorial wiki](https://github.com/tim-hardcastle/pipefish/wiki) that tells you everything you need to know to code in Pipefish. There are [lots of other supporting documents](https://github.com/tim-hardcastle/pipefish/tree/main/docs).
 
@@ -69,7 +69,7 @@ Here are some of Pipefish's more distinctive features:
 * [Pipefish: a high-level view](https://github.com/tim-hardcastle/pipefish/blob/main/docs/pipefish-a-high-level-view.md). This explains the goals and design principles of the language.
 * [Style guide](https://github.com/tim-hardcastle/pipefish/blob/main/docs/style-guide.md). This gives best practices for the style in which one should write Pipefish code.
 * [Functional core, imperative shell](https://github.com/tim-hardcastle/pipefish/blob/main/docs/functional-core-imperative-shell.md). A synopsis of the language paradigm.
-* [Pipefish and the lambda calculus](https://github.com/tim-hardcastle/pipefish/blob/main/docs/pipefish-and-the-lambda-calculs.md). A quick look at the fact that Pipefish is the lambda calculus with a ton of sugar poured on it.
+* [Pipefish and the lambda calculus](https://github.com/tim-hardcastle/pipefish/blob/main/docs/pipefish-and-the-lambda-calculus.md). A quick look at the fact that Pipefish is the lambda calculus with a ton of sugar poured on it.
 * [Architecture of Pipefish](https://github.com/tim-hardcastle/pipefish/blob/main/docs/the-whys-of-pipefish.md). This explains broadly how the initializer/compiler/VM work.
 * [The whys of Pipefish](https://github.com/tim-hardcastle/pipefish/blob/main/docs/the-whys-of-pipefish.md). This explains the reasoning behind some lower-level design choices which are sufficiently unusual as to need explanation.
 

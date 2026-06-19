@@ -1541,7 +1541,6 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 
 	newEnv := &Environment{map[string]Variable{}, ctxt.Env}
 	newContext := ctxt.x()
-	newContext.Env = newEnv
 
 	// First we set up the bound variables.
 
@@ -1583,7 +1582,13 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		for i, pair := range boundSig {
 			_, exists := newEnv.GetVar(pair.VarName.Literal)
 			if exists {
-				cp.Throw("comp/for/bound/exists", node.BoundVariables.GetToken(), pair.VarName.Literal)
+				cp.Throw("comp/for/bound/exists.a", node.BoundVariables.GetToken(), pair.VarName.Literal)
+				return FAIL
+			}
+			vr, exists := ctxt.Env.GetVar(pair.VarName.Literal) // We let index variables shadow global constants and variables and outer bound variables.
+			if exists && dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+				GLOBAL_VARIABLE_PRIVATE, FOR_LOOP_BOUND_VARIABLE).Contains(vr.Access) {
+				cp.Throw("comp/for/bound/exists.b", node.Initializer.GetToken(), pair.VarName.Literal)
 				return FAIL
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
@@ -1624,10 +1629,16 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			cp.Put(vm.Asgm, cp.That())
 		}
 		indexResultLoc = cp.That()
-		for i, pair := range indexSig {
+		for i, pair := range indexSig { // Any overlap in the new env will be of the bound/index variables.
 			_, exists := newEnv.GetVar(pair.VarName.Literal)
 			if exists {
-				cp.Throw("comp/for/index/exists", node.Initializer.GetToken(), pair.VarName.Literal)
+				cp.Throw("comp/for/index/exists.a", node.Initializer.GetToken(), pair.VarName.Literal)
+				return FAIL
+			}
+			vr, exists := ctxt.Env.GetVar(pair.VarName.Literal) // We let index variables shadow global constants and variables.
+			if exists && dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+				GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
+				cp.Throw("comp/for/index/exists.b", node.Initializer.GetToken(), pair.VarName.Literal)
 				return FAIL
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
@@ -1685,7 +1696,13 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 					rangeKeyLoc = cp.That()
 					_, exists := newEnv.GetVar(leftName)
 					if exists {
-						cp.Throw("comp/for/exists/key", rangeOver.GetToken(), leftName)
+						cp.Throw("comp/for/exists/key.a", rangeOver.GetToken(), leftName)
+						return FAIL
+					}
+					vr, exists := ctxt.Env.GetVar(leftName) // We let range variables shadow global constants and variables and outer bound variables.
+					if exists && dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+						GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
+						cp.Throw("comp/for/exists/key.b", node.Initializer.GetToken(), leftName)
 						return FAIL
 					}
 					cp.AddThatAsVariable(newEnv, leftName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken()) // TODO --- narrow down.
@@ -1695,7 +1712,13 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 					rangeValLoc = cp.That()
 					_, exists := newEnv.GetVar(rightName)
 					if exists {
-						cp.Throw("comp/for/exists/value", rangeOver.GetToken(), rightName)
+						cp.Throw("comp/for/exists/value.a", rangeOver.GetToken(), rightName)
+						return FAIL
+					}
+					vr, exists := ctxt.Env.GetVar(rightName) // We let range variables shadow global constants and variables and outer bound variables.
+					if exists && dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+						GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
+						cp.Throw("comp/for/exists/value.b", node.Initializer.GetToken(), rightName)
 						return FAIL
 					}
 					cp.AddThatAsVariable(newEnv, rightName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken())
@@ -1711,6 +1734,8 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	default:
 		flavor = WHILE
 	} // end of switch
+
+	newContext.Env = newEnv
 
 	saveThunkList := cp.ThunkList // TODO --- I really must stop doing that.
 	cp.ThunkList = []ThunkData{}
@@ -2095,8 +2120,9 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 		}
 		rhs := parser.GetVariableNames(assEx.Right)
 		for _, pair := range lhsSig {
-			_, exists := ctxt.Env.GetVar(pair.VarName.Literal)
-			if exists {
+			vr, exists := ctxt.Env.GetVar(pair.VarName.Literal)
+			if exists && ! dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+						GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
 				cp.Throw("comp/given/exists", chunk.GetToken(), pair.VarName.Literal)
 				return false
 			}

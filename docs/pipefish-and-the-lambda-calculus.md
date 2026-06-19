@@ -26,6 +26,6 @@ We place a few sanity restrictions on the sort of functions and expressions that
 
 * To preserve the functional-core/imperative-shell semantics, the `;` operator returns an error if one of its operands is `OK` and the other is anything other than `OK`, `UNSAT` or `error`. (In practice, this is caught at compile-time.) As there's no way for users to make their own operators that take commands as operands other than the built-in `;`, there are no escape hatches.
 
-There's no way to define anything but `valid` and `unwrap` that can handle errors.
+* There's no way to define anything but `valid` and `unwrap` that can handle errors.
 
 * We ensure that the user can't do anything with the `unsat` type, so that it can only be constructed by the lhs of a conditional being `false`, and can only be consumed by the `;` operator.

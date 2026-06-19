@@ -1,4 +1,4 @@
-import private
+import
 
 NULL::"image/bmp"
 NULL::"math/cmplx"
