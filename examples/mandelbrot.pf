@@ -5,7 +5,7 @@ NULL::"math/cmplx"
 
 const private
 
-MAX_ITERATIONS = 80
+MAX_ITERATIONS = 50
 ZERO = Complex(0.0, 0.0)
 
 cmd 
@@ -17,17 +17,17 @@ main :
 def private
 
 mbrot() :
-    from imX = newImage(800, 800, Rgb(255, 255, 255)) for _::xc = range 800 :
-        from imY = imX for _::yc = range 800 :
+    from I = newImage(800, 800, Rgb(255, 255, 255)) for _::x = range 800 :
+        from I = I for _::y = range 800 :
             iterationCount == MAX_ITERATIONS :
-                imY with [xc,yc]::Rgb(0, 0, 0)
+                I with [x,y]::Rgb(0, 0, 0)
             else :
                 iterationCount mod 2 == 0 :
-                    imY with [xc,yc]::Rgb(0, 0, 255)
+                    I with [x,y]::Rgb(0, 0, 255)
                 else :
                     continue
         given :
-            iterationCount = iterations(Complex((xc-400)/200, (yc-400)/200))
+            iterationCount = iterations(Complex((x-400)/200, (y-400)/200))
 
 iterations(c Complex) :
     from i = 1 for z = ZERO; abs(z) < 2.0; z * z + c :
