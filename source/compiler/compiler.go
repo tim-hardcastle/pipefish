@@ -1543,7 +1543,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	newContext := ctxt.x()
 
 	// First we set up the bound variables.
-
+	boundVariables := dtypes.SetOf[string]()
 	boundResultLoc := uint32(DUMMY)
 	indexResultLoc := uint32(DUMMY)
 	var boundCpSig, indexCpSig alternateSig
@@ -1580,15 +1580,15 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		}
 		boundResultLoc = cp.That()
 		for i, pair := range boundSig {
-			_, exists := newEnv.GetVar(pair.VarName.Literal)
-			if exists {
+			if boundVariables.Contains(pair.VarName.Literal) {
 				cp.Throw("comp/for/bound/exists.a", node.BoundVariables.GetToken(), pair.VarName.Literal)
 				return FAIL
 			}
-			vr, exists := ctxt.Env.GetVar(pair.VarName.Literal) // We let index variables shadow global constants and variables and outer bound variables.
-			if exists && dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+			boundVariables = boundVariables.Add(pair.VarName.Literal)
+			vr, exists := newEnv.GetVar(pair.VarName.Literal) // We let index variables shadow global constants and variables and outer bound variables.
+			if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
 				GLOBAL_VARIABLE_PRIVATE, FOR_LOOP_BOUND_VARIABLE).Contains(vr.Access) {
-				cp.Throw("comp/for/bound/exists.b", node.Initializer.GetToken(), pair.VarName.Literal)
+				cp.Throw("comp/for/bound/exists.b", node.BoundVariables.GetToken(), pair.VarName.Literal)
 				return FAIL
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
@@ -1630,15 +1630,10 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		}
 		indexResultLoc = cp.That()
 		for i, pair := range indexSig { // Any overlap in the new env will be of the bound/index variables.
-			_, exists := newEnv.GetVar(pair.VarName.Literal)
-			if exists {
-				cp.Throw("comp/for/index/exists.a", node.Initializer.GetToken(), pair.VarName.Literal)
-				return FAIL
-			}
-			vr, exists := ctxt.Env.GetVar(pair.VarName.Literal) // We let index variables shadow global constants and variables.
-			if exists && dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+			vr, exists := newEnv.GetVar(pair.VarName.Literal) // We let index variables shadow global constants and variables.
+			if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
 				GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
-				cp.Throw("comp/for/index/exists.b", node.Initializer.GetToken(), pair.VarName.Literal)
+				cp.Throw("comp/for/index/exists", pair.VarName, pair.VarName.Literal)
 				return FAIL
 			}
 			cp.Reserve(values.UNDEFINED_TYPE, nil, tok)
@@ -1662,13 +1657,13 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			if leftId, ok := pairOfIdentifiers.Args[0].(*parser.Identifier); ok {
 				leftName = leftId.Value
 			} else {
-				cp.Throw("comp/for/range.a", node.GetToken())
+				cp.Throw("comp/for/range.a", pairOfIdentifiers.GetToken())
 				return FAIL
 			}
 			if rightId, ok := pairOfIdentifiers.Args[2].(*parser.Identifier); ok {
 				rightName = rightId.Value
 			} else {
-				cp.Throw("comp/for/range.b", node.GetToken())
+				cp.Throw("comp/for/range.b", pairOfIdentifiers.GetToken())
 				return FAIL
 			}
 			keysOnly = rightName == "_"
@@ -1694,15 +1689,10 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 				if !valuesOnly {
 					cp.Reserve(values.UNDEFINED_TYPE, nil, rangeOver.GetToken())
 					rangeKeyLoc = cp.That()
-					_, exists := newEnv.GetVar(leftName)
-					if exists {
-						cp.Throw("comp/for/exists/key.a", rangeOver.GetToken(), leftName)
-						return FAIL
-					}
-					vr, exists := ctxt.Env.GetVar(leftName) // We let range variables shadow global constants and variables and outer bound variables.
-					if exists && dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+					vr, exists := newEnv.GetVar(leftName) // We let range variables shadow global constants and variables.
+					if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
 						GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
-						cp.Throw("comp/for/exists/key.b", node.Initializer.GetToken(), leftName)
+						cp.Throw("comp/for/exists/key", pairOfIdentifiers.Args[0].GetToken(), leftName)
 						return FAIL
 					}
 					cp.AddThatAsVariable(newEnv, leftName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken()) // TODO --- narrow down.
@@ -1710,15 +1700,10 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 				if !keysOnly {
 					cp.Reserve(values.UNDEFINED_TYPE, nil, rangeOver.GetToken())
 					rangeValLoc = cp.That()
-					_, exists := newEnv.GetVar(rightName)
-					if exists {
-						cp.Throw("comp/for/exists/value.a", rangeOver.GetToken(), rightName)
-						return FAIL
-					}
-					vr, exists := ctxt.Env.GetVar(rightName) // We let range variables shadow global constants and variables and outer bound variables.
-					if exists && dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+					vr, exists := newEnv.GetVar(rightName) // We let range variables shadow global constants and variables.
+					if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
 						GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
-						cp.Throw("comp/for/exists/value.b", node.Initializer.GetToken(), rightName)
+						cp.Throw("comp/for/exists/value", pairOfIdentifiers.Args[0].GetToken(), rightName)
 						return FAIL
 					}
 					cp.AddThatAsVariable(newEnv, rightName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken())
@@ -1728,7 +1713,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 				}
 			}
 		} else {
-			cp.Throw("comp/for/range.c", node.GetToken())
+			cp.Throw("comp/for/range.c", pairOfIdentifiers.GetToken())
 			return FAIL
 		}
 	default:
