@@ -190,6 +190,10 @@ func (p *Parser) ChunkNameTypePairs(dflt DefaultTypeChunk) (TokSig, bool) {
 	sig := TokSig{}
 	for {
 		if p.CurTokenIs(token.IDENT) {
+			if p.Typenames.Contains(p.CurToken.Literal) {
+				p.Throw("sigs/type", &p.CurToken)
+				return TokSig{}, false
+			}
 			sig = append(sig, TokPair{p.CurToken, nil})
 			if p.PeekTokenIs(token.IDENT) || p.PeekTokenIs(token.DOTDOTDOT) {
 				typeName, ok := p.slurpTypeExpressionAsTokens()

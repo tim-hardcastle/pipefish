@@ -1990,17 +1990,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"sigs/return": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "unexpected " + emph(tok) + " in return signature"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "A return signature should consist of names of types separated by commas, " +
-				"and so at this point Pipefish was expecting a comma, or a colon to introduce " +
-				"the main body of the function."
-		},
-	},
-
 	"sigs/name": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "function/command has no name"
@@ -2028,6 +2017,27 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "A function's call parameters should be seperated by commas and terminated by a closing parenthesis."
+		},
+	},
+
+	"sigs/return": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "unexpected " + emph(tok) + " in return signature"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "A return signature should consist of names of types separated by commas, " +
+				"and so at this point Pipefish was expecting a comma, or a colon to introduce " +
+				"the main body of the function."
+		},
+	},
+
+	"sigs/type": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "found " + DescribeTok(tok) + " in signature, expected parameter name"
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "Pipefish thinks that it's parsing a signature, which has a standard form `name type, name type` etc, " +
+				" so that if you put the name of a type after a comma, it will be expecting the name of a parameter instead."
 		},
 	},
 

@@ -956,6 +956,7 @@ func (iz *Initializer) ChunkFunctionSignature() (*tokenizedFunctionDeclaration, 
 	}
 	sig, rets, ok := iz.P.ChunkFunctionArguments()
 	if !ok {
+		iz.finishChunk()
 		return &tokenizedFunctionDeclaration{}, false
 	}
 	if name.Literal == "*dummy*" { // Then it's an infix or isSuffix. It will have been processed as bling.

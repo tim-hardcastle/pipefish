@@ -109,6 +109,7 @@ func TestParserItes(t *testing.T) {
 		{`sigs/unfinished`, `sigs/unfinished.c`},
 		{`sigs/paren`, `sigs/paren`},
 		{`sigs/params`, `sigs/params`},
+		{`sigs/type`, `sigs/type`},
 		{`block/empty`, `parse/block/empty`},
 		{`param/name`, `parse/param/name`},
 		{`param/typename`, `parse/param/typename`},
