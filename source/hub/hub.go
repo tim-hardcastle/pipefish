@@ -869,7 +869,7 @@ func (hub *Hub) createService(name, scriptFilepath string) bool {
 			panic("That's all folks!")
 		}
 		if !newService.IsInitialized() {
-			hub.WriteError("unable to open <C>\"" + scriptFilepath + "\"</> with error `" + e.Error() + "`")
+			hub.WriteError("unable to open <C>\"" + scriptFilepath + "\"</> with error `" + e.Error() + "`.")
 			hub.Sources = map[string][]string{}
 			hub.makeEmptyServiceCurrent()
 		} else {

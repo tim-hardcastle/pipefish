@@ -709,11 +709,11 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"comp/typecheck/type": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "wrong number of arguments"
+			return "typecheck cannot succeed"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The typechecker has found a situation where your code can only ever " +
-				"pass/return the wrong number of arguments."
+				"return the wrong type."
 		},
 	},
 
