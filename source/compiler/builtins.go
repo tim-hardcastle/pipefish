@@ -492,5 +492,5 @@ func (cp *Compiler) btTypeWith(tok *token.Token, dest uint32, args []uint32) {
 }
 
 func (cp *Compiler) btUnsafe(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Unsf, dest, args[0], args[1], cp.ReserveToken(tok))
+	cp.Emit(vm.Unsf, dest, args[1], args[0], cp.ReserveToken(tok))
 }
