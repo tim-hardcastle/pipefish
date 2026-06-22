@@ -1121,7 +1121,7 @@ loop:
 					case values.LIST:
 						vec := vm.Mem[args[1]].V.(vector.Vector)
 						if ix[1].V.(int) > vec.Len() {
-							vm.Mem[args[0]] = vm.makeError("vm/index/e", args[3], ix[1], vec.Len(), args[1], args[2])
+							vm.Mem[args[0]] = vm.makeError("vm/index/e", args[3], ix[1].V.(int), vec.Len(), args[1], args[2])
 							break Switch
 						}
 						vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vec.SubVector(ix[0].V.(int), ix[1].V.(int))}
@@ -1129,7 +1129,7 @@ loop:
 						str := container.V.(string)
 						ix := index.V.([]values.Value)
 						if ix[1].V.(int) > len(str) {
-							vm.Mem[args[0]] = vm.makeError("vm/index/f", args[3], ix[1], len(str), args[1], args[2])
+							vm.Mem[args[0]] = vm.makeError("vm/index/f", args[3], ix[1].V.(int), len(str), args[1], args[2])
 							break Switch
 						}
 						vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, str[ix[0].V.(int):ix[1].V.(int)]}
@@ -2536,6 +2536,20 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

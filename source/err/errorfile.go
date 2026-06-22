@@ -2507,7 +2507,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"vm/index/e": {
 		Message: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("upper bound %v of list slice is strictly greater than list length %v", emph(args[0]), args[1])
+			return fmt.Sprintf("upper bound %v of list slice is strictly greater than list length %v", emph(args[0]), emph(args[1]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The greatest value the upper bound of a slice can have is the length of the thing being sliced."
@@ -2516,7 +2516,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"vm/index/f": {
 		Message: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("upper bound %v of string slice is strictly greater than string length %v", emph(args[0]), args[1])
+			return fmt.Sprintf("upper bound %v of string slice is strictly greater than string length %v", emph(args[0]), emph(args[1]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "The greatest value the upper bound of a slice can have is the length of the thing being sliced."
@@ -2821,7 +2821,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"vm/slice/string/e": {
 		Message: func(tok *token.Token, args ...any) string {
-			return fmt.Sprintf("upper bound %v of string slice is strictly greater than list length %v", emph(args[0]), args[1])
+			return fmt.Sprintf("upper bound %v of string slice is strictly greater than string length %v", emph(args[0]), emph(args[1]))
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return fmt.Sprintf("The greatest value the upper bound of a slice can have is the length of the thing being sliced.")
