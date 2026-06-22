@@ -107,7 +107,10 @@ func init() {
 			runes := []rune(opcode)
 			runes[0] = unicode.ToLower(runes[0])
 			opcode = string(runes)
-			opNumber := OPCODES[opcode]
+			opNumber, ok := OPCODES[opcode]
+			if !ok {
+				panic("Opcode `" + opcode + "` not found.")
+			}
 			result = result + line + " // " + opInfo[opNumber].description + " (" + strings.Join(opInfo[opNumber].operandFlavors, " ") + ")\n"
 			for _, noteLine := range opInfo[opNumber].notes {
 				result = result + "\t\t\t\t// " + noteLine + "\n"
@@ -276,7 +279,7 @@ var OPCODES = map[string]Opcode{
 	"asgm": Asgm,
 	"auto": Auto,
 	"call": Call,
-	"calt": CalT,
+	"calT": CalT,
 	"casP": CasP,
 	"cast": Cast,
 	"casx": Casx,
@@ -291,6 +294,7 @@ var OPCODES = map[string]Opcode{
 	"cpnt": Cpnt,
 	"conL": ConL,
 	"conS": ConS,
+	"coSn": CoSn,
 	"cv1T": Cv1T,
 	"cvTT": CvTT,
 	"diif": Diif,
@@ -318,7 +322,9 @@ var OPCODES = map[string]Opcode{
 	"gtei": Gtei,
 	"gthf": Gthf,
 	"gthi": Gthi,
+	"ictS": IctS,
 	"idxL": IdxL,
+	"idxM": IdxM,
 	"idxp": Idxp,
 	"idxs": Idxs,
 	"idxT": IdxT,
@@ -363,6 +369,7 @@ var OPCODES = map[string]Opcode{
 	"mkpr": Mkpr,
 	"mkSn": MkSn,
 	"mkst": Mkst,
+	"mlfi": Mlfi,
 	"modi": Modi,
 	"mpar": Mpar,
 	"mulf": Mulf,
@@ -410,6 +417,7 @@ var OPCODES = map[string]Opcode{
 	"tuLx": TuLx,
 	"typu": Typu,
 	"typx": Typx,
+	"unsf": Unsf,
 	"untE": UntE,
 	"untk": Untk,
 	"uwrp": Uwrp,

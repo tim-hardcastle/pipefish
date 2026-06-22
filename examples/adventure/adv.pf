@@ -202,7 +202,7 @@ specialEffects(verb, noun string, S GameState) :
 // This turns the raw text files we started with into appropriate data structures.
 slurp(L list, t type) : 
     from M = map() for i = 0; i < len(L); i + size:
-        M with L[i]::cast(L[i+1::i+size], t)
+        M with L[i]::cast(t, L[i+1::i+size])
 given :
     size = 1 + len reflect.fieldLabels t
 

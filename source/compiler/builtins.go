@@ -137,7 +137,7 @@ func (cp *Compiler) btAddStringToRune(tok *token.Token, dest uint32, args []uint
 }
 
 func (cp *Compiler) btCast(tok *token.Token, dest uint32, args []uint32) {
-	cp.Emit(vm.Casx, dest, args[0], args[1], cp.ReserveToken(tok))
+	cp.Emit(vm.Casx, dest, args[1], args[0], cp.ReserveToken(tok))
 }
 
 func (cp *Compiler) btCastToFloat(tok *token.Token, dest uint32, args []uint32) {

@@ -249,12 +249,12 @@ func TestBuiltinRtes(t *testing.T) {
 }
 func TestCastRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`cast "foo", enum`, `vm/cast/concrete`},
-		{`cast "foo", Person`, `vm/cast`},
-		{`cast -1, Color`, `vm/cast/enum`},
-		{`cast 99, Color`, `vm/cast/enum`},
-		{`cast ["John", 22, true], Person`, `vm/cast/fields`},
-		{`cast ["John", "22"], Person`, `vm/cast/types`},
+		{`cast enum, "foo"`, `vm/cast/concrete`},
+		{`cast Person, "foo"`, `vm/cast`},
+		{`cast Color, -1`, `vm/cast/enum`},
+		{`cast Color, 99`, `vm/cast/enum`},
+		{`cast Person, ["John", 22, true]`, `vm/cast/fields`},
+		{`cast Person, ["John", "22"]`, `vm/cast/types`},
 		{`float "foo"`, `vm/string/float`},
 		{`int "foo"`, `vm/string/int`},
 	}

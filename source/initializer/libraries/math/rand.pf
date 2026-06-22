@@ -30,7 +30,7 @@ get (x ref) from (r Random) :
         r[elements] == float :
             x = goFloat()
         reflect.isEnum(r[elements]) :
-            x = cast(goIntn(len reflect.elements(r[elements])), r[elements])
+            x = cast(r[elements], goIntn(len reflect.elements(r[elements])))
     type r[elements] == list :
         len r[elements] == 0 :
             error "can't choose random element from empty list"

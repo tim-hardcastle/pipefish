@@ -48,7 +48,7 @@ def
 
 // Ordinary functions are in order of their function name.
 
-cast(x any?, y type) -> any : builtin "cast"
+cast(t type, x any?) -> any : builtin "cast"
 codepoint(x clones{rune}) -> int : builtin "codepoint"  
 (x int) div (y int) -> int : builtin "divide_integers" 
 error(x string) -> error : builtin "make_error"

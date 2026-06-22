@@ -134,7 +134,7 @@ Operands are:
     m#1 and m#2: the bottom and (exclusive) top of where to put the function's arguments.
     #3 a tuple of memory locations containing the values to put in the arguments.
 
-calt : loc mem mem tup
+calT : loc mem mem tup
 Function call with tuple capture
 This is like `call`, above, only with the possibility that it might be capturing a tuple, 
 either by collecting up varargs or preventing a tuple from autosplatting.
@@ -198,6 +198,9 @@ Appends an element to a list, i.e. implements `L & x` where `L` is a list.
 conS : dst mem mem
 Add element to set
 Adds an element to a list, i.e. implements `S & x` where `L` is a set.
+
+coSn : dst mem
+Construct snippet from arguments
 
 cpnt : dst mem
 Codepoint of rune
@@ -326,9 +329,17 @@ Float comparison with >
 gthi : dst mem mem
 Int comparison with >
 
+ictS : dst mem mem
+Intersection of sets
+
 idxL : dst mem mem tok
 Index list 
 v#1 is the list, v#2 is an integer, and n#3 is the number of a token to make an error
+in the case that v#2 is out of bounds.
+
+idxM : dst mem mem tok
+Index map 
+v#1 is the map, v#2 is an key, and n#3 is the number of a token to make an error
 in the case that v#2 is out of bounds.
 
 idxp : dst mem mem tok
@@ -510,6 +521,9 @@ mkst : dst mem tok
 Make set
 Constructs a map from a tuple value v#1, using token n#2 to create an error if the
 elements of the tuple have the wrong type, e.g. there's an unhashable value.
+
+mlfi : dst mem mem
+Multiply a float and an integer
 
 modi : dst mem mem tok
 Modulus of integers

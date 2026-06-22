@@ -126,17 +126,17 @@ func TestBuiltins(t *testing.T) {
 }
 func TestCast(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`cast "foo", string`, `"foo"`},
-		{`cast Uid(8), int`, `8`},
-		{`cast 8, Uid`, `Uid(8)`},
-		{`cast 0, Color`, `RED`},
-		{`cast ["John", 22], Person`, `Person with (name::"John", age::22)`},
-		{`cast "foo", enum`, `vm/cast/concrete`},
-		{`cast "foo", Person`, `vm/cast`},
-		{`cast -1, Color`, `vm/cast/enum`},
-		{`cast 99, Color`, `vm/cast/enum`},
-		{`cast ["John", 22, true], Person`, `vm/cast/fields`},
-		{`cast ["John", "22"], Person`, `vm/cast/types`},
+		{`cast string, "foo"`, `"foo"`},
+		{`cast int, Uid(8)`, `8`},
+		{`cast Uid, 8`, `Uid(8)`},
+		{`cast Color, 0`, `RED`},
+		{`cast Person, ["John", 22]`, `Person with (name::"John", age::22)`},
+		{`cast enum, "foo"`, `vm/cast/concrete`},
+		{`cast Person, "foo"`, `vm/cast`},
+		{`cast Color, -1`, `vm/cast/enum`},
+		{`cast Color, 99`, `vm/cast/enum`},
+		{`cast Person, ["John", 22, true]`, `vm/cast/fields`},
+		{`cast Person, ["John", "22"]`, `vm/cast/types`},
 		{`float "foo"`, `vm/string/float`},
 		{`int "foo"`, `vm/string/int`},
 	}

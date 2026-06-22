@@ -26,13 +26,13 @@ encode(x any) :
     error "can't encode `" + literal(x) + "` as JSON"
 
 encode(x clones{string}) -> string :
-    literal(cast x, string)
+    literal(cast string, x)
 
 encode(x clones{int}) -> string :
-    literal(cast x, int)
+    literal(cast int, x)
 
 encode(x clones{float}) -> string :
-    literal(cast x, float)
+    literal(cast float, x)
 
 encode(x bool) -> string :
     x :
@@ -50,7 +50,7 @@ encode(x struct/clones{map}) -> string :
     "{" + strings.join(kv(x), ", ") + "}"
 
 encode(x clones{list}) -> string :
-    "[" + strings.join(((cast x, list) >> encode), ", ") + "]"
+    "[" + strings.join(((cast list, x) >> encode), ", ") + "]"
 
 prettyEncode(x any) :
     prettyEncodeR(x, "")
@@ -61,13 +61,13 @@ prettyEncodeR(x any, pad string) :
     error "can't encode `" + literal(x) + "` as JSON"
 
 prettyEncodeR(x clones{string}, pad string) -> string :
-    literal(cast x, string)
+    literal(cast string, x)
 
 prettyEncodeR(x clones{int}, pad string) -> string :
-    literal(cast x, int)
+    literal(cast int, x)
 
 prettyEncodeR(x clones{float}, pad string) -> string :
-    literal(cast x, float)
+    literal(cast float, x)
 
 prettyEncodeR(x bool, pad string) -> string :
     x :
@@ -85,7 +85,7 @@ prettyEncodeR(x struct/clones{map}, pad string) -> string :
     "{\n" + strings.join(prettyKv(x, pad+"    "), ",\n") + "\n" + pad + "}"
 
 prettyEncodeR(x clones{list}, pad string) -> string :
-    "[\n" + strings.join(((cast x, list) >> pad + "    " + prettyEncodeR that, pad + "    "), ",\n") + "\n" + pad + "]"
+    "[\n" + strings.join(((cast list, x) >> pad + "    " + prettyEncodeR that, pad + "    "), ",\n") + "\n" + pad + "]"
 
 kv(x clones{map}) -> list :
     from L = [] for k::v = range x :
