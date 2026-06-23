@@ -248,10 +248,8 @@ func (hub *Hub) update(serviceName string) {
 	if !hub.isLive() {
 		return
 	}
-	if hub.serviceNeedsUpdate(serviceName) {
-		path, _ := hub.Services[serviceName].GetFilepath()
-		hub.createService(serviceName, path)
-	}
+	path, _ := hub.Services[serviceName].GetFilepath()
+	hub.createService(serviceName, path, false)
 }
 
 func (hub *Hub) DoHubCommand(line string) {
@@ -564,7 +562,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		filepath, _ := serviceToReset.GetFilepath()
 		h.WritePretty("Restarting script <C>\"" + filepath +
 			"\"</> as service <C>\"" + h.CurrentServiceName() + "\"</>.\n")
-		h.createService(h.CurrentServiceName(), filepath)
+		h.createService(h.CurrentServiceName(), filepath, true)
 	case "run":
 		fname := args[0]
 		sname := args[1]
@@ -575,9 +573,9 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			dir, _ := os.Getwd()
 			fname = filepath.Join(dir, fname)
 		}
-		h.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.")
+		h.WritePretty("Starting script <C>\"" + filepath.Base(fname) + "\"</> as service <C>\"" + sname + "\"</>.\n")
 		ext := h.getSV("$_external").V.(bool) // Note that we need to do this before createService, which may do external things.
-		h.createService(sname, fname)
+		h.createService(sname, fname, true)
 		if !ext {
 			h.setServiceName(sname)
 			h.tryMain()
@@ -848,8 +846,8 @@ func (hub *Hub) serviceNeedsUpdate(name string) bool {
 	return needsUpdate
 }
 
-func (hub *Hub) createService(name, scriptFilepath string) bool {
-	needsRebuild := hub.serviceNeedsUpdate(name)
+func (hub *Hub) createService(name, scriptFilepath string, forceUpdate bool) bool {
+	needsRebuild := forceUpdate || hub.serviceNeedsUpdate(name)
 	if !needsRebuild {
 		return false
 	}
@@ -993,8 +991,8 @@ func (hub *Hub) saveHubFile() string {
 }
 
 func (h *Hub) OpenHubFile(hubFilepath string) {
-	h.createService("", "")
-	h.createService("hub", hubFilepath)
+	h.createService("", "", true)
+	h.createService("hub", hubFilepath, true)
 	storePath := hubFilepath[0:len(hubFilepath)-len(filepath.Ext(hubFilepath))] + ".env"
 	_, err := os.Stat(storePath)
 	if err == nil {
@@ -1066,7 +1064,7 @@ func (h *Hub) OpenHubFile(hubFilepath string) {
 		if serviceName == "" || serviceName == "hub" {
 			continue
 		}
-		h.createService(serviceName, serviceFilepath)
+		h.createService(serviceName, serviceFilepath, true)
 		errorsExist, _ := h.Services[serviceName].ErrorsExist()
 		if errorsExist {
 			errors = true
