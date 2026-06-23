@@ -320,7 +320,6 @@ NodeTypeSwitch:
 	case *parser.BooleanLiteral:
 		cp.Reserve(values.BOOL, node.Value, node.GetToken())
 		result = concResult(values.BOOL, true)
-		break
 	case *parser.ComparisonExpression:
 		if node.Operator == "==" {
 			result = cp.compileEquals(node, ctxt.x())
@@ -334,7 +333,12 @@ NodeTypeSwitch:
 			if result.Failed {
 				return FAIL
 			}
+			resultIsError := BkEarlyReturn(DUMMY)
+			if result.Types.Contains(values.ERROR) {
+					resultIsError = cp.VmConditionalEarlyReturn(vm.Qtyp, cp.That(), uint32(values.ERROR), cp.That())
+				}
 			cp.Put(vm.Notb, cp.That())
+			cp.VmComeFrom(resultIsError)
 			break
 		}
 	case *parser.FloatLiteral:

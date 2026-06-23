@@ -16,6 +16,9 @@ zort(x, y int) :
 comp(x, y any) :
     x == y
 
+uncomp(x, y any) :
+    x != y
+
 const 
 
 IOTA = func(x int) : x

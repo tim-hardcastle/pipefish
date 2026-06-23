@@ -278,6 +278,7 @@ func TestEquality(t *testing.T) {
 		{`map(1::2, 3::4) == map(1::2, 3::4, 5::6)`, `false`},
 		{`map(1::2, 3::4, 5::6) == map(1::2, 3::4)`, `false`},
 		{`comp(foo(1), foo(2))`, `vm/equals/type`},
+		{`uncomp(foo(1), foo(2))`, `vm/equals/type`},
 		{`zort 0, 1`, `vm/div/zero/c`},
 		{`zort 1, 0`, `vm/div/zero/c`},
 	}
