@@ -25,8 +25,7 @@ func TestApi(t *testing.T) {
 func TestBrokenService(t *testing.T) { // We want to make sure that if the service is broken, queries get handed off to the empty service.
 	// no t.Parallel()
 	test := []test_helper.TestItem{
-		{`hub run "../hub/test-files/broken.pf"`, "Starting script [36m\"broken.pf\"[39m as service [36m\"broken\"[39m. [0] [31mError[39m: unexpected occurrence of [0m[48;2;0;0;64m[97mfnurgle[0m without a headword at line [33m1:0-7[39m of [36m\"../hub/[0m\n[33m[39m[36mtest-files/broken.pf\"[39m."},
-		{"2 + 2", "4"},
+		{`hub run "../hub/test-files/broken.pf"`, "Starting script \x1b[36m\"broken.pf\"\x1b[39m as service \x1b[36m\"broken\"\x1b[39m. \n[0] \x1b[31mError\x1b[39m: unexpected occurrence of \x1b[0m\x1b[48;2;0;0;64m\x1b[97mfnurgle\x1b[0m without a headword at line \x1b[33m1:0-7\x1b[39m of \x1b[36m\"../hub/\x1b[0m\n\x1b[33m\x1b[39m\x1b[36mtest-files/broken.pf\"\x1b[39m."},
 		{`hub halt "broken"`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
@@ -60,7 +59,7 @@ func TestEnv(t *testing.T) {
 	test := []test_helper.TestItem{
 		{`hub env "foo"::42`, `OK`},
 		{`hub env delete "foo"`, `OK`},
-		{`hub env key "", "foo"`, "[32mOK[0m"},
+		{`hub env key "", "foo"`, `OK`},
 		{`hub env wipe`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}

@@ -390,7 +390,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 		h.storekey = new
 		h.SaveAndPropagateHubStore()
-		h.WriteString(GREEN_OK + "\n")
 	case "env-wipe":
 		h.storekey = ""
 		h.store = values.Map{}
