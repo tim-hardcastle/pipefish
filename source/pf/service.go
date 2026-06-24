@@ -67,7 +67,7 @@ func (sv *Service) InitializeFromFilepathWithStore(scriptFilepath string, store 
 	if e != nil {
 		return e
 	}
-	return sv.initialize(scriptFilepath, sourcecode, store)
+	return sv.initialize(initializer.MakeFilepath(scriptFilepath), sourcecode, store)
 }
 
 // Initializes the service on behalf of both the previous methods. As the
