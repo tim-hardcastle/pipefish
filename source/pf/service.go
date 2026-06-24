@@ -184,8 +184,8 @@ func (sv *Service) MakeTerminalOutHandler() *SimpleOutHandler {
 
 // Makes an `InHandler` which will get input from the terminal using the string supplied
 // to prompt the end user.
-func MakeTerminalInHandler(prompt string) *TerminalInHandler {
-	return vm.MakeStandardInHandler(prompt)
+func MakeTerminalInHandler(prompt string, cancel chan os.Signal) *TerminalInHandler {
+	return vm.MakeStandardInHandler(prompt, cancel)
 }
 
 // Outputs a value via the outhandler.

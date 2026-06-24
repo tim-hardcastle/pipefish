@@ -220,7 +220,7 @@ func (vm *Vm) getPfRow(rows *sql.Rows, pointerList []any, typeNumber values.Valu
 			vm.Mem[typecheck.InLoc+uint32(i)] = v
 		}
 		vm.Mem[typecheck.ResultLoc] = values.Value{values.SUCCESSFUL_VALUE, nil}
-		vm.run(typecheck.CallAddress, ctx)
+		vm.run(typecheck.CallAddress, ctx, nil)
 		if vm.Mem[typecheck.ResultLoc].T == values.ERROR {
 			return vm.Mem[typecheck.ResultLoc]
 		}

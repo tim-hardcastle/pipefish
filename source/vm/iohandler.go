@@ -3,6 +3,7 @@ package vm
 import (
 	"bytes"
 	"io"
+	"os"
 
 	"github.com/tim-hardcastle/pipefish/source/text"
 	"github.com/tim-hardcastle/pipefish/source/values"
@@ -21,24 +22,32 @@ type OutHandler interface {
 
 type StandardInHandler struct {
 	prompt string
+	cancel chan os.Signal
 }
 
 func (iH *StandardInHandler) Get() string {
 	rline := readline.NewInstance()
 	rline.SetPrompt(iH.prompt)
-	line, _ := rline.Readline()
+	line, err := rline.Readline()
+	if err == readline.ErrCtrlC {
+		iH.cancel <- os.Interrupt
+	}
 	return line
 }
 
 type MaskedInHandler struct {
 	prompt string
+	cancel chan os.Signal
 }
 
 func (iH *MaskedInHandler) Get() string {
 	rline := readline.NewInstance()
 	rline.PasswordMask = text.MASK
 	rline.SetPrompt(iH.prompt)
-	line, _ := rline.Readline()
+	line, err := rline.Readline()
+	if err == readline.ErrCtrlC {
+		iH.cancel <- os.Interrupt
+	}
 	return line
 }
 
@@ -131,6 +140,6 @@ func MakeSimpleInHandler(in io.Reader) *SimpleInHandler {
 	return &SimpleInHandler{in}
 }
 
-func MakeStandardInHandler(prompt string) *StandardInHandler {
-	return &StandardInHandler{prompt}
+func MakeStandardInHandler(prompt string, cancel chan os.Signal) *StandardInHandler {
+	return &StandardInHandler{prompt, cancel}
 }

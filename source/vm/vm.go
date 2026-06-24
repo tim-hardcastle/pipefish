@@ -186,7 +186,7 @@ var nativeTypeNames = []string{"UNDEFINED VALUE", "INT ARRAY", "THUNK", "CREATED
 func BlankVm() *Vm {
 	vm := &Vm{Mem: make([]values.Value, len(CONSTANTS)),
 		logging:           true,
-		InHandle:          &StandardInHandler{"→ "},
+		InHandle:          &StandardInHandler{"→ ", nil},
 		GoToPipefishTypes: map[reflect.Type]values.ValueType{},
 		GoConverter:       [](func(t uint32, v any) any){},
 		NamespaceInfo:     []map[values.ValueType]string{},
@@ -229,7 +229,7 @@ func (vm *Vm) Run(loc uint32) {
 		e := err.CreateErr("vm/ctrl/c", &token.Token{})
 		vm.Mem = append(vm.Mem, values.Value{values.ERROR, e})
 	}()
-	vm.run(loc, ctx)
+	vm.run(loc, ctx, c)
 }
 
 // The heart of the VM. A big loop around a switch. It will keep going until it hits a `ret`
@@ -243,7 +243,7 @@ func (vm *Vm) Run(loc uint32) {
 // be edited there and not here. Other comments are safe to edit.
 //
 // For the meanings of the operand "flavors", `dst`, `mem`, etc, see `operations.md`.
-func (vm *Vm) run(loc uint32, ctx context.Context) {
+func (vm *Vm) run(loc uint32, ctx context.Context, cancel chan os.Signal) {
 	// We exit the loop and this function when we perform a `ret` openeration and `stackHeight``
 	// equals the length of the callstack.
 	stackHeight := len(vm.callstack)
@@ -445,7 +445,7 @@ loop:
 					vm.Mem[typeCheck.TokNumberLoc] = values.Value{values.INT, int(args[1])}
 					vm.Mem[typeCheck.InLoc] = vm.Mem[args[3]]
 					vm.Mem[typeCheck.ResultLoc] = values.Value{typeNo, vm.Mem[args[3]].V}
-					vm.run(typeCheck.CallAddress, ctx)
+					vm.run(typeCheck.CallAddress, ctx, cancel)
 					vm.Mem[args[0]] = vm.Mem[typeCheck.ResultLoc]
 				} else {
 					vm.Mem[args[0]] = values.Value{typeNo, vm.Mem[args[3]].V}
@@ -736,7 +736,7 @@ loop:
 						}
 					}
 				}
-				vm.run(lambda.AddressToCall, ctx)
+				vm.run(lambda.AddressToCall, ctx, cancel)
 				vm.Mem[args[0]] = vm.Mem[lambda.ResultLocation]
 			case Dref: // Dereference ref variable (dst mem)
 				// Puts the contents of the reference variable in m#1 into m#0.
@@ -987,9 +987,9 @@ loop:
 				// boolean saying whether the input should be masked for privacy.
 				temp := vm.InHandle
 				if vm.Mem[args[2]].V.(bool) {
-					vm.InHandle = &MaskedInHandler{vm.Mem[args[1]].V.([]values.Value)[0].V.(string)}
+					vm.InHandle = &MaskedInHandler{vm.Mem[args[1]].V.([]values.Value)[0].V.(string), cancel}
 				} else {
-					vm.InHandle = &StandardInHandler{vm.Mem[args[1]].V.([]values.Value)[0].V.(string)}
+					vm.InHandle = &StandardInHandler{vm.Mem[args[1]].V.([]values.Value)[0].V.(string), cancel}
 				}
 				response := vm.InHandle.Get()
 				vm.InHandle = temp
@@ -1254,7 +1254,7 @@ loop:
 				//     v#2 : the type to convert to.
 				//     n#3 : 0 or 1 to indicate whether we are converting "like" or "as".
 				//     n#4 : the number of a token for constructing an error in the case the conversion fails.
-				vm.Mem[args[0]] = vm.jsonToPf(vm.Mem[args[1]].V.(string), vm.Mem[args[2]].V.(values.AbstractType), args[3] == 0, args[4], ctx)
+				vm.Mem[args[0]] = vm.jsonToPf(vm.Mem[args[1]].V.(string), vm.Mem[args[2]].V.(values.AbstractType), args[3] == 0, args[4], ctx, cancel)
 			case Jsr: // Jump to subroutine (loc)
 				// Pushes the location we're jumping from onto the stack, so that `rtn` will return to just after
 				// the jump.
@@ -1333,7 +1333,7 @@ loop:
 				for i, v := range lf.CaptureLocations {
 					val := vm.Mem[v]
 					if val.T == values.THUNK {
-						vm.run(val.V.(uint32), ctx)
+						vm.run(val.V.(uint32), ctx, cancel)
 						val = vm.Mem[v]
 					}
 					newLambda.Captures[i] = val
@@ -1703,7 +1703,7 @@ loop:
 						vm.Mem[typeCheck.InLoc+uint32(i)] = vm.Mem[loc]
 					}
 					vm.Mem[typeCheck.ResultLoc] = values.Value{typeNo, fields}
-					vm.run(typeCheck.CallAddress, ctx)
+					vm.run(typeCheck.CallAddress, ctx, cancel)
 					vm.Mem[args[0]] = vm.Mem[typeCheck.ResultLoc]
 				} else {
 					vm.Mem[args[0]] = values.Value{typeNo, fields}
@@ -1728,7 +1728,7 @@ loop:
 				// This runs all the tests for a module, with the number being the compiler number.
 				vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
 				for _, test := range vm.Tests[args[1]] {
-					vm.run(test.CallTo, ctx)
+					vm.run(test.CallTo, ctx, cancel)
 					if vm.Mem[test.Return].T == values.ERROR {
 						vm.Mem[args[0]] = vm.Mem[test.Return]
 						break
@@ -1965,7 +1965,7 @@ loop:
 				if vm.Mem[args[0]].T == values.THUNK {
 					resultLoc := vm.Mem[args[0]].V.(values.Thunk).MLoc
 					codeAddr := vm.Mem[args[0]].V.(values.Thunk).CAddr
-					vm.run(codeAddr, ctx)
+					vm.run(codeAddr, ctx, cancel)
 					vm.Mem[args[0]] = vm.Mem[resultLoc]
 				}
 			case Uwrp: // Unwrap error (dst mem tok)
@@ -2114,7 +2114,7 @@ loop:
 						vm.Mem[typecheck.InLoc+uint32(i)] = v
 					}
 					vm.Mem[typecheck.ResultLoc] = values.Value{typ, outVals}
-					vm.run(typecheck.CallAddress, ctx)
+					vm.run(typecheck.CallAddress, ctx, cancel)
 					vm.Mem[args[0]] = vm.Mem[typecheck.ResultLoc]
 				}
 			case WthZ: // Struct with (dst mem tok tup)
@@ -2529,6 +2529,21 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
