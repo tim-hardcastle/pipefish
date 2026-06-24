@@ -218,7 +218,6 @@ func (hub *Hub) Do(line, username, password, service string, external bool) {
 		return
 	}
 	hub.outputVal(val, serviceToUse, external)
-	return
 }
 
 func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external bool) {
@@ -875,7 +874,6 @@ func (hub *Hub) createService(name, scriptFilepath string, forceUpdate bool) boo
 			hub.makeEmptyServiceCurrent()
 		} else {
 			hub.Services[name] = newService
-			println("\n")
 			hub.GetAndReportErrors(newService)
 		}
 		if name == "hub" {
