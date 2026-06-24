@@ -1393,10 +1393,10 @@ func (cp *Compiler) getResolvingCompiler(tok *token.Token, ac CpAccess) *Compile
 		namespace = strings.Split(tok.Namespace, ".")
 	}
 	resolvingCompiler := cp
-	for _, name := range namespace[:len(namespace)-1] {
+	for _, name := range namespace[:len(namespace)-1] { // A non-empty namespace ends with a . which puts a redundant empty string at the end of Split.
 		// We checked that it exists during parsing.
 		resolvingCompiler, _ = resolvingCompiler.Modules[name]
-		if resolvingCompiler.P.Private && (ac == REPL || len(namespace) > 1) {
+		if resolvingCompiler.P.Private && (ac == REPL || len(namespace) > 2) {
 			cp.Throw("comp/namespace/private", tok, name)
 			return nil
 		}
