@@ -32,14 +32,51 @@ func (hub *Hub) Repl() {
 		for _, pair := range PAIRS {
 			left := pair[0]
 			right := pair[1]
-			handler := func(i int, st *readline.EventState) *readline.EventReturn {
-				return &readline.EventReturn{
-					SetLine:  []rune(st.Line[:st.CursorPos] + right + st.Line[st.CursorPos:]),
-					Continue: true,
-					SetPos:   st.CursorPos,
+			if left == right {
+				handler := func(i int, st *readline.EventState) *readline.EventReturn {
+					if len(st.Line) != st.CursorPos {
+						if st.Line[st.CursorPos] == right[0] {
+							return &readline.EventReturn{
+								SetLine: []rune(st.Line),
+								Continue: false,
+								SetPos:   st.CursorPos + 1,
+							}
+						}
+					}
+					return &readline.EventReturn{
+						SetLine:  []rune(st.Line[:st.CursorPos] + right + st.Line[st.CursorPos:]),
+						Continue: true,
+						SetPos:   st.CursorPos,
+					}
 				}
+				rline.AddEvent(left, handler)
+			} else {
+				lHandler := func(i int, st *readline.EventState) *readline.EventReturn {
+					return &readline.EventReturn{
+						SetLine:  []rune(st.Line[:st.CursorPos] + right + st.Line[st.CursorPos:]),
+						Continue: true,
+						SetPos:   st.CursorPos,
+					}
+				}
+				rline.AddEvent(left, lHandler)
+				rHandler := func(i int, st *readline.EventState) *readline.EventReturn {
+					if len(st.Line) != st.CursorPos {
+						if st.Line[st.CursorPos] == right[0] {
+							return &readline.EventReturn{
+								SetLine: []rune(st.Line),
+								Continue: false,
+								SetPos:   st.CursorPos + 1,
+							}
+						}
+					}
+					return &readline.EventReturn{
+						SetLine:  []rune(st.Line[:st.CursorPos] + right + st.Line[st.CursorPos:]),
+						Continue: true,
+						SetPos:   st.CursorPos,
+					}
+				}
+				rline.AddEvent(right, rHandler)
 			}
-			rline.AddEvent(left, handler)
 		}
 		for {
 			rline.SetPrompt(makePrompt(hub, ws != ""))
