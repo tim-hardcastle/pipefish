@@ -1039,7 +1039,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 
 	iz.cmI("Adding clone validation to declarations.")
 	for i, pc := range iz.parsedCode[cloneDeclaration] {
-		dec := pc.(*parsedTypecheck)
+		dec := pc.(*parsedValidation)
 		if dec.body != nil {
 			name := dec.indexTok.Literal
 			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, cloneDeclaration, i, name, dec.indexTok}})
@@ -1074,7 +1074,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	}
 	iz.cmI("Adding struct typechecks to declarations.")
 	for i, pc := range iz.parsedCode[structDeclaration] {
-		dec := pc.(*parsedTypecheck)
+		dec := pc.(*parsedValidation)
 		if dec.body != nil {
 			name := dec.indexTok.Literal
 			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, structDeclaration, i, name, dec.indexTok}})
@@ -1233,7 +1233,7 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	loop:
 		for _, dec := range groupOfDeclarations {
 			switch parsedCode := dec.chunk.(type) {
-			case *parsedTypecheck:
+			case *parsedValidation:
 				tok := parsedCode.getToken()
 				if _, ok := iz.getDeclaration(decPARAMETERIZED, tok, DUMMY); ok {
 					continue loop

@@ -2171,6 +2171,9 @@ func (cp *Compiler) SplitOnNewlines(block parser.Node) []parser.Node {
 			result = cp.SplitOnNewlines(branch.Left)
 			rhs := cp.SplitOnNewlines(branch.Right)
 			result = append(result, rhs...)
+			break
+		} else {
+			result = []parser.Node{block}
 		}
 	default:
 		result = []parser.Node{block}

@@ -156,7 +156,7 @@ func (iz *Initializer) extractNamesFromCodeChunk(dec labeledParsedCodeChunk) dty
 	switch pc := dec.chunk.(type) {
 	case *parsedAssignment:
 		return parser.ExtractAllNames(pc.body)
-	case *parsedTypecheck:
+	case *parsedValidation:
 		return parser.ExtractAllNames(pc.body)
 	case *parsedTypeInstance:
 		return parser.ExtractAllNames(pc.validation)

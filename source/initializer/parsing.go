@@ -1371,7 +1371,7 @@ func (iz *Initializer) parse(decType declarationType, decNumber int) parsedCode 
 			iz.P.TokenizedCode = tc.body
 			body = iz.P.ParseTokenizedChunk()
 		}
-		return &parsedTypecheck{
+		return &parsedValidation{
 			decType:    decType,
 			decNumber:  decNumber,
 			indexTok:   ixPtr(tc),
@@ -1420,7 +1420,7 @@ func (iz *Initializer) parse(decType declarationType, decNumber int) parsedCode 
 			iz.P.TokenizedCode = tc.body
 			body = iz.P.ParseTokenizedChunk()
 		}
-		return &parsedTypecheck{
+		return &parsedValidation{
 			decType:    decType,
 			decNumber:  decNumber,
 			indexTok:   ixPtr(tc),

@@ -43,7 +43,7 @@ type parsedAssignment struct {
 
 func (pc *parsedAssignment) getToken() *token.Token { return pc.indexTok }
 
-type parsedTypecheck struct {
+type parsedValidation struct {
 	decType    declarationType // Clone or struct
 	decNumber  int
 	indexTok   *token.Token
@@ -51,7 +51,7 @@ type parsedTypecheck struct {
 	body       parser.Node
 }
 
-func (pc *parsedTypecheck) getToken() *token.Token { return pc.indexTok }
+func (pc *parsedValidation) getToken() *token.Token { return pc.indexTok }
 
 // When a parameterized type is instantiated, we monomorphize the typechecking because it
 // would be a waste of time to e.g. keep fetching the '3' to check that things are in a
