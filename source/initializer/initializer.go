@@ -1318,8 +1318,7 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 	envToAddTo, vAcc := iz.getEnvAndAccessForConstOrVarDeclaration(declarations, v)
 
 	last := len(sig) - 1
-	t, ok := sig[last].VarType.(*parser.TypeWithName)
-	lastIsTuple := ok && t.OperatorName == "tuple"
+	_, lastIsVarargs := sig[last].VarType.(*parser.TypeDotDotDot)
 	rhsIsTuple := result.T == values.TUPLE
 	tupleLen := 1
 	if rhsIsTuple {
@@ -1327,7 +1326,7 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 	}
 	loopTop := len(sig)
 	head := []values.Value{result}
-	if lastIsTuple {
+	if lastIsVarargs {
 		loopTop = last
 		if rhsIsTuple {
 			head = result.V.([]values.Value)[:last]
@@ -1352,7 +1351,7 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 		} else {
 			allowedTypes := iz.cp.GetAlternateTypeFromTypeAst(sig[i].VarType)
 			if allowedTypes.IsNoneOf(head[i].T) {
-				iz.throw("comp/assign/type/a", asgn.indexTok, sig[i].VarName.Literal, iz.cp.GetTypeNameFromNumber(head[i].T))
+				iz.throw("comp/assign/type/a", asgn.indexTok, sig[i].VarName.Literal, iz.cp.GetTypeNameFromNumber(head[i].T), sig[i].VarType.String())
 				return
 			} else {
 				iz.cp.AddThatAsVariable(envToAddTo, sig[i].VarName.Literal, vAcc, allowedTypes, sig[i].VarName)

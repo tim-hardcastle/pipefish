@@ -18,9 +18,9 @@ myOtherSet = set(1, 2, 3)
 
 mySnippet = -- foo |"bar"| spong
 
-myTuple tuple = ("a", "b", "c", "d")
+myTuple ... = ("a", "b", "c", "d")
 
-myOtherTuple tuple = (1, 2, 3)
+myOtherTuple ... = (1, 2, 3)
 
 var x = 0
 

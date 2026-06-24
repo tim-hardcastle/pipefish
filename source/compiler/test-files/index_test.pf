@@ -50,7 +50,7 @@ myOtherNumber = 1
 
 myWord = "Angela"
 
-myTuple tuple = 1, 2, 3, 4
+myTuple ... = 1, 2, 3, 4
 
 mySnippet = -- foo |"bar"| troz |"zort"|
 

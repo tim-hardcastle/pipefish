@@ -2,9 +2,9 @@ var
 
 x rune, y int = 'q', 2
 
-s tuple = 1, 2
+s ... = 1, 2
 
-t tuple = 42
+t ... = 42
 
 const 
 

@@ -223,7 +223,7 @@ func (p *Parser) ChunkNameTypePairs(dflt DefaultTypeChunk) (TokSig, bool) {
 			p.NextToken()
 			continue
 		}
-		p.Throw("sigs/params", &p.CurToken)
+		p.Throw("sigs/params", &p.PeekToken)
 		return TokSig{}, false
 	}
 	return sig, true

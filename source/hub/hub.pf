@@ -6,7 +6,7 @@ var private // The `Hub` type is added in the compiler as a kludge, for reasons.
 
 HUB Hub? = NULL
 
-$_external = false
+$_external bool = false
 
 cmd
 

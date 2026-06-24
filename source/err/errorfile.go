@@ -73,7 +73,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"comp/assign/type/a": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "assigning a value of type " + emph(args[1]) + " to variable " + emph(args[0])
+			return "assigning a value of type " + emph(args[1]) + " to variable " + emph(args[0]) + " of type " + emph(args[2])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "You are trying to assign a value to a variable when you have explicitly said " +
@@ -1966,7 +1966,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 			return "type " + emph(tok.Namespace+tok.Literal) + " doesn't exist"
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
-			return "You seem to be trying to use " + emph(tok.Namespace+tok.Literal) + "as a type but you haven't defined it as one."
+			return "You seem to be trying to use " + emph(tok.Namespace+tok.Literal) + " as a type but you haven't defined it as one."
 		},
 	},
 

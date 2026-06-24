@@ -11,7 +11,7 @@ tom = Cat with pink::false, name::"Tom", nobelPrizes::2
 
 const 
 
-CAT_DEFAULTS tuple = nobelPrizes::0, pink::false
+CAT_DEFAULTS ... = nobelPrizes::0, pink::false
 
 var
 

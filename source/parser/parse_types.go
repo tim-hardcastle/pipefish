@@ -50,7 +50,10 @@ func (p *Parser) ParseTypeFromCurTok(prec typePrecedence) TypeNode {
 		p.NextToken()
 	} else {
 		if p.CurToken.Type == token.DOTDOTDOT {
-			right := p.ParseType(T_LOWEST)
+			right := TypeNode(ANY_NULLABLE_TYPE_AST)
+			if p.PeekToken.Type != token.EOF {
+				right = p.ParseType(T_LOWEST)
+			}
 			leftExp = &TypeDotDotDot{tok, right}
 		} else {
 			leftExp = &TypeWithName{tok, p.CurToken.Literal}

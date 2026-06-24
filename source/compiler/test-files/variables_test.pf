@@ -14,13 +14,13 @@ v, w = true, 42
 
 x = 42
 
-T tuple = 3, 4
+T ... = 3, 4
 
-i int, U tuple = 3, 4 
+i int, U ... = 3, 4 
 
-j int, V tuple = 3
+j int, V ... = 3
 
-W tuple = 4
+W ... = 4
 
 
 

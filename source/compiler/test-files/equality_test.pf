@@ -25,8 +25,8 @@ IOTA = func(x int) : x
 
 var
 
-ta tuple = (1, 2, 3)
+ta ... = (1, 2, 3)
 
-tb tuple = (1, 2)
+tb ... = (1, 2)
 
-tc tuple = (1, 2, true)
+tc ... = (1, 2, true)
