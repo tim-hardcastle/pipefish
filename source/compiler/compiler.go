@@ -2434,7 +2434,7 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 	thatLoc := uint32(DUMMY)
 	overlap := lhsTypes.intersect(cp.Common.SharedTypenameToTypeList["clones{list}"])
 	if len(overlap) == 0 {
-		cp.Throw("comp/pipe/mf/list", rhs.GetToken())
+		cp.Throw("comp/pipe/mf/list", rhs.GetToken(), lhsTypes.describe(cp.Vm))
 		return FAIL
 	}
 	if len(overlap) < len(lhsTypes) {

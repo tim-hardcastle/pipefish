@@ -552,7 +552,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 
 	"comp/pipe/mf/list": {
 		Message: func(tok *token.Token, args ...any) string {
-			return "lhs of piping operator is not a list"
+			return "lhs of piping operator should be of type `list`, not type " + emph(args[0])
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "Pipefish was expecting a list on the left-hand side of the " +
