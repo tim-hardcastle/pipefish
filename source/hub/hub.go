@@ -196,6 +196,7 @@ func (hub *Hub) Do(line, username, password, service string, external bool) {
 			}
 		}
 	}
+	hub.ers = []*err.Error{}
 	hub.update(service)
 	serviceToUse, _ := hub.Services[service]
 	// Empty/comment-only lines do nothing, but we wait until now to decide that because we *do* want them to
@@ -214,6 +215,9 @@ func (hub *Hub) Do(line, username, password, service string, external bool) {
 
 	errorsExist, _ := serviceToUse.ErrorsExist()
 	if errorsExist { // Any lex-parse-compile errors should end up in the parser of the compiler of the service, returned in p.
+		if hub.Services[service].IsBroken() {
+			println("\n")
+		}
 		hub.GetAndReportErrors(serviceToUse)
 		return
 	}
@@ -231,9 +235,9 @@ func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external b
 			e = err.CreateErr(e.ErrorId, e.Token, e.Args...)
 		}
 		hub.WriteString("\n")
-		hub.WritePretty("[0] " + text.ERROR + e.Message + err.DescribePos(e.Token) + ".")
+		hub.WritePretty("[" + strconv.Itoa(len(hub.ers)) + "] " + text.ERROR + e.Message + err.DescribePos(e.Token) + ".")
 		hub.WriteString("\n\n")
-		hub.ers = []*pf.Error{val.V.(*pf.Error)}
+		hub.ers = append(hub.ers, e)
 		if len(val.V.(*pf.Error).Values) > 0 {
 			hub.WritePretty("Values are available with `hub values`.")
 			hub.WriteString("\n\n")
@@ -696,20 +700,24 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			h.WriteError("there are no recent errors.")
 			break
 		}
-		if h.ers[0].Values == nil {
+		// Usually a runtime error will be the only error, and so necessarily the last one. But also, a runtime error
+		// can arise when we're livecoding and we get compilation errors but also a runtime error from whatever we put 
+		// into the REPL.
+		lastError := h.ers[len(h.ers)-1]
+		if lastError.Values == nil {
 			h.WriteError("no values were passed.")
 			break
 		}
-		if len(h.ers[0].Values) == 0 {
+		if len(lastError.Values) == 0 {
 			h.WriteError("no values were passed.")
 			break
 		}
-		if len(h.ers[0].Values) == 1 {
+		if len(lastError.Values) == 1 {
 			h.WriteString("\nThe value passed was:\n\n")
 		} else {
 			h.WriteString("\nValues passed were:\n\n")
 		}
-		for _, v := range h.ers[0].Values {
+		for _, v := range lastError.Values {
 			if v.T == pf.BLING {
 				h.WriteString(BULLET_SPACING + h.Services[h.CurrentServiceName()].ToLiteral(v))
 			} else {
