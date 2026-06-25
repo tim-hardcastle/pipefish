@@ -146,8 +146,11 @@ line:
 			controlCode := false
 		slurp:
 			for {
-				switch r[ix] {
-				case '\n':
+				switch {
+				case currentStyle == "`" && !(r[ix] == '`' || r[ix] == 0 || r[ix] == '\n'):
+					word = word + string(r[ix])
+					ix++
+				case r[ix] == '\n':
 					ix++
 					if word == "" {
 						for r[ix] == '\n' {
@@ -159,32 +162,32 @@ line:
 						word = word + " "
 					}
 					break slurp
-				case 0:
+				case r[ix] == 0:
 					word = word + " "
 					ix++
 					break slurp
-				case '>':
+				case r[ix] == '>':
 					word = word + ">"
 					ix++
 					break slurp
-				case '/':
+				case r[ix] == '/':
 					word = word + string(r[ix])
 					ix++
 					if word != "</" {
 						break slurp
 					}
-				case '-', ' ':
+				case r[ix] == '-'|| r[ix] == ' ':
 					word = word + string(r[ix])
 					ix++
 					break slurp
-				case '<':
+				case r[ix] == '<':
 					if word == "" {
 						word = "<"
 						ix++
 					} else {
 						break slurp
 					}
-				case '`':
+				case r[ix] == '`':
 					if word == "" {
 						word = "`"
 						ix++
@@ -192,18 +195,14 @@ line:
 					} else {
 						break slurp
 					}
-				case '*':
-					switch  {
-					case currentStyle == "`":
-						word = word + string(r[ix])
-						ix++
-					case word == "":
+				case r[ix] == '*':
+					if word == "" {
 						for r[ix] == '*' {
 							word = word + "*"
 							ix++
 						}
 						break slurp
-					default:
+					} else {
 						break slurp
 					}
 				default:
