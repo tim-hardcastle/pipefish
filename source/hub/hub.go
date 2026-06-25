@@ -901,13 +901,13 @@ func StartServiceFromCli() {
 	newService := pf.NewService()
 	// This ought to get the `$_env` settings.
 	// Then we could do proper markdown in the errors.
-	err := newService.InitializeFromFilepathWithStore(filename, values.Map{})
+	newService.InitializeFromFilepathWithStore(filename, values.Map{})
 	if newService.IsBroken() {
-		fmt.Println("\nThere were errors running the script " + text.CYAN + "\"" + filename + "\"" + text.RESET + ".")
+		fmt.Println("\nThere were errors running the script " + text.CYAN + "\"" + filename + "\"" + text.RESET + ".\n")
 		s, _ := newService.GetErrorReport()
-		fmt.Println(s)
-		fmt.Println("Initializer returned error:", err.Error())
-		fmt.Print("Closing Pipefish.\n\n")
+		mdFunc := newService.GetMarkdowner("", 92, values.Map{})
+		fmt.Println(mdFunc(s))
+		fmt.Println()
 		os.Exit(3)
 	}
 	val, _ := newService.CallMain()
