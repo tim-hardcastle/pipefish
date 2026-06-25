@@ -34,7 +34,7 @@ func TestCompilerItes(t *testing.T) {
 		{`global/global`, `OK`},
 		{`global/ident`, `OK`},
 		{`private/global`, `OK`},
-		{`private/ident.b`, `OK`},
+		{`private/ident.b`, `comp/private/ident`},
 		{`private/call.b`, `OK`},
 		{`return/cmd`, `OK`},
 		{`try/return`, `OK`},
@@ -547,8 +547,8 @@ func TestTypeAccessCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Pair 1, 2`, `comp/private/call.a`},
 		{`Suit`, `comp/private/type.a`},
-		{`HEARTS`, `comp/private/ident.a`},
-		{`one`, `comp/private/ident.a`},
+		{`HEARTS`, `comp/private/ident`},
+		{`one`, `comp/private/ident`},
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
 }
@@ -580,9 +580,9 @@ func TestValidationRtes(t *testing.T) {
 }
 func TestVariableAccessCtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`B`, `comp/private/ident.a`},
+		{`B`, `comp/private/ident`},
 		{`A = 43`, `comp/assign/const`},
-		{`z`, `comp/private/ident.a`},
+		{`z`, `comp/private/ident`},
 		{`secretB`, `comp/private/call.a`},
 		{`secretZ`, `comp/private/call.a`},
 	}
@@ -595,7 +595,7 @@ func TestVariableCtes(t *testing.T) {
 		{`X = 42`, `comp/assign/const`},
 		{`noVar = 0`, `comp/assign/repl`},
 		{`blerp`, `comp/ident/known`},
-		{`w`, `comp/private/ident.a`},
+		{`w`, `comp/private/ident`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }

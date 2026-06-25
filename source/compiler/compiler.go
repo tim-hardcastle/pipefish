@@ -47,6 +47,7 @@ type Compiler struct {
 	ApiDescription           [][]ApiItem                        // Data used to generate a description of the API.
 	AbstractTypesByName      TypeSys                            // Abstract types indexed by name.
 	Pool                     InclusionPool                      // Records what includes what. It's used by the compiler, but only at initialization time, and therefore is nil-ed out after initialization as a way to say we can ignore it from then on.
+	PrivateNullImports       dtypes.Set[string]                 // Exists to keep the *public* functions of *private* null imports out of the hands of the REPL.
 
 	// Temporary state.
 	ThunkList          []ThunkData                   // Records what thunks we made so we know what to unthunk at the top of the function.
@@ -75,6 +76,7 @@ func NewCompiler(p *parser.Parser, ccb *CommonCompilerBindle) *Compiler {
 		FunctionForest:           make(map[string]*FunctionTree),
 		AbstractTypesByName:      TypeSys{},
 		Pool:                     make(InclusionPool),
+		PrivateNullImports:       make(dtypes.Set[string]),
 	}
 	for name := range ClonableTypes {
 		newC.GeneratedAbstractTypes.Add("clones{" + name + "}")
@@ -335,8 +337,8 @@ NodeTypeSwitch:
 			}
 			resultIsError := BkEarlyReturn(DUMMY)
 			if result.Types.Contains(values.ERROR) {
-					resultIsError = cp.VmConditionalEarlyReturn(vm.Qtyp, cp.That(), uint32(values.ERROR), cp.That())
-				}
+				resultIsError = cp.VmConditionalEarlyReturn(vm.Qtyp, cp.That(), uint32(values.ERROR), cp.That())
+			}
 			cp.Put(vm.Notb, cp.That())
 			cp.VmComeFrom(resultIsError)
 			break
@@ -398,14 +400,10 @@ NodeTypeSwitch:
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}
-		if (v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == GLOBAL_VARIABLE_PRIVATE) && (ac == REPL || resolvingCompiler != cp) {
-			cp.Throw("comp/private/ident.a", node.GetToken())
-			cp.GlobalConsts.Ext = nil
-			return FAIL
-		}
-		if cp.Pool != nil && resolvingCompiler == cp && v.Token != nil &&
-			v.Access == GLOBAL_CONSTANT_PRIVATE && !cp.Pool.Check(node.Token.Source, v.Token.Source) {
-			cp.Throw("comp/private/ident.b", node.GetToken())
+		if ((v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == GLOBAL_VARIABLE_PRIVATE) && (ac == REPL || resolvingCompiler != cp)) ||
+			(cp.Pool != nil && resolvingCompiler == cp && v.Token != nil && v.Access == GLOBAL_CONSTANT_PRIVATE && !cp.Pool.Check(node.Token.Source, v.Token.Source)) ||
+			(ctxt.Access == REPL && v.Token != nil && cp.PrivateNullImports.Contains(v.Token.Source)) {
+			cp.Throw("comp/private/ident", node.GetToken())
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}
@@ -970,8 +968,9 @@ NodeTypeSwitch:
 						cp.Throw("comp/global/global", arg.GetToken())
 						return FAIL
 					}
-					if cp.Pool != nil && resolvingCompiler == cp && variable.Token != nil &&
-						variable.Access == GLOBAL_VARIABLE_PRIVATE && !cp.Pool.Check(node.Token.Source, variable.Token.Source) {
+					if (cp.Pool != nil && resolvingCompiler == cp && variable.Token != nil &&
+						variable.Access == GLOBAL_VARIABLE_PRIVATE && !cp.Pool.Check(node.Token.Source, variable.Token.Source)) ||
+						(ctxt.Access == REPL && cp.PrivateNullImports.Contains(variable.Token.Source)) {
 						cp.Throw("comp/private/global", variable.Token)
 						cp.GlobalConsts.Ext = nil
 						return FAIL
@@ -1590,7 +1589,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			}
 			boundVariables = boundVariables.Add(pair.VarName.Literal)
 			vr, exists := newEnv.GetVar(pair.VarName.Literal) // We let index variables shadow global constants and variables and outer bound variables.
-			if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+			if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE,
 				GLOBAL_VARIABLE_PRIVATE, FOR_LOOP_BOUND_VARIABLE).Contains(vr.Access) {
 				cp.Throw("comp/for/bound/exists.b", node.BoundVariables.GetToken(), pair.VarName.Literal)
 				return FAIL
@@ -1635,7 +1634,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		indexResultLoc = cp.That()
 		for i, pair := range indexSig { // Any overlap in the new env will be of the bound/index variables.
 			vr, exists := newEnv.GetVar(pair.VarName.Literal) // We let index variables shadow global constants and variables.
-			if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+			if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE,
 				GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
 				cp.Throw("comp/for/index/exists", pair.VarName, pair.VarName.Literal)
 				return FAIL
@@ -1694,7 +1693,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 					cp.Reserve(values.UNDEFINED_TYPE, nil, rangeOver.GetToken())
 					rangeKeyLoc = cp.That()
 					vr, exists := newEnv.GetVar(leftName) // We let range variables shadow global constants and variables.
-					if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+					if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE,
 						GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
 						cp.Throw("comp/for/exists/key", pairOfIdentifiers.Args[0].GetToken(), leftName)
 						return FAIL
@@ -1705,7 +1704,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 					cp.Reserve(values.UNDEFINED_TYPE, nil, rangeOver.GetToken())
 					rangeValLoc = cp.That()
 					vr, exists := newEnv.GetVar(rightName) // We let range variables shadow global constants and variables.
-					if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
+					if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE,
 						GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
 						cp.Throw("comp/for/exists/value", pairOfIdentifiers.Args[0].GetToken(), rightName)
 						return FAIL
@@ -2110,8 +2109,8 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 		rhs := parser.GetVariableNames(assEx.Right)
 		for _, pair := range lhsSig {
 			vr, exists := ctxt.Env.GetVar(pair.VarName.Literal)
-			if exists && ! dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE, 
-						GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
+			if exists && !dtypes.SetOf(GLOBAL_CONSTANT_PUBLIC, GLOBAL_VARIABLE_PUBLIC, GLOBAL_CONSTANT_PRIVATE,
+				GLOBAL_VARIABLE_PRIVATE).Contains(vr.Access) {
 				cp.Throw("comp/given/exists", chunk.GetToken(), pair.VarName.Literal)
 				return false
 			}

@@ -534,8 +534,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 					cp.Emit(vm.Asgm, b.outLoc, F.OutReg) // Because the different implementations of the function will have their own out register.
 					return F.RtnTypes, false
 				}
-
-				if (b.access == REPL || b.libcall) && F.Private {
+				if (b.access == REPL || b.libcall) && (F.Private || cp.PrivateNullImports.Contains(F.Token.Source)) {
 					cp.cmP("REPL trying to access private function. Returning error.", b.tok)
 					cp.Throw("comp/private/call.a", b.tok)
 					return nil, false

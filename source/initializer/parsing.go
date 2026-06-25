@@ -231,7 +231,11 @@ func (iz *Initializer) addToNamespace(thingsToImport []tokenizedCode) {
 		switch dec := dec.(type) {
 		case *tokenizedExternalOrImportDeclaration:
 			pathTok = dec.path
-			private = dec.private
+			private = dec.private && dec.name.Literal != "NULL"
+			if dec.private && dec.name.Literal == "NULL" {
+				path, _ := filepath.Abs(MakeFilepath(dec.path.Literal))
+				iz.cp.PrivateNullImports = iz.cp.PrivateNullImports.Add(path)
+			}
 		case *tokenizedIncludeDeclaration:
 			pathTok = dec.path
 			path := pathTok.Literal

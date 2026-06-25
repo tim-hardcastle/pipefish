@@ -18,7 +18,6 @@ func TestAlias(t *testing.T) {
 	test_helper.RunTest(t, "alias_test.pf", tests, test_helper.TestValues)
 }
 
-
 func TestApi(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
@@ -581,7 +580,7 @@ func TestItes(t *testing.T) {
 		{`type/known`, `OK`},
 		// These check that NULL imports don't behave like `include`s.
 		{`private/global`, `OK`},
-		{`private/ident.b`, `OK`},
+		{`private/ident.b`, `comp/private/ident`},
 		{`private/call.b`, `OK`},
 		// Tests for failing upwards.
 		{`break fail`, `comp/eq/types`},
@@ -610,11 +609,9 @@ func TestInclude(t *testing.T) {
 		{`double 7`, `14`},
 		{`quxify 1`, `42`},
 		{`getZort`, `OK`},
-	
 	}
 	test_helper.RunTest(t, "include_test.pf", tests, test_helper.TestValues)
 }
-
 
 func TestIndexing(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -945,8 +942,8 @@ func TestTypeAccessErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Pair 1, 2`, `comp/private/call.a`},
 		{`Suit`, `comp/private/type.a`},
-		{`HEARTS`, `comp/private/ident.a`},
-		{`one`, `comp/private/ident.a`},
+		{`HEARTS`, `comp/private/ident`},
+		{`one`, `comp/private/ident`},
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestCompilerErrors)
 }
@@ -994,9 +991,9 @@ func TestVariablesAndConsts(t *testing.T) {
 
 func TestVariableAccessErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`B`, `comp/private/ident.a`},
+		{`B`, `comp/private/ident`},
 		{`A = 43`, `comp/assign/const`},
-		{`z`, `comp/private/ident.a`},
+		{`z`, `comp/private/ident`},
 		{`secretB`, `comp/private/call.a`},
 		{`secretZ`, `comp/private/call.a`},
 	}
@@ -1010,7 +1007,7 @@ func TestVariableCompilerErrors(t *testing.T) {
 		{`X = 42`, `comp/assign/const`},
 		{`noVar = 0`, `comp/assign/repl`},
 		{`blerp`, `comp/ident/known`},
-		{`w`, `comp/private/ident.a`},
+		{`w`, `comp/private/ident`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
