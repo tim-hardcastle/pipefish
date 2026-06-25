@@ -193,16 +193,17 @@ line:
 						break slurp
 					}
 				case '*':
-					if word == "" {
+					switch  {
+					case currentStyle == "`":
+						word = word + string(r[ix])
+						ix++
+					case word == "":
 						for r[ix] == '*' {
 							word = word + "*"
 							ix++
 						}
-						if currentStyle == "`" && r[ix] == ' ' {
-							word = word + " "
-						}
 						break slurp
-					} else {
+					default:
 						break slurp
 					}
 				default:
@@ -221,7 +222,7 @@ line:
 				}
 				currentStyle = ""
 			} else {
-				if word == "`" || word == "*" || word == "**" || word == "***" {
+				if word == "`" || ((word == "*" || word == "**" || word == "***") && currentStyle != "`") {
 					currentStyle = word
 					controlCode = true
 				}
