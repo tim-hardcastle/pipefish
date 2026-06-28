@@ -188,7 +188,7 @@ func TestCast(t *testing.T) {
 		{`cast int, Uid(8)`, `8`},
 		{`cast Uid, 8`, `Uid(8)`},
 		{`cast Color, 0`, `RED`},
-		{`cast Person, ["John", 22]`, `Person with (name::"John", age::22)`},
+		{`cast Person, ["John", 22]`, `Person("John", 22)`},
 	}
 	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
 }
@@ -309,8 +309,8 @@ func TestExternals(t *testing.T) {
 		{`type zort.RED`, `zort.Color`},
 		{`zort.RED in zort.Color`, `true`},
 		{`zort.Color(4)`, `zort.BLUE`},
-		{`zort.Person "John", 22`, `zort.Person with (name::"John", age::22)`},
-		{`zort.Tone LIGHT, BLUE`, `zort.Tone with (shade::zort.LIGHT, color::zort.BLUE)`},
+		{`zort.Person "John", 22`, `zort.Person("John", 22)`},
+		{`zort.Tone LIGHT, BLUE`, `zort.Tone(zort.LIGHT, zort.BLUE)`},
 		{`zort.Qux 5`, `zort.Qux(5)`},
 		{`zort.blerp`, `"Blerp"`},
 		{`zort.spong()`, `"Spong"`},
@@ -472,8 +472,8 @@ func TestFunctionSharing(t *testing.T) {
 		{`C(1, 2) in Addable`, `true`},
 		{`C(1, 2) in summer.Addable`, `true`},
 		{`C(1, 2) in summer.Rotatable`, `true`},
-		{`summer.sum [C(1, 2), C(3, 4), C(5, 6)]`, `C with (real::9, imaginary::12)`},
-		{`summer.rotAll [C(1, 2), C(3, 4)]`, `[C with (real::-2, imaginary::1), C with (real::-4, imaginary::3)]`},
+		{`summer.sum [C(1, 2), C(3, 4), C(5, 6)]`, `C(9, 12)`},
+		{`summer.rotAll [C(1, 2), C(3, 4)]`, `[C(-2, 1), C(-4, 3)]`},
 	}
 	test_helper.RunTest(t, "function_sharing_test.pf", tests, test_helper.TestValues)
 }
@@ -521,7 +521,7 @@ func TestGocode(t *testing.T) {
 		{`variadicTest(2, "fee", "fie", "fo", "fum") == "fo"`, `true`},
 		{`enumTest BLUE`, `BLUE`},
 		{`intCloneTest IntClone(5)`, `IntClone(5)`},
-		{`constructPerson "Doug", 42`, `Person with (name::"Doug", age::42)`},
+		{`constructPerson "Doug", 42`, `Person("Doug", 42)`},
 		{`deconstructPerson Person "Doug", 42`, `("Doug", 42)`},
 		{`floatCloneTest(FloatClone(4.2)) == FloatClone(4.2)`, `true`},
 		{`intCloneTest(IntClone(42)) == IntClone(42)`, `true`},
@@ -597,8 +597,8 @@ func TestImports(t *testing.T) {
 		{`type qux.RED`, `qux.Color`},
 		{`qux.RED in qux.Color`, `true`},
 		{`qux.Color(4)`, `qux.BLUE`},
-		{`qux.Person "John", 22`, `qux.Person with (name::"John", age::22)`},
-		{`qux.Tone LIGHT, BLUE`, `qux.Tone with (shade::qux.LIGHT, color::qux.BLUE)`},
+		{`qux.Person "John", 22`, `qux.Person("John", 22)`},
+		{`qux.Tone LIGHT, BLUE`, `qux.Tone(qux.LIGHT, qux.BLUE)`},
 		{`troz.sumOfSquares 3, 4`, `25`},
 	}
 	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
@@ -864,14 +864,14 @@ func TestSql(t *testing.T) {
 		return
 	}
 	tests := []test_helper.TestItem{
-		{`testE`, `Dragon with (name::"Smaug", color::RED)`},
+		{`testE`, `Dragon("Smaug", RED)`},
 	}
 	test_helper.RunTest(t, "sql_test.pf", tests, test_helper.TestOutput)
 }
 
 func TestStructs(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`doug`, `Person with (name::"Douglas", age::42)`},
+		{`doug`, `Person("Douglas", 42)`},
 		{`tom in Cat`, `true`},
 		{`tom[pink]`, `false`},
 	}
@@ -916,7 +916,7 @@ func TestTuples(t *testing.T) {
 func TestTypes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Color(4)`, `BLUE`},
-		{`DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+		{`DARK_BLUE`, `Tone(DARK, BLUE)`},
 		{`type DARK_BLUE`, `Tone`},
 		{`type RED`, `Color`},
 		{`keys DARK_BLUE`, `[shade, color]`},
@@ -928,12 +928,12 @@ func TestTypes(t *testing.T) {
 		{`GREEN != ORANGE`, `true`},
 		{`PURPLE in MyType`, `true`},
 		{`Tone/Shade/Color`, `MyType`},
-		{`Tone(LIGHT, GREEN)`, `Tone with (shade::LIGHT, color::GREEN)`},
+		{`Tone(LIGHT, GREEN)`, `Tone(LIGHT, GREEN)`},
 		{`Tone(LIGHT, GREEN) == DARK_BLUE`, `false`},
 		{`Tone(LIGHT, GREEN) != DARK_BLUE`, `true`},
-		{`troz DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+		{`troz DARK_BLUE`, `Tone(DARK, BLUE)`},
 		{`foo 3, 5`, `8`},
-		{`Tone with (shade::LIGHT, color::RED)`, `Tone with (shade::LIGHT, color::RED)`},
+		{`Tone with (shade::LIGHT, color::RED)`, `Tone(LIGHT, RED)`},
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
 }
@@ -1014,8 +1014,8 @@ func TestVariableCompilerErrors(t *testing.T) {
 
 func TestWith(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
-		{`john with age::23`, `Person with (name::"John", age::23)`},
+		{`john with name::"Susan", age::23`, `Person("Susan", 23)`},
+		{`john with age::23`, `Person("John", 23)`},
 		{`myList with diffList`, `["x", "y", "c", "d"]`},
 		{`myMap with "a"::99`, `map("a"::99, "b"::2, "c"::3, "d"::4)`},
 		{`myMap with "z"::42`, `map("a"::1, "b"::2, "c"::3, "d"::4, "z"::42)`},

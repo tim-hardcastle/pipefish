@@ -87,10 +87,21 @@ func (vm *Vm) ToString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 	}
 	if typeInfo.IsStruct() {
 		buf.WriteString(typeInfo.GetName(DEFAULT))
+		if flavor == LITERAL {
+			buf.WriteString("(")
+		var sep string
+		vals := v.V.([]values.Value)
+		for _, val := range vals { 
+			fmt.Fprintf(&buf, "%s%s", sep, vm.StringifyValue(val, flavor, cpNumber))
+			sep = ", "
+		}
+			buf.WriteByte(')')
+			return buf.String()
+		}
 		buf.WriteString(" with (")
 		var sep string
 		vals := v.V.([]values.Value)
-		for i, lb := range typeInfo.(StructType).LabelNumbers { // We iterate by the label and not by the value so that we can have hidden fields in the structs, as we do for efficiency when making a compilable snippet.
+		for i, lb := range typeInfo.(StructType).LabelNumbers { 
 			fmt.Fprintf(&buf, "%s%s::%s", sep, vm.Labels[lb], vm.StringifyValue(vals[i], flavor, cpNumber))
 			sep = ", "
 		}

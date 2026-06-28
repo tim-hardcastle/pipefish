@@ -337,7 +337,7 @@ func TestTypeInstances(t *testing.T) {
 func TestUserDefinedTypes(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`Color(4)`, `BLUE`},
-		{`DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+		{`DARK_BLUE`, `Tone(DARK, BLUE)`},
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
 }

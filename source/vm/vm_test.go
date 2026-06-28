@@ -130,7 +130,7 @@ func TestCast(t *testing.T) {
 		{`cast int, Uid(8)`, `8`},
 		{`cast Uid, 8`, `Uid(8)`},
 		{`cast Color, 0`, `RED`},
-		{`cast Person, ["John", 22]`, `Person with (name::"John", age::22)`},
+		{`cast Person, ["John", 22]`, `Person("John", 22)`},
 		{`cast enum, "foo"`, `vm/cast/concrete`},
 		{`cast Person, "foo"`, `vm/cast`},
 		{`cast Color, -1`, `vm/cast/enum`},
@@ -263,8 +263,8 @@ func TestExternals(t *testing.T) {
 		{`type zort.RED`, `zort.Color`},
 		{`zort.RED in zort.Color`, `true`},
 		{`zort.Color(4)`, `zort.BLUE`},
-		{`zort.Person "John", 22`, `zort.Person with (name::"John", age::22)`},
-		{`zort.Tone LIGHT, BLUE`, `zort.Tone with (shade::zort.LIGHT, color::zort.BLUE)`},
+		{`zort.Person "John", 22`, `zort.Person("John", 22)`},
+		{`zort.Tone LIGHT, BLUE`, `zort.Tone(zort.LIGHT, zort.BLUE)`},
 		{`zort.Qux 5`, `zort.Qux(5)`},
 	}
 	test_helper.RunTest(t, "external_test.pf", tests, test_helper.TestValues)
@@ -338,8 +338,8 @@ func TestFunctionSharing(t *testing.T) {
 		{`C(1, 2) in Addable`, `true`},
 		{`C(1, 2) in summer.Addable`, `true`},
 		{`C(1, 2) in summer.Rotatable`, `true`},
-		{`summer.sum [C(1, 2), C(3, 4), C(5, 6)]`, `C with (real::9, imaginary::12)`},
-		{`summer.rotAll [C(1, 2), C(3, 4)]`, `[C with (real::-2, imaginary::1), C with (real::-4, imaginary::3)]`},
+		{`summer.sum [C(1, 2), C(3, 4), C(5, 6)]`, `C(9, 12)`},
+		{`summer.rotAll [C(1, 2), C(3, 4)]`, `[C(-2, 1), C(-4, 3)]`},
 	}
 	test_helper.RunTest(t, "function_sharing_test.pf", tests, test_helper.TestValues)
 }
@@ -377,7 +377,7 @@ func TestGocode(t *testing.T) {
 		{`variadicTest(2, "fee", "fie", "fo", "fum") == "fo"`, `true`},
 		{`enumTest BLUE`, `BLUE`},
 		{`intCloneTest IntClone(5)`, `IntClone(5)`},
-		{`constructPerson "Doug", 42`, `Person with (name::"Doug", age::42)`},
+		{`constructPerson "Doug", 42`, `Person("Doug", 42)`},
 		{`deconstructPerson Person "Doug", 42`, `("Doug", 42)`},
 		{`floatCloneTest(FloatClone(4.2)) == FloatClone(4.2)`, `true`},
 		{`intCloneTest(IntClone(42)) == IntClone(42)`, `true`},
@@ -583,11 +583,11 @@ func TestInterface(t *testing.T) {
 		{`ZORT in Foobarable`, `true`},
 		{`true in Addable`, `false`},
 		{`Fnug(5) in Foobarable`, `false`},
-		{`Grunt(1, Derp(5))`, `Grunt with (flerp::1, glerp::Derp with (blerp::5))`},
+		{`Grunt(1, Derp(5))`, `Grunt(1, Derp(5))`},
 		{`Derp(5) in Zort`, `true`},
 		{`Derp(5) in Spoitable`, `true`},
-		{`xuq Derp(5)`, `Derp with (blerp::5)`},
-		{`respoit Derp(5)`, `Derp with (blerp::5)`},
+		{`xuq Derp(5)`, `Derp(5)`},
+		{`respoit Derp(5)`, `Derp(5)`},
 	}
 	test_helper.RunTest(t, "interface_test.pf", tests, test_helper.TestValues)
 }
@@ -599,8 +599,8 @@ func TestImports(t *testing.T) {
 		{`type qux.RED`, `qux.Color`},
 		{`qux.RED in qux.Color`, `true`},
 		{`qux.Color(4)`, `qux.BLUE`},
-		{`qux.Person "John", 22`, `qux.Person with (name::"John", age::22)`},
-		{`qux.Tone LIGHT, BLUE`, `qux.Tone with (shade::qux.LIGHT, color::qux.BLUE)`},
+		{`qux.Person "John", 22`, `qux.Person("John", 22)`},
+		{`qux.Tone LIGHT, BLUE`, `qux.Tone(qux.LIGHT, qux.BLUE)`},
 		{`troz.sumOfSquares 3, 4`, `25`},
 	}
 	test_helper.RunTest(t, "import_test.pf", tests, test_helper.TestValues)
@@ -619,12 +619,12 @@ func TestJson(t *testing.T) {
 		{`decode "[1, 2, 3]"`, `[1, 2, 3]`},
 		{`(decode MAP) == map("a"::1, "b"::2)`, `true`},
 		{`decode "null"`, `NULL`},
-		{`decode JOHN as Person`, `Person with (name::"John", age::22)`},
-		{`decode FRED as Person`, `Person with (name::"Fred", age::NULL)`},
-		{`decode PEOPLE like list{Person}`, `[Person with (name::"John", age::22), Person with (name::"Fred", age::NULL)]`},
-		{`decode PEOPLE as list{Person}`, `list{Person}[Person with (name::"John", age::22), Person with (name::"Fred", age::NULL)]`},
-		{`decode PEOPLE_MAP as map{string, Person} == map{string, Person}("fred"::(Person with (name::"Fred", age::NULL)), "john"::(Person with (name::"John", age::22)))`, `true`},
-		{`decode PEOPLE_MAP like map{string, Person} == map("fred"::(Person with (name::"Fred", age::NULL)), "john"::(Person with (name::"John", age::22)))`, `true`},
+		{`decode JOHN as Person`, `Person("John", 22)`},
+		{`decode FRED as Person`, `Person("Fred", NULL)`},
+		{`decode PEOPLE like list{Person}`, `[Person("John", 22), Person("Fred", NULL)]`},
+		{`decode PEOPLE as list{Person}`, `list{Person}[Person("John", 22), Person("Fred", NULL)]`},
+		{`decode PEOPLE_MAP as map{string, Person} == map{string, Person}("fred"::(Person("Fred", NULL)), "john"::(Person("John", 22)))`, `true`},
+		{`decode PEOPLE_MAP like map{string, Person} == map("fred"::(Person("Fred", NULL)), "john"::(Person("John", 22)))`, `true`},
 	}
 	test_helper.RunTest(t, "json_test.pf", tests, test_helper.TestValues)
 }
@@ -717,8 +717,8 @@ func TestParameterizedTypes(t *testing.T) {
 		{`Z{5}(3) + Z{5}(4)`, `Z{5}(2)`},
 		{`Vec{3}[1, 2, 3] + Vec{3}[4, 5, 6]`, `Vec{3}[5, 7, 9]`},
 		{`Money{USD} == Money{EURO}`, `false`},
-		{`Money{USD}(3, 50)`, `Money{USD} with (large::3, small::50)`},
-		{`Dragon{PURPLE}("Smaug", 500)`, `Dragon{PURPLE} with (name::"Smaug", age::500)`},
+		{`Money{USD}(3, 50)`, `Money{USD}(3, 50)`},
+		{`Dragon{PURPLE}("Smaug", 500)`, `Dragon{PURPLE}("Smaug", 500)`},
 		{`list{int}[1, 2]`, `list{int}[1, 2]`},
 		{`list{int}[1, 2] + list{int}[3, 4]`, `list{int}[1, 2, 3, 4]`},
 		{`Z{5}(4) in Z{5}`, `true`},
@@ -796,11 +796,11 @@ func TestSql(t *testing.T) {
 		{`testB`, `2`},
 		{`testC`, `2`},
 		{`testD`, `2`},
-		{`testE`, `Dragon with (name::"Smaug", color::RED)`},
+		{`testE`, `Dragon("Smaug", RED)`},
 		{`testF`, `"Puff"::GREEN`},
 		{`testG`, `map("Puff"::GREEN)`},
 		{`testH`, `2`},
-		{`testI`, `OtherData with (neString::NonEmptyString("foo"), nzInt::NonZeroInt(42))`},
+		{`testI`, `OtherData(NonEmptyString("foo"), NonZeroInt(42))`},
 	}
 	test_helper.RunTest(t, "sql_test.pf", tests, test_helper.TestOutput)
 }
@@ -822,9 +822,9 @@ func TestSqlErrors(t *testing.T) {
 
 func TestStructs(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`doug`, `Person with (name::"Douglas", age::42)`},
+		{`doug`, `Person("Douglas", 42)`},
 		{`tom in Cat`, `true`},
-		{`doug with age::43`, `Person with (name::"Douglas", age::43)`},
+		{`doug with age::43`, `Person("Douglas", 43)`},
 		{`myCat[myField]`, `"Felix"`},
 	}
 	test_helper.RunTest(t, "struct_test.pf", tests, test_helper.TestValues)
@@ -889,9 +889,9 @@ func TestUnwrap(t *testing.T) {
 }
 func TestUserDefinedTypes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`Tone with (shade::LIGHT, color::RED)`, `Tone with (shade::LIGHT, color::RED)`},
+		{`Tone with (shade::LIGHT, color::RED)`, `Tone(LIGHT, RED)`},
 		{`Color(4)`, `BLUE`},
-		{`DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+		{`DARK_BLUE`, `Tone(DARK, BLUE)`},
 		{`type DARK_BLUE`, `Tone`},
 		{`type RED`, `Color`},
 		{`keys DARK_BLUE`, `[shade, color]`},
@@ -903,10 +903,10 @@ func TestUserDefinedTypes(t *testing.T) {
 		{`GREEN != ORANGE`, `true`},
 		{`PURPLE in MyType`, `true`},
 		{`Tone/Shade/Color`, `MyType`},
-		{`Tone(LIGHT, GREEN)`, `Tone with (shade::LIGHT, color::GREEN)`},
+		{`Tone(LIGHT, GREEN)`, `Tone(LIGHT, GREEN)`},
 		{`Tone(LIGHT, GREEN) == DARK_BLUE`, `false`},
 		{`Tone(LIGHT, GREEN) != DARK_BLUE`, `true`},
-		{`troz DARK_BLUE`, `Tone with (shade::DARK, color::BLUE)`},
+		{`troz DARK_BLUE`, `Tone(DARK, BLUE)`},
 		{`foo 3, 5`, `8`},
 	}
 	test_helper.RunTest(t, "user_types_test.pf", tests, test_helper.TestValues)
@@ -922,7 +922,7 @@ func TestValidation(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`EvenNumber 2`, `EvenNumber(2)`},
 		{`EvenNumber 3`, `vm/validation/fail`},
-		{`Person "Doug", 42`, `Person with (name::"Doug", age::42)`},
+		{`Person "Doug", 42`, `Person("Doug", 42)`},
 		{`Person "", 42`, `vm/validation/fail`},
 		{`Person "Doug", -99`, `vm/validation/fail`},
 		{`Thing 0`, `vm/user`},
@@ -946,10 +946,10 @@ func TestVariablesAndConsts(t *testing.T) {
 }
 func TestWith(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`john with name::"Susan", age::23`, `Person with (name::"Susan", age::23)`},
-		{`john with age::23`, `Person with (name::"John", age::23)`},
-		{`rex with [friends, 1]::"Daisy"`, `Dog with (name::"Rex", friends::["Fido", "Daisy"])`},
-		{`Person with (name::"John")`, `Person with (name::"John", age::NULL)`},
+		{`john with name::"Susan", age::23`, `Person("Susan", 23)`},
+		{`john with age::23`, `Person("John", 23)`},
+		{`rex with [friends, 1]::"Daisy"`, `Dog("Rex", ["Fido", "Daisy"])`},
+		{`Person with (name::"John")`, `Person("John", NULL)`},
 		{`myList with diffList`, `["x", "y", "c", "d"]`},
 		{`myOtherList with [2,1]::"q"`, `["a", "b", ["x", "q", "z"], "d"]`},
 		{`myMap with "a"::99`, `map("a"::99, "b"::2, "c"::3, "d"::4)`},
