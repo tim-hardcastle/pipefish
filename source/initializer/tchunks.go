@@ -111,10 +111,11 @@ func (tc *tokenizedCloneDeclaration) api() (string, string, bool) {
 	if tc.private || settings.MandatoryImportSet().Contains(tc.op.Source) {
 		return "", "", false
 	}
-	result := tc.op.Literal + " = clone"
+	result := tc.op.Literal
 	if len(tc.params) > 0 {
-		result = result + "{"
+		result = result + "{" + tc.params.SimpleString() + "}"
 	}
+	result = result + " = clone"
 	result = result + " " + tc.parentTok.Literal
 	if len(tc.requests) > 0 {
 		result = result + " using "
@@ -241,8 +242,8 @@ func (tc *tokenizedFunctionDeclaration) api() (string, string, bool) {
 }
 
 type tokenizedIncludeDeclaration struct {
-	private   bool            // Whether it's declared private.
-	path      token.Token     // The name of the service as an identifier.
+	private bool        // Whether it's declared private.
+	path    token.Token // The name of the service as an identifier.
 }
 
 func (tc *tokenizedIncludeDeclaration) getDeclarationType() declarationType {
@@ -356,10 +357,11 @@ func (tc *tokenizedStructDeclaration) api() (string, string, bool) {
 	if tc.private || settings.MandatoryImportSet().Contains(tc.op.Source) {
 		return "", "", false
 	}
-	result := tc.op.Literal + " = struct"
+	result := tc.op.Literal
 	if len(tc.params) > 0 {
 		result = result + "{" + tc.params.SimpleString() + "}"
 	}
+	result = result + " = struct"
 	result = result + " " + tc.sig.String()
 	return result, tc.docString, true
 }
@@ -458,7 +460,7 @@ func (iz *Initializer) ChunkIncludeDeclaration(private bool, docString string) (
 	if iz.P.CurToken.Type != token.STRING {
 		iz.throw("init/include/string", &iz.P.CurToken)
 		iz.finishChunk()
-		return  &tokenizedIncludeDeclaration{}, false
+		return &tokenizedIncludeDeclaration{}, false
 	}
 	path := iz.P.CurToken
 	iz.P.NextToken()
@@ -483,7 +485,36 @@ func (iz *Initializer) ChunkTypeDeclaration(private bool, docString string) (tok
 		iz.P.NextToken()
 		return iz.chunkMake(opTok, private)
 	}
+	params := parser.TokSig{}
 	iz.P.NextToken()
+	if iz.P.CurTokenIs((token.LBRACE)) {
+		iz.P.NextToken()
+		if iz.P.CurTokenIs(token.RBRACE) {
+			iz.throw("init/template/params", &iz.P.CurToken)
+			iz.finishChunk()
+			return &tokenizedCloneDeclaration{}, false
+		}
+		var ok bool
+		params, ok = iz.P.ChunkNameTypePairs(parser.MISSING_TYPE_ERROR)
+		if !ok {
+			iz.finishChunk()
+			return &tokenizedEnumDeclaration{}, false
+		}
+		if !iz.P.PeekTokenIs(token.RBRACE) {
+			iz.throw("init/template/rbrace", &iz.P.CurToken)
+			iz.finishChunk()
+			return &tokenizedEnumDeclaration{}, false
+		}
+		for _, pair := range params {
+			if pair.Typename[0].Literal == "*error*" {
+				iz.throw("init/template/typed", &pair.Name)
+				iz.finishChunk()
+				return &tokenizedEnumDeclaration{}, false
+			}
+		}
+		iz.P.NextToken()
+		iz.P.NextToken()
+	}
 	if !iz.P.CurTokenIs(token.ASSIGN) {
 		iz.throw("init/type/assign", &iz.P.CurToken)
 		iz.finishChunk()
@@ -496,6 +527,9 @@ func (iz *Initializer) ChunkTypeDeclaration(private bool, docString string) (tok
 		return &tokenizedEnumDeclaration{}, false
 	}
 	decliteral := iz.P.CurToken.Literal
+	if len(params) != 0 && !(decliteral == "clone" || decliteral == "struct") {
+		iz.throw("init/type/template", &iz.P.CurToken)
+	}
 	iz.P.NextToken()
 	switch decliteral {
 	case "abstract":
@@ -503,7 +537,7 @@ func (iz *Initializer) ChunkTypeDeclaration(private bool, docString string) (tok
 	case "alias":
 		return iz.chunkAlias(opTok, private, docString)
 	case "clone":
-		return iz.chunkClone(opTok, private, docString)
+		return iz.chunkClone(opTok, private, docString, params)
 	case "enum":
 		return iz.chunkEnum(opTok, private, docString)
 	case "wrapper":
@@ -511,7 +545,7 @@ func (iz *Initializer) ChunkTypeDeclaration(private bool, docString string) (tok
 	case "interface":
 		return iz.chunkInterface(opTok, private, docString)
 	case "struct":
-		return iz.chunkStruct(opTok, private, docString)
+		return iz.chunkStruct(opTok, private, docString, params)
 	default:
 		iz.throw("init/type/expect.b", &iz.P.CurToken, decliteral)
 		iz.finishChunk()
@@ -601,36 +635,7 @@ func (iz *Initializer) chunkAlias(opTok token.Token, private bool, docString str
 }
 
 // Starts after the word 'clone', ends on NEWLINE or EOF.
-func (iz *Initializer) chunkClone(opTok token.Token, private bool, docString string) (tokenizedCode, bool) {
-	params := parser.TokSig{}
-	if iz.P.CurTokenIs(token.LBRACE) {
-		iz.P.NextToken()
-		if iz.P.CurTokenIs(token.RBRACE) {
-			iz.throw("init/clone/params", &iz.P.CurToken)
-			iz.finishChunk()
-			return &tokenizedCloneDeclaration{}, false
-		}
-		var ok bool
-		params, ok = iz.P.ChunkNameTypePairs(parser.MISSING_TYPE_ERROR)
-		if !ok {
-			iz.finishChunk()
-			return &tokenizedCloneDeclaration{}, false
-		}
-		if !iz.P.PeekTokenIs(token.RBRACE) {
-			iz.throw("init/clone/rbrace", &iz.P.CurToken)
-			iz.finishChunk()
-			return &tokenizedCloneDeclaration{}, false
-		}
-		for _, pair := range params {
-			if pair.Typename[0].Literal == "*error*" {
-				iz.throw("init/clone/typed", &pair.Name)
-				iz.finishChunk()
-				return &tokenizedCloneDeclaration{}, false
-			}
-		}
-		iz.P.NextToken()
-		iz.P.NextToken()
-	}
+func (iz *Initializer) chunkClone(opTok token.Token, private bool, docString string, params parser.TokSig) (tokenizedCode, bool) {
 	if !iz.P.CurTokenIs(token.IDENT) {
 		iz.throw("init/clone/ident", &iz.P.CurToken)
 		iz.finishChunk()
@@ -812,36 +817,7 @@ func (iz *Initializer) chunkMake(opTok token.Token, private bool) (tokenizedCode
 }
 
 // Starts after the word 'struct', ends on NEWLINE or EOF.
-func (iz *Initializer) chunkStruct(opTok token.Token, private bool, docString string) (tokenizedCode, bool) {
-	params := parser.TokSig{}
-	if iz.P.CurTokenIs(token.LBRACE) {
-		iz.P.NextToken()
-		if iz.P.CurTokenIs(token.RBRACE) {
-			iz.throw("init/struct/params", &iz.P.CurToken)
-			iz.finishChunk()
-			return &tokenizedStructDeclaration{}, false
-		}
-		var ok bool
-		params, ok = iz.P.ChunkNameTypePairs(parser.MISSING_TYPE_ERROR)
-		if !ok {
-			iz.finishChunk()
-			return &tokenizedStructDeclaration{}, false
-		}
-		if !iz.P.PeekTokenIs(token.RBRACE) {
-			iz.throw("init/struct/rbrace", &iz.P.CurToken)
-			iz.finishChunk()
-			return &tokenizedStructDeclaration{}, false
-		}
-		for _, pair := range params {
-			if pair.Typename[0].Literal == "*error*" {
-				iz.throw("init/struct/type", &pair.Name)
-				iz.finishChunk()
-				return &tokenizedStructDeclaration{}, false
-			}
-		}
-		iz.P.NextToken()
-		iz.P.NextToken()
-	}
+func (iz *Initializer) chunkStruct(opTok token.Token, private bool, docString string, params parser.TokSig) (tokenizedCode, bool) {
 	if !iz.P.CurTokenIs(token.LPAREN) {
 		iz.throw("init/struct/lparen", &iz.P.CurToken)
 		iz.finishChunk()
@@ -1024,10 +1000,11 @@ func SummaryString(dec tokenizedCode) string {
 		}
 		return result
 	case *tokenizedCloneDeclaration:
-		result := dec.op.Literal + " = clone"
+		result := dec.op.Literal
 		if len(dec.params) > 0 {
 			result = result + "{" + dec.params.SimpleString() + "}"
 		}
+		result = result + " = clone"
 		result = result + " " + dec.parentTok.Literal
 		if dec.body.Length() > 0 {
 			result = result + " : " + strconv.Itoa(dec.body.Length()) + " tokens."
@@ -1071,10 +1048,11 @@ func SummaryString(dec tokenizedCode) string {
 		}
 		return result
 	case *tokenizedStructDeclaration:
-		result := dec.op.Literal + " = struct"
+		result := dec.op.Literal
 		if len(dec.params) > 0 {
 			result = result + "{" + dec.params.SimpleString() + "}"
 		}
+		result = result + " = struct"
 		result = result + "(" + dec.sig.SimpleString() + ")"
 		if dec.body.Length() > 0 {
 			result = result + " : " + strconv.Itoa(dec.body.Length()) + " tokens."

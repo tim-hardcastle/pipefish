@@ -49,8 +49,8 @@ Person = struct(name string, age int)
 
 Qux = clone int
 
-Derp = clone{T type} int 
+Derp{T type} = clone int 
 
-Flerp = struct{L list} (x, y string)
+Flerp{L list} = struct(x, y string)
 
 make Derp{bool}

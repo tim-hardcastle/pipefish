@@ -1005,7 +1005,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/clone/params": {
+	"init/template/params": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "parameterized type has no parameters"
 		},
@@ -1015,7 +1015,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/clone/rbrace": {
+	"init/template/rbrace": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "left brace `{` unclosed by right brace"
 		},
@@ -1035,7 +1035,7 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/clone/typed": {
+	"init/template/typed": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "missing type in parameterized struct declaration"
 		},
@@ -1501,16 +1501,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
-	"init/struct/rbrace": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "left brace `{` unclosed by right brace"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "Your use of `{` in this type declaration suggests that you're trying to make a " +
-				"parameterized type declaration, but there's no corresponding right brace to close it."
-		},
-	},
-
 	"init/struct/rparen": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "expected right parenthesis"
@@ -1518,24 +1508,6 @@ var errorCreatorMap = map[string]ErrorCreator{
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "At this point in the declaration of a struct type, Pipefish expects a right parenthesis, " +
 				"closing the list of the fields of the struct."
-		},
-	},
-
-	"init/struct/params": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "no parameters in paraameterized struct"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "You can't have a parameterized type which has no parameters."
-		},
-	},
-
-	"init/struct/type": {
-		Message: func(tok *token.Token, args ...any) string {
-			return "missing type in parameterized struct declaration"
-		},
-		Explanation: func(tok *token.Token, args ...any) string {
-			return "The tyes of the parameters in a parameterized struct declaration must be given explicitly."
 		},
 	},
 
@@ -1573,6 +1545,15 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 		Explanation: func(tok *token.Token, args ...any) string {
 			return "An abstract type declaration should consist of types joined by the " + emph("/") + "operator, but you're using something that isn't the name of a type."
+		},
+	},
+
+	"init/type/template": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "expected `clone` or `struct`, not " + emph(tok.Literal)
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "You seem to be trying to define a type template, but only types of flavor `clone` or `struct` can be parameterized"
 		},
 	},
 

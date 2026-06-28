@@ -1,6 +1,6 @@
 newtype
 
-Z = clone{i int} int :
+Z{i int} = clone int :
     0 <= that
     that < i
 

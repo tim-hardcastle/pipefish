@@ -1,6 +1,6 @@
 newtype 
 
-Varchar = clone{i int} string :
+Varchar{i int} = clone string :
     len(that) <= i 
 
 make Varchar{8}

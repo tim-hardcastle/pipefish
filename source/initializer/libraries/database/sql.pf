@@ -7,7 +7,7 @@ newtype
 SqlDriver = enum COCKROACHDB, FIREBIRD_SQL, MARIADB, MICROSOFT_SQL_SERVER, MYSQL, ORACLE, 
               .. POSTGRESQL, SNOWFLAKE, SQLITE, TIDB
 
-Varchar = clone{i int} string :
+Varchar{i int} = clone string :
     len that <= i 
 
 SqlDb = wrapper *sql.DB

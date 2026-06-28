@@ -1,11 +1,11 @@
 newtype
 
-Z = clone{i int} int :       // Some modular arithmetic.
+Z{i int} = clone int :       // Some modular arithmetic.
     0 <= that and that < i
 
 make Z{5}, Z{12}
 
-Foo = clone{i int} int
+Foo{i int} = clone int
 
 make Foo{0}
 
@@ -19,7 +19,7 @@ fooify(i int) :
 
 newtype
 
-Vec = clone{i int} list :    // Vectors!
+Vec{i int} = clone list :    // Vectors!
     len(that) == i
 
 make Vec{2}, Vec{3}
@@ -47,7 +47,7 @@ newtype
 
 Currency = enum USD, EURO, GBP 
 
-Money = struct{c Currency}(large, small int) :
+Money{c Currency} = struct(large, small int) :
     0 <= large
     0 <= small
     small < 100
@@ -67,16 +67,16 @@ string(x Money{c Currency}) :
 
 newtype
 
-Zort = clone{i int} map
+Zort{i int} = clone map
 
 make Zort{0}
 
-Troz = clone{i int} set
+Troz{i int} = clone set
 
 make Troz{0}
 
 Color = enum RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE 
 
-Dragon = struct{c Color} (name string, age int)
+Dragon{c Color} = struct(name string, age int)
 
 make Dragon{PURPLE}

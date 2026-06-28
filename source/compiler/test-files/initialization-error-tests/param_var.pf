@@ -1,6 +1,6 @@
 newtype 
 
-Qux = clone{i int} list 
+Qux{i int} = clone list 
 
 def
 

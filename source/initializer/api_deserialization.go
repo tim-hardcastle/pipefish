@@ -72,13 +72,7 @@ func (iz *Initializer) SerializedAPIToDeclarations(serializedAPI string, xserve 
 		case "PARTYPE":
 			isClone := false
 			buf.WriteString(parts[1])
-			if parts[2] == "CLONE" {
-				buf.WriteString(" = clone{")
-				isClone = true
-			}
-			if parts[2] == "STRUCT" {
-				buf.WriteString(" = struct{")
-			}
+			buf.WriteString("{")
 			stopAt := 0
 			sep := ""
 			for i := 3; parts[i] != "*END PARAMS*"; i++ {
@@ -87,7 +81,14 @@ func (iz *Initializer) SerializedAPIToDeclarations(serializedAPI string, xserve 
 				stopAt = i
 				sep = ", "
 			}
-			buf.WriteString("}")
+			buf.WriteString("} = ")
+			if parts[2] == "CLONE" {
+				buf.WriteString("clone")
+				isClone = true
+			}
+			if parts[2] == "STRUCT" {
+				buf.WriteString("struct")
+			}
 			if isClone {
 				buf.WriteString(" ")
 				buf.WriteString(parts[stopAt+2])

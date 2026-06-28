@@ -1,8 +1,8 @@
 newtype 
 
-Qux = clone{i int} list 
+Qux{i int} = clone list 
 
-Zort = clone{x float} list 
+Zort{x float} = clone list 
 
 def
 

@@ -50,10 +50,10 @@ func TestChunkingItes(t *testing.T) {
 		{`clone/given`, `OK`},
 		{`clone/ident`, `OK`},
 		{`clone/op`, `OK`},
-		{`clone/params`, `OK`},
-		{`clone/rbrace`, `OK`},
+		{`clone/params`, `init/template/params`},
+		{`clone/rbrace`, `init/template/rbrace`},
 		{`clone/type.c`, `OK`},
-		{`clone/typed`, `OK`},
+		{`clone/typed`, `init/template/typed`},
 		{`enum/expect`, `OK`},
 		{`enum/ident`, `OK`},
 		{`impex/end`, `OK`},
@@ -65,10 +65,10 @@ func TestChunkingItes(t *testing.T) {
 		{`param/exists`, `OK`},
 		{`struct/expect`, `OK`},
 		{`struct/lparen`, `OK`},
-		{`struct/params`, `OK`},
-		{`struct/rbrace`, `OK`},
+		{`struct/params`, `init/template/params`},
+		{`struct/rbrace`, `init/template/rbrace`},
 		{`struct/rparen`, `OK`},
-		{`struct/type`, `OK`},
+		{`struct/type`, `init/template/typed`},
 		{`type/assign`, `OK`},
 		{`type/expect.a`, `OK`},
 		{`type/expect.b`, `OK`},
@@ -201,7 +201,6 @@ func TestInclude(t *testing.T) {
 		{`double 7`, `14`},
 		{`quxify 1`, `42`},
 		{`getZort`, `OK`},
-	
 	}
 	test_helper.RunTest(t, "include_test.pf", tests, test_helper.TestValues)
 }
@@ -235,7 +234,6 @@ func TestInitializerItes(t *testing.T) {
 	}
 	test_helper.RunTest(t, "test initialization errors", tests, test_helper.TestInitializationErrors)
 }
-
 
 func TestInnerFunctionsAndVariables(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -439,8 +437,8 @@ func TestTypeChunking(t *testing.T) {
 		{"Foo = abstract int/list{float/int}", `Foo = abstract int/list { float / int }`},
 		{"UID = clone int", `UID = clone int`},
 		{"UID = clone int\n", `UID = clone int`},
-		{"UID = clone{s string} int", `UID = clone{s string} int`},
-		{"UID = clone{s string} int : foo bar spong", `UID = clone{s string} int : 3 tokens.`},
+		{"UID{s string} = clone int", `UID{s string} = clone int`},
+		{"UID{s string} = clone int : foo bar spong", `UID{s string} = clone int : 3 tokens.`},
 		{"UID = clone int : foo bar spong", `UID = clone int : 3 tokens.`},
 		{"Color = enum RED, GREEN, BLUE", `Color = enum RED, GREEN, BLUE`},
 		{"Color = enum RED, GREEN, BLUE\n", `Color = enum RED, GREEN, BLUE`},
@@ -457,8 +455,8 @@ func TestTypeChunking(t *testing.T) {
 		{"make foo, bar", `make foo, bar`},
 		{"make foo, bar\n", `make foo, bar`},
 		{"Person = struct(name string, age int)", `Person = struct(name string, age int)`},
-		{"Person = struct{i int}(name string, age int)", `Person = struct{i int}(name string, age int)`},
-		{"Person = struct{i int}(name, age)", `Person = struct{i int}(name any?, age any?)`},
+		{"Person{i int} = struct(name string, age int)", `Person{i int} = struct(name string, age int)`},
+		{"Person{i int} = struct(name, age)", `Person{i int} = struct(name any?, age any?)`},
 		{"Person = struct(name, age) : foo bar spong", `Person = struct(name any?, age any?) : 3 tokens.`},
 	}
 	test_helper.RunInitializerTest(t, tests, test_helper.TestTypeChunking)

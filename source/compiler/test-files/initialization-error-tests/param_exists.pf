@@ -1,5 +1,5 @@
 newtype 
 
-Foo = clone{i int} list
+Foo{i int} = clone list
 
-Foo = clone{i int} list
+Foo{i int} = clone list
