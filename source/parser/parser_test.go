@@ -7,6 +7,14 @@ import (
 	"github.com/tim-hardcastle/pipefish/source/test_helper"
 )
 
+func TestFoobar(t *testing.T) {
+	tests := []test_helper.TestItem{
+		{`foo bar "zort"`, `(foo bar "zort")`},
+		{`foo bar "bar"`, `(foo bar "bar")`},
+	}
+	test_helper.RunTest(t, "foobar.pf", tests, test_helper.TestParserOutput)
+}
+
 func TestAssignment(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`x = 'q'`, `(x = 'q')`},

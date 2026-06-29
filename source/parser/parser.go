@@ -302,7 +302,7 @@ func (p *Parser) ParseExpression(precedence int) Node {
 					switch {
 					case ok:
 						leftExp = p.parseUnfixExpression()
-					case p.Common.BlingManager.canBling(p.CurToken.Literal, ENDFIX):
+					case p.CurTokenIs(token.IDENT) && p.Common.BlingManager.canBling(p.CurToken.Literal, ENDFIX):
 						p.Common.BlingManager.doBling(p.CurToken.Literal, ENDFIX)
 						leftExp = &Bling{Token: p.CurToken, Value: p.CurToken.Literal}
 					default:
@@ -310,15 +310,15 @@ func (p *Parser) ParseExpression(precedence int) Node {
 					}
 				} else {
 					switch {
-					case p.CurToken.Literal == "func":
+					case p.CurTokenIs(token.IDENT) && p.CurToken.Literal == "func":
 						leftExp = p.parseLambdaExpression()
 						return leftExp // TODO --- don't.
-					case p.CurToken.Literal == "from" && !p.Common.BlingManager.canBling("from", FOREFIX, MIDFIX, ENDFIX):
+					case p.CurTokenIs(token.IDENT) && p.CurToken.Literal == "from" && !p.Common.BlingManager.canBling("from", FOREFIX, MIDFIX, ENDFIX):
 						leftExp = p.parseFromExpression()
 						return leftExp
 					default:
 						switch {
-						case p.Common.BlingManager.canBling(p.CurToken.Literal, FOREFIX):
+						case p.CurTokenIs(token.IDENT) && p.Common.BlingManager.canBling(p.CurToken.Literal, FOREFIX):
 							p.Common.BlingManager.doBling(p.CurToken.Literal, FOREFIX)
 							blingIs := &Bling{Token: p.CurToken, Value: p.CurToken.Literal}
 							dummyCommaTok := p.CurToken
@@ -360,7 +360,7 @@ func (p *Parser) ParseExpression(precedence int) Node {
 		dummyCommaTok.Literal = ","
 		leftExp = &InfixExpression{dummyCommaTok, ",", []Node{leftExp, &Bling{Value: ",", Token: dummyCommaTok}, blingIs}}
 	}
-	for p.Common.BlingManager.canBling(p.PeekToken.Literal, MIDFIX) {
+	for p.PeekTokenIs(token.IDENT) && p.Common.BlingManager.canBling(p.PeekToken.Literal, MIDFIX) {
 		p.Common.BlingManager.doBling(p.PeekToken.Literal, MIDFIX)
 		p.NextToken()
 		leftExp = p.parseInfixExpression(leftExp)
