@@ -1049,6 +1049,18 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 		}
 	}
 
+	iz.cmI("Adding struct typechecks to declarations.")
+	for i, pc := range iz.parsedCode[structDeclaration] {
+		dec := pc.(*parsedValidation)
+		if dec.body != nil {
+			name := dec.indexTok.Literal
+			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, structDeclaration, i, name, dec.indexTok}})
+		}
+		if iz.errorsExist() {
+			return nil
+		}
+	}
+
 	iz.cmI("Mapping names of functions to their declarations.")
 	for dT := functionDeclaration; dT <= testDeclaration; dT++ {
 		for i, pc := range iz.parsedCode[dT] {
@@ -1070,17 +1082,6 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 			} else {
 				namesToDeclarations.Set(name, []labeledParsedCodeChunk{{izFn, dT, i, name, ixPtr(iz.tokenizedCode[dT][i])}})
 			}
-		}
-	}
-	iz.cmI("Adding struct typechecks to declarations.")
-	for i, pc := range iz.parsedCode[structDeclaration] {
-		dec := pc.(*parsedValidation)
-		if dec.body != nil {
-			name := dec.indexTok.Literal
-			namesToDeclarations.Set(name, []labeledParsedCodeChunk{{dec, structDeclaration, i, name, dec.indexTok}})
-		}
-		if iz.errorsExist() {
-			return nil
 		}
 	}
 
