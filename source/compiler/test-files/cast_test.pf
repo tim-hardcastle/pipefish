@@ -6,3 +6,11 @@ Color = enum RED, GREEN, BLUE
 Person = struct(name string, age int)
 Uid = clone int 
 
+var 
+
+castTo any = enum
+castThing any = "foo"
+badFields any = ["John", 22, true]
+badTypes any = ["John", "22"]
+loNum any = -1
+hiNum any = 99

@@ -44,5 +44,7 @@ newtype
 
 Person = struct(name, occupation string)
 
+var 
 
+number = 42
 

@@ -80,19 +80,19 @@ func TestBooleans(t *testing.T) {
 		{`1 == 2 : 5; else : 6`, `6`},
 		{`testNot true`, `false`},
 		{`testNot false`, `true`},
-		{`testNot 5`, `vm/bool/not`},
+		{`testNot q`, `vm/bool/not`},
 		{`testOr true, false`, `true`},
 		{`testOr false, false`, `false`},
 		{`testOr true, true`, `true`},
 		{`testOr true, false`, `true`},
-		{`testOr 5, false`, `vm/bool/or/left`},
-		{`testOr false, 5`, `vm/bool/or/right`},
+		{`testOr q, false`, `vm/bool/or/left`},
+		{`testOr false, q`, `vm/bool/or/right`},
 		{`testAnd true, false`, `false`},
 		{`testAnd false, false`, `false`},
 		{`testAnd true, true`, `true`},
 		{`testAnd true, false`, `false`},
-		{`testAnd 5, true`, `vm/bool/and/left`},
-		{`testAnd true, 5`, `vm/bool/and/right`},
+		{`testAnd q, true`, `vm/bool/and/left`},
+		{`testAnd true, q`, `vm/bool/and/right`},
 		{`testConditional true`, `true`},
 		{`testConditional false`, `false`},
 		{`not true`, `false`},
@@ -244,8 +244,8 @@ func TestDump(t *testing.T) { // We want to make sure that if the service is bro
 
 func TestEnums(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`Color 2`, `BLUE`},
-		{`Color 3`, `vm/enum`},
+		{`Color goodNum`, `BLUE`},
+		{`Color hiNum`, `vm/enum`},
 	}
 	test_helper.RunTest(t, "enums_test.pf", tests, test_helper.TestValues)
 }
@@ -276,10 +276,10 @@ func TestEquality(t *testing.T) {
 		{`map(1::2, 3::4) == map(1::2, 3::5)`, `false`},
 		{`map(1::2, 3::4) == map(1::2, 3::4, 5::6)`, `false`},
 		{`map(1::2, 3::4, 5::6) == map(1::2, 3::4)`, `false`},
-		{`comp(foo(1), foo(2))`, `vm/equals/type`},
-		{`uncomp(foo(1), foo(2))`, `vm/equals/type`},
-		{`zort 0, 1`, `vm/div/zero/c`},
-		{`zort 1, 0`, `vm/div/zero/c`},
+		{`comp(foo(one), foo(two))`, `vm/equals/type`},
+		{`uncomp(foo(one), foo(two))`, `vm/equals/type`},
+		{`zort zero, one`, `vm/div/zero/c`},
+		{`zort one, zero`, `vm/div/zero/c`},
 	}
 	test_helper.RunTest(t, "equality_test", tests, test_helper.TestValues)
 }
@@ -402,22 +402,22 @@ func TestForLoopCtes(t *testing.T) {
 		{`from a = 0 for a::j = range 5 : a + i`, `comp/for/exists/key`},
 		{`from a = 0 for i::a = range 5 : a + i`, `comp/for/exists/value`},
 		{`from a = 0 for i+j = range 5 : a + i`, `comp/for/range.c`},
-		{`from a = 0 for i = 0; 1/0; i + 1 : a + i`, `comp/for/condition`},
+		{`from a = 0 for i = 0; 1/zero; i + 1 : a + i`, `comp/for/condition`},
 		{`from a, b = 0, 1 for i::v = range 5 : 1`, `comp/types/length/for`},
 		{`from a, b = 0, 1 for i::v = range 5 : 1, 2, 3`, `comp/types/for`},
 		{`from a = 0 for i::v = range 5 : "foo"`, `comp/types/for`},
 	}
-	test_helper.RunTest(t, "", tests, test_helper.TestCompilerErrors)
+	test_helper.RunTest(t, "for_loop_ctes_test.pf", tests, test_helper.TestCompilerErrors)
 }
 
 func TestForLoopRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`bar 5`, `vm/typecheck/bound/init`},
-		{`foo 4`, `vm/typecheck/bound/update`},
-		{`zort 3`, `vm/typecheck/index/init`},
-		{`qux 3`, `vm/typecheck/index/update`},
-		{`rozt 3`, `vm/types.a`},
-		{`zrot 3`, `vm/types.a`},
+		{`bar five`, `vm/typecheck/bound/init`},
+		{`foo four`, `vm/typecheck/bound/update`},
+		{`zort three`, `vm/typecheck/index/init`},
+		{`qux three`, `vm/typecheck/index/update`},
+		{`rozt three`, `vm/types.a`},
+		{`zrot three`, `vm/types.a`},
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
@@ -493,7 +493,7 @@ func TestFunctionSyntaxCalls(t *testing.T) {
 func TestGivenErrors(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`func(x) : x given: 42`, `comp/given/assign`},
-		{`func(x) : x given: y = 1 div 0`, `comp/given/error`},
+		{`func(x) : x given: y = 1 div 0`, `vm/div/zero/c`},
 		{`func(x) : x given: x = 42`, `comp/given/exists`},
 		//{"func(x) : x given:\n\ty = 42\n\ty = 42", `comp/given/redeclared`},
 	}
@@ -694,7 +694,7 @@ func TestLabels(t *testing.T) {
 func TestLambdas(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`apply DOUBLE, 42`, `84`},
-		{`apply "DOUBLE", 42`, `vm/apply/func`},
+		{`apply badString, 42`, `vm/apply/func`},
 	}
 	test_helper.RunTest(t, "lambda_test.pf", tests, test_helper.TestValues)
 }
@@ -765,7 +765,6 @@ func TestMiscellaneousCompilerErrors(t *testing.T) {
 		{`[1, 2, 3] ?> 2 * that`, `comp/pipe/filter/bool`},
 		{`1 given : 2`, `comp/expect/given`},
 		{`zwub 5`, `comp/known/prefix`},
-		{`len(1/0)`, `comp/error/arg`},
 	}
 	test_helper.RunTest(t, "compile_time_errors_test.pf", tests, test_helper.TestCompilerErrors)
 }
@@ -971,8 +970,8 @@ func TestTypeInstances(t *testing.T) {
 
 func TestValid(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`foo 3`, `4`},
-		{`foo 0`, `Error`},
+		{`foo three`, `4`},
+		{`foo zero`, `Error`},
 	}
 	test_helper.RunTest(t, "valid_test.pf", tests, test_helper.TestValues)
 }

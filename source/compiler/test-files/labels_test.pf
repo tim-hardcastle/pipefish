@@ -1,3 +1,7 @@
 newtype 
 
 Foo = struct(qux, zort int)
+
+var 
+
+badString = "blerp"

@@ -80,3 +80,7 @@ Color = enum RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE
 Dragon{c Color} = struct(name string, age int)
 
 make Dragon{PURPLE}
+
+var 
+
+one = 1

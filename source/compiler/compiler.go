@@ -163,7 +163,6 @@ type ReturnTypeCheck = struct {
 // This function concisely removes it.
 func (ctxt Context) x() Context {
 	ctxt.Typecheck = nil
-	ctxt.NoFold = false
 	return ctxt
 }
 
@@ -1331,6 +1330,11 @@ NodeTypeSwitch:
 		cp.Vm.Run(cT)
 		cp.Vm.IsCompiling = false
 		val := cp.Vm.Mem[cp.That()]
+		if val.T == values.ERROR && !(node.GetToken().Type == token.IDENT && node.GetToken().Literal == "error") {
+			println("We're folding the error.")
+			cp.P.Common.Errors = append(cp.P.Common.Errors, val.V.(*err.Error))
+			return FAIL
+		}
 		if val.T == values.TUPLE {
 			tType := FiniteTupleType{}
 			for _, v := range val.V.([]values.Value) {
@@ -1340,6 +1344,7 @@ NodeTypeSwitch:
 		} else {
 			result.Types = AltType(val.T)
 		}
+		
 		cp.Rollback(state, node.GetToken())
 		cp.Reserve(val.T, val.V, node.GetToken())
 	}

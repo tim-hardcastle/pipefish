@@ -8,6 +8,8 @@ foo any = 42
 
 double any = func(x) : 2 * x
 
+badString any = "foo"
+
 def
 
 apply(f, x) :

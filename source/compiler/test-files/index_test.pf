@@ -54,7 +54,13 @@ myTuple ... = 1, 2, 3, 4
 
 mySnippet = -- foo |"bar"| troz |"zort"|
 
-myBool = true
+myBool any = true
+
+myNegative = -1
+
+three = 3
+
+bigNumber = 99
 
 
 

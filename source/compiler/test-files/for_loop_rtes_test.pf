@@ -70,3 +70,14 @@ grerp(i int) :
         true 
     else :
         86
+
+var 
+
+three = 3
+four = 4
+five = 5
+
+anyType = any 
+intType = int 
+
+x any = true

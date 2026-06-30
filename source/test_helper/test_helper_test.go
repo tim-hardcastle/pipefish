@@ -147,7 +147,7 @@ func TestTypeParser(t *testing.T) {
 func TestValues(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`A`, `42`},
-		{`7 / 0`, `vm/div/zero/a`},
+		{`7 / zero`, `vm/div/zero/a`},
 	}
 	test_helper.RunTest(t, "variables_test.pf", tests, test_helper.TestValues)
 }

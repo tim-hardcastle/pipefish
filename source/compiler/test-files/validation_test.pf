@@ -10,6 +10,17 @@ EvenNumber = clone int :
 Thing = clone int :
     foo that 
 
+var 
+
+zero = 0
+one = 1
+x = 2
+y = 3
+neg = -99
+goodNum = 42
+badString = ""
+
+
 def foo(i int) :
     i == 0 : 
         error "fnerg"

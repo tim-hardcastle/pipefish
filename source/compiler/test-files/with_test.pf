@@ -19,6 +19,16 @@ diffList ... = 0::"x", 1::"y"
 
 F = func(x) : x 
 
+badType = Addable
+intType = int 
+badNum = 99 
+badVal any = true
+badString = "foo"
+
+badFieldsA ... = name::"John"
+badFieldsB ... = name::"John", age::true
+badList = []
+
 def 
 
 xwithy(x, y) :

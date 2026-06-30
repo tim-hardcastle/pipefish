@@ -10,6 +10,8 @@ newtype
 Person = struct(name string, age int) :
    age >= 0
 
+var 
+
 test validation :
 	test :
 		valid Person("Joseph", 22)

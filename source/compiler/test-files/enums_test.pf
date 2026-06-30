@@ -1,3 +1,8 @@
 newtype 
 
 Color = enum RED, GREEN, BLUE
+
+var 
+
+goodNum = 2
+hiNum = 3

@@ -354,8 +354,8 @@ func TestUsing(t *testing.T) {
 }
 func TestValidation(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`EvenNumber 2`, `EvenNumber(2)`},
-		{`EvenNumber 3`, `vm/validation/fail`},
+		{`EvenNumber x`, `EvenNumber(2)`},
+		{`EvenNumber y`, `vm/validation/fail`},
 	}
 	test_helper.RunTest(t, "validation_test.pf", tests, test_helper.TestValues)
 }

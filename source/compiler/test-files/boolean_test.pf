@@ -1,5 +1,8 @@
 // We want to test that it behaves correctly with booleans
 // even when it can't typecheck in advance that they're booleans.
+var
+
+q int/bool = 42
 
 def
 

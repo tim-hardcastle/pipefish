@@ -114,15 +114,15 @@ func TestBuiltins(t *testing.T) {
 		{`type bool`, `type`},
 		{`[1, 2, 3] & 4`, `[1, 2, 3, 4]`},
 		{`4 in (set(1, 2, 3) & 4)`, `true`},
-		{`7 / 0`, `vm/div/zero/a`},
-		{`7.0 / 0.0`, `vm/div/zero/b`},
-		{`7 div 0`, `vm/div/zero/c`},
-		{`7.0 / 0`, `vm/div/zero/d`},
-		{`7 / 0.0`, `vm/div/zero/e`},
-		{`7 mod 0`, `vm/mod/zero`},
-		{`map ([1]::2)`, `vm/map/key`},
+		{`7 / zero`, `vm/div/zero/a`},
+		{`7.0 / floatZero`, `vm/div/zero/b`},
+		{`7 div zero`, `vm/div/zero/c`},
+		{`7.0 / zero`, `vm/div/zero/d`},
+		{`7 / floatZero`, `vm/div/zero/e`},
+		{`7 mod zero`, `vm/mod/zero`},
+		{`map (badKey::2)`, `vm/map/key`},
 	}
-	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "builtins_test.pf", tests, test_helper.TestValues)
 }
 func TestCast(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -131,14 +131,14 @@ func TestCast(t *testing.T) {
 		{`cast Uid, 8`, `Uid(8)`},
 		{`cast Color, 0`, `RED`},
 		{`cast Person, ["John", 22]`, `Person("John", 22)`},
-		{`cast enum, "foo"`, `vm/cast/concrete`},
-		{`cast Person, "foo"`, `vm/cast`},
-		{`cast Color, -1`, `vm/cast/enum`},
-		{`cast Color, 99`, `vm/cast/enum`},
-		{`cast Person, ["John", 22, true]`, `vm/cast/fields`},
-		{`cast Person, ["John", "22"]`, `vm/cast/types`},
-		{`float "foo"`, `vm/string/float`},
-		{`int "foo"`, `vm/string/int`},
+		{`cast castTo, "foo"`, `vm/cast/concrete`},
+		{`cast Person, castThing`, `vm/cast`},
+		{`cast Color, loNum`, `vm/cast/enum`},
+		{`cast Color, hiNum`, `vm/cast/enum`},
+		{`cast Person, badFields`, `vm/cast/fields`},
+		{`cast Person, badTypes`, `vm/cast/types`},
+		{`float castThing`, `vm/string/float`},
+		{`int castThing`, `vm/string/int`},
 	}
 	test_helper.RunTest(t, "cast_test.pf", tests, test_helper.TestValues)
 }
@@ -166,7 +166,7 @@ func TestClones(t *testing.T) {
 		{`StringClone("aardvark") == StringClone("zebra")`, `false`},
 		{`5 apples + 3 apples`, `apples(8)`},
 		{`clones{list}`, `clones{list}`},
-		{`getClones 42`, `vm/clones/type`},
+		{`getClones number`, `vm/clones/type`},
 	}
 	test_helper.RunTest(t, "clone_test.pf", tests, test_helper.TestValues)
 }
@@ -213,8 +213,8 @@ func TestDump(t *testing.T) { // We want to make sure that if the service is bro
 
 func TestEnums(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`Color 2`, `BLUE`},
-		{`Color 3`, `vm/enum`},
+		{`Color goodNum`, `BLUE`},
+		{`Color hiNum`, `vm/enum`},
 		{`int BLUE`, `2`},
 	}
 	test_helper.RunTest(t, "enums_test.pf", tests, test_helper.TestValues)
@@ -243,9 +243,9 @@ func TestEquality(t *testing.T) { // Most of this gets tested elsewhere as a by-
 		{`snippet(1, 2, 3) == snippet(1, 2)`, `false`},
 		{`snippet(1, 2, 3) == snippet(1, 2, "foo")`, `false`},
 		{`snippet(1, 2, 3) == snippet(1, 2, 4)`, `false`},
-		{`comp(foo(1), foo(2))`, `vm/equals/type`},
-		{`zort 0, 1`, `vm/div/zero/c`},
-		{`zort 1, 0`, `vm/div/zero/c`},
+		{`comp(foo(one), foo(two))`, `vm/equals/type`},
+		{`zort zero, one`, `vm/div/zero/c`},
+		{`zort one, zero`, `vm/div/zero/c`},
 	}
 	test_helper.RunTest(t, "equality_test", tests, test_helper.TestValues)
 }
@@ -271,16 +271,16 @@ func TestExternals(t *testing.T) {
 }
 func TestForLoopRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`bar 5`, `vm/typecheck/bound/init`},
-		{`foo 4`, `vm/typecheck/bound/update`},
-		{`zort 3`, `vm/typecheck/index/init`},
-		{`qux 3`, `vm/typecheck/index/update`},
-		{`rozt 3`, `vm/types.a`},
-		{`zrot 3`, `vm/types.a`},
-		{`merp 3`, `vm/for/condition`},
-		{`count any`, `vm/for/type/a`},
-		{`count int`, `vm/for/type/b`},
-		{`count true`, `vm/for/type/c`},
+		{`bar five`, `vm/typecheck/bound/init`},
+		{`foo four`, `vm/typecheck/bound/update`},
+		{`zort three`, `vm/typecheck/index/init`},
+		{`qux three`, `vm/typecheck/index/update`},
+		{`rozt three`, `vm/types.a`},
+		{`zrot three`, `vm/types.a`},
+		{`merp three`, `vm/for/condition`},
+		{`count anyType`, `vm/for/type/a`},
+		{`count intType`, `vm/for/type/b`},
+		{`count x`, `vm/for/type/c`},
 	}
 	test_helper.RunTest(t, "for_loop_rtes_test.pf", tests, test_helper.TestValues)
 }
@@ -503,23 +503,23 @@ func TestIndexing(t *testing.T) {
 }
 func TestIndexingRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`[RED, GREEN, BLUE][true::2]`, `vm/slice/list/a`},
-		{`[RED, GREEN, BLUE][2::true]`, `vm/slice/list/b`},
-		{`[RED, GREEN, BLUE][-1::2]`, `vm/slice/list/c`},
-		{`[RED, GREEN, BLUE][3::2]`, `vm/slice/list/d`},
-		{`[RED, GREEN, BLUE][0::99]`, `vm/slice/list/e`},
-		{`"aardvark"[true::2]`, `vm/slice/string/a`},
-		{`"aardvark"[2::true]`, `vm/slice/string/b`},
-		{`"aardvark"[-1::2]`, `vm/slice/string/c`},
-		{`"aardvark"[3::2]`, `vm/slice/string/d`},
-		{`"aardvark"[0::99]`, `vm/slice/string/e`},
-		{`(1, 2, 3)[true::2]`, `vm/slice/tuple/a`},
-		{`(1, 2, 3)[2::true]`, `vm/slice/tuple/b`},
-		{`(1, 2, 3)[-1::2]`, `vm/slice/tuple/c`},
-		{`(1, 2, 3)[3::2]`, `vm/slice/tuple/d`},
-		{`(1, 2, 3)[0::99]`, `vm/slice/tuple/e`},
-		{`ixE true, false`, `vm/user`},
-		{`ixE false, true`, `vm/user`},
+		{`[RED, GREEN, BLUE][myBool::2]`, `vm/index/a`},
+		{`[RED, GREEN, BLUE][2::myBool]`, `vm/index/b`},
+		{`[RED, GREEN, BLUE][myNegative::2]`, `vm/slice/list/c`},
+		{`[RED, GREEN, BLUE][three::2]`, `vm/slice/list/d`},
+		{`[RED, GREEN, BLUE][0::bigNumber]`, `vm/slice/list/e`},
+		{`"aardvark"[myBool::2]`, `vm/index/a`},
+		{`"aardvark"[2::myBool]`, `vm/index/b`},
+		{`"aardvark"[myNegative::2]`, `vm/slice/string/c`},
+		{`"aardvark"[three::2]`, `vm/slice/string/d`},
+		{`"aardvark"[0::bigNumber]`, `vm/slice/string/e`},
+		{`(1, 2, 3)[myBool::2]`, `vm/index/a`},
+		{`(1, 2, 3)[2::myBool]`, `vm/index/b`},
+		{`(1, 2, 3)[myNegative::2]`, `vm/slice/tuple/c`},
+		{`(1, 2, 3)[three::2]`, `vm/slice/tuple/d`},
+		{`(1, 2, 3)[0::bigNumber]`, `vm/slice/tuple/e`},
+		{`ixE myBool, false`, `vm/user`},
+		{`ixE false, myBool`, `vm/user`},
 		{`myTuple[-1]`, `vm/index/m`},
 		{`mySnippet[-1]`, `vm/index/s`},
 		{`myList[-1]`, `vm/index/list`},
@@ -561,9 +561,9 @@ func TestIndexingRtes(t *testing.T) {
 		{`foo myBool, 1::99`, `vm/index/g`},
 		{`foo myColor, charm`, `vm/index/t`},
 		{`foo myColor, true`, `vm/index/label`},
-		{`foo [1, 2, 3], "aardvark"`, `vm/index/i`},
-		{`foo [1, 2, 3], -1`, `vm/index/j`},
-		{`foo true, -1`, `vm/index/q`},
+		{`foo [1, 2, 3], myBool`, `vm/index/i`},
+		{`foo [1, 2, 3], myNegative`, `vm/index/j`},
+		{`foo true, myNegative`, `vm/index/q`},
 		{`ixs myColor, charm`, `vm/index/u`},
 	}
 	test_helper.RunTest(t, "index_test.pf", tests, test_helper.TestValues)
@@ -632,7 +632,7 @@ func TestJson(t *testing.T) {
 func TestLabels(t *testing.T) {
 	tests := []test_helper.TestItem{
 		{`label "qux"`, `qux`},
-		{`label "blerp"`, `vm/label/exists`},
+		{`label badString`, `vm/label/exists`},
 	}
 	test_helper.RunTest(t, "labels_test.pf", tests, test_helper.TestValues)
 }
@@ -726,7 +726,7 @@ func TestParameterizedTypes(t *testing.T) {
 		{`clones{int}`, `clones{int}`},
 		{`Zort{0}(0::0)`, `Zort{0}(0::0)`},
 		{`Troz{0}(0)`, `Troz{0}(0)`},
-		{`fooify 1`, `vm/param/exist`},
+		{`fooify one`, `vm/param/exist`},
 	}
 	test_helper.RunTest(t, "parameterized_type_test.pf", tests, test_helper.TestValues)
 }
@@ -881,11 +881,11 @@ func TestTypeInstances(t *testing.T) {
 	}
 	test_helper.RunTest(t, "type_instances_test.pf", tests, test_helper.TestValues)
 }
-func TestUnwrap(t *testing.T) {
+func TestUnwrapRtes(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`unwrap 42`, `vm/unwrap`},
+		{`unwrap foo x`, `vm/unwrap`},
 	}
-	test_helper.RunTest(t, "", tests, test_helper.TestValues)
+	test_helper.RunTest(t, "unwrap_test.pf", tests, test_helper.TestValues)
 }
 func TestUserDefinedTypes(t *testing.T) {
 	tests := []test_helper.TestItem{
@@ -913,22 +913,22 @@ func TestUserDefinedTypes(t *testing.T) {
 }
 func TestValid(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`foo 3`, `4`},
-		{`foo 0`, `Error`},
+		{`foo three`, `4`},
+		{`foo zero`, `Error`},
 	}
 	test_helper.RunTest(t, "valid_test.pf", tests, test_helper.TestValues)
 }
 func TestValidation(t *testing.T) {
 	tests := []test_helper.TestItem{
-		{`EvenNumber 2`, `EvenNumber(2)`},
-		{`EvenNumber 3`, `vm/validation/fail`},
-		{`Person "Doug", 42`, `Person("Doug", 42)`},
-		{`Person "", 42`, `vm/validation/fail`},
-		{`Person "Doug", -99`, `vm/validation/fail`},
-		{`Thing 0`, `vm/user`},
-		{`Thing 1`, `vm/validation/bool`},
-		{`Thing 2`, `vm/validation/fail`},
-		{`Thing 3`, `Thing(3)`},
+		{`EvenNumber x`, `EvenNumber(2)`},
+		{`EvenNumber y`, `vm/validation/fail`},
+		{`Person "Doug", goodNum`, `Person("Doug", 42)`},
+		{`Person badString, 42`, `vm/validation/fail`},
+		{`Person "Doug", neg`, `vm/validation/fail`},
+		{`Thing zero`, `vm/user`},
+		{`Thing one`, `vm/validation/bool`},
+		{`Thing x`, `vm/validation/fail`},
+		{`Thing y`, `Thing(3)`},
 	}
 	test_helper.RunTest(t, "validation_test.pf", tests, test_helper.TestValues)
 }
@@ -959,20 +959,20 @@ func TestWith(t *testing.T) {
 		{`myMap with "a"::99, "z"::42`, `map("a"::99, "b"::2, "c"::3, "d"::4, "z"::42)`},
 		{`myMap without "a"`, `map("b"::2, "c"::3, "d"::4)`},
 		{`myMap without "a", "b"`, `map("c"::3, "d"::4)`},
-		{`Addable with "foo"::99`, `vm/with/type/a`},
-		{`int with "foo"::99`, `vm/with/type/b`},
-		{`Person with "foo"::99`, `vm/with/type/d`},
-		{`Person with friends::99`, `vm/with/type/e`},
-		{`myList with true::"foo"`, `vm/with/a`},
+		{`badType with "foo"::99`, `vm/with/type/a`},
+		{`intType with "foo"::99`, `vm/with/type/b`},
+		{`Person with badString::99`, `vm/with/type/d`},
+		{`Person with friends::badNum`, `vm/with/type/e`},
+		{`myList with badVal::"foo"`, `vm/with/a`},
 		{`myList with -1::"foo"`, `vm/with/b`},
 		{`myList with 6::"foo"`, `vm/with/b`},
 		{`myMap with F::"foo"`, `vm/with/c`},
-		{`Cat with (name::"John")`, `vm/with/type/g`},
-		{`Cat with (name::"John", age::true)`, `vm/with/type/h`},
-		{`john with []::23`, `vm/with/struct/b`},
-		{`john with name::23`, `vm/with/f`},
-		{`myOtherList with []::"q"`, `vm/with/list/b`},
-		{`myMap with []::99`, `vm/with/map/b`},
+		{`Cat with (badFieldsA)`, `vm/with/type/g`},
+		{`Cat with (badFieldsB)`, `vm/with/type/h`},
+		{`john with badList::23`, `vm/with/struct/b`},
+		{`john with name::badNum`, `vm/with/f`},
+		{`myOtherList with badList::"q"`, `vm/with/list/b`},
+		{`myMap with badList::99`, `vm/with/map/b`},
 	}
 	test_helper.RunTest(t, "with_test.pf", tests, test_helper.TestValues)
 }

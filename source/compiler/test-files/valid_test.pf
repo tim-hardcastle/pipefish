@@ -10,3 +10,8 @@ given :
 
 bar(i int) :
     12 div i 
+
+var 
+
+three = 3
+zero = 0

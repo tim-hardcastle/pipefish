@@ -1,0 +1,5 @@
+var
+
+zero = 0
+floatZero = 0.0 
+badKey any = [1]
