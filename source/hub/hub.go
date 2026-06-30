@@ -324,6 +324,21 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			h.WriteError(err.Error())
 		}
 	case "api":
+		path := args[0]
+		var root string
+		if path == "" || path[0] == '.' {
+			root = h.CurrentServiceName()
+		} else {
+			dotIndex := strings.Index(path, ".")
+			if dotIndex == -1 {
+				root = path
+				path = ""
+			} else {
+				root = path[:dotIndex]
+				path = path[dotIndex:]
+			}
+		}
+		println(root, path)
 		h.update(h.CurrentServiceName())
 		h.WriteString(h.Services[h.CurrentServiceName()].Api(h.CurrentServiceName(), h.getFonts(), h.getSV("width").V.(int)))
 	case "change-password":

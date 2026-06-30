@@ -19,7 +19,13 @@ add(usr string) to (grp string) :
     do("add", [usr, grp])
 
 api :
-    do("api", [])
+    global $_external 
+    $_external :
+        error "hub needs name of service to describe"
+    do("api", [""])
+
+api(s string) :
+    do("api", [s])
 
 change password :
     global $_external

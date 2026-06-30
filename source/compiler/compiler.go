@@ -1331,7 +1331,6 @@ NodeTypeSwitch:
 		cp.Vm.IsCompiling = false
 		val := cp.Vm.Mem[cp.That()]
 		if val.T == values.ERROR && !(node.GetToken().Type == token.IDENT && node.GetToken().Literal == "error") {
-			println("We're folding the error.")
 			cp.P.Common.Errors = append(cp.P.Common.Errors, val.V.(*err.Error))
 			return FAIL
 		}
