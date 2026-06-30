@@ -941,6 +941,14 @@ var declarationDescriptors = [][]declarationType{
 	{functionDeclaration}}
 
 func (iz *Initializer) describeApi() {
+	// First of all, the recursion.
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
+		if dependencyIz.cp.P.Private {
+			continue
+		}
+		dependencyIz.describeApi()
+	}
 	for i, descriptionGroup := range declarationDescriptors {
 		iz.cp.ApiDescription = append(iz.cp.ApiDescription, []compiler.ApiItem{})
 		for _, decType := range descriptionGroup {

@@ -11,7 +11,17 @@ import (
 // We're doing this here and now rather than at initialization so that in principle
 // we could get the font and width from a desktop client.
 
-func (cp *Compiler) Api(name string, fonts values.Map, width int) string {
+func (cp *Compiler) Api(name string, path []string, fonts values.Map, width int) string {
+	if len(path) > 0 {
+		newCp, ok := cp.Modules[path[0]]
+		if !ok {
+			return "The module `" + path[0] + "` does not exist."
+		}
+		if newCp.P.Private {
+			return "The module `" + path[0] + "` is private."
+		}
+		return newCp.Api(name, path[1:], fonts, width)
+	}
 	markdowner := text.NewMarkdown("", width, func(s string) string { return cp.Highlight([]rune(s), fonts) })
 	hasContents := false
 	result := ""

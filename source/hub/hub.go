@@ -338,9 +338,17 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 				path = path[dotIndex:]
 			}
 		}
-		println(root, path)
-		h.update(h.CurrentServiceName())
-		h.WriteString(h.Services[h.CurrentServiceName()].Api(h.CurrentServiceName(), h.getFonts(), h.getSV("width").V.(int)))
+		service, ok := h.Services[root]
+		if !ok {
+			h.WriteError("service `" + root + "` doesn't exist")
+			return len(b), nil
+		}
+		h.update(root)
+		splitPath := []string{}
+		if path != "" {
+			splitPath = strings.Split(path[1:], ".")
+		}
+		h.WriteString(service.Api(root + path, splitPath, h.getFonts(), h.getSV("width").V.(int)))
 	case "change-password":
 		err = ChangePassword(h.Db, username, args[0])
 		if err != nil {
