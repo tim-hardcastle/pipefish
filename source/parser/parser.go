@@ -2,6 +2,7 @@ package parser
 
 import (
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -175,6 +176,7 @@ func (p *Parser) ParseExpression(precedence int) Node {
 
 	if literals.Contains(p.CurToken.Type) && literalsAndLParen.Contains(p.PeekToken.Type) {
 		p.Throw("parse/before.a", &p.CurToken, &p.PeekToken)
+		return nil
 	}
 	var leftExp Node
 	noNativePrefix := false
@@ -565,7 +567,7 @@ func (p *Parser) parseFromExpression() Node {
 	fromToken := p.CurToken
 	p.NextToken()
 	expression := p.ParseExpression(FUNC)
-	if expression == nil {
+	if reflect.ValueOf(expression).IsNil() {
 		return nil
 	}
 	var givenBlock Node
