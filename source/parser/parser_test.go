@@ -196,7 +196,7 @@ func TestParserErrors(t *testing.T) {
 		{`Z{5`, `parse/rbrace`},
 		{`42 foo.bar`, `parse/namespace/exists`},
 		{`42 foo.bar 99`, `parse/namespace/exists`},
-		{`for i::j = range k`, `parse/for/colon`},
+		{`for i::j = range k`, `parse/for/colon.b`},
 		{`for a = 1; a + 1 : foo`, `parse/for/semicolon`},
 		{`func(x) >> int : x`, `parse/sig/c`},
 		{`func(x int) : foo(x) given : foo(x int) >> int : x`, `parse/inner.a`},

@@ -108,6 +108,14 @@ func (fl *FloatLiteral) Children() []Node       { return []Node{} }
 func (fl *FloatLiteral) GetToken() *token.Token { return &fl.Token }
 func (fl *FloatLiteral) String() string         { return fl.Token.Literal }
 
+type ForLog int 
+
+const(
+	NONE ForLog = iota
+	AUTO 
+	CUSTOM
+)
+
 type ForExpression struct {
 	Token            token.Token
 	BoundVariables   Node
@@ -116,6 +124,8 @@ type ForExpression struct {
 	Update           Node
 	Body             Node
 	Given            Node
+	Logging          ForLog
+	LogString        string
 }
 
 func (fe *ForExpression) Children() []Node {

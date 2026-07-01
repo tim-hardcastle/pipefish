@@ -2,7 +2,6 @@ package parser
 
 import (
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -514,16 +513,16 @@ func (p *Parser) parseFloatLiteral() Node {
 	return &FloatLiteral{Token: p.CurToken, Value: fVal}
 }
 
-func (p *Parser) parseForAsInfix(left Node) *ForExpression {
+func (p *Parser) parseForAsInfix(left Node) Node {
 	expression := p.parseForExpression()
 	if expression == nil {
 		return nil
 	}
-	expression.BoundVariables = left
+	expression.(*ForExpression).BoundVariables = left
 	return expression
 }
 
-func (p *Parser) parseForExpression() *ForExpression {
+func (p *Parser) parseForExpression() Node {
 	expression := &ForExpression{
 		Token: p.CurToken,
 	}
@@ -539,26 +538,40 @@ func (p *Parser) parseForExpression() *ForExpression {
 	if pieces == nil {
 		return nil
 	}
-	if pieces.GetToken().Type == token.COLON { // This is the colon introdicing the body, it has to be here.
-		expression.Body = pieces.(*LazyInfixExpression).Right
-		header := pieces.(*LazyInfixExpression).Left
-		if header.GetToken().Type == token.MAGIC_SEMICOLON { // If it has one, it should have two.
-			leftBitOfHeader := header.(*InfixExpression).Args[0]
-			rightBitOfHeader := header.(*InfixExpression).Args[2]
-			if leftBitOfHeader.GetToken().Type == token.MAGIC_SEMICOLON {
-				expression.Initializer = leftBitOfHeader.(*InfixExpression).Args[0]
-				expression.ConditionOrRange = leftBitOfHeader.(*InfixExpression).Args[2]
-				expression.Update = rightBitOfHeader
-			} else {
-				p.Throw("parse/for/semicolon", &expression.Token)
-				return nil
-			}
+	var header Node
+	switch expn := pieces.(type) {
+	case *LogExpression :
+		header = expn.Left
+		expression.LogString = expn.Value
+		if expn.Value == "" {
+			expression.Logging = AUTO
 		} else {
-			expression.ConditionOrRange = header
+			expression.Logging = CUSTOM
 		}
-	} else {
-		p.Throw("parse/for/colon", &expression.Token)
+		expression.Body = expn.Right
+	case *LazyInfixExpression : // This is the colon introducing the body, it has to be here.
+		if expn.Token.Type != token.COLON {
+			p.Throw("parse/for/colon.a", pieces.GetToken())
+			return nil
+		}
+		header = expn.Left
+		expression.Body = expn.Right
+	default :
+		p.Throw("parse/for/colon.b", pieces.GetToken())
 		return nil
+	}
+	if header.GetToken().Type == token.MAGIC_SEMICOLON { // If it has one, it should have two.
+		leftBitOfHeader := header.(*InfixExpression).Args[0]
+		rightBitOfHeader := header.(*InfixExpression).Args[2]
+		if leftBitOfHeader.GetToken().Type != token.MAGIC_SEMICOLON {
+			p.Throw("parse/for/semicolon", leftBitOfHeader.GetToken())
+			return nil
+		}
+		expression.Initializer = leftBitOfHeader.(*InfixExpression).Args[0]
+		expression.ConditionOrRange = leftBitOfHeader.(*InfixExpression).Args[2]
+		expression.Update = rightBitOfHeader
+	} else {
+		expression.ConditionOrRange = header
 	}
 	return expression
 }
@@ -567,7 +580,7 @@ func (p *Parser) parseFromExpression() Node {
 	fromToken := p.CurToken
 	p.NextToken()
 	expression := p.ParseExpression(FUNC)
-	if reflect.ValueOf(expression).IsNil() {
+	if expression == nil {
 		return nil
 	}
 	var givenBlock Node
