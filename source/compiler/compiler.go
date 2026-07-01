@@ -1541,7 +1541,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	rangeValLoc := uint32(DUMMY)                  //          "
 	iteratorLoc := uint32(DUMMY)                  //          "
 	rangeOver := BkEarlyReturn(DUMMY)             //          "
-	iteratorCreationError := BkEarlyReturn(DUMMY) //  "
+	iteratorCreationError := BkEarlyReturn(DUMMY) //          "
 
 	// The parser so far has only broken the header up into its parts, but has not validated
 	// that they're in the proper form.
@@ -1609,7 +1609,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			boundCpSig = append(boundCpSig, NameAlternateTypePair{pair.VarName.Literal, types})
 		}
 	}
-
+	var leftName, rightName string
 	// Now the variables for the header, if any.
 	switch {
 	case node.Initializer != nil: // Then we have a C-like tripartite header.
@@ -1660,7 +1660,6 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 		pairOfIdentifiers := node.ConditionOrRange.(*parser.AssignmentExpression).Left
 		rangeExpression := node.ConditionOrRange.(*parser.AssignmentExpression).Right
 		if pairOfIdentifiers, ok := pairOfIdentifiers.(*parser.InfixExpression); ok && pairOfIdentifiers.Operator == "::" {
-			var leftName, rightName string
 			if leftId, ok := pairOfIdentifiers.Args[0].(*parser.Identifier); ok {
 				leftName = leftId.Value
 			} else {
@@ -1809,6 +1808,52 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 			cp.Emit(vm.Itkv, rangeKeyLoc, rangeValLoc, iteratorLoc)
 		}
 	}
+
+	loggingError := BkEarlyReturn(DUMMY)
+	switch node.Logging {
+	case parser.CUSTOM:
+		logCheck := cp.vmIf(vm.Qlog) // Skips over the logging if we are already in a logging statement, as explained below.
+		cp.Emit(vm.Logn)             // 'logn' and 'logy' turn logging on and off respectively in the vm, to prevent us from logging the activities of functions called in compileLog and at worst facing an infinite regress.
+		outputLoc, logMayHaveError, ok := cp.compileLog(&parser.LogExpression{
+			Token: node.Token,
+			Value: node.LogString,
+		}, newContext)
+		if !ok {
+			return FAIL
+		}
+		cp.Emit(vm.Logy)
+		cp.TrackOrLog(vm.TR_LITERAL, cp.trackingOn(), &node.Token, outputLoc)
+		if logMayHaveError {
+			loggingError = cp.VmConditionalEarlyReturn(vm.Qtyp, outputLoc, uint32(values.ERROR), cp.That())
+		}
+		cp.VmComeFrom(logCheck)
+	case parser.AUTO:
+		lhs := []vm.TrackingVar{}
+		rhs := []vm.TrackingVar{}
+		if len(boundCpSig) > 0 {
+			for _, pair := range boundCpSig {
+				vr, _ := newContext.Env.GetVar(pair.VarName)
+				lhs = append(lhs, vm.TrackingVar{pair.VarName, vr.MLoc})
+			}
+		}
+		if len(indexCpSig) > 0 {
+			for _, pair := range indexCpSig {
+				vr, _ := newContext.Env.GetVar(pair.VarName)
+				rhs = append(rhs, vm.TrackingVar{pair.VarName, vr.MLoc})
+			}
+		}
+		if flavor == RANGE {
+			for _, name := range []string{leftName, rightName} {
+				if name == "_" {
+					continue
+				}
+				vr, _ := newContext.Env.GetVar(name)
+				rhs = append(rhs, vm.TrackingVar{name, vr.MLoc})
+			}
+		}
+		cp.TrackOrLog(vm.TR_FOR, cp.trackingOn(), &node.Token, vm.ForData{lhs, rhs})
+	}
+
 	// Now we get to emit the loop body, which is the same whatever the flavor of loop.
 	cp.Cm("Compiling loop body.", tok)
 	cp.pushNewForData()
@@ -1870,7 +1915,7 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 	cp.Put(vm.Asgm, boundResultLoc)
 	cp.resolveBreaksWithValue()
 	cp.VmComeFrom(conditionalFails, conditionIsError, conditionIsNotBool, rangeOver, boundInitCheck,
-		indexInitCheck, boundUpdateCheck, indexUpdateCheck, iteratorCreationError)
+		indexInitCheck, boundUpdateCheck, indexUpdateCheck, iteratorCreationError, loggingError)
 	bodyCpResult.Foldable = false
 	bodyCpResult.Types = bodyCpResult.Types.Union(boundVariableTypes)
 	if boundInitCheck != DUMMY || indexInitCheck != DUMMY || boundUpdateCheck != DUMMY ||

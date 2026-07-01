@@ -25,11 +25,22 @@ type TrackingFlavor int
 const (
 	TR_CONDITION TrackingFlavor = iota
 	TR_ELSE
+	TR_FOR
 	TR_FNCALL
 	TR_LITERAL
 	TR_RESULT
 	TR_RETURN
 )
+
+type TrackingVar struct {
+	Name string 
+	Location uint32
+}
+
+type ForData struct{
+	Lhs []TrackingVar
+	Rhs []TrackingVar
+} 
 
 func (vm *Vm) trackingIs(i int, tf TrackingFlavor) bool {
 	if i < 0 || i >= len(vm.LiveTracking) {
@@ -93,6 +104,58 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 					out.WriteString(text.Emph(args[i].(*token.Token).Literal) + " = " + text.Emph(vm.Literal(args[i+1].(values.Value), 0)))
 					sep = ", "
 				}
+			}
+			out.WriteString(".\n")
+		case TR_FOR:
+			if logTime {
+				out.WriteString("- At ")
+				out.WriteString(time.Format("15:04:05"))
+				out.WriteString(", w")
+			} else {
+				out.WriteString("- W")
+			}
+			out.WriteString("e entered the `for` loop at line ")
+			out.WriteString(strconv.Itoa(td.Tok.Line))
+			data := args[0].(ForData)
+			if len(data.Lhs) > 0 || len(data.Rhs) > 0 {
+				out.WriteString(" with ")
+			}
+			sep := ""
+			if len(data.Lhs) > 0 {
+				out.WriteString("`")
+				for _, pair := range data.Lhs {
+					out.WriteString(sep)
+					out.WriteString(pair.Name)
+					sep = ", "
+				}
+				out.WriteString("` = `")
+				sep = ""
+				for _, pair := range data.Lhs {
+					out.WriteString(sep)
+					out.WriteString(vm.Literal(vm.Mem[pair.Location], 0))
+					sep = ", "
+				}
+				out.WriteString("`")
+			}
+			if len(data.Lhs) > 0 && len(data.Rhs) > 0 {
+				out.WriteString(" and ")
+			}
+			sep = ""
+			if len(data.Rhs) > 0 {
+				out.WriteString("`")
+				for _, pair := range data.Rhs {
+					out.WriteString(sep)
+					out.WriteString(pair.Name)
+					sep = ", "
+				}
+				out.WriteString("` = `")
+				sep = ""
+				for _, pair := range data.Rhs {
+					out.WriteString(sep)
+					out.WriteString(vm.Literal(vm.Mem[pair.Location], 0))
+					sep = ", "
+				}
+				out.WriteString("`")
 			}
 			out.WriteString(".\n")
 		case TR_LITERAL:

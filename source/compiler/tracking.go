@@ -79,6 +79,8 @@ func staticTrackingToString(i int, td vm.TrackingData) string { // For the use o
 		out.WriteString("a return from function '")
 		out.WriteString(text.Emph(td.Args[0].(string)))
 		out.WriteString("'")
+	case vm.TR_FOR:
+		out.WriteString("for loop")
 	}
 	out.WriteString(" at line ")
 	out.WriteString(strconv.Itoa(td.Tok.Line))
