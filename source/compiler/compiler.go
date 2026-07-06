@@ -742,7 +742,7 @@ NodeTypeSwitch:
 			}
 
 			if cp.autoOn(ctxt) {
-				cp.TrackOrLog(vm.TR_RESULT, cp.trackingOnAndIsReturn(ctxt), &node.Token, cp.That())
+				cp.TrackOrLog(vm.TR_CONDITIONAL_RESULT, cp.trackingOnAndIsReturn(ctxt), &node.Token, cp.That())
 			}
 			leftRg := cp.That()
 			if !lResult.Types.IsOnly(values.BOOL) {
@@ -1327,9 +1327,13 @@ NodeTypeSwitch:
 	// We do a little logging.
 	_, isLazyInfix := node.(*parser.LazyInfixExpression)
 	_, isLoggingOperation := node.(*parser.LogExpression)
-	if !(isLazyInfix || isLoggingOperation) && (cp.autoOn(ctxt)) && ac == DEF && 
-	   		!(node.GetToken().Type == token.BREAK || node.GetToken().Type == token.CONTINUE) {
-		cp.TrackOrLog(vm.TR_RETURN, cp.trackingOnAndIsReturn(ctxt), node.GetToken(), ctxt.FName, cp.That())
+	if !(isLazyInfix || isLoggingOperation) && (cp.autoOn(ctxt)) && ac == DEF &&
+		!(node.GetToken().Type == token.BREAK || node.GetToken().Type == token.CONTINUE) {
+		if len(cp.forData) == 0 {
+			cp.TrackOrLog(vm.TR_RETURN, cp.trackingOnAndIsReturn(ctxt), node.GetToken(), ctxt.FName, cp.That())
+		} else {
+			cp.TrackOrLog(vm.TR_FOR_RETURN, cp.trackingOnAndIsReturn(ctxt), node.GetToken(), cp.That())
+		}
 		result.Foldable = false // 'false' because we don't want to fold away the tracking information. TODO --- is this redundant?
 		return result
 	}
@@ -1355,7 +1359,7 @@ NodeTypeSwitch:
 		} else {
 			result.Types = AltType(val.T)
 		}
-		
+
 		cp.Rollback(state, node.GetToken())
 		cp.Reserve(val.T, val.V, node.GetToken())
 	}

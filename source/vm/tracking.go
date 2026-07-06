@@ -25,25 +25,26 @@ type TrackingFlavor int
 const (
 	TR_BREAK TrackingFlavor = iota
 	TR_BREAK_WITH_VALUE
-	TR_CONDITION 
+	TR_CONDITION
 	TR_CONTINUE
 	TR_ELSE
 	TR_FOR
+	TR_FOR_RETURN
 	TR_FNCALL
 	TR_LITERAL
-	TR_RESULT
+	TR_CONDITIONAL_RESULT
 	TR_RETURN
 )
 
 type TrackingVar struct {
-	Name string 
+	Name     string
 	Location uint32
 }
 
-type ForData struct{
+type ForData struct {
 	Lhs []TrackingVar
 	Rhs []TrackingVar
-} 
+}
 
 func (vm *Vm) trackingIs(i int, tf TrackingFlavor) bool {
 	if i < 0 || i >= len(vm.LiveTracking) {
@@ -102,6 +103,22 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 			out.WriteString(" we evaluated the condition ")
 			out.WriteString(text.Emph(args[0].(string)))
 			out.WriteString(". ")
+		case TR_CONDITIONAL_RESULT:
+			if !vm.trackingIs(i-1, TR_CONDITION) {
+				out.WriteString("-")
+			}
+			if logTime {
+				out.WriteString(" At ")
+				out.WriteString(time.Format("15:04:05"))
+				out.WriteString(", t")
+			} else {
+				out.WriteString(" T")
+			}
+			if args[0].(values.Value).V.(bool) {
+				out.WriteString("he condition succeeded.\n")
+			} else {
+				out.WriteString("he condition failed.\n")
+			}
 		case TR_ELSE:
 			out.WriteString("- At ")
 			if logTime {
@@ -190,6 +207,23 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 				out.WriteString("`")
 			}
 			out.WriteString(".\n")
+		case TR_FOR_RETURN:
+			if args[0].(values.Value).T != values.UNSATISFIED_CONDITIONAL {
+				if vm.trackingIs(i-1, TR_ELSE) {
+					out.WriteString(", so at ")
+				} else {
+					out.WriteString("- At ")
+				}
+				if logTime {
+					out.WriteString(time.Format("15:04:05"))
+					out.WriteString(", at ")
+				}
+				out.WriteString("line ")
+				out.WriteString(strconv.Itoa(td.Tok.Line))
+				out.WriteString(" the body of the `for` loop evaluated to `")
+				out.WriteString(vm.Literal(args[0].(values.Value), 0))
+				out.WriteString("`.\n")
+			}
 		case TR_LITERAL:
 			if logTime {
 				out.WriteString("- At ")
@@ -203,22 +237,6 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 			out.WriteString(" : ")
 			out.WriteString(args[0].(values.Value).V.(string))
 			out.WriteString("\n")
-		case TR_RESULT:
-			if !vm.trackingIs(i-1, TR_CONDITION) {
-				out.WriteString("-")
-			}
-			if logTime {
-				out.WriteString(" At ")
-				out.WriteString(time.Format("15:04:05"))
-				out.WriteString(", t")
-			} else {
-				out.WriteString(" T")
-			}
-			if args[0].(values.Value).V.(bool) {
-				out.WriteString("he condition succeeded.\n")
-			} else {
-				out.WriteString("he condition failed.\n")
-			}
 		case TR_RETURN:
 			if args[1].(values.Value).T != values.UNSATISFIED_CONDITIONAL {
 				if vm.trackingIs(i-1, TR_ELSE) {
@@ -235,9 +253,9 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 				out.WriteString(" ")
 				out.WriteString("function ")
 				out.WriteString(text.Emph(args[0].(string)))
-				out.WriteString(" returned ")
+				out.WriteString(" returned `")
 				out.WriteString(vm.Literal(args[1].(values.Value), 0))
-				out.WriteString(".\n")
+				out.WriteString("`.\n")
 			}
 		}
 	}

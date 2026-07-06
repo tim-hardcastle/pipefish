@@ -67,18 +67,20 @@ func staticTrackingToString(i int, td vm.TrackingData) string { // For the use o
 	case vm.TR_CONDITION:
 		out.WriteString("the condition ")
 		out.WriteString(td.Args[0].(string))
+	case vm.TR_CONDITIONAL_RESULT:
+		out.WriteString("the result of a conditional")
 	case vm.TR_CONTINUE:
 		out.WriteString("a `continue` statement")
 	case vm.TR_ELSE:
 		out.WriteString("an 'else' statement")
+	case vm.TR_FOR_RETURN:
+		
 	case vm.TR_FNCALL:
 		out.WriteString("a function call to '")
 		out.WriteString(td.Args[0].(string))
 		out.WriteString("'")
 	case vm.TR_LITERAL:
 		out.WriteString("a user-defined logging expression")
-	case vm.TR_RESULT:
-		out.WriteString("the result of a conditional")
 	case vm.TR_RETURN:
 		out.WriteString("a return from function '")
 		out.WriteString(text.Emph(td.Args[0].(string)))
