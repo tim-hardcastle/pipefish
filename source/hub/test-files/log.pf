@@ -10,3 +10,14 @@ big (i int) :    \\ Called `big`.
         "big"    \\
     else :       \\
         "small"  \\
+
+find (L list, x any?) :                      \\
+    from a int? = NULL for i::el = range L : \\
+        x == el :                            \\
+            break i                          \\
+        else :                               \\
+            continue                         \\
+
+add(L list) :
+    from a = 0 for _::el = range L :         \\
+        a + el                               \\
