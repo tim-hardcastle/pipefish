@@ -62,9 +62,13 @@ func staticTrackingToString(i int, td vm.TrackingData) string { // For the use o
 	out.WriteString(strconv.Itoa(i))
 	out.WriteString(" for ")
 	switch td.Flavor {
+	case vm.TR_BREAK, vm.TR_BREAK_WITH_VALUE:
+		out.WriteString("a `break` statement")
 	case vm.TR_CONDITION:
 		out.WriteString("the condition ")
 		out.WriteString(td.Args[0].(string))
+	case vm.TR_CONTINUE:
+		out.WriteString("a `continue` statement")
 	case vm.TR_ELSE:
 		out.WriteString("an 'else' statement")
 	case vm.TR_FNCALL:

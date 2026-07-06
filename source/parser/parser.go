@@ -467,7 +467,7 @@ func (p *Parser) parseBreak() Node {
 	if p.isPositionallyFunctional() {
 		t := p.CurToken
 		p.NextToken()                  // Skips the 'break' token
-		exp := p.ParseExpression(FUNC) // If this is a multiple return, we don't want its elements to be treated as parameters of a function. TODO --- gve 'break' its own node type?
+		exp := p.ParseExpression(COLON) // If this is a multiple return, we don't want its elements to be treated as parameters of a function. TODO --- gve 'break' its own node type?
 		return &PrefixExpression{t, "break", []Node{exp}}
 	}
 	return &Identifier{Token: p.CurToken, Value: "break"}

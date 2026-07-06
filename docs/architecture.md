@@ -256,13 +256,13 @@ condition :
 else :
     <other code>
 ```
-In the bytecode, the `<code>` block needs to end with instructions to jump put its result into the location that will be on top of the memory after `<other code>` has finished compiling, and to jump to the address just after the top of the bytecode that will have been emitted. And since we don't know how much bytecode and memory will be taken up by compiling `<other code>`, we need to emit operations with dummy locations in, make a note of what we did, and then resolve it after compiling `<other code>`.
+In the bytecode, the `<code>` block needs to end with instructions to put its result into the location that will be on top of the memory after `<other code>` has finished compiling, and to jump to the address just after the top of the bytecode that will have been emitted. And since we don't know how much bytecode and memory will be taken up by compiling `<other code>`, we need to emit operations with dummy locations in, make a note of what we did, and then resolve it after compiling `<other code>`.
 
 To do this, we have a range of functions for emitting various kinds of conditional code and returning a record of what was done, e.g. in implementing the logic for short-circuiting `or`, we create a `BkEarlyReturn` object like this:
 ```
 shortCircuit := cp.VmConditionalEarlyReturn(vm.Qtru, leftRg, leftRg)
 ```
-... which we later discharge by calling cp.vmComeFrom(shortCircuit)`.
+... which we later discharge by calling `cp.vmComeFrom(shortCircuit)`.
 
 In hindsight, perhaps I should have written an intermediate representation for my code which mostly lowered it into bytecode, but retained some simple flow-of-control primitives. At this point it would take a lot of refactoring for little gain to revisit this, since the way we do flow-of-control is and should remain stable.
 

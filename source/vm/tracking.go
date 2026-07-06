@@ -23,7 +23,10 @@ type TrackingData struct {
 type TrackingFlavor int
 
 const (
-	TR_CONDITION TrackingFlavor = iota
+	TR_BREAK TrackingFlavor = iota
+	TR_BREAK_WITH_VALUE
+	TR_CONDITION 
+	TR_CONTINUE
 	TR_ELSE
 	TR_FOR
 	TR_FNCALL
@@ -59,6 +62,35 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 		logTime := vm.Mem[td.LogTimeLoc].V.(bool)
 		args := td.Args
 		switch td.Flavor {
+		case TR_BREAK, TR_BREAK_WITH_VALUE, TR_CONTINUE:
+			if vm.trackingIs(i-1, TR_ELSE) {
+				out.WriteString(", so at ")
+			} else {
+				out.WriteString("- At ")
+			}
+			if logTime {
+				out.WriteString(time.Format("15:04:05"))
+				out.WriteString(", at ")
+			}
+			out.WriteString("line ")
+			out.WriteString(strconv.Itoa(td.Tok.Line))
+			out.WriteString(" ")
+			switch td.Flavor {
+			case TR_BREAK:
+				out.WriteString("we broke out of the loop.\n")
+			case TR_BREAK_WITH_VALUE:
+				out.WriteString("we broke out of the loop with value `")
+				out.WriteString(vm.Literal(args[2].(values.Value), 0))
+				out.WriteString("`")
+				if args[1].(bool) {
+					out.WriteString(" and returned that as the value of function `")
+					out.WriteString(args[0].(string))
+					out.WriteString("`")
+				}
+				out.WriteString(".\n")
+			case TR_CONTINUE:
+				out.WriteString("we continued around the loop.\n")
+			}
 		case TR_CONDITION:
 			out.WriteString("- At ")
 			if logTime {
@@ -114,7 +146,7 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 			} else {
 				out.WriteString("- W")
 			}
-			out.WriteString("e entered the `for` loop at line ")
+			out.WriteString("e entered the loop at line ")
 			out.WriteString(strconv.Itoa(td.Tok.Line))
 			data := args[0].(ForData)
 			if len(data.Lhs) > 0 || len(data.Rhs) > 0 {
@@ -201,9 +233,6 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 				out.WriteString("line ")
 				out.WriteString(strconv.Itoa(td.Tok.Line))
 				out.WriteString(" ")
-				//out.WriteString("of ")
-				//out.WriteString(text.Emph(td.tok.Source))
-				//out.WriteString(" ")
 				out.WriteString("function ")
 				out.WriteString(text.Emph(args[0].(string)))
 				out.WriteString(" returned ")

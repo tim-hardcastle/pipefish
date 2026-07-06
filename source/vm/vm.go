@@ -315,7 +315,7 @@ loop:
 				if vm.logging {
 					staticData := vm.Tracking[args[0]]
 					newData := TrackingData{staticData.Flavor, staticData.Tok, staticData.LogToLoc, staticData.LogTimeLoc, make([]any, len(staticData.Args))}
-					copy(newData.Args, staticData.Args) // This is because only things of tye uint32 are meant to be replaced.
+					copy(newData.Args, staticData.Args) // This is because only things of type uint32 are meant to be replaced.
 					for i, v := range newData.Args {
 						if v, ok := v.(uint32); ok {
 							newData.Args[i] = vm.Mem[v]
@@ -2529,6 +2529,48 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

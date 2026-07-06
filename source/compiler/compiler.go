@@ -148,7 +148,7 @@ type Context struct {
 	LowMem         uint32           // Where the memory of the function we're compiling (if indeed we are) starts, and so the lowest point from which we may need to copy memory in case of recursion.
 	TrackingFlavor LogFlavor        // Whether we should be tracking something and if so what.
 	LogFlavor      LogFlavor        // Whether we should be logging something and if so what.
-	ForReturns     AlternateType    // What (besides an error) we may expect 'for' to return, and therefor the expected result of a 'continue' or a 'break' without a value after it.
+	ForReturns     AlternateType    // What (besides an error) we may expect 'for' to return, and therefore the expected result of a 'continue' or a 'break' without a value after it.
 	Typecheck      *ReturnTypeCheck // If non-nil, tells us whether we're typechecking the expression being compiled and if so why.
 	NoFold         bool             // Suppresses constant folding.
 }
@@ -734,6 +734,7 @@ NodeTypeSwitch:
 				cp.Throw("comp/bool/cond", node.GetToken(), lResult.Types.describe(cp.Vm))
 				return FAIL
 			}
+
 			if cp.autoOn(ctxt) {
 				cp.TrackOrLog(vm.TR_RESULT, cp.trackingOnAndIsReturn(ctxt), &node.Token, cp.That())
 			}
@@ -988,9 +989,13 @@ NodeTypeSwitch:
 				cp.Throw("comp/break/a", node.GetToken())
 				return FAIL
 			}
-			result = cp.CompileNode(node.Args[0], ctxt)
+			result = cp.CompileNode(node.Args[0], ctxt.x())
 			if result.Failed {
 				return FAIL
+			}
+			resultLoc := cp.That()
+			if (cp.autoOn(ctxt)) && ac == DEF {
+				cp.TrackOrLog(vm.TR_BREAK_WITH_VALUE, cp.trackingOnAndIsReturn(ctxt), node.GetToken(), ctxt.FName, ctxt.Typecheck != nil, resultLoc)
 			}
 			result.Foldable = false // Or it might try to break out of the loop at compile time.
 			cp.addToForData(cp.vmBreakWithValue(cp.That()))
@@ -1316,7 +1321,8 @@ NodeTypeSwitch:
 	// We do a little logging.
 	_, isLazyInfix := node.(*parser.LazyInfixExpression)
 	_, isLoggingOperation := node.(*parser.LogExpression)
-	if !(isLazyInfix || isLoggingOperation) && (cp.autoOn(ctxt)) && ac == DEF {
+	if !(isLazyInfix || isLoggingOperation) && (cp.autoOn(ctxt)) && ac == DEF && 
+	   		!(node.GetToken().Type == token.BREAK || node.GetToken().Type == token.CONTINUE) {
 		cp.TrackOrLog(vm.TR_RETURN, cp.trackingOnAndIsReturn(ctxt), node.GetToken(), ctxt.FName, cp.That())
 		result.Foldable = false // 'false' because we don't want to fold away the tracking information. TODO --- is this redundant?
 		return result
