@@ -355,11 +355,17 @@ NodeTypeSwitch:
 		result = concResult(values.FUNC, false) // Things that return functions and snippets are not folded, even if they are constant.
 	case *parser.Identifier:
 		switch node.Value {
-		case "continue":
-			result = cp.emitContinue(&node.Token, ctxt)
-			break NodeTypeSwitch
 		case "break":
+			if (cp.autoOn(ctxt)) && ac == DEF {
+				cp.TrackOrLog(vm.TR_BREAK, cp.trackingOnAndIsReturn(ctxt), node.GetToken())
+			}
 			result = cp.emitBreakWithoutValue(&node.Token, ctxt)
+			break NodeTypeSwitch
+		case "continue":
+			if (cp.autoOn(ctxt)) && ac == DEF {
+				cp.TrackOrLog(vm.TR_CONTINUE, cp.trackingOnAndIsReturn(ctxt), node.GetToken())
+			}
+			result = cp.emitContinue(&node.Token, ctxt)
 			break NodeTypeSwitch
 		case "NULL":
 			cp.Reserve(values.NULL, nil, &node.Token)
