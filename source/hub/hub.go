@@ -52,6 +52,8 @@ type Hub struct {
 	storekey string
 }
 
+var TheHub *Hub
+
 type mailer = struct {
 	addr   string
 	auth   smtp.Auth
@@ -314,6 +316,12 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 	}
 	switch verb {
+	case "open-hub":
+		h.OpenHubFile(filepath.Join(args[0], "hub.hub"))
+	case "new-hub":
+		println("new hub")
+	case "fork-hub":
+		println("fork hub")
 	case "add":
 		err := IsUserGroupOwner(h.Db, username, args[1])
 		if err != nil {
@@ -403,7 +411,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			os.WriteFile(filepath.Join(settings.PipefishHomeDirectory, args[3]), []byte(dump), 0666)
 		}
 	case "env":
-		// $_env has been updated by hub.pf. This is called by both `env` and `nuke env`.
+		// $_env has been updated by hub.pf. This is called by both `env` and `delete env`.
 		env, _ := h.Services["hub"].GetVariable("$_env")
 		h.store = env.V.(values.Map)
 		h.SaveAndPropagateHubStore()
@@ -416,7 +424,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 		h.storekey = new
 		h.SaveAndPropagateHubStore()
-	case "env-wipe":
+	case "nuke-env":
 		h.storekey = ""
 		h.store = values.Map{}
 		h.SaveAndPropagateHubStore()
@@ -1023,6 +1031,14 @@ func (hub *Hub) saveHubFile() string {
 }
 
 func (h *Hub) OpenHubFile(hubFilepath string) {
+	h.Services = map[string]*pf.Service{}
+	h.ers = []*pf.Error{}
+	h.Sources = map[string][]string{}
+	h.Db = nil
+	h.mailData = mailer{}
+	h.listeningToHttpOrHttps = false
+	h.store = values.Map{}
+	h.storekey = ""
 	h.createService("", "", true)
 	h.createService("hub", hubFilepath, true)
 	storePath := hubFilepath[0:len(hubFilepath)-len(filepath.Ext(hubFilepath))] + ".env"

@@ -58,9 +58,9 @@ func TestEnv(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
 		{`hub env "foo"::42`, `OK`},
-		{`hub nuke env "foo"`, `OK`},
+		{`hub delete env "foo"`, `OK`},
 		{`hub env key "", "foo"`, `OK`},
-		{`hub env wipe`, `OK`},
+		{`hub nuke env`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", test)

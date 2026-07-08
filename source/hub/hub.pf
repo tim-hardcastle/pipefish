@@ -122,18 +122,23 @@ env key(old, new string):
     else :
         do("env-key", [old, new])
 
-env wipe :
+delete env(x any) :
     global $_external, isAdministered
     $_external and not isAdministered :
         error "can't change env remotely on an unadministered hub"
     else :
-        do("env-wipe", [])
+        global $_env 
+        $_env = $_env without x
+        do("env", [])
 
 errors :
     do("errors", [])
 
 forgot password (usr, email string) :
     do("forgot-password", [usr, email])
+
+fork hub(folderName string) :
+    do("fork-hub", [folderName])
 
 groups :
     do("groups", [])
@@ -206,20 +211,24 @@ sign on :
         get pword from masked Keyboard("Password? ")
         do("log-on", [uname, pword])
 
+new hub(folderName string) :
+    do("new-hub", [folderName])
+
 nuke admin :
     do("nuke-admin", [])
 
-nuke env(x any) :
+nuke env :
     global $_external, isAdministered
     $_external and not isAdministered :
         error "can't change env remotely on an unadministered hub"
     else :
-        global $_env 
-        $_env = $_env without x
-        do("env", [])
+        do("nuke-env", [])
 
 nuke my account :
     do("nuke-account", [])
+
+open hub(folderName string) :
+    do("open-hub", [folderName])
 
 quit :
     global $_external, isAdministered

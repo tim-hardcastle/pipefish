@@ -76,8 +76,8 @@ func TestEnv(t *testing.T) {
 	test_helper.RunHubTest(t, "default", test)
 
 	testB := []test_helper.TestItem{
-		{`hub nuke env "foo"`, `OK`},
-		{`hub env wipe`, `OK`},
+		{`hub delete env "foo"`, `OK`},
+		{`hub nuke env`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
 	}
 	test_helper.RunHubTest(t, "default", testB)
