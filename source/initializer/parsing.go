@@ -1129,18 +1129,6 @@ func (iz *Initializer) createStructLabels() {
 			Private:     dec.private, IsMI: settings.MandatoryImportSet().Contains(indexToken.Source)}
 		stT = stT.AddLabels(labelsForStruct)
 		iz.cp.Vm.ConcreteTypeInfo[typeNo] = stT
-		fnNo := iz.addToBuiltins(sig, name, altType(typeNo), dec.private, indexToken)
-		fn := &parsedFunction{
-			decType:   functionDeclaration,
-			decNumber: DUMMY,
-			private:   dec.private,
-			op:        dec.op,
-			pos:       prefix,
-			sig:       sig,
-			body:      &parser.BuiltInExpression{Name: name},
-			callInfo:  &compiler.CallInfo{iz.cp, fnNo, nil},
-		}
-		iz.Add(name, fn)
 	}
 }
 

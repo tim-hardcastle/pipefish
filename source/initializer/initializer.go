@@ -189,6 +189,14 @@ func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*co
 		return result
 	}
 
+	iz.cmI("Adding struct constructors.")
+	iz.createStructConstructors()
+	if iz.errorsExist() {
+		iz.cp.P.Common.IsBroken = true
+		return result
+	}
+
+
 	iz.cmI("Making function tables.")
 	iz.makeFunctionTables()
 	if iz.errorsExist() {
@@ -600,6 +608,36 @@ func (iz *Initializer) populateAbstractTypes() {
 	// The compiler uses a somewhat richer type representation than the one used by the compiler and the
 	// runtime.
 	iz.makeAlternateTypesFromAbstractTypes()
+}
+
+func (iz *Initializer) createStructConstructors() {
+	// First we recursively call the method on all the dependencies of the module.
+	for pair := iz.initializers.Oldest(); pair != nil; pair = pair.Next() {
+		dependencyIz := pair.Value
+		dependencyIz.createStructConstructors()
+	}
+	for i, tc := range iz.tokenizedCode[structDeclaration] {
+		dec := tc.(*tokenizedStructDeclaration)
+		name := dec.op.Literal
+		indexToken := ixPtr(dec)
+		sig := iz.makeAstSigFromTokenizedSig(dec.sig)
+		if len(dec.params) > 0 {
+			continue
+		}
+		typeNo := iz.structDeclarationNumberToTypeNumber[i]		
+		fnNo := iz.addToBuiltins(sig, name, altType(typeNo), dec.private, indexToken)
+		fn := &parsedFunction{
+			decType:   functionDeclaration,
+			decNumber: DUMMY,
+			private:   dec.private,
+			op:        dec.op,
+			pos:       prefix,
+			sig:       sig,
+			body:      &parser.BuiltInExpression{Name: name},
+			callInfo:  &compiler.CallInfo{iz.cp, fnNo, nil},
+		}
+		iz.Add(name, fn)
+	}
 }
 
 // We add the abstract types to the VM.
