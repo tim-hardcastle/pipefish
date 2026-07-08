@@ -605,7 +605,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WritePretty("Starting script <C>\"" + displayName + "\"</> as service <C>\"" + sname + "\"</>.\n")
 		ext := h.getSV("$_external").V.(bool) // Note that we need to do this before createService, which may do external things.
 		h.createService(sname, fname, true)
-		if !ext {
+		if  h.Services[sname] != nil && !h.Services[sname].IsBroken() && !ext {
 			h.setServiceName(sname)
 			h.tryMain()
 		}
