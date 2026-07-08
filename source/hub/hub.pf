@@ -99,14 +99,7 @@ env (p pair) :
         $_env = $_env with p
         do("env", [])
 
-env delete(x any) :
-    global $_external, isAdministered
-    $_external and not isAdministered :
-        error "can't change env remotely on an unadministered hub"
-    else :
-        global $_env 
-        $_env = $_env without x
-        do("env", [])
+
 
 env key :
     global $_external, isAdministered
@@ -215,6 +208,15 @@ sign on :
 
 nuke admin :
     do("nuke-admin", [])
+
+nuke env(x any) :
+    global $_external, isAdministered
+    $_external and not isAdministered :
+        error "can't change env remotely on an unadministered hub"
+    else :
+        global $_env 
+        $_env = $_env without x
+        do("env", [])
 
 nuke my account :
     do("nuke-account", [])

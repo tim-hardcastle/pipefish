@@ -348,7 +348,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if path != "" {
 			splitPath = strings.Split(path[1:], ".")
 		}
-		h.WriteString(service.Api(root + path, splitPath, h.getFonts(), h.getSV("width").V.(int)))
+		h.WriteString(service.Api(root+path, splitPath, h.getFonts(), h.getSV("width").V.(int)))
 	case "change-password":
 		err = ChangePassword(h.Db, username, args[0])
 		if err != nil {
@@ -403,7 +403,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 			os.WriteFile(filepath.Join(settings.PipefishHomeDirectory, args[3]), []byte(dump), 0666)
 		}
 	case "env":
-		// $_env has been updated by hub.pf. This is called by both `env` and `env delete`.
+		// $_env has been updated by hub.pf. This is called by both `env` and `nuke env`.
 		env, _ := h.Services["hub"].GetVariable("$_env")
 		h.store = env.V.(values.Map)
 		h.SaveAndPropagateHubStore()
@@ -605,7 +605,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WritePretty("Starting script <C>\"" + displayName + "\"</> as service <C>\"" + sname + "\"</>.\n")
 		ext := h.getSV("$_external").V.(bool) // Note that we need to do this before createService, which may do external things.
 		h.createService(sname, fname, true)
-		if  h.Services[sname] != nil && !h.Services[sname].IsBroken() && !ext {
+		if h.Services[sname] != nil && !h.Services[sname].IsBroken() && !ext {
 			h.setServiceName(sname)
 			h.tryMain()
 		}
@@ -724,7 +724,7 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			break
 		}
 		// Usually a runtime error will be the only error, and so necessarily the last one. But also, a runtime error
-		// can arise when we're livecoding and we get compilation errors but also a runtime error from whatever we put 
+		// can arise when we're livecoding and we get compilation errors but also a runtime error from whatever we put
 		// into the REPL.
 		lastError := h.ers[len(h.ers)-1]
 		if lastError.Values == nil {
