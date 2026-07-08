@@ -278,7 +278,7 @@ var rbamVerbs = dtypes.SetOf("add", "change-password", "create-group", "forgot-p
 	"unlet-own", "unlet-use", "unregister", "users-of-service", "users-of-group")
 
 // Things you can use if you're logged in to a service with RBAM, but not as admin.
-var greenList = dtypes.SetOf("change-password", "forgot-password", "log-on", "log-off", "groups",
+var greenList = dtypes.SetOf("change-password", "forgot-password", "hub", "log-on", "log-off", "groups",
 	"nuke-account", "register", "services", "switch")
 
 func (hw hubWriter) Write(b []byte) (int, error) {
@@ -316,12 +316,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 	}
 	switch verb {
-	case "open-hub":
-		h.OpenHubFolder(args[0])
-	case "new-hub":
-		h.copyAndOpenHubFile(filepath.Join(settings.PipefishHomeDirectory, "source/hub/new-hub"), args[0])
-	case "fork-hub":
-		h.copyAndOpenHubFile(filepath.Dir(h.hubFilepath), args[0])
 	case "add":
 		err := IsUserGroupOwner(h.Db, username, args[1])
 		if err != nil {
@@ -424,10 +418,6 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		}
 		h.storekey = new
 		h.SaveAndPropagateHubStore()
-	case "nuke-env":
-		h.storekey = ""
-		h.store = values.Map{}
-		h.SaveAndPropagateHubStore()
 	case "errors":
 		r, _ := h.Services[h.CurrentServiceName()].GetErrorReport()
 		h.WritePretty(r)
@@ -452,6 +442,8 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 				h.WritePretty("An email with a replacement password has been sent to <C>" + args[1] + "</>.")
 			}
 		}
+	case "fork-hub":
+		h.copyAndOpenHubFile(filepath.Dir(h.hubFilepath), args[0])
 	case "groups":
 		result, err := GetGroupsOfUser(h.Db, username, true)
 		if err != nil {
@@ -501,6 +493,8 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		}
 		h.WriteString(GREEN_OK)
 		go h.StartHttp(args, true)
+	case "hub":
+		h.WritePretty("Hub is <C>\"" + filepath.Base(filepath.Dir(h.hubFilepath)) + "\"</>.")
 	case "let-own":
 		var inGroup bool
 		inGroup, err = IsUserInGroup(h.Db, args[0], args[1])
@@ -549,6 +543,8 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 			"to replace your password; or `hub sign on` to sign on if you're trying to use the hub on " +
 			"the terminal it's running on and you're already registered with this hub.")
 		h.WriteString("\n\n")
+	case "new-hub":
+		h.copyAndOpenHubFile(filepath.Join(settings.PipefishHomeDirectory, "source/hub/new-hub"), args[0])
 	case "nuke-account":
 		err = UnRegisterUser(h.Db, username)
 		if err != nil {
@@ -565,6 +561,12 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.TerminalUsername = ""
 		h.TerminalPassword = ""
 		h.setServiceName("")
+	case "nuke-env":
+		h.storekey = ""
+		h.store = values.Map{}
+		h.SaveAndPropagateHubStore()
+	case "open-hub":
+		h.OpenHubFolder(args[0])
 	case "quit":
 		h.Quit()
 	case "register":

@@ -211,6 +211,9 @@ sign on :
         get pword from masked Keyboard("Password? ")
         do("log-on", [uname, pword])
 
+hub :
+    do("hub", [])
+
 new hub(folderName string) :
     do("new-hub", [folderName])
 
