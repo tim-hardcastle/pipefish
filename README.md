@@ -70,7 +70,7 @@ Here are some of Pipefish's more distinctive features:
 * [Style guide](https://github.com/tim-hardcastle/pipefish/blob/main/docs/style-guide.md). This gives best practices for the style in which one should write Pipefish code.
 * [Functional core, imperative shell](https://github.com/tim-hardcastle/pipefish/blob/main/docs/functional-core-imperative-shell.md). A synopsis of the language paradigm.
 * [Pipefish and the lambda calculus](https://github.com/tim-hardcastle/pipefish/blob/main/docs/pipefish-and-the-lambda-calculus.md). A quick look at the fact that Pipefish is the lambda calculus with a ton of sugar poured on it.
-* [Architecture of Pipefish](https://github.com/tim-hardcastle/pipefish/blob/main/docs/the-whys-of-pipefish.md). This explains broadly how the initializer/compiler/VM work.
+* [Architecture of Pipefish](https://github.com/tim-hardcastle/pipefish/blob/main/docs/architecture.md). This explains broadly how the initializer/compiler/VM work.
 * [The whys of Pipefish](https://github.com/tim-hardcastle/pipefish/blob/main/docs/the-whys-of-pipefish.md). This explains the reasoning behind some lower-level design choices which are sufficiently unusual as to need explanation.
 
 ## Our adorable mascot
