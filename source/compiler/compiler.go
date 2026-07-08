@@ -405,10 +405,11 @@ NodeTypeSwitch:
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}
-		if ((v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == GLOBAL_VARIABLE_PRIVATE) && (ac == REPL || resolvingCompiler != cp)) ||
+		if (v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == GLOBAL_VARIABLE_PRIVATE) &&
+		   ((ac == REPL || resolvingCompiler != cp) ||
 			(cp.Pool != nil && resolvingCompiler == cp && v.Token != nil && v.Access == GLOBAL_CONSTANT_PRIVATE && !cp.Pool.Check(node.Token.Source, v.Token.Source)) ||
-			(ctxt.Access == REPL && v.Token != nil && cp.PrivateNullImports.Contains(v.Token.Source)) {
-			cp.Throw("comp/private/ident", node.GetToken())
+			(ctxt.Access == REPL && v.Token != nil && cp.PrivateNullImports.Contains(v.Token.Source))) {
+				cp.Throw("comp/private/ident", node.GetToken())
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}

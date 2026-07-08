@@ -1,6 +1,6 @@
 ~~ An example CRUD app to show how we query SQL, and, in this case, emit HTML.
 
-import
+import private
 
 NULL::"database/sql"  // A standard library. `NULL` means we're importing the library without a namespace.
 NULL::"files"         // The standard `files` library.
