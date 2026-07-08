@@ -21,7 +21,7 @@ func MandatoryImportSet() dtypes.Set[string] {
 }
 
 var ThingsToIgnore = (dtypes.MakeFromSlice(MandatoryImports)).
-	Add("user/hub/hub.hub").Add("user/hub/hub.pf").Add("source/hub/hub.pf").
+	Add("user/user/hub.hub").Add("user/user/hub.pf").Add("source/hub/hub.pf").
 	Add("Builtin constant").Add("user/themes.pf")
 
 const (

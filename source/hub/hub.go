@@ -65,7 +65,7 @@ func New(path string, out io.Writer) *Hub {
 		Services: make(map[string]*pf.Service),
 		Out:      out,
 	}
-	h.OpenHubFile(filepath.Join(path, "hub.hub"))
+	h.OpenHubFolder(path)
 	return &h
 }
 
@@ -317,11 +317,11 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 	}
 	switch verb {
 	case "open-hub":
-		h.OpenHubFile(filepath.Join(args[0], "hub.hub"))
+		h.OpenHubFolder(args[0])
 	case "new-hub":
-		println("new hub")
+		h.copyAndOpenHubFile(filepath.Join(settings.PipefishHomeDirectory, "source/hub/new-hub"), args[0])
 	case "fork-hub":
-		println("fork hub")
+		h.copyAndOpenHubFile(filepath.Dir(h.hubFilepath), args[0])
 	case "add":
 		err := IsUserGroupOwner(h.Db, username, args[1])
 		if err != nil {
@@ -902,9 +902,16 @@ func (hub *Hub) createService(name, scriptFilepath string, forceUpdate bool) boo
 	if newService.IsBroken() {
 		if name == "hub" {
 			println("Filepath is", scriptFilepath)
-			println("Pipefish: unable to compile hub: " + newService.GetErrors()[0].ErrorId + ".")
-			println(newService.GetErrors()[0].Message)
-			println(err.DescribePos(newService.GetErrors()[0].Token))
+			switch {
+			case len(newService.GetErrors()) > 0 :
+				println("Pipefish: unable to compile hub: " + newService.GetErrors()[0].ErrorId + ".")
+				println(newService.GetErrors()[0].Message)
+				println(err.DescribePos(newService.GetErrors()[0].Token))
+			case e != nil :
+				println("Pipefish: unable to compile hub: " + e.Error())
+			default :
+				println("Pipefish: unable to compile hub.")
+			}
 			panic("That's all folks!")
 		}
 		if !newService.IsInitialized() {
@@ -1026,11 +1033,61 @@ func (hub *Hub) saveHubFile() string {
 	}
 	defer f.Close()
 	f.WriteString(buf.String())
+	if !testing.Testing() {
+		os.WriteFile(filepath.Join(settings.PipefishHomeDirectory, "user/hub.dat"), []byte(filepath.Dir(hub.hubFilepath)), 0755)
+	}
 	return GREEN_OK
 
 }
 
-func (h *Hub) OpenHubFile(hubFilepath string) {
+func (h *Hub) copyAndOpenHubFile(fromDirectory, toDirectory string) {
+	h.saveHubFile()
+	_, err := os.Stat(toDirectory)
+	if err == nil {
+		h.WriteError("a file or directory `" + toDirectory + "` already exists.")
+		return
+	}
+	err = os.Mkdir(toDirectory, 0755)
+	if err != nil {
+		h.WriteError("failed to create folder `" + toDirectory + "` with error `" + err.Error() + "`.")
+		return
+	}
+	entries, _ := os.ReadDir(fromDirectory)
+	for _, entry := range entries {
+		fromFile := filepath.Join(fromDirectory, entry.Name())
+		toFile := filepath.Join(toDirectory, entry.Name())
+		err = CopyFile(fromFile, toFile) 
+		if err != nil {
+			h.WriteError("failed to create folder `" + toDirectory + "` with error `" + err.Error() + "`.")
+		return
+	}
+	}
+	h.OpenHubFolder(toDirectory)
+}
+
+func CopyFile(srcFile, dstFile string) error {
+    out, err := os.Create(dstFile)
+    if err != nil {
+        return err
+    }
+    defer out.Close()
+    in, err := os.Open(srcFile)
+    if err != nil {
+        return err
+    }
+    defer in.Close()
+    _, err = io.Copy(out, in)
+    if err != nil {
+        return err
+    }
+    return nil
+}
+
+func (h *Hub) OpenHubFolder(hubFolder string) {
+	if !testing.Testing() {
+		println("Opening hub " + text.Cyan("\"" + filepath.Base(hubFolder) + "\"") + ".\n")
+	}
+	hubFilepath := filepath.Join(hubFolder, "hub.hub")
 	h.Services = map[string]*pf.Service{}
 	h.ers = []*pf.Error{}
 	h.Sources = map[string][]string{}

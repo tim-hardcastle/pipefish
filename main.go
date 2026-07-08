@@ -51,8 +51,12 @@ func main() {
 	}
 
 	fmt.Print(text.Logo())
-	hubDir := filepath.Join(settings.PipefishHomeDirectory, ("user/hub"))
-	h := hub.New(hubDir, os.Stdout)
+	bytes, _ := os.ReadFile(filepath.Join(settings.PipefishHomeDirectory, ("user/hub.dat")))
+	filename := string(bytes)
+	if filepath.IsLocal(filename) {
+		filepath.Join(settings.PipefishHomeDirectory, filename)
+	}
+	h := hub.New(filename, os.Stdout)
 	h.Repl()
 }
 
