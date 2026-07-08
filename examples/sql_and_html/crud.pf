@@ -1,6 +1,6 @@
 ~~ An example CRUD app to show how we query SQL, and, in this case, emit HTML.
 
-import 
+import
 
 NULL::"database/sql"  // A standard library. `NULL` means we're importing the library without a namespace.
 NULL::"files"         // The standard `files` library.
@@ -13,7 +13,7 @@ SQL = SqlDb(POSTGRESQL, "localhost", 5432, "postgres", $_env["SQL username"], $_
 newtype 
 
 // This will correspond to the structure of a row of our SQL table.
-Person = struct(name string, age int) : 
+Person = struct(name Varchar{32}, age int) : 
     age >= 0
 
 cmd // Now let's add some public commands.

@@ -12,7 +12,7 @@ Html(sn snippet) -> Html:
     toHtml sn
 
 string(h Html) -> string : 
-    cast h, string
+    cast string, h
 
 private
 // A Pipefish function can have its body written in Go.
