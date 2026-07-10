@@ -1,7 +1,7 @@
 cmd
 
 greet :
-    post "Hi there world!"
+    post "Hello world!"
 
 def
 
@@ -12,5 +12,8 @@ def
         n * (n - 1)!
     else :
         error "can't take the factorial of a negative number"
+
+
+
 
 
