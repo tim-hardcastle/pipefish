@@ -177,7 +177,7 @@ func TestServices(t *testing.T) {
 	// no t.Parallel()
 	test := []test_helper.TestItem{
 		{"2 + 2", "4"},
-		{`hub services`, `The hub isn't running any services.`},
+		{`hub services`, `No services are running on this hub.`},
 		{`hub run "../hub/test-files/foo.pf"`, `Starting script [36m"foo.pf"[39m as service [36m"foo"[39m.`},
 		{`hub reset`, "Restarting script \x1b[36m\"../hub/test-files/foo.pf\"\x1b[39m as service \x1b[36m\"foo\"\x1b[39m."},
 		{`hub services`, "The hub is running the following services:\n\n[32m  ▪ [0mService [36m\"foo\"[39m running script [36m\"foo.pf\"[39m."},

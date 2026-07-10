@@ -10,11 +10,11 @@ import (
 	"golang.org/x/term"
 )
 
-func (hub *Hub) Repl() {
+func (h *Hub) Repl() {
 	colonOrEmdash, _ := regexp.Compile(`.*[\w\s]*(:|--)[\s]*$`)
 	rline := readline.NewInstance()
 	rline.SyntaxHighlighter = func(code []rune) string {
-		return hub.Services[hub.CurrentServiceName()].Highlight(code, hub.getFonts())
+		return h.Services[h.CurrentServiceName()].Highlight(code, h.getFonts())
 	}
 	for {
 
@@ -37,7 +37,7 @@ func (hub *Hub) Repl() {
 					if len(st.Line) != st.CursorPos {
 						if st.Line[st.CursorPos] == right[0] {
 							return &readline.EventReturn{
-								SetLine: []rune(st.Line),
+								SetLine:  []rune(st.Line),
 								Continue: false,
 								SetPos:   st.CursorPos + 1,
 							}
@@ -63,7 +63,7 @@ func (hub *Hub) Repl() {
 					if len(st.Line) != st.CursorPos {
 						if st.Line[st.CursorPos] == right[0] {
 							return &readline.EventReturn{
-								SetLine: []rune(st.Line),
+								SetLine:  []rune(st.Line),
 								Continue: false,
 								SetPos:   st.CursorPos + 1,
 							}
@@ -79,7 +79,7 @@ func (hub *Hub) Repl() {
 			}
 		}
 		for {
-			rline.SetPrompt(makePrompt(hub, ws != ""))
+			rline.SetPrompt(makePrompt(h, ws != ""))
 			line, err := rline.ReadlineWithDefault(ws)
 			if err == readline.ErrCtrlC {
 				print("\nQuit Pipefish? [Y/n] ")
@@ -88,7 +88,7 @@ func (hub *Hub) Repl() {
 				if ch == 'n' || ch == 'N' {
 					println(text.Green("OK"))
 				} else {
-					hub.Quit()
+					h.Quit()
 					return
 				}
 			}
@@ -110,9 +110,9 @@ func (hub *Hub) Repl() {
 			}
 		}
 		input = strings.TrimSpace(input)
-		sv := hub.Services[hub.CurrentServiceName()]
+		sv := h.Services[h.CurrentServiceName()]
 		sv.SetOutHandler(sv.MakeTerminalOutHandler())
-		hub.Do(input, hub.TerminalUsername, hub.TerminalPassword, hub.CurrentServiceName(), false)
+		h.Do(input, h.TerminalUsername, h.TerminalPassword, h.CurrentServiceName(), false)
 	}
 }
 

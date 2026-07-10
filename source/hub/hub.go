@@ -69,8 +69,8 @@ func New(path string, out io.Writer) *Hub {
 	return &h
 }
 
-func (hub *Hub) CurrentServiceName() string {
-	cs := hub.getSV("currentService")
+func (h *Hub) CurrentServiceName() string {
+	cs := h.getSV("currentService")
 	if cs.T == pf.NULL {
 		return ""
 	} else {
@@ -78,54 +78,54 @@ func (hub *Hub) CurrentServiceName() string {
 	}
 }
 
-func (hub *Hub) hasDatabase() bool {
-	return hub.getSV("HUB_DB").V != nil
+func (h *Hub) hasDatabase() bool {
+	return h.getSV("HUB_DB").V != nil
 }
 
-func (hub *Hub) hasMailer() bool {
-	return hub.getSV("HUB_MAILER").V != nil
+func (h *Hub) hasMailer() bool {
+	return h.getSV("HUB_MAILER").V != nil
 }
 
-func (hub *Hub) getMailer() (string, string, string, string, string, string) {
-	mailerStruct := hub.getSV("HUB_MAILER").V.([]pf.Value)
+func (h *Hub) getMailer() (string, string, string, string, string, string) {
+	mailerStruct := h.getSV("HUB_MAILER").V.([]pf.Value)
 	authStruct := mailerStruct[1].V.([]pf.Value)
 	return mailerStruct[0].V.(string), authStruct[0].V.(string), authStruct[1].V.(string), authStruct[2].V.(string), authStruct[3].V.(string), mailerStruct[2].V.(string)
 }
 
-func (hub *Hub) isLive() bool {
-	return hub.getSV("isLive").V.(bool)
+func (h *Hub) isLive() bool {
+	return h.getSV("isLive").V.(bool)
 }
 
-func (hub *Hub) setLive(b bool) {
-	hub.setSV("isLive", pf.BOOL, b)
+func (h *Hub) setLive(b bool) {
+	h.setSV("isLive", pf.BOOL, b)
 }
 
-func (hub *Hub) setServiceName(name string) {
-	hub.setSV("currentService", pf.STRING, name)
+func (h *Hub) setServiceName(name string) {
+	h.setSV("currentService", pf.STRING, name)
 }
 
-func (hub *Hub) makeEmptyServiceCurrent() {
-	hub.setSV("currentService", pf.NULL, nil)
+func (h *Hub) makeEmptyServiceCurrent() {
+	h.setSV("currentService", pf.NULL, nil)
 }
 
-func (hub *Hub) getSV(sv string) pf.Value {
-	v, _ := hub.Services["hub"].GetVariable(sv)
+func (h *Hub) getSV(sv string) pf.Value {
+	v, _ := h.Services["hub"].GetVariable(sv)
 	return v
 }
 
-func (hub *Hub) setSV(sv string, ty pf.Type, v any) {
-	hub.Services["hub"].SetVariable(sv, ty, v)
+func (h *Hub) setSV(sv string, ty pf.Type, v any) {
+	h.Services["hub"].SetVariable(sv, ty, v)
 }
 
 // This converts a string identifying the color of a token (e.g. `type`,
 // `number`, to Linux control codes giving the correct coloring according
 // to the color theme of the hub.)
-func (hub *Hub) getFonts() values.Map {
-	theme := hub.getSV("theme")
+func (h *Hub) getFonts() values.Map {
+	theme := h.getSV("theme")
 	if theme.V == nil {
 		return values.Map{}
 	}
-	mapOfThemes := hub.getSV("THEMES").V.(values.Map)
+	mapOfThemes := h.getSV("THEMES").V.(values.Map)
 	mapForTheme, themeExists := mapOfThemes.Get(theme)
 	if !themeExists {
 		return values.Map{}
@@ -137,79 +137,79 @@ func (hub *Hub) getFonts() values.Map {
 // This takes the input from the REPL, interprets it as a hub command if it begins with 'hub';
 // as an instruction to the os if it begins with '$', and as an expression to be passed to
 // the current service if none of the above hold.
-func (hub *Hub) Do(line, username, password, service string, external bool) {
+func (h *Hub) Do(line, username, password, service string, external bool) {
 
 	// We may be talking to the hub itself.
 	hubWords := strings.Fields(line)
 	if len(hubWords) > 0 && hubWords[0] == "hub" {
 		if len(hubWords) == 1 {
-			hub.WriteError("you need to say what you want the hub to do.")
+			h.WriteError("you need to say what you want the hub to do.")
 			return
 		}
-		hub.username = username
-		hub.password = password
-		hub.setSV("$_external", pf.BOOL, external)
-		hub.DoHubCommand(strings.Join(hubWords[1:], " "))
+		h.username = username
+		h.password = password
+		h.setSV("$_external", pf.BOOL, external)
+		h.DoHubCommand(strings.Join(hubWords[1:], " "))
 		return
 	}
 
 	// We may be talking to the os
 	if len(hubWords) > 0 && hubWords[0] == "$" {
-		if hub.administered() {
-			isAdmin, err := IsUserAdmin(hub.Db, username)
+		if h.administered() {
+			isAdmin, err := IsUserAdmin(h.Db, username)
 			if err != nil {
-				hub.WriteError(err.Error())
+				h.WriteError(err.Error())
 				return
 			}
 			if !isAdmin {
-				hub.WriteError("Only administrators can use the shell remotely.")
+				h.WriteError("Only administrators can use the shell remotely.")
 				return
 			}
 		} else {
 			if external {
-				hub.WriteError("on an unadministered hub, for reasons of security and sanity, you can't use the shell remotely.")
+				h.WriteError("on an unadministered hub, for reasons of security and sanity, you can't use the shell remotely.")
 				return
 			}
 		}
 		command := exec.Command("sh", "-c", line[2:])
 		out, err := command.Output()
 		if err != nil {
-			hub.WriteError(err.Error())
+			h.WriteError(err.Error())
 			return
 		}
 		if len(out) == 0 {
-			hub.WriteString(GREEN_OK)
+			h.WriteString(GREEN_OK)
 			return
 		}
-		hub.WriteString(string(out))
+		h.WriteString(string(out))
 		return
 	}
-	hub.Sources["REPL input"] = []string{line}
-	_, ok := hub.Services[service]
+	h.Sources["REPL input"] = []string{line}
+	_, ok := h.Services[service]
 	if !ok {
-		hub.WriteError("the hub can't find the service <C>\"" + service + "\"</>.")
+		h.WriteError("the hub can't find the service <C>\"" + service + "\"</>.")
 		return
 	}
-	if hub.administered() {
-		if !userHasService(hub.Db, username, service) {
-			if isAdmin, _ := IsUserAdmin(hub.Db, username); !isAdmin {
-				hub.WriteError("you have no access to a service named <C>\"" + service + "\"</> on this hub.")
+	if h.administered() {
+		if !userHasService(h.Db, username, service) {
+			if isAdmin, _ := IsUserAdmin(h.Db, username); !isAdmin {
+				h.WriteError("you have no access to a service named <C>\"" + service + "\"</> on this hub.")
 				return
 			}
 		}
 	}
-	hub.ers = []*err.Error{}
-	hub.update(service)
-	serviceToUse, _ := hub.Services[service]
+	h.ers = []*err.Error{}
+	h.update(service)
+	serviceToUse, _ := h.Services[service]
 	// Empty/comment-only lines do nothing, but we wait until now to decide that because we *do* want them to
 	// trigger recompilation of code.
 	if match, _ := regexp.MatchString(`^\s*(|\/\/.*)$`, line); match {
-		hub.WriteString("")
+		h.WriteString("")
 		return
 	}
 	// The service may be broken, in which case we'll let the empty service handle the input.
 	if serviceToUse.IsBroken() {
-		serviceToUse = hub.Services[""]
+		serviceToUse = h.Services[""]
 	}
 
 	// We call the service and get the value.
@@ -217,18 +217,18 @@ func (hub *Hub) Do(line, username, password, service string, external bool) {
 
 	errorsExist, _ := serviceToUse.ErrorsExist()
 	if errorsExist { // Any lex-parse-compile errors should end up in the parser of the compiler of the service, returned in p.
-		if hub.Services[service].IsBroken() {
+		if h.Services[service].IsBroken() {
 			println("\n")
 		}
-		hub.GetAndReportErrors(serviceToUse)
+		h.GetAndReportErrors(serviceToUse)
 		return
 	}
-	hub.outputVal(val, serviceToUse, external)
+	h.outputVal(val, serviceToUse, external)
 }
 
-func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external bool) {
+func (h *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external bool) {
 	if val.T == pf.UNSATISFIED_CONDITIONAL {
-		hub.WriteError("call returned unsatisfied conditional.")
+		h.WriteError("call returned unsatisfied conditional.")
 		return
 	}
 	if val.T == pf.ERROR && !external {
@@ -236,35 +236,35 @@ func (hub *Hub) outputVal(val values.Value, serviceToUse *pf.Service, external b
 		if e.Message == "" {
 			e = err.CreateErr(e.ErrorId, e.Token, e.Args...)
 		}
-		hub.WriteString("\n")
-		hub.WritePretty("[" + strconv.Itoa(len(hub.ers)) + "] " + text.ERROR + e.Message + err.DescribePos(e.Token) + ".")
-		hub.WriteString("\n\n")
-		hub.ers = append(hub.ers, e)
+		h.WriteString("\n")
+		h.WritePretty("[" + strconv.Itoa(len(h.ers)) + "] " + text.ERROR + e.Message + err.DescribePos(e.Token) + ".")
+		h.WriteString("\n\n")
+		h.ers = append(h.ers, e)
 		if len(val.V.(*pf.Error).Values) > 0 {
-			hub.WritePretty("Values are available with `hub values`.")
-			hub.WriteString("\n\n")
+			h.WritePretty("Values are available with `hub values`.")
+			h.WriteString("\n\n")
 		}
 	} else if !serviceToUse.PostHappened() {
 		serviceToUse.Output(val)
 	}
 }
 
-func (hub *Hub) update(serviceName string) {
-	if !hub.isLive() {
+func (h *Hub) update(serviceName string) {
+	if !h.isLive() {
 		return
 	}
-	path, _ := hub.Services[serviceName].GetFilepath()
-	hub.createService(serviceName, path, false)
+	path, _ := h.Services[serviceName].GetFilepath()
+	h.createService(serviceName, path, false)
 }
 
-func (hub *Hub) DoHubCommand(line string) {
-	hubService := hub.Services["hub"]
+func (h *Hub) DoHubCommand(line string) {
+	hubService := h.Services["hub"]
 	hubReturn := ServiceDo(hubService, line)
 	if errorsExist, _ := hubService.ErrorsExist(); errorsExist {
-		hub.GetAndReportErrors(hubService)
+		h.GetAndReportErrors(hubService)
 		return
 	}
-	hub.outputVal(hubReturn, hubService, false)
+	h.outputVal(hubReturn, hubService, false)
 }
 
 type hubWriter struct {
@@ -630,10 +630,6 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 				h.WritePretty(result)
 			}
 		} else {
-			if len(h.Services) == 2 {
-				h.WriteString("The hub isn't running any services.\n")
-			}
-			h.WriteString("\n")
 			h.list()
 		}
 	case "services-of-group":
@@ -817,64 +813,64 @@ func invalid(args []string) bool { // TODO --- more validation.
 	return false
 }
 
-func (hub *Hub) makeWriter() io.Writer {
+func (h *Hub) makeWriter() io.Writer {
 	return hubWriter{
-		hub: hub,
+		hub: h,
 	}
 }
 
-func (hub *Hub) Quit() {
-	hub.saveHubFile()
-	hub.WriteString(GREEN_OK + "\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!\n\n")
+func (h *Hub) Quit() {
+	h.saveHubFile()
+	h.WriteString(GREEN_OK + "\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!\n\n")
 	if !testing.Testing() {
 		os.Exit(0)
 	}
 }
 
-func (hub *Hub) WritePretty(s string) {
+func (h *Hub) WritePretty(s string) {
 	// This shouldn't be happening here.
-	hubService, ok := hub.Services["hub"]
+	hubService, ok := h.Services["hub"]
 	if !ok {
 		panic("Hub failed to initialize, error is `" + s + "`.")
 	}
-	mdFunc := hubService.GetMarkdowner("", hub.getSV("width").V.(int), hub.getFonts())
-	hub.WriteString(mdFunc(s))
+	mdFunc := hubService.GetMarkdowner("", h.getSV("width").V.(int), h.getFonts())
+	h.WriteString(mdFunc(s))
 }
 
-func (hub *Hub) GetPretty(s string) string {
-	hubService, _ := hub.Services["hub"]
-	mdFunc := hubService.GetMarkdowner("", hub.getSV("width").V.(int), hub.getFonts())
+func (h *Hub) GetPretty(s string) string {
+	hubService, _ := h.Services["hub"]
+	mdFunc := hubService.GetMarkdowner("", h.getSV("width").V.(int), h.getFonts())
 	return mdFunc(s)
 }
 
-func (hub *Hub) WriteError(s string) {
-	hub.WriteString("\n")
-	hub.WritePretty(HUB_ERROR + s)
-	hub.WriteString("\n\n")
+func (h *Hub) WriteError(s string) {
+	h.WriteString("\n")
+	h.WritePretty(HUB_ERROR + s)
+	h.WriteString("\n\n")
 }
 
-func (hub *Hub) WriteString(s string) {
-	io.WriteString(hub.Out, s)
-	hub.Services["hub"].SetPostHappened()
+func (h *Hub) WriteString(s string) {
+	io.WriteString(h.Out, s)
+	h.Services["hub"].SetPostHappened()
 }
 
-func (hub *Hub) tryMain() { // Guardedly tries to run the `main` command.
-	if !hub.Services[hub.CurrentServiceName()].IsBroken() {
-		val, _ := hub.Services[hub.CurrentServiceName()].CallMain()
+func (h *Hub) tryMain() { // Guardedly tries to run the `main` command.
+	if !h.Services[h.CurrentServiceName()].IsBroken() {
+		val, _ := h.Services[h.CurrentServiceName()].CallMain()
 		switch val.T {
 		case pf.ERROR:
-			hub.WritePretty("\n[0] " + valToString(hub.Services[hub.CurrentServiceName()], val))
-			hub.WriteString("\n")
-			hub.ers = []*pf.Error{val.V.(*pf.Error)}
+			h.WritePretty("\n[0] " + valToString(h.Services[h.CurrentServiceName()], val))
+			h.WriteString("\n")
+			h.ers = []*pf.Error{val.V.(*pf.Error)}
 		case pf.UNDEFINED_TYPE: // Which is what we get back if there is no `main` command.
 		default:
-			hub.WriteString(valToString(hub.Services[hub.CurrentServiceName()], val))
+			h.WriteString(valToString(h.Services[h.CurrentServiceName()], val))
 		}
 	}
 }
 
-func (hub *Hub) serviceNeedsUpdate(name string) bool {
-	serviceToUpdate, present := hub.Services[name]
+func (h *Hub) serviceNeedsUpdate(name string) bool {
+	serviceToUpdate, present := h.Services[name]
 	if !present {
 		return true
 	}
@@ -883,46 +879,46 @@ func (hub *Hub) serviceNeedsUpdate(name string) bool {
 	}
 	needsUpdate, err := serviceToUpdate.NeedsUpdate()
 	if err != nil {
-		hub.WriteError(err.Error())
+		h.WriteError(err.Error())
 		return false
 	}
 	return needsUpdate
 }
 
-func (hub *Hub) createService(name, scriptFilepath string, forceUpdate bool) bool {
-	needsRebuild := forceUpdate || hub.serviceNeedsUpdate(name)
+func (h *Hub) createService(name, scriptFilepath string, forceUpdate bool) bool {
+	needsRebuild := forceUpdate || h.serviceNeedsUpdate(name)
 	if !needsRebuild {
 		return false
 	}
 	newService := pf.NewService()
-	newService.SetLocalExternalServices(hub.Services)
+	newService.SetLocalExternalServices(h.Services)
 	if text.Head(scriptFilepath, "!") {
 		scriptFilepath = filepath.Join(settings.PipefishHomeDirectory, scriptFilepath[1:])
 	}
-	e := newService.InitializeFromFilepathWithStore(scriptFilepath, hub.store) // We get an error only if it completely fails to open the file, otherwise there'll be errors in the Common Parser Bindle as usual.
-	hub.Sources, _ = newService.GetSources()
+	e := newService.InitializeFromFilepathWithStore(scriptFilepath, h.store) // We get an error only if it completely fails to open the file, otherwise there'll be errors in the Common Parser Bindle as usual.
+	h.Sources, _ = newService.GetSources()
 	if newService.IsBroken() {
 		if name == "hub" {
 			println("Filepath is", scriptFilepath)
 			switch {
-			case len(newService.GetErrors()) > 0 :
+			case len(newService.GetErrors()) > 0:
 				println("Pipefish: unable to compile hub: " + newService.GetErrors()[0].ErrorId + ".")
 				println(newService.GetErrors()[0].Message)
 				println(err.DescribePos(newService.GetErrors()[0].Token))
-			case e != nil :
+			case e != nil:
 				println("Pipefish: unable to compile hub: " + e.Error())
-			default :
+			default:
 				println("Pipefish: unable to compile hub.")
 			}
 			panic("That's all folks!")
 		}
 		if !newService.IsInitialized() {
-			hub.WriteError("unable to open <C>\"" + scriptFilepath + "\"</> with error `" + e.Error() + "`.")
-			hub.Sources = map[string][]string{}
-			hub.makeEmptyServiceCurrent()
+			h.WriteError("unable to open <C>\"" + scriptFilepath + "\"</> with error `" + e.Error() + "`.")
+			h.Sources = map[string][]string{}
+			h.makeEmptyServiceCurrent()
 		} else {
-			hub.Services[name] = newService
-			hub.GetAndReportErrors(newService)
+			h.Services[name] = newService
+			h.GetAndReportErrors(newService)
 		}
 		if name == "hub" {
 			os.Exit(2)
@@ -930,9 +926,9 @@ func (hub *Hub) createService(name, scriptFilepath string, forceUpdate bool) boo
 		return false
 	}
 	if testing.Testing() {
-		newService.SetOutHandler(newService.MakeLiteralOutHandler(hub.Out))
+		newService.SetOutHandler(newService.MakeLiteralOutHandler(h.Out))
 	}
-	hub.Services[name] = newService
+	h.Services[name] = newService
 	return true
 }
 
@@ -966,23 +962,23 @@ func StartServiceFromCli() {
 	os.Exit(0)
 }
 
-func (hub *Hub) GetAndReportErrors(sv *pf.Service) {
-	hub.ers = sv.GetErrors()
+func (h *Hub) GetAndReportErrors(sv *pf.Service) {
+	h.ers = sv.GetErrors()
 	r, _ := sv.GetErrorReport()
-	hub.WritePretty(r)
+	h.WritePretty(r)
 }
 
-func (hub *Hub) CurrentServiceIsBroken() bool {
-	return hub.Services[hub.CurrentServiceName()].IsBroken()
+func (h *Hub) CurrentServiceIsBroken() bool {
+	return h.Services[h.CurrentServiceName()].IsBroken()
 }
 
-func (hub *Hub) saveHubFile() string {
-	hubService := hub.Services["hub"]
+func (h *Hub) saveHubFile() string {
+	hubService := h.Services["hub"]
 	var buf strings.Builder
 	buf.WriteString("var private\n\n")
 	buf.WriteString("allServices = map(")
 	serviceList := []string{}
-	for k := range hub.Services {
+	for k := range h.Services {
 		if k != "" && k[0] != '#' {
 			serviceList = append(serviceList, k)
 		}
@@ -991,7 +987,7 @@ func (hub *Hub) saveHubFile() string {
 		buf.WriteString("`")
 		buf.WriteString(v)
 		buf.WriteString("`::`")
-		name, _ := hub.Services[v].GetFilepath()
+		name, _ := h.Services[v].GetFilepath()
 		buf.WriteString(name)
 		buf.WriteString("`")
 		if i < len(serviceList)-1 {
@@ -1000,7 +996,7 @@ func (hub *Hub) saveHubFile() string {
 	}
 	buf.WriteString(")\n\n")
 	buf.WriteString("currentService string? = ")
-	csV := hub.getSV("currentService")
+	csV := h.getSV("currentService")
 	if csV.T == values.NULL {
 		buf.WriteString("NULL")
 	} else {
@@ -1015,19 +1011,19 @@ func (hub *Hub) saveHubFile() string {
 	}
 	buf.WriteString("\n\n")
 	buf.WriteString("isLive = ")
-	buf.WriteString(hubService.ToLiteral(hub.getSV("isLive")))
+	buf.WriteString(hubService.ToLiteral(h.getSV("isLive")))
 	buf.WriteString("\n\n")
 	buf.WriteString("theme Theme? = ")
-	buf.WriteString(hubService.ToLiteral(hub.getSV("theme")))
+	buf.WriteString(hubService.ToLiteral(h.getSV("theme")))
 	buf.WriteString("\n\n")
 	buf.WriteString("width = ")
-	buf.WriteString(hubService.ToLiteral(hub.getSV("width")))
+	buf.WriteString(hubService.ToLiteral(h.getSV("width")))
 	buf.WriteString("\n\n")
 	buf.WriteString("isAdministered = ")
-	buf.WriteString(hubService.ToLiteral(hub.getSV("isAdministered")))
+	buf.WriteString(hubService.ToLiteral(h.getSV("isAdministered")))
 	buf.WriteString("\n\n")
 
-	fname := hub.MakeFilepath(hub.hubFilepath)
+	fname := h.MakeFilepath(h.hubFilepath)
 
 	f, err := os.Create(fname)
 	if err != nil {
@@ -1036,7 +1032,7 @@ func (hub *Hub) saveHubFile() string {
 	defer f.Close()
 	f.WriteString(buf.String())
 	if !testing.Testing() {
-		os.WriteFile(filepath.Join(settings.PipefishHomeDirectory, "user/hub.dat"), []byte(filepath.Dir(hub.hubFilepath)), 0755)
+		os.WriteFile(filepath.Join(settings.PipefishHomeDirectory, "user/hub.dat"), []byte(filepath.Dir(h.hubFilepath)), 0755)
 	}
 	return GREEN_OK
 
@@ -1058,36 +1054,36 @@ func (h *Hub) copyAndOpenHubFile(fromDirectory, toDirectory string) {
 	for _, entry := range entries {
 		fromFile := filepath.Join(fromDirectory, entry.Name())
 		toFile := filepath.Join(toDirectory, entry.Name())
-		err = CopyFile(fromFile, toFile) 
+		err = CopyFile(fromFile, toFile)
 		if err != nil {
 			h.WriteError("failed to create folder `" + toDirectory + "` with error `" + err.Error() + "`.")
-		return
-	}
+			return
+		}
 	}
 	h.OpenHubFolder(toDirectory)
 }
 
 func CopyFile(srcFile, dstFile string) error {
-    out, err := os.Create(dstFile)
-    if err != nil {
-        return err
-    }
-    defer out.Close()
-    in, err := os.Open(srcFile)
-    if err != nil {
-        return err
-    }
-    defer in.Close()
-    _, err = io.Copy(out, in)
-    if err != nil {
-        return err
-    }
-    return nil
+	out, err := os.Create(dstFile)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	in, err := os.Open(srcFile)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	_, err = io.Copy(out, in)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *Hub) OpenHubFolder(hubFolder string) {
 	if !testing.Testing() {
-		println("Opening hub " + text.Cyan("\"" + filepath.Base(hubFolder) + "\"") + ".\n")
+		println("Pipefish is running hub " + text.Cyan("\""+filepath.Base(hubFolder)+"\"") + ".\n")
 	}
 	hubFilepath := filepath.Join(hubFolder, "hub.hub")
 	h.Services = map[string]*pf.Service{}
@@ -1183,39 +1179,42 @@ func (h *Hub) OpenHubFolder(hubFolder string) {
 	hubService = h.Services["hub"] // TODO
 	ty, _ := hubService.TypeNameToType("Hub")
 	hubService.SetVariable("HUB", ty, h.makeWriter())
-	h.list()
+	if !testing.Testing() {
+		h.list()
+	}
 }
 
-func (hub *Hub) SaveAndPropagateHubStore() {
-	for _, srv := range hub.Services {
-		srv.SetEnv(hub.store)
+func (h *Hub) SaveAndPropagateHubStore() {
+	for _, srv := range h.Services {
+		srv.SetEnv(h.store)
 	}
-	storePath := hub.hubFilepath[0:len(hub.hubFilepath)-len(filepath.Ext(hub.hubFilepath))] + ".env"
-	storeDump := hub.Services["hub"].WriteSecret(hub.store, hub.storekey)
+	storePath := h.hubFilepath[0:len(h.hubFilepath)-len(filepath.Ext(h.hubFilepath))] + ".env"
+	storeDump := h.Services["hub"].WriteSecret(h.store, h.storekey)
 	file, _ := os.Create(storePath)
 	file.WriteString(storeDump)
 }
 
-func (hub *Hub) list() {
-	if len(hub.Services) == 2 {
+func (h *Hub) list() {
+	if len(h.Services) == 2 { // TODO.
+		h.WriteString("No services are running on this hub.\n\n")
 		return
 	}
-	hub.WriteString("The hub is running the following services:\n\n")
-	for k := range hub.Services {
+	h.WriteString("The hub is running the following services:\n\n")
+	for k := range h.Services {
 		if k == "" || k == "hub" {
 			continue
 		}
-		fpath, _ := hub.Services[k].GetFilepath()
-		if hub.Services[k].IsBroken() {
-			hub.WriteString(BROKEN)
-			hub.WritePretty("Service <C>\"" + k + "\"</> running script <C>\"" + filepath.Base(fpath) + "\"</>.")
+		fpath, _ := h.Services[k].GetFilepath()
+		if h.Services[k].IsBroken() {
+			h.WriteString(BROKEN)
+			h.WritePretty("Service <C>\"" + k + "\"</> running script <C>\"" + filepath.Base(fpath) + "\"</>.")
 		} else {
-			hub.WriteString(GOOD_BULLET)
-			hub.WritePretty("Service <C>\"" + k + "\"</> running script <C>\"" + filepath.Base(fpath) + "\"</>.")
+			h.WriteString(GOOD_BULLET)
+			h.WritePretty("Service <C>\"" + k + "\"</> running script <C>\"" + filepath.Base(fpath) + "\"</>.")
 		}
-		hub.WriteString("\n")
+		h.WriteString("\n")
 	}
-	hub.WriteString("\n")
+	h.WriteString("\n")
 }
 
 func valToString(srv *pf.Service, val pf.Value) string {

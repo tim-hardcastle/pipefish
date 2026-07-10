@@ -81,7 +81,7 @@ func Tail(s, substr string) bool {
 	return s[len(s)-len(substr):] == substr
 }
 
-const VERSION = "0.6.8"
+const VERSION = "0.7.0"
 
 func Logo() string {
 	titleText := " 🧿 Pipefish version " + VERSION + " "
