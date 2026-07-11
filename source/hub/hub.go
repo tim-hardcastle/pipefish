@@ -350,6 +350,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if path != "" {
 			splitPath = strings.Split(path[1:], ".")
 		}
+		h.WriteString("\n")
 		if verb == "api" {
 			h.WriteString(service.Api(root+path, splitPath, h.getFonts(), h.getSV("width").V.(int)))
 		} else {

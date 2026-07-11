@@ -1,3 +1,8 @@
+~~ The `strings` library supplies functions for handling the built-in `string` type. 
+~~ Like most of the standard libraries, it wraps around the equivalent standard 
+~~ library in Go, and most of the functions are one-to-one counterparts of their 
+~~ Golang version.
+
 import
 
 golang "strings"

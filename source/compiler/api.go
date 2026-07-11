@@ -34,13 +34,14 @@ func (cp *Compiler) RenderApi(name string, path []string, fonts values.Map, rdr 
 	}
 	hasContents := false
 	result := ""
-	if name != "" || cp.DocString != "" {
-		title := "# " + name
-		result = "\n" + rdr.Render([]string{title})
+	if name != "" {
+		result = rdr.Render([]string{"# " + name})
+		result = result + "\n"
 	}
 	if cp.DocString != "" {
+		result = result + rdr.Render([]string{"## Overview"})
 		result = result + "\n"
-		result = result + rdr.Render([]string{"## Overview", cp.DocString})
+		result = result + rdr.Render(strings.Split(cp.DocString, "\n"))
 		result = result + "\n"
 	}
 	for i, items := range cp.ApiDescription {
@@ -48,7 +49,7 @@ func (cp *Compiler) RenderApi(name string, path []string, fonts values.Map, rdr 
 			continue
 		}
 		hasContents = true
-		result = result + "\n" + rdr.Render([]string{"## " + headings[i]})
+		result = result + rdr.Render([]string{"## " + headings[i]})
 		for _, item := range items {
 			heading := item.Declaration
 			if item.DocString != "" && md {
@@ -65,8 +66,7 @@ func (cp *Compiler) RenderApi(name string, path []string, fonts values.Map, rdr 
 		}
 	}
 	if !hasContents {
-		result = result + "\nNothing has been declared.\n\n"
-		return result
+		result = result + "Nothing has been declared.\n"
 	}
 	return result + "\n"
 }
