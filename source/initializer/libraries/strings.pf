@@ -5,49 +5,83 @@ golang "errors"
 
 def
 
+~~ `compare(a, b)` returns an integer comparing two strings lexicographically. The
+~~ result is 0 if `a == b`, -1 if `a < b`, and +1 if `a > b`.
+
 compare(a, b string) -> int : golang {
    return strings.Compare(a, b)
 }
+
+~~ `contains(s, substr)` reports whether `substr` is within `s`.
 
 contains(s, substr string) -> bool : golang {
    return strings.Contains(s, substr)
 }
 
+~~ `containsAny(s, chars)` reports whether any Unicode code points in `chars`
+~~ are within `s`.
+
 containsAny(s, chars string) -> bool : golang {
     return strings.ContainsAny(s, chars)
 }
+
+~~ `count(s, substr)` counts the number of non-overlapping instances of
+~~ `substr` in `s`.
 
 count(s, substr string) -> int : golang {
     return strings.Count(s, substr)
 }
 
+~~ `cut(s, sep)` slices `s` around the first instance of `sep`, returning the
+~~ text before and after `sep`.
+
 cut(s, sep string) -> string, string, bool : golang {
     return strings.Cut(s, sep)
 }
+
+~~ `equalFold(s, t)` reports whether `s` and `t`, interpreted as UTF-8
+~~ strings, are equal under simple Unicode case-folding.
 
 equalFold(s, t string) -> bool : golang {
     return strings.EqualFold(s, t)
 }
 
+~~ `fields(s)` splits `s` around one or more consecutive white-space
+~~ characters.
+
 fields(s string) : golang {
     return strings.Fields(s)
 }
+
+~~ `hasPrefix(s, prefix)` reports whether `s` begins with `prefix`.
 
 hasPrefix(s, prefix string) -> bool : golang {
     return strings.HasPrefix(s, prefix)
 }
 
+~~ `hasSuffix(s, suffix)` reports whether `s` ends with `suffix`.
+
 hasSuffix(s, suffix string) -> bool : golang {
     return strings.HasSuffix(s, suffix)
 }
+
+~~ `index(s, substr)` returns the index of the first instance of `substr` in
+~~ `s`, or -1 if `substr` is not present in `s`.
 
 index(s, substr string) -> int : golang {
     return strings.Index(s, substr)
 }
 
+~~ `indexAny(s, chars)` returns the index of the first instance in `s` of any
+~~ Unicode code point from `chars`, or -1 if none is present.
+
 indexAny(s, chars string) -> int : golang {
     return strings.IndexAny(s, chars)
 }
+
+~~ `join(elems, sep)` concatenates the elements of `elems` to create a single
+~~ string separated by `sep`. It returns an error if `elems` contains a non-string
+~~ value.
 
 join(elems list, sep string) -> string/error : golang {
     strL := make([]string, len(elems))
@@ -61,74 +95,129 @@ join(elems list, sep string) -> string/error : golang {
     return strings.Join(strL, sep)
 }
 
+~~ `lastIndex(s, substr)` returns the index of the last instance of `substr`
+~~ in `s`, or -1 if `substr` is not present in `s`.
+
 lastIndex(s, substr string) -> int : golang {
     return strings.LastIndex(s, substr)
 }
+
+~~ `lastIndexAny(s, chars)` returns the index of the last instance in `s` of
+~~ any Unicode code point from `chars`, or -1 if none is present.
 
 lastIndexAny(s, chars string) -> int : golang {
     return strings.LastIndexAny(s, chars)
 }
 
+~~ `repeat(s, c)` returns a new string consisting of `c` copies of `s`.
+
 repeat(s string, c int) -> string : golang {
     return strings.Repeat(s, c)
 }
+
+~~ `replace(s, old, new, n)` returns a copy of `s` with the first `n`
+~~ non-overlapping instances of `old` replaced by `new`.
 
 replace(s string, old string, new string, n int) -> string : golang {
     return strings.Replace(s, old, new, n)
 }
 
+~~ `replaceAll(s, old, new)` returns a copy of `s` with all non-overlapping
+~~ instances of `old` replaced by `new`.
+
 replaceAll(s string, old string, new string) -> string : golang {
     return strings.ReplaceAll(s, old, new)
 }
+
+~~ `split(s, sep)` slices `s` into all substrings separated by `sep`.
 
 split(s string, sep string) : golang {
     return strings.Split(s, sep)
 }
 
+~~ `splitAfter(s, sep)` slices `s` into all substrings after each instance of
+~~ `sep` and includes `sep` in the returned substrings.
+
 splitAfter(s string, sep string) : golang {
     return strings.SplitAfter(s, sep)
 }
+
+~~ `splitAfterN(s, sep, n)` slices `s` into substrings after each instance of
+~~ `sep` and includes `sep` in the substrings returned.
 
 splitAfterN(s string, sep string, n int) : golang {
     return strings.SplitAfterN(s, sep, n)
 }
 
+~~ `splitN(s, sep, n)` slices `s` into substrings separated by `sep`.
+
 splitN(s string, sep string, n int) : golang {
     return strings.SplitN(s, sep, n)
 }
+
+~~ `toLower(s)` returns a copy of `s` with all Unicode letters mapped to their
+~~ lower case.
 
 toLower(s string) -> string : golang {
     return strings.ToLower(s)
 }
 
+~~ `toTitle(s)` returns a copy of `s` with all Unicode letters mapped to their
+~~ title case.
+
 toTitle(s string) -> string : golang {
     return strings.ToTitle(s)
 }
+
+~~ `toUpper(s)` returns a copy of `s` with all Unicode letters mapped to their
+~~ upper case.
 
 toUpper(s string) -> string : golang {
     return strings.ToUpper(s)
 }
 
+~~ `toValidUTF_8(s, replacementString)` returns a copy of `s` with each run of
+~~ invalid UTF-8 byte sequences replaced by `replacementString`.
+
 toValidUTF_8(s, replacementString string) -> string : golang {
     return strings.ToValidUTF8(s, replacementString)
 }
+
+~~ `trim(s, cutset)` returns a slice of `s` with all leading and trailing
+~~ Unicode code points contained in `cutset` removed.
 
 trim(s, cutset string) -> string : golang {
     return strings.Trim(s, cutset)
 }
 
+~~ `trimLeft(s, cutset)` returns a slice of `s` with all leading Unicode code
+~~ points contained in `cutset` removed.
+
 trimLeft(s, cutset string) -> string : golang {
     return strings.TrimLeft(s, cutset)
 }
+
+~~ `trimPrefix(s, prefix)` returns `s` without the provided leading prefix.
+~~ If `s` does not start with `prefix`, `s` is returned unchanged.
 
 trimPrefix(s, prefix string) -> string : golang {
     return strings.TrimPrefix(s, prefix)
 }
 
+~~ `trimRight(s, cutset)` returns a slice of `s` with all trailing Unicode
+~~ code points contained in `cutset` removed.
+
 trimRight(s, cutset string) -> string : golang {
     return strings.TrimRight(s, cutset)
 }
 
+~~ `trimSuffix(s, suffix)` returns `s` without the provided trailing suffix.
+~~ If `s` does not end with the suffix, `s` is returned unchanged.
+
 trimSuffix(s, prefix string) -> string : golang {
-    return strings.TrimPrefix(s, prefix)
+    return strings.TrimSuffix(s, prefix)
 }
+
+// Documentation adapted from the Go strings package documentation.
+// Source: https://pkg.go.dev/strings
+// Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
