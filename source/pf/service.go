@@ -776,6 +776,10 @@ func (sv *Service) Api(title string, path []string, fonts values.Map, width int)
 	return sv.cp.Api(title, path, fonts, width)
 }
 
+func (sv *Service) Wiki(title string, path []string) string {
+	return sv.cp.Wiki(title, path)
+}
+
 // Describes the API of a service in a custom reverse polish notation format.
 //
 // TODO, WARNING! This is extremely unstable, it contains things it doesn't need to contain

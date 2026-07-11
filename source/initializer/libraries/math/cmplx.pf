@@ -36,30 +36,6 @@ string(z Complex) -> string : golang {
 (x Complex) ^ (y float) -> Complex :
     goPow x, Complex(y, 0.0) 
 
-// (x float) + (y Complex) -> Complex :
-//     goAdd C(x, 0.0), y 
-
-// (x float) - (y Complex) -> Complex :
-//     goSub C(x, 0.0), y 
-
-// (x float) * (y Complex) -> Complex :
-//     goMul C(x, 0.0), y 
-
-// (x float) / (y Complex) -> Complex :
-//     goDiv C(x, 0.0), y 
-
-// (x Complex) + (y float) -> Complex :
-//     goAdd x, C(y, 0.0)
-
-// (x Complex) - (y float) -> Complex :
-//     goSub x, C(y, 0.0)
-
-// (x Complex) * (y float) -> Complex :
-//     goMul x, C(y, 0.0)
-
-// (x Complex) / (y float) -> Complex :
-//     goDiv x, C(y, 0.0)
-
 abs(x Complex) -> float : golang {
     return cmplx.Abs(x.(complex128)) 
 }

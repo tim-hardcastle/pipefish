@@ -344,7 +344,6 @@ users of service(srv string) :
 values :
     do("values", [])
 
-
 where(errorNo int) :
     global $_external, isAdministered
     $_external and not isAdministered :
@@ -354,6 +353,15 @@ where(errorNo int) :
     
 why(errorNo int) :
     do("why", [errorNo])
+
+wiki :
+    global $_external 
+    $_external :
+        error "hub needs name of service to describe"
+    do("wiki", [""])
+
+wiki(s string) :
+    do("wiki", [s])
 
 private
 

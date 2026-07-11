@@ -325,7 +325,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if err != nil {
 			h.WriteError(err.Error())
 		}
-	case "api":
+	case "api", "wiki":
 		path := args[0]
 		var root string
 		if path == "" || path[0] == '.' {
@@ -350,7 +350,11 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if path != "" {
 			splitPath = strings.Split(path[1:], ".")
 		}
-		h.WriteString(service.Api(root+path, splitPath, h.getFonts(), h.getSV("width").V.(int)))
+		if verb == "api" {
+			h.WriteString(service.Api(root+path, splitPath, h.getFonts(), h.getSV("width").V.(int)))
+		} else {
+			h.WriteString(service.Wiki(root+path, splitPath))
+		}
 	case "change-password":
 		err = ChangePassword(h.Db, username, args[0])
 		if err != nil {
