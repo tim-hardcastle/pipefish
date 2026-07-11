@@ -16,8 +16,8 @@ func (cp *Compiler) Api(name string, path []string, fonts values.Map, width int)
 	return cp.RenderApi(name, path, fonts, markdowner)
 }
 
-func (cp *Compiler) Wiki(name string, path []string) string {
-	return cp.RenderApi(name, path, values.Map{}, wikifier{})
+func (cp *Compiler) Wiki(path []string) string {
+	return cp.RenderApi("", path, values.Map{}, wikifier{})
 }
 
 func (cp *Compiler) RenderApi(name string, path []string, fonts values.Map, rdr renderer) string {
@@ -40,7 +40,7 @@ func (cp *Compiler) RenderApi(name string, path []string, fonts values.Map, rdr 
 	}
 	if cp.DocString != "" {
 		result = result + "\n"
-		result = result + rdr.Render([]string{cp.DocString})
+		result = result + rdr.Render([]string{"## Overview", cp.DocString})
 		result = result + "\n"
 	}
 	for i, items := range cp.ApiDescription {

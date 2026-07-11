@@ -353,7 +353,7 @@ func (hw hubWriter) Write(b []byte) (int, error) {
 		if verb == "api" {
 			h.WriteString(service.Api(root+path, splitPath, h.getFonts(), h.getSV("width").V.(int)))
 		} else {
-			h.WriteString(service.Wiki(root+path, splitPath))
+			h.WriteString(service.Wiki(splitPath))
 		}
 	case "change-password":
 		err = ChangePassword(h.Db, username, args[0])
