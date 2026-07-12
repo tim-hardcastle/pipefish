@@ -1,3 +1,5 @@
+~~ The `color` package implements types for representing colors in the usual color models.
+
 newtype 
 
 ~~ Represents a fully opaque color in the CMYK color model, with 8 bit for each dimension.

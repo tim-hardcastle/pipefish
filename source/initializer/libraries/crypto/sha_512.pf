@@ -1,9 +1,13 @@
+~~ Package `sha_512` implements the SHA512 hash algorithm as defined in FIPS 180-4.
+
 import 
 
 golang "crypto/sha512"
 golang "fmt"
 
 def 
+
+~~ Computes a SHA512 hash of the given string.
 
 hash (s string) -> string : golang {
     r := sha512.Sum512([]byte(s))

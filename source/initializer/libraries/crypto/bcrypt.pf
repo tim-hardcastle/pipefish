@@ -1,15 +1,33 @@
+~~ Package bcrypt implements Provos and Mazières's bcrypt adaptive hashing algorithm. See
+~~ http://www.usenix.org/event/usenix99/provos/provos.pdf 
+
 import
 
 golang "golang.org/x/crypto/bcrypt"
 
 const 
 
+~~ The default cost used by the hashing function.
+
 DEFAULT_COST = 10
 
 def
 
+~~ Compares a bcrypt hashed password with its possible plaintext equivalent. Returns `NULL` 
+~~ on success, or an error on failure. 
+compare(hashedPassword, plaintext string) -> NULL/error :
+    (goCompare hashedPassword, plaintext)
+
+~~ Returns the bcrypt hash of the password using the default cost defined in this package.
+~~
+~~ `hash` does not accept passwords longer than 72 characters, which is the longest 
+~~ password bcrypt will operate on. 
+
 hash(s string) -> string/error : 
     goHash(s, DEFAULT_COST)
+
+~~ Returns the bcrypt hash of the password at the given cost. If the cost given is less 
+~~ than 4, the cost will be set to DEFAULT_COST,
 
 hash(s string, cost int) -> string/error : 
      goHash(s, cost)
@@ -23,3 +41,13 @@ goHash(s string, cost int) -> string/error : golang {
     }
     return e 
 }
+
+goCompare(hashedPassword, plaintext string) -> bool/error : : golang {
+    e := CompareHashAndPassword(hashedPassword, password []byte)
+    if e == nil {
+        return true
+    }
+    return e 
+}
+
+

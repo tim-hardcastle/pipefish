@@ -1,3 +1,7 @@
+~~ Package `cmplx` provides basic constants and mathematical functions for complex 
+~~ numbers. Special case handling conforms to the C99 standard Annex G IEC 60559-
+~~ compatible complex arithmetic. 
+
 import
 
 golang "math/cmplx"
@@ -6,144 +10,182 @@ golang "strconv"
 
 newtype 
 
+~~ The complex number type.
 Complex = wrapper complex128 
 
 def
 
+~~ Constructs a `Complex` value from two `float` values representing its real and imaginary
+~~ parts.
 Complex(a, b float) -> Complex : golang {
     return complex(a, b)
 }
 
-string(z Complex) -> string : golang {
-    return strconv.FormatComplex(z.(complex128), 'g', 6, 128)
-}
-
+~~ Adds two `Complex` values.
 (x Complex) + (y Complex) -> Complex :
     goAdd x, y 
 
+~~ Subtracts one `Complex` value from another.
 (x Complex) - (y Complex) -> Complex :
     goSub x, y 
 
+~~ Multiplies two `Complex` values.
 (x Complex) * (y Complex) -> Complex :
     goMul x, y 
 
+~~ Divides one `Complex` value by another.
 (x Complex) / (y Complex) -> Complex :
     goDiv x, y 
 
+~~ Exponentiates one `Complex` value by another.
 (x Complex) ^ (y Complex) -> Complex :
     goPow x, y 
 
+~~ Exponentiates a `Complex` value by a `float`.
 (x Complex) ^ (y float) -> Complex :
     goPow x, Complex(y, 0.0) 
 
+~~ Returns the modulus of `x`.
 abs(x Complex) -> float : golang {
     return cmplx.Abs(x.(complex128)) 
 }
 
+~~ Returns the inverse cosine of `x`.
 acos(x Complex) -> Complex : golang {
     return cmplx.Acos(x.(complex128)) 
 }
 
+~~ Returns the inverse hyperbolic cosine of `x`.
 acosh(x Complex) -> Complex : golang {
     return cmplx.Acosh(x.(complex128)) 
 }
 
+~~ Returns the inverse sine of `x`.
 asin(x Complex) -> Complex : golang {
     return cmplx.Asin(x.(complex128)) 
 }
 
+~~ Returns the inverse hyperbolic sine of `x`.
 asinh(x Complex) -> Complex : golang {
     return cmplx.Asinh(x.(complex128)) 
 }
 
+~~ Returns the inverse tangent of `x`.
 atan(x Complex) -> Complex : golang {
     return cmplx.Atan(x.(complex128)) 
 }
 
+~~ Returns the inverse hyperbolic tangent of `x`.
 atanh(x Complex) -> Complex : golang {
     return cmplx.Atanh(x.(complex128)) 
 }
 
+~~ Returns the complex conjugate of `x`.
 conj(x Complex) -> Complex : golang {
     return cmplx.Conj(x.(complex128)) 
 }
 
+~~ Returns the cosine of `x`.
 cos(x Complex) -> Complex : golang {
     return cmplx.Cos(x.(complex128)) 
 }
 
+~~ Returns the hyberbolic cosine of `x`.
 cosh(x Complex) -> Complex : golang {
     return cmplx.Cosh(x.(complex128)) 
 }
 
+~~ Returns the cotangent of `x`.
 cot(x Complex) -> Complex : golang {
     return cmplx.Cot(x.(complex128)) 
 }
 
+~~ Returns the exponent of `x`.
 exp(x Complex) -> Complex : golang {
     return cmplx.Exp(x.(complex128)) 
 }
 
+~~ Returns the imaginary part of `x`.
 imag(x Complex) -> float : golang {
     return imag(x.(complex128)) 
 }
 
+~~ Returns infinity.
 inf() -> Complex : golang {
     return cmplx.Inf() 
 }
 
+~~ Tests whether `x` is infinity.
 isInf(x Complex) -> bool : golang {
     return cmplx.IsInf(x.(complex128))
 }
 
+~~ Tests whether `x` is `naN`.
 isNaN(x Complex) -> bool : golang {
     return cmplx.IsNaN(x.(complex128))
 }
 
+~~ Returns the natural logarithm of `x`.
 log(x Complex) -> Complex : golang {
     return cmplx.Log(x.(complex128)) 
 }
 
+~~ Returns the logarithm to the base 10 of `x`.
 log_10(x Complex) -> Complex : golang {
     return cmplx.Log10(x.(complex128)) 
 }
 
+~~ Returns `naN`
 naN() -> Complex : golang {
     return cmplx.NaN() 
 }
 
+~~ Returns the phase of `x`.
 phase(x Complex) -> float : golang {
     return cmplx.Phase(x.(complex128)) 
 }
 
+~~ Returns the polar co-ordinates of `x`.
 polar(x Complex) -> float, float : golang {
     return cmplx.Polar(x.(complex128)) 
 }
 
+~~ Returns the real part of `x`.
 real(x Complex) -> float : golang {
     return real(x.(complex128)) 
 }
 
+~~ Converts polar co-ordinates into a `Complex` value.
 rect(r, θ float) -> Complex : golang {
     return cmplx.Rect(r, θ) 
 }
 
+~~ Returns the sine of `x`.
 sin(x Complex) -> Complex : golang {
     return cmplx.Sin(x.(complex128)) 
 }
 
+~~ Returns the hyberbolic since of `x`.
 sinh(x Complex) -> Complex : golang {
     return cmplx.Sinh(x.(complex128)) 
 }
 
+~~ Returns a square root of `x`.
 sqrt(x Complex) -> Complex : golang {
     return cmplx.Sqrt(x.(complex128)) 
 }
 
+~~ Represents `z` as a string.
+string(z Complex) -> string : golang {
+    return strconv.FormatComplex(z.(complex128), 'g', 6, 128)
+}
+
+~~ Returns the tangent of `x`.
 tan(x Complex) -> Complex : golang {
     return cmplx.Tan(x.(complex128)) 
 }
 
+~~ Returns the hyberbolic tangent of `x`.
 tanh(x Complex) -> Complex : golang {
     return cmplx.Tanh(x.(complex128)) 
 }

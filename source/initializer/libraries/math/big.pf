@@ -1,3 +1,5 @@
+
+
 import
 
 golang "math/big"
@@ -26,53 +28,73 @@ Float(s string) -> Float/error :
 Float(r Rat) -> Float :
     rtof r
 
+~~ Adds two `Float` values.
 (x Float) + (y Float) -> Float :
     goAddF x, y
 
+~~ Subtracts one `Float` value from another.
 (x Float) - (y Float) -> Float :
     goSubF x, y
 
+~~ Multiplies two `Float` values.
 (x Float) * (y Float) -> Float :
     goMulF x, y
 
+~~ Divides one `Float` value by another.
 (x Float) / (y Float) -> Float :
     goQuoF x, y
 
+~~ Negates a `Float` value.
 - (x Float) -> Float :
     goNegF x
 
+~~ Compares two `Float` values, returning `true` if `x < y`.
 (x Float) < (y Float) -> bool :
     goCmpF(x, y) < 0
 
+~~ Compares two `Float` values, returning `true` if `x <= y`.
 (x Float) <= (y Float) -> bool :
     goCmpF(x, y) <= 0
 
+~~ Compares two `Float` values, returning `true` if `x > y`.
 (x Float) > (y Float) -> bool :
     goCmpF(x, y) > 0
 
+~~ Compares two `Float` values, returning `true` if `x >= y`.
 (x Float) >= (y Float) -> bool :
     goCmpF(x, y) >= 0
 
+~~ Returns the absolute value of a `Float`.
 abs(x Float) -> Float :
     goAbsF x
 
+~~ Converts a `Float` to the built-in `float` type.
 float(z Float) -> float :
     bigFTof z
 
+~~ Converts a `Float` to the built-in `int` type.
 int(z Float) -> int : 
     itof z
 
+~~ Tests whether the given `Float` is an infinity.
 isInf(z Float) -> bool : golang {
     return z.(*big.Float).IsInf()
 }
 
+~~ Tests whether the given `Float` is an integer.
 isInt(z Float) -> bool : golang {
     return z.(*big.Float).IsInt()
 }
 
+~~ `sign(z)` returns:
+~~
+~~ `-1` if `z < 0`
+~~ `0` if `z == 0`
+~~ `1` if `z > 0`
 sign(z Float) -> int :
     goSignF z 
 
+~~ Returns the square root of a `Float`.
 sqrt(z Float) -> Float :
     goSqrtF z 
 
@@ -80,6 +102,7 @@ sqrt(z Float) -> Float :
 string(z Float) :
     ftoa z
 
+~~ Converts the `Float` to a `string` of the given format and precision.
 text(z Float, format, prec int) -> string : 
     goTextF z, format, prec
 
@@ -209,162 +232,115 @@ Int(s string) -> Int/error :
 Int(z Float) -> Int : 
     bigFtobigI z
 
+~~ Adds two `Int` values.
 (x Int) + (y Int) -> Int :
     goAdd x, y
 
+~~ Subtracts one `Int` value from another.
 (x Int) - (y Int) -> Int :
     goSub x, y
 
+~~ Multiplies two `Int` values.
 (x Int) * (y Int) -> Int :
     goMul x, y
 
-(x Int) div (y Int) -> Int :
-    goDiv x, y
-
-(x Int) mod (y Int) -> Int :
-    goMod x, y
-
+~~ Negates an `Int`.
 - (x Int) -> Int :
     goNeg x
 
+~~ `x / y` returns the `Rat` obtained by dividing `x` by `y`.
 (x Int) / (y Int) -> Rat :
     bigIItoR x, y
 
+~~ `x div y` returns the `Int` obtained by dividing `x` by `y`.
+(x Int) div (y Int) -> Int :
+    goDiv x, y
+
+~~ Returns the modulus of one `Int` by another.
+(x Int) mod (y Int) -> Int :
+    goMod x, y
+
+~~ Returns the exponent of on `Int` by another.
 (x Int) ^ (y Int) -> Int : 
     goExp x, y, Int(0)
 
+~~ Compares two `Int` values and returns `true` if `x < y`.
 (x Int) < (y Int) -> bool :
     goCmp(x, y) < 0
 
+~~ Compares two `Int` values and returns `true` if `x <= y`.
 (x Int) <= (y Int) -> bool :
     goCmp(x, y) <= 0
 
+~~ Compares two `Int` values and returns `true` if `x > y`.
 (x Int) > (y Int) -> bool :
     goCmp(x, y) > 0
 
+~~ Compares two `Int` values and returns `true` if `x >= y`.
 (x Int) >= (y Int) -> bool :
     goCmp(x, y) >= 0
 
+~~ Returns the absolute value of an `Int`.
 abs(x Int) -> Int : golang {
     z := big.NewInt(0) 
     z.Abs(x.(*big.Int))
     return z
 }
 
+~~ Returns the result of a bitwise `and` operation on two `Int`s.
 andInt(x, y Int) -> Int : golang {
     z := big.NewInt(0) 
     z.And(x.(*big.Int), y.(*big.Int))
     return z
 }
 
+~~ Returns the result of a bitwise `and not` operation on two `Int`s.
 andNotInt(x, y Int) -> Int : golang {
     z := big.NewInt(0) 
     z.AndNot(x.(*big.Int), y.(*big.Int))
     return z
 }
 
+~~ Returns the binomial coefficient C(n, k).
 binomial(n, k int) -> Int : golang {
     z := big.NewInt(0) 
     z.Binomial(int64(n), int64(k))
     return z
 }
 
+~~ Returns the value of the `i`th bit of the `Int`, as `0` or `1`. 
 bit(z Int, i int) -> int : golang {
     return int(z.(*big.Int).Bit(i))
 }
 
+~~ Returns the length of the absolute value of x in bits. The bit length of 0 is 0. 
 bitLen(z Int) -> int : golang {
     return z.(*big.Int).BitLen()
 }
 
-divMod(x, y, m Int) -> Int, Int : golang {
-    z := big.NewInt(0) 
-    return z.DivMod(x.(*big.Int), y.(*big.Int), m.(*big.Int))
+~~ `divMod(x, y)` returns the quotient and modulus of `x` by `y`.
+divMod(x, y) -> Int, Int : golang {
+    z := big.NewInt(0)
+    m := big.NewInt(0)
+    z.DivMod(x.(*big.Int), y.(*big.Int), m.(*big.Int))
+    return z, m
 }
 
+~~ Returns `x` to the power `y` mod `abs(m)`. If m == 0, z = x**y unless y <= 0, when z =
+~~ 1. If m != 0, y < 0, and x and m are not relatively prime, z is unchanged and nil is 
+~~ returned.
+~~ Modular exponentiation of inputs of a particular size is not a cryptographically 
+~~ constant-time operation. 
 exp(x, y, m Int) -> Int : 
     goExp x, y, m
 
+~~ Converts an `Int` to the built-in `float` type.
 float(z Int) -> float : 
     bigItolittlef z
 
-gcd(a, b Int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.GCD(nil, nil, a.(*big.Int), b.(*big.Int))
-    return z
-}
-
-int(z Int) -> int :
-    goInt z
-
-isSmallInt(z Int) -> bool : golang {
-    return z.(*big.Int).IsInt64()
-}
-
-lsh(x Int, n int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.Lsh(x.(*big.Int), uint(n))
-    return z
-}
-
-modInverse(g, n Int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.ModInverse(g.(*big.Int), n.(*big.Int))
-    return z
-}
-
-modSqrt(x, p Int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.ModSqrt(x.(*big.Int), p.(*big.Int))
-    return z
-}
-
-mulRange(a, b int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.MulRange(int64(a), int64(b))
-    return z
-}
-
-notInt(x Int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.Not(x.(*big.Int))
-    return z
-}
-
-orInt(x, y Int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.Or(x.(*big.Int), y.(*big.Int))
-    return z
-}
-
-probablyPrime(z Int, n int) -> bool : golang {
-    return z.(*big.Int).ProbablyPrime(n)
-}
-
-quo(x, y Int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.Quo(x.(*big.Int), y.(*big.Int))
-    return z
-}
-
-quoRem(x, y, r Int) -> Int, Int : golang {
-    z := big.NewInt(0) 
-    return z.QuoRem(x.(*big.Int), y.(*big.Int), r.(*big.Int))
-}
-
-rem(x, y Int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.Rem(x.(*big.Int), y.(*big.Int))
-    return z
-}
-
-rsh(x Int, n int) -> Int : golang {
-    z := big.NewInt(0) 
-    z.Rsh(x.(*big.Int), uint(n))
-    return z
-}
-
-setString(s string, base int) -> Int/error : golang {
+~~ Converts a string in the given base to an `Int`, returning an error if the string isn't 
+~~ well-formed.
+fromString(s string, base int) -> Int/error : golang {
     z := big.NewInt(0) 
     z, ok := z.SetString(s, base)
     if ok {
@@ -373,10 +349,120 @@ setString(s string, base int) -> Int/error : golang {
     return errors.New("string is not well-formed to convert to base " + strconv.Itoa(base))
 }
 
+~~ Returns the greatest common denominator of two `Int`s.
+gcd(a, b Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.GCD(nil, nil, a.(*big.Int), b.(*big.Int))
+    return z
+}
+
+~~ Converts an `Int` to the built-in `int` type.
+int(z Int) -> int :
+    goInt z
+
+~~ Returns `true` if the given `Int` will fit into a built-in (64-bit) `int`.
+isSmallInt(z Int) -> bool : golang {
+    return z.(*big.Int).IsInt64()
+}
+
+~~ Returns the result of a bitwise left shift of `x` by `n` bits.
+lsh(x Int, n int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Lsh(x.(*big.Int), uint(n))
+    return z
+}
+
+~~ Returns the inverse of `g` mod `n`.
+modInverse(g, n Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.ModInverse(g.(*big.Int), n.(*big.Int))
+    return z
+}
+
+~~ Returns a square root of `x` mod `p`. 
+modSqrt(x, p Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.ModSqrt(x.(*big.Int), p.(*big.Int))
+    return z
+}
+
+~~ Returns the result of multiplying the numbers in the range `a::b`.
+mulRange(a, b int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.MulRange(int64(a), int64(b))
+    return z
+}
+
+~~ Resturns the result of performing a bitwise `not` on an `Int`.
+notInt(x Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Not(x.(*big.Int))
+    return z
+}
+
+~~ Returns the result of a bitwise `or` operation on two `Int`s.
+orInt(x, y Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Or(x.(*big.Int), y.(*big.Int))
+    return z
+}
+
+~~ `probablyPrime` reports whether `x` is probably prime, applying the Miller-Rabin test with
+~~ `n` pseudorandomly chosen bases as well as a Baillie-PSW test.
+~~
+~~ If `x` is prime, ProbablyPrime returns true. If `x` is chosen randomly and not prime, 
+~~ `probablyPrime` probably returns false. The probability of returning true for a randomly 
+~~ chosen non-prime is at most ¼ⁿ.
+~~ 
+~~ ProbablyPrime is 100% accurate for inputs less than 2⁶⁴. See Menezes et al., Handbook of 
+~~ Applied Cryptography, 1997, pp. 145-149, and FIPS 186-4 Appendix F for further 
+~~ discussion of the error probabilities.
+~~
+~~ ProbablyPrime is not suitable for judging primes that an adversary may have crafted to 
+~~ fool the test. 
+probablyPrime(z Int, n int) -> bool : golang {
+    return z.(*big.Int).ProbablyPrime(n)
+}
+
+~~ Returns the quotient of `x` by `y` using truncated division.
+quo(x, y Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Quo(x.(*big.Int), y.(*big.Int))
+    return z
+}
+
+~~ Returns the quotient and remainder of `x` by `y` using truncated division.
+quoRem(x, y Int) -> Int, Int : golang {
+    z := big.NewInt(0) 
+    r := big.NewInt(0)
+    z.QuoRem(x.(*big.Int), y.(*big.Int), r.(*big.Int))
+    return z, r
+}
+
+~~ Returns the remainder when dividing `x` by `y` using truncated division.
+rem(x, y Int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Rem(x.(*big.Int), y.(*big.Int))
+    return z
+}
+
+~~ Returns the result of a bitwise left shift of `x` by `n` bits.
+rsh(x Int, n int) -> Int : golang {
+    z := big.NewInt(0) 
+    z.Rsh(x.(*big.Int), uint(n))
+    return z
+}
+
+~~ `sign(z)` returns:
+~~
+~~ `-1` if `z < 0`
+~~ `0` if `z == 0`
+~~ `1` if `z > 0`
 sign(z Int) -> int : golang {
     return z.(*big.Int).Sign()
 }
 
+~~ Returns ⌊√x⌋, the largest integer such that z² ≤ x.
 sqrt(x Int) -> Int : golang {
     z := big.NewInt(0) 
     z.Sqrt(x.(*big.Int))
@@ -387,14 +473,20 @@ sqrt(x Int) -> Int : golang {
 string(z Int) -> string : 
     itoa z
 
+~~ `text` returns the string representation of x in the given base. Base must be between 2
+~~ and 62, inclusive. The result uses the lower-case letters 'a' to 'z' for digit values 10
+~~ to 35, and the upper-case letters 'A' to 'Z' for digit values 36 to 61. No prefix (such 
+~~ as "0x") is added to the string.
 text(z Int, base int) -> string : golang {
     return z.(*big.Int).Text(base)
 }
 
+~~ Returns the number of consecutive least significant zero bits of |x|. 
 trailingZeroBits(z Int) -> int : golang {
     return int(z.(*big.Int).TrailingZeroBits())
 }
 
+~~ Returns the result of a bitwise `xor` operation on two `Int`s.
 xorInt(x, y Int) -> Int : golang {
     z := big.NewInt(0) 
     z.Xor(x.(*big.Int), y.(*big.Int))
@@ -489,80 +581,109 @@ Rat(z Float) -> Rat :
 Rat(s string) -> Rat/error :
     ator s
 
+~~ Converts the built-in `float` type to a `Rat`.
 Rat(x float) -> Rat :
     littleftoR x 
 
+~~ Converts two `Int`s to the `Rat` which is their quotient.
 Rat(x, y Int) :
     bigIItoR x, y
 
+~~ Converts an `Int` to its representation as a `Rat`.
 Rat(x Int) :
     bigItoR x
 
+~~ Converts an `int` to its representation as a `Rat`.
 Rat(x int) :
     littleitoR x
 
+~~ Adds two `Rat` values.
 (x Rat) + (y Rat) -> Rat :
     goAddR x, y
 
+~~ Subtracts one `Rat` value from another.
 (x Rat) - (y Rat) -> Rat :
     goSubR x, y
 
+~~ Multiplies two `Rat` values.
 (x Rat) * (y Rat) -> Rat :
     goMulR x, y
 
+~~ Divides one `Rat` value by another.
 (x Rat) / (y Rat) -> Rat :
     goQuoR x, y
 
+~~ Negates a `Rat` value.
 - (x Rat) -> Rat :
     goNegR x
 
+~~ Compares two `Rat` values and returns `true` if `x < y`.
 (x Rat) < (y Rat) -> bool :
     goCmpR(x, y) < 0
 
+~~ Compares two `Rat` values and returns `true` if `x <= y`.
 (x Rat) <= (y Rat) -> bool :
     goCmpR(x, y) <= 0
 
+~~ Compares two `Rat` values and returns `true` if `x > y`.
 (x Rat) > (y Rat) -> bool :
     goCmpR(x, y) > 0
 
+~~ Compares two `Rat` values and returns `true` if `x >= y`.
 (x Rat) >= (y Rat) -> bool :
     goCmpR(x, y) >= 0
 
+~~ Returns the abolute value of `z`.
 abs(z Rat) :
     goAbsR z
 
+~~ Returns the denominator of `z`.
 denom(z Rat) -> Int : golang {
     return z.(*big.Rat).Denom()
 }
 
+~~ Converts a `Rat` to a built-in `float` value.
 float(z Rat) :
     bigRtolittlef z
 
+~~ returns a string representation of `x` in decimal form with `prec` digits of precision
+~~ after the radix point. The last digit is rounded to nearest, with halves rounded away 
+~~ from zero. 
 floatString(z Rat, prec int) -> string : golang {
     return z.(*big.Rat).FloatString(prec)
 }
 
+~~ Returns the inverse of a `Rat`.
 inv(x Rat) -> Rat : golang {
     z := big.NewRat(0, 0) 
     z.Inv(x.(*big.Rat))
     return z
 }
 
+~~ Tests whether `z` represents an integer.
 isInt(z Rat) -> bool :
     goisIntR z
 
+~~ Returns the numerator of a `Rat`.
 num(z Rat) -> Int : golang {
     return z.(*big.Rat).Num()
 }
 
+~~ Returns a string representation of `z` in the form `"a/b"`` if `b != 1``, and in the 
+~~ form "a" if b == 1. 
 ratString(z Rat) -> string : golang {
     return z.(*big.Rat).RatString()
 }
 
+~~ `sign(z)` returns:
+~~
+~~ `-1` if `z < 0`
+~~ `0` if `z == 0`
+~~ `1` if `z > 0`
 sign(z Rat) -> int :
     goSignR z
 
-~~ Overloads `string`.
+~~ Returns a string representation of `z`` in the form `"a/b"`` (even if `b == 1``). 
 string(z Rat) :
     rtoa z
 

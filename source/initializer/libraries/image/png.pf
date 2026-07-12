@@ -1,3 +1,7 @@
+~~ Package `png` supplies a .png encoder and decoder.
+~~
+~~ The PNG specification is at https://www.w3.org/TR/PNG/.
+
 import 
 
 golang "image/png"
@@ -8,12 +12,18 @@ NULL::"image"
 
 newtype
 
+~~ Contains the name of the file to be read or written to.
+
 PngFile = struct(name string)
 
 cmd
 
+~~ Populates the reference variable with an `Image` loaded from the given file.
+
 get (x ref) from (b PngFile) :
     x = goGetPngFile(b[name])
+
+~~ Saves the `Image` to the given file as a .png file.
 
 post(I Image) to (b PngFile) :
     goSavePngFile(I, width(I), height(I), b[name])

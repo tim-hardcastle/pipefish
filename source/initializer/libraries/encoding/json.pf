@@ -1,12 +1,19 @@
+~~ Package json implements semantic processing of JSON as specified in RFC 8259.
+
 import
 
 "strings"
 
 newtype
 
+~~ A type for containing fragments of Json together with values to be injected in it.
+
 Json = clone snippet 
 
 def 
+
+~~ Converts the `Json` type to a `string` by injecting the values, performing sanitation
+~~ as it does so.
 
 string(J Json) -> string :
     from a = "" for i::el = range J :
@@ -18,39 +25,26 @@ string(J Json) -> string :
 def
 
 // We pass this off to the VM for speed and convenience.
+
+~~ Default decoding of Json.
+
 decode(j string) : builtin "get_pf_from_json"
+
+~~ Decodes Json to type `T`.
+
 decode(j string) as (T type) : builtin "get_pf_from_json_as"
+
+~~ Decodes Json like type `T`: i.e. if `T` is list{MyStructType}, then the result will be 
+~~ of type `list` with elements of type `MyStructType`.
+
 decode(j string) like (T type) : builtin "get_pf_from_json_like"
 
-encode(x any) :
-    error "can't encode `" + literal(x) + "` as JSON"
+~~ Encodes the given value as Json.
 
-encode(x clones{string}) -> string :
-    literal(cast string, x)
+encode(x any?) -> string :
+    encode x 
 
-encode(x clones{int}) -> string :
-    literal(cast int, x)
-
-encode(x clones{float}) -> string :
-    literal(cast float, x)
-
-encode(x bool) -> string :
-    x :
-        "true"
-    else :
-        "false"
-
-encode(x null) -> string :
-    "null"
-
-encode(x enum/label) -> string :
-    "\"" + string(x) + "\""
-
-encode(x struct/clones{map}) -> string :
-    "{" + strings.join(kv(x), ", ") + "}"
-
-encode(x clones{list}) -> string :
-    "[" + strings.join(((cast list, x) >> encode), ", ") + "]"
+~~ Encodes the given value as Json with indentation.
 
 prettyEncode(x any) :
     prettyEncodeR(x, "")
@@ -109,4 +103,32 @@ prettyKv(x struct, pad string) -> list :
     from L = [] for _::k = range keys(x) :
         L & pad + "\"" + k + "\": " + prettyEncodeR(x[k], pad)
 
+encodeX(x any) :
+    error "can't encode `" + literal(x) + "` as JSON"
 
+encodeX(x clones{string}) -> string :
+    literal(cast string, x)
+
+encodeX(x clones{int}) -> string :
+    literal(cast int, x)
+
+encodeX(x clones{float}) -> string :
+    literal(cast float, x)
+
+encodeX(x bool) -> string :
+    x :
+        "true"
+    else :
+        "false"
+
+encodeX(x null) -> string :
+    "null"
+
+encodeX(x enum/label) -> string :
+    "\"" + string(x) + "\""
+
+encodeX(x struct/clones{map}) -> string :
+    "{" + strings.join(kv(x), ", ") + "}"
+
+encodeX(x clones{list}) -> string :
+    "[" + strings.join(((cast list, x) >> encode), ", ") + "]"

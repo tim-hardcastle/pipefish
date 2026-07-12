@@ -1,22 +1,37 @@
+~~ Package `sql` provides access to SQL databases.
+
 import 
 
 golang "database/sql"
 
 newtype
 
+~~ The available drivers for creating a SQL connection.
+
 SqlDriver = enum COCKROACHDB, FIREBIRD_SQL, MARIADB, MICROSOFT_SQL_SERVER, MYSQL, ORACLE, 
               .. POSTGRESQL, SNOWFLAKE, SQLITE, TIDB
 
+~~ A type templace corresponding to SQL's `VARCHAR(i)`, and automatically converted to and 
+~~ from it.
+
 Varchar{i int} = clone string :
     len that <= i 
+
+~~ A connection to a SQL database. This is a non-standard type, a wrapper around Golang's
+~~ `*sql.DB` type, and does not implement `==`, `!=`, or serialization.
 
 SqlDb = wrapper *sql.DB
 
 def
 
-SqlDb(driver SqlDriver, hostpath string, port int, hostname, username, password string) :
+~~ Returns a SQL connection.
+
+SqlDb(driver SqlDriver, hostpath string, port int, hostname, username, password string) -> SqlDb/error :
     goMakeSqlConnection(string(driver), "host="+hostpath + " port=" + string(port) + " dbname=" + hostname ..
                             ..  + " user=" + username + " password=" + password + " sslmode=disable")
+
+~~ Supplies a transient in-memory version of the given database. Currently only works for 
+~~ `SQLITE`, until someone writes another one. 
 
 SqlDb(driver SqlDriver) :
     driver != SQLITE : // Someone might make another one.
@@ -27,6 +42,8 @@ SqlDb(driver SqlDriver) :
         // during initialization is visible to all subsequent queries
         // on this SqlDb instance.
         goMakeSqlConnection(string(driver), ":memory:")
+
+private
 
 goMakeSqlConnection(driver string, connectionString string) -> SqlDb/error : golang {
     var driversMap = map[string]string{"COCKROACHDB": "postgres", "FIREBIRD_SQL": "firebirdsql", "MARIADB": "mysql", "MICROSOFT_SQL_SERVER": "sqlserver", "MYSQL": "mysql",
@@ -50,17 +67,30 @@ goMakeSqlConnection(driver string, connectionString string) -> SqlDb/error : gol
 				
 cmd
 
-get(x ref) as (t type) from (y SqlDb, z snippet) : builtin "get_sql_as"
-get(x ref) like (t type) from (y SqlDb, z snippet) : builtin "get_sql_like"
+~~ Populates the reference variable with the result of the SQL query represented as a value
+~~ of the given type.
 
-// TODO --- I don't know why this has to come after `get like`. It has something to do with
-// its body being a builtin, I think.
-get(r ref) from (y SqlDb, z snippet) :
-   get x like list{map} from y, z 
+get(x ref) as (t type) from (y SqlDb, query snippet) : builtin "get_sql_as"
+
+~~ Populates the reference variable with the result of the SQL query represented as a value
+~~ like that of the given type, e.g. if the type is `list{MyStructType}` then the value 
+~~ returned will be of type `list`, with its elements of type `StructType`.
+
+get(x ref) like (t type) from (y SqlDb, query snippet) : builtin "get_sql_like"
+
+~~ Populates the reference variable with the result of the SQL query represented as a value 
+~~ of type `list` with elements of type `map`.
+
+get(r ref) from (y SqlDb, query snippet) :
+   get x like list{map} from y, query 
    r = x
+
+~~ Pings the database to test the connection.
 
 ping (db SqlDb) :
     get _ as int from db -- SELECT 1
 
-post to (sql SqlDb, S snippet) : builtin "post_sql"
+~~ Posts the given SQL command to the SQL database.
+
+post to (sql SqlDb, command snippet) : builtin "post_sql"
 

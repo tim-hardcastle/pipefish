@@ -1,3 +1,5 @@
+~~ Package rand implements a cryptographically secure random number generator. 
+
 import 
 
 golang "crypto/rand"
@@ -13,14 +15,24 @@ RandomText = struct()
 
 cmd
 
+~~ Returns a uniform random value in [0, max).
+
 get (x ref) from (r RandomInt) :
     r[max] in big.Int :
         x = goRandomInt r[max]
     else :
         x = goRandomInt big.Int r[max]
 
+~~ Returns a number of the given bit length that is prime with high probability.
+
 get (x ref) from (r RandomPrime) :
     x = goRandomPrime(r[bits])
+
+~~ Returns a cryptographically random string using the standard RFC 4648 base32 alphabet
+~~ for use when a secret string, token, password, or other text is needed. The result 
+~~ contains at least 128 bits of randomness, enough to prevent brute force guessing attacks 
+~~ and to make the likelihood of collisions vanishingly small. A future version may return 
+~~ longer texts as needed to maintain those properties. 
 
 get (x ref) from (r RandomText) :
     x = goRandomText()

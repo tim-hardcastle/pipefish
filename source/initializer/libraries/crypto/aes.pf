@@ -1,3 +1,14 @@
+~~ Implements AES encryption as defined in U.S. Federal Information Processing Standards
+~~ Publication 197.
+~~
+~~ The AES operations in this package are not implemented using constant-time algorithms.
+~~ An exception is when running on systems with enabled hardware support for AES that 
+~~ makes these operations constant-time. Examples include amd64 systems using AES-NI 
+~~ extensions and s390x systems using Message-Security-Assist extensions. On such systems,
+~~ when the result of NewCipher is passed to cipher.NewGCM, the GHASH operation used by 
+~~ GCM is also constant-time.
+
+
 import 
 
 golang "crypto/aes"
@@ -8,14 +19,25 @@ golang "io"
 
 newtype 
 
+~~ Contains the data to pass to `get ... from`.
+~~
+~~ The `key` field must be the AES key, either 16, 24, or 32 characters to select AES-128,
+~~ AES-192, or AES-256. 
+
 AesEncode = struct(key, plaintext string)
 
 cmd
+
+~~ Sets the reference variable to the result of encoding the `plaintext`
+~~ field of `a`.
 
 get (ciphertext ref) from (a AesEncode) :
     ciphertext = goEncode a
 
 def 
+
+~~ Decodes the ciphertext using the key supplied, returning the recovered plaintext if 
+~~ the decoding works and an error otherwise.
 
 decode (key, ciphertext string) -> string/error : golang {
     data, err := base64.StdEncoding.DecodeString(ciphertext)
@@ -49,3 +71,7 @@ goEncode(a AesEncode) -> string/error : golang {
     ciphertext := gcm.Seal(nonce, nonce, []byte(a.Plaintext), nil)
 	return base64.StdEncoding.EncodeToString(ciphertext)
 }
+
+// Documentation adapted from the Go crypto/aes package documentation.
+// Source: https://pkg.go.dev/crypto/aes
+// Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
