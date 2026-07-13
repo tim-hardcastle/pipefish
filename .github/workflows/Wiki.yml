@@ -1,0 +1,25 @@
+name: Update wiki
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-wiki:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Build updatewiki
+        run: go build -o updatewiki ./cmd/updatewiki
+
+      - name: Update wiki
+        run: ./updatewiki
+        env:
+          WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
