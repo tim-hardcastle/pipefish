@@ -1,245 +1,317 @@
+~~ The `math` package implements basic math functions for the `float` type.
+
 import
 
 golang "math"
 
 def
 
+~~ Returns the absolute value of `x`.
 abs(x float) -> float : golang {
     return math.Abs(x)
 }
 
+~~ Returns the inverse cosine of `x`.
 acos(x float) -> float : golang {
     return math.Acos(x)
 }
 
+~~ Returns the inverse hyperbolic cosine of `x`.
 acosh(x float) -> float : golang {
     return math.Acosh(x)
 }
 
+~~ Returns the inverse sine of `x`.
 asin(x float) -> float : golang {
     return math.Asin(x)
 }
 
+~~ Returns the inverse hyperbolic sine of `x`.
 asinh(x float) -> float : golang {
     return math.Asinh(x)
 }
 
+~~ Returns the inverse tangent of `x`.
 atan(x float) -> float : golang {
     return math.Atan(x)
 }
 
+~~ Returns the inverse tangent of `y`/`x`, using the signs of the two to determine the
+~~ quadrant of the return value. 
 atan_2(y, x float) -> float : golang {
     return math.Atan2(y, x)
 }
 
+~~ Returns the inverse hyperbolic tangent of `x`.
 atanh(x float) -> float : golang {
     return math.Atanh(x)
 }
 
+~~ Returns the cube root of `x`.
 cbrt(x float) -> float : golang {
     return math.Cbrt(x)
 }
 
+~~ Returns the ceiling of `x`.
 ceil(x float) -> float : golang {
     return math.Ceil(x)
 }
 
+~~ Returns the sign of `x`.
 copysign(f, sign float) -> float : golang {
     return math.Copysign(f, sign)
 }
 
+~~ Returns the cosine of `x`.
 cos(x float) -> float : golang {
     return math.Cos(x)
 }
 
+~~ Returns the hyperbolic cosine of `x`.
 cosh(x float) -> float : golang {
     return math.Cosh(x)
 }
 
+~~ Returns the the maximum of `x - y` or `0`.
 dim(x, y float) -> float : golang {
     return math.Dim(x, y)
 }
 
+~~ Returns the error function of `x`.
 erf(x float) -> float : golang {
     return math.Erf(x)
 }
 
+~~ Returns the complementary error function of `x`.
 erfc(x float) -> float : golang {
     return math.Erfc(x)
 }
 
+~~ Returns the inverse of `erfc(x)`.
 erfcinv(x float) -> float : golang {
     return math.Erfcinv(x)
 }
 
+~~ Returns the inverse of `erv(x)`.
 erfinv(x float) -> float : golang {
     return math.Erfinv(x)
 }
 
+~~ Returns the base-e exponential of `x`.
 exp(x float) -> float : golang {
     return math.Exp(x)
 }
 
+~~ Returns the base-2 exponential of `x`.
 exp_2(x float) -> float : golang {
     return math.Exp2(x)
 }
 
+~~ Returns the base-e exponential of `x`, minus 1. It is more accurate than `exp(x) - 1`
+~~ when x is near zero.
 expm_1(x float) -> float : golang {
     return math.Expm1(x)
 }
 
+~~ Returns `x * y + z`, computed with only one rounding. (That is, FMA returns the fused 
+~~ multiply-add of `x`, `y`, and `z`.) 
 fMA(x float, y float, z float) -> float : golang {
     return math.FMA(x, y, z)
 }
 
+~~ Returns the floor of `x`.
 floor(x float) -> float : golang {
     return math.Floor(x)
 }
 
+~~ `frexp` breaks `x` into a normalized fraction and an integral power of two, such that if
+~~ `frac, exp = frexp(x)` then `x == frac × 2^exp`, with the absolute value of `frac` in
+~~ the interval [½, 1). 
 frexp(f float) -> float, int : golang {
     return math.Frexp(f)
 }
 
+~~ Returns the Gamma function of `x`.
 gamma(x float) -> float : golang {
     return math.Gamma(x)
 }
 
+~~ Returns `sqrt(p*p + q*q)`, taking care to avoid unnecessary overflow and underflow. 
 hypot(p, q float) -> float : golang {
     return math.Hypot(p, q)
 }
 
+~~ Returns positive infinity if `sign >= 0`, negative infinity if `sign < 0`. 
 inf(sign int) -> float : golang {
     return math.Inf(sign)
 }
 
+~~ Tests whether `f` is an infinity, according to `sign`. If `sign > 0`, `isInf` reports
+~~ whether `f` is positive infinity. If `sign < 0`, `isInf` reports whether `f` is
+~~ negative infinity. If `sign == 0`, `isInf` reports whether `f` is either infinity. 
 isInf(f float, sign int) -> bool : golang {
     return math.IsInf(f, sign)
 }
 
+~~ Tests whether `x` is `naN`.
 isNaN(f float) -> bool : golang {
     return math.IsNaN(f)
 }
 
+~~ Returns the order-zero Bessel function of the first kind.
 j_0(x float) -> float : golang {
     return math.J0(x)
 }
 
+~~ Returns the order-one Bessel function of the first kind.
 j_1(x float) -> float : golang {
     return math.J1(x)
 }
 
+~~ Returns the order-n Bessel function of the first kind.
 j_n(n int, x float) -> float : golang {
     return math.Jn(n, x)
 }
 
+~~ The inverse of `frexp`: it returns `frac * 2^exp`. 
 ldexp(frac float, ex int) -> float : golang {
     return math.Ldexp(frac, ex)
 }
 
+~~ Returns the natural logarithm and sign (`-1` or `+1`) of `gamma(x)`. 
 lgamma(x float) -> float, int : golang {
     return math.Lgamma(x)
 }
 
+~~ Returns the natural logarithm of `x`.
 log(x float) -> float : golang {
     return math.Log(x)
 }
 
+~~ Returns the base-10 logarithm of `x`.
 log_10(x float) -> float : golang {
     return math.Log10(x)
 }
 
+~~ Returns the natural logarithm of `1 + x`. It is more accurate than `log(1 + x)` when `x`
+~~ is near zero.
 log_1_p(x float) -> float : golang {
     return math.Log1p(x)
 }
 
+~~ Returns the base-2 logarithm of `x`.
 log_2(x float) -> float : golang {
     return math.Log2(x)
 }
 
+~~ Returns the base-2 exponent of `x`.
 log_b(x float) -> float : golang {
     return math.Logb(x)
 }
 
+~~ Returns the larger of `x` and `y`.
 max(x, y float) -> float : golang {
     return math.Max(x, y)
 }
 
+~~ Returns the smaller of `x` and `y`.
 min(x, y float) -> float : golang {
     return math.Min(x, y)
 }
 
+~~ Returns the floating-point remainder of `x/y`. The magnitude of the result is less than
+~~ `y` and its sign agrees with that of `x`. 
 mod(x, y float) -> float : golang {
     return math.Mod(x, y)
 }
 
+~~ Returns integer and fractional floating-point numbers that sum to `x`. Both values have
+~~ the same sign as `x`. 
 modf(x float) -> float, float : golang {
     return math.Modf(x)
 }
 
+~~ Returns the next representable float value after `x` towards `y`. 
 nextafter(x, y float) -> float : golang {
     return math.Nextafter(x, y)
 }
 
+~~ Returns `x`^`y`.
 pow(x, y float) -> float : golang {
     return math.Pow(x, y)
 }
 
+~~ Returns 10^`x`.
 pow_10(n int) -> float : golang {
     return math.Pow10(n)
 }
 
+~~ Returns the IEEE 754 floating-point remainder of `x/y`. 
 remainder(x, y float) -> float : golang {
     return math.Remainder(x, y)
 }
 
+~~ Returns the nearest integer to `x` as a `float`, rounding o.5 away from zero. 
 round(x float) -> float : golang {
     return math.Round(x)
 }
 
+~~ Returns the nearest integer to `x`, rounding ties to the even integer.
 roundToEven(x float) -> float : golang {
     return math.RoundToEven(x)
 }
 
+~~ Tests whether `x` is negative, or negative zero
 signbit(x float) -> bool : golang {
     return math.Signbit(x)
 }
 
+~~ Returns the sin of `x`.
 sin(x float) -> float : golang {
     return math.Sin(x)
 }
 
+~~ Returns the sine and the cosine of `x`.
 sincos(x float) -> float, float : golang {
     return math.Sincos(x)
 }
 
+~~ Returns the hyperbolic sine of `x`.
 sinh(x float) -> float : golang {
     return math.Sinh(x)
 }
 
+~~ Returns the square root of `x`.
 sqrt(x float) -> float : golang {
     return math.Sqrt(x)
 }
 
+~~ Returns the tangent of `x`.
 tan(x float) -> float : golang {
     return math.Tan(x)
 }
 
+~~ Returns the hyperbolic tangent of `x`.
 tanh(x float) -> float : golang {
     return math.Tanh(x)
 }
 
+~~ Returns the integer part of `x`, as a float.
 trunc(x float) -> float : golang {
     return math.Trunc(x)
 }
 
+~~ Returns the order-zero Bessel function of the second kind.
 y_0(x float) -> float : golang {
     return math.Y0(x)
 }
 
+~~ Returns the order-one Bessel function of the second kind. 
 y_1(x float) -> float : golang {
     return math.Y1(x)
 }
 
+~~ Returns the order-`n` Bessel function of the second kind. 
 y_n(n int, x float) -> float : golang {
     return math.Yn(n, x)
 }
