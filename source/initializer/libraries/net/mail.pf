@@ -1,4 +1,4 @@
-~~ Package `mail` implements parsing of mail messages.
+~~ The `mail` library implements parsing of mail messages.
 ~~
 ~~ For the most part, this package follows the syntax as specified by RFC 5322 and extended
 ~~ by RFC 6532. Notable divergences:
@@ -7,8 +7,6 @@
 ~~ - The full range of spacing (the CFWS syntax element) is not supported, such as breaking addresses across lines.
 ~~ - No unicode normalization is performed.
 ~~ - A leading `from` line is permitted, as in mbox format (RFC 4155).
-
-
 
 import
 

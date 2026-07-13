@@ -1,3 +1,5 @@
+~~ The `files` library implements some basic file-handling commands.
+
 import
 
 golang "io/ioutil"
@@ -7,29 +9,50 @@ golang "errors"
 
 newtype
 
+~~ Data structure containing the filepath of a file.
 File = struct(filepath string)
+
+~~ Another data structure containing the filepath of a file, for when we want `get ... from`
+~~ to check for existence.
 FileExists = struct(filepath string)
+
+~~ The search mode to use when calling `get ... from Filenames` or `get ... from 
+~~ DirectoryNames`.
 FileSearchMode = enum NONRECURSIVE, RECURSIVE
+
+~~ A struct to pass to `get ... from` to get the names of the files in a directory.
 Filenames = struct(directory string, fileSearchMode FileSearchMode) 
+
+~~ A struct to pass to `get ... from` to get the names of the subdirectories of a 
+~~ directory.
 DirectoryNames = struct(directory string, fileSearchMode FileSearchMode)
 
 cmd
 
+~~ Populates the reference variable with filenames fitting the criteria in the 
+~~ `Filenames` struct.
 get (L ref) from (filenames Filenames) : 
     L = goGetFilenames(filenames)
 
+~~ Populates the reference variable with filenames fitting the criteria in the 
+~~ `Filenames` struct.
 get (L ref) from (directoryNames DirectoryNames) : 
     L = goGetDirectoryNames(directoryNames)
 
+~~ Populates the reference variable with the contents of the file as a string.
 get (contents ref) from (file File) : 
     contents = goGetFile(file[filepath])
 
+~~ Populates the reference variable with a `bool` saying whether the file exists.
 get (x ref) from (file FileExists) :
     x = goFileExists(file[filepath])
 
+~~ Writes the string to the given file, creating it if it doesn't exist and overwriting it
+~~ if it already exists.
 put (s string) into (file File) : 
     goPutStringInFile(s, file[filepath])
 
+~~ Deletes the given file.
 delete (file File) :
     goDeleteFile(file[filepath])
 

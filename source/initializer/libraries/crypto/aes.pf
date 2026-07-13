@@ -1,5 +1,5 @@
-~~ Implements AES encryption as defined in U.S. Federal Information Processing Standards
-~~ Publication 197.
+~~ The `aes` library implements AES encryption as defined in U.S. Federal Information 
+~~ Processing Standards Publication 197.
 ~~
 ~~ The AES operations in this package are not implemented using constant-time algorithms.
 ~~ An exception is when running on systems with enabled hardware support for AES that 
@@ -23,14 +23,12 @@ newtype
 ~~
 ~~ The `key` field must be the AES key, either 16, 24, or 32 characters to select AES-128,
 ~~ AES-192, or AES-256. 
-
 AesEncode = struct(key, plaintext string)
 
 cmd
 
 ~~ Sets the reference variable to the result of encoding the `plaintext`
 ~~ field of `a`.
-
 get (ciphertext ref) from (a AesEncode) :
     ciphertext = goEncode a
 
@@ -38,7 +36,6 @@ def
 
 ~~ Decodes the ciphertext using the key supplied, returning the recovered plaintext if 
 ~~ the decoding works and an error otherwise.
-
 decode (key, ciphertext string) -> string/error : golang {
     data, err := base64.StdEncoding.DecodeString(ciphertext)
     if err != nil {

@@ -12,18 +12,15 @@ NULL::"image"
 newtype
 
 ~~ Contains the name of the file to be read or written to.
-
 BmpFile = struct(name string)
 
 cmd
 
 ~~ Populates the reference variable with an `Image` loaded from the given file.
-
 get (x ref) from (b BmpFile) :
     x = goGetBmpFile(b[name])
 
 ~~ Saves the `Image` to the given file as a .bmp file.
-
 post(I Image) to (b BmpFile) :
     goSaveBmpFile(I, width(I), height(I), b[name])
 

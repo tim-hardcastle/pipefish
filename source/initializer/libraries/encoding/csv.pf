@@ -1,6 +1,6 @@
-~~ Package `csv` reads and writes comma-separated values (CSV) files. There are many kinds
-~~ of CSV files; this package supports the format described in RFC 4180, except that it
-~~ uses LF instead of CRLF as the newline character by default.
+~~ The `csv` library reads and writes comma-separated values (CSV) files. There are many 
+~~ kinds of CSV files; this package supports the format described in RFC 4180, except that
+~~ it uses LF instead of CRLF as the newline character by default.
 ~~
 ~~ White space is considered part of a field.
 ~~
@@ -30,7 +30,6 @@ def
 
 ~~ Encodes a list into a CSV string, returning an error if the elements of the list aren't
 ~~ all of type `string`.
-
 encode(L list) -> string/error : golang {
     stringLists := [][]string{}
     for _, shouldBeList := range L {
@@ -56,7 +55,6 @@ encode(L list) -> string/error : golang {
 
 ~~ Decodes a CSV string into a `list`, returning an `error` if the input is not in fact a 
 ~~ well-formed CSV string. 
-
 decode(s string) -> list/error : golang {
     rd := csv.NewReader(strings.NewReader(s))
     r, e := rd.ReadAll()

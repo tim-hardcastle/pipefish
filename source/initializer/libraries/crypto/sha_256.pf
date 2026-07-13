@@ -1,4 +1,4 @@
-~~ Package `sha_256` implements the SHA256 hash algorithm as defined in FIPS 180-4.
+~~ The `sha_256` library implements the SHA256 hash algorithm as defined in FIPS 180-4.
 
 import 
 
@@ -8,7 +8,6 @@ golang "fmt"
 def 
 
 ~~ Computes a SHA256 hash of the given string.
-
 hash (s string) -> string : golang {
     r := sha256.Sum256([]byte(s))
     return fmt.Sprintf("%x", r)

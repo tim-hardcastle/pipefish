@@ -1,4 +1,4 @@
-~~ Package rand implements a cryptographically secure random number generator. 
+~~ The `rand` library implements a cryptographically secure random number generator. 
 
 import 
 
@@ -9,14 +9,18 @@ golang "math/big"
 
 newtype 
 
+~~ A data structure to pass to `get ... from` to get a random integer.
 RandomInt = struct(max string/big.Int)
+
+~~ A data structure to pass to `get ... from` to get a random prime.
 RandomPrime = struct(bits int)
+
+~~ A data structure to pass to `get ... from` to get a random integer.
 RandomText = struct()
 
 cmd
 
 ~~ Returns a uniform random value in [0, max).
-
 get (x ref) from (r RandomInt) :
     r[max] in big.Int :
         x = goRandomInt r[max]
@@ -24,7 +28,6 @@ get (x ref) from (r RandomInt) :
         x = goRandomInt big.Int r[max]
 
 ~~ Returns a number of the given bit length that is prime with high probability.
-
 get (x ref) from (r RandomPrime) :
     x = goRandomPrime(r[bits])
 
@@ -33,7 +36,6 @@ get (x ref) from (r RandomPrime) :
 ~~ contains at least 128 bits of randomness, enough to prevent brute force guessing attacks 
 ~~ and to make the likelihood of collisions vanishingly small. A future version may return 
 ~~ longer texts as needed to maintain those properties. 
-
 get (x ref) from (r RandomText) :
     x = goRandomText()
 

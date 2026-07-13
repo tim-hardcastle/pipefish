@@ -1,4 +1,4 @@
-~~ Package `rsa` implements RSA encryption as specified in PKCS #1 and RFC 8017.
+~~ The `rsa` library implements RSA encryption as specified in PKCS #1 and RFC 8017.
 ~~
 ~~ The original specification for encryption and signatures with RSA is PKCS #1 and the 
 ~~ terms "RSA encryption" and "RSA signatures" by default refer to PKCS #1 version 1.5. 
@@ -18,46 +18,37 @@ golang "crypto/sha256"
 newtype 
 
 ~~ The data to pass to `get ... from` to generate a key.
-
 GenerateKey = struct(bits int)
 
 ~~ A public key/
-
 PublicKey = struct(modulus big.Int, exponent int)
 
 ~~ A private key.
-
 PrivateKey = struct(publicKey PublicKey, exponent, primeA, primeB big.Int)
 
 ~~ The data to pass to `get ... from` to get OAEP-encrypted text.
-
 EncryptOaep = struct(publicKey PublicKey, plaintext, oaepLabel string)
 
 ~~ The data to pass to `get ... from` to get PKCS-encrypted text.
-
 EncryptPkcs = struct(publicKey PublicKey, plaintext string)
 
 def 
 
 ~~ Constructor for `EncryptOaep` defaulting to `""` for the label.
-
 EncryptOaep(key PublicKey, plaintext string) :
     EncryptOaep(key, plaintext, "")
 
 cmd 
 
 ~~ Populates the reference variable with a private key.
-
 get (x ref) from (gk GenerateKey) :
     x = goGetPrivateKey(gk[bits])
 
 ~~ Gets the ciphertext from the plaintext using OAEP.
-
 get (x ref) from (e EncryptOaep) :
     x = goOAEP(e)
 
 ~~ Gets the ciphertext from the plaintext using PKCS.
-
 get (x ref) from (e EncryptPkcs) :
     x = goPkcs(e)
 
@@ -65,18 +56,15 @@ def
 
 ~~ Decrypts an OAEP-encoded cyphertext into plaintext, with the OEAP label taken to be 
 ~~ `""`.
-
 decryptOaep(k PrivateKey, ciphertext string) -> string/error :
     goDecryptOaep(k, ciphertext, "")
 
-~~ Decrypts an OAEP-encoded cyphertext into plaintext.
-
 // TODO --- just making this the Go function produces weird errors and I don't know why.
+~~ Decrypts an OAEP-encoded cyphertext into plaintext.
 decryptOaep(k PrivateKey, ciphertext string, oaepLabel string) -> string/error :
     goDecryptOaep(k, ciphertext, oaepLabel)
 
 ~~ Decrypts a PKCS-encoded cyphertext into plaintext.
-
 decryptPkcs(k PrivateKey, ciphertext string) -> string/error : golang {
     data, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {

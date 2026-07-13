@@ -1,4 +1,4 @@
-~~ The `rand` package supplies a random number generator. It is not cryptographically
+~~ The `rand` library supplies a random number generator. It is not cryptographically
 ~~ secure: for that, you should use the `crypto/rand` package instead.
 
 import 

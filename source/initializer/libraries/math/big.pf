@@ -1,4 +1,4 @@
-~~ Package big implements arbitrary-precision arithmetic (big numbers).
+~~ The `big` library implements arbitrary-precision arithmetic (big numbers).
 
 import
 

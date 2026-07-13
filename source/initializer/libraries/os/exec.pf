@@ -1,4 +1,4 @@
-~~ Package `exec` supplies access to OS commands.
+~~ The `exec` library supplies access to OS commands.
 
 import
 

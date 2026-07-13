@@ -21,7 +21,6 @@ def
 
 ~~ Overloads the constructor for `JpegFile` so that if only the name is supplied, the 
 ~~ `quality` field is `NULL`.
-
 JpegFile(name string) :
     JpegFile(name, NULL)
 
@@ -29,13 +28,11 @@ cmd
 
 ~~ Populates the reference variable with an `Image` from the file named in the `name` field 
 ~~ of the `JpegFile`. The `quality` field is ignored.
-
 get (x ref) from (b JpegFile) :
     x = goGetJpegFile(b[name])
 
 ~~ Posts the image to the file named in the `name` field of the `JpegFile`. If the `quality` 
 ~~ field is `NULL`, a default value will be used.
-
 post(I Image) to (b JpegFile):
     b[quality] == NULL :
         goSaveJpegFile(I, width(I), height(I), b[name], -1)

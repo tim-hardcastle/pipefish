@@ -1,8 +1,13 @@
+~~ The `lists` library contains some standard functions taking the `list` type, and usually
+~~ its clones, as arguments.
+
 def 
 
-binarySearch(L clones{list}, x any?) -> int/error :
+~~ Performs a binary search on a list `L` which is presumed sorted, for an element `x`,
+~~ returning its index in `L` if it's found or `NULL` if it isn't.
+binarySearch(L clones{list}, x any?) -> int? :
     L == [] :
-        error "element is not in list"
+        NULL
     x < pivot :
         binarySearch(L[0::midpoint], x)
     pivot < x :
@@ -13,6 +18,8 @@ given :
     midpoint = len(L) div 2
     pivot = L[midpoint]
 
+~~ Returns a compacted version of the list, i.e. one with consecutive identical elements 
+~~ removed.
 compact(L list) -> list : 
     from K = [] for i::x = range L :
         i == 0 :
@@ -22,6 +29,7 @@ compact(L list) -> list :
         else :
             K & L[i]
 
+~~ Returns the count of the number of elements in the list equal to `x`.
 count(L clones{list}, x any?) -> int :
     from a = 0 for _::el = range L :
         type(el) == type(x) and el == x :
@@ -29,6 +37,7 @@ count(L clones{list}, x any?) -> int :
         else :
             continue 
 
+~~ Returns the count of the number of elements in the list for which `F` returns `true`.
 count(L clones{list}, F func) -> int :
     from a = 0 for _::el = range L :
         F(el) :
@@ -36,6 +45,8 @@ count(L clones{list}, F func) -> int :
         else :
             continue  
 
+~~ Performs a search on a list `L` for an element `x`, returning its index in `L` if it's 
+~~ found or `NULL` if it isn't.
 find(L clones{list}, x any?) -> int? :
     from a int? = NULL for i::el = range L :
         type(el) == type(x) and el == x :
@@ -43,6 +54,8 @@ find(L clones{list}, x any?) -> int? :
         else :
             continue 
 
+~~ Performs a search on a list `L` for an element for which `F` returns `true`, returning
+~~ its index in `L` if it's found or `NULL` if it isn't.
 find(L clones{list}, F func) -> int? :
     from a int? = NULL for i::el = range L :
         F el :
@@ -50,6 +63,8 @@ find(L clones{list}, F func) -> int? :
         else :
             continue 
 
+~~ Performs a search on a list `L` for all the elements in it equal to `x`, and returns a 
+~~ list of their indices in `L`.
 findAll(L clones{list}, x any?) -> list :
     from a = [] for i::el = range L :
         type(el) == type(x) and el == x :
@@ -57,6 +72,8 @@ findAll(L clones{list}, x any?) -> list :
         else :
             continue 
 
+~~ Performs a search on a list `L` for all the elements in it for which `F` is true, and 
+~~ returns a list of their indices in `L`.
 findAll(L clones{list}, F func) -> list :
     from a = [] for i::el = range L :
         F el :
@@ -64,6 +81,7 @@ findAll(L clones{list}, F func) -> list :
         else :
             continue
 
+~~ Folds the list by the function `F`.
 fold(L clones{list}, F func) :
     L == [] :
         error "can't fold empty list"
@@ -71,11 +89,14 @@ fold(L clones{list}, F func) :
         from a = L[0] for _::el = range L[1::len L] :
             F(a, el)
 
+~~ Inserts an element `x` into sorted position in a list `L` presumed to be already
+~~ sorted.
 insert(L list, x any?) -> list :
     L[0::ip] + [x] + L[ip::len L]
 given :
     ip = findInsertion(L, x)
 
+~~ Tests whether a given list is sorted in ascending order.
 isSorted(L clones{list}) -> bool :
     len(L) <= 1 :
         true 
@@ -86,6 +107,7 @@ isSorted(L clones{list}) -> bool :
             else :
                 break false 
 
+~~ Returns the maximum value in a list.
 max(L clones{list}) : 
     L == [] :
         error "can't take maximum of empty list"
@@ -96,6 +118,7 @@ max(L clones{list}) :
             else :
                 continue 
 
+~~ Returns the element of the list for which `F` attains its maximum.
 max(L clones{list}, F func) : 
     L == [] :
         error "can't take maximum of empty list"
@@ -106,6 +129,7 @@ max(L clones{list}, F func) :
             else :
                 continue 
 
+~~ Merges two lists assumed to be sorted into a sorted list.
 merge(J, K list) -> list :
     J == [] and K == [] :
         []
@@ -120,6 +144,7 @@ merge(J, K list) -> list :
             else :
                 L & K[k], j, k + 1
 
+~~ Returns the maximum value in a list.
 min(L clones{list}) : 
     L == [] :
         error "can't take minimum of empty list"
@@ -130,6 +155,7 @@ min(L clones{list}) :
             else :
                 continue 
 
+~~ Returns the element of the list for which `F` attains its maximum.
 min(L clones{list}, F func) : 
     L == [] :
         error "can't take minimum of empty list"
@@ -140,6 +166,7 @@ min(L clones{list}, F func) :
             else :
                 continue 
 
+~~ Returns the list folded by the `*` operator.
 product(L clones{list}) :
     L == [] :
         error "can't take product of empty list"
@@ -147,14 +174,17 @@ product(L clones{list}) :
         from a = L[0] for _::el = range L[1::len L] :
             a * el
 
+~~ Returns `n` copies of `x`.
 repeat(n int, x ... any?) -> list :
     from L = [] for _::i = range 0::n :
         L + [x]
 
+~~ Returns a reversed copy of `L`.
 reverse(L list) -> list :
     from K = [] for _::i = range len(L)::0 :
         K & L[i]
 
+~~ Returns the list sorted by the `<` operator.
 sort(L list) -> list :
     len L <= 1 :
         L 
@@ -163,13 +193,16 @@ sort(L list) -> list :
 given :
     midpoint = len(L) div 2
 
+~~ Returns the list folded by the `+` operator.
 sum(L clones{list}) :
     L == [] :
         error "can't take sum of empty list"
-    else :
+    elsezip  :
         from a = L[0] for _::el = range L[1::len L] :
             a + el
 
+~~ Returns a list in which element `i` is a list of the `i`th element of each list. Hence 
+~~ transposing two lists would be equivalent to a `zip` function.
 transpose(ls ... list) -> list :
     len(ls) == 0 :
         []

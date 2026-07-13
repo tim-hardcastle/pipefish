@@ -1,4 +1,4 @@
-~~ Package `base_32` implements base32 encoding as specified by RFC 4648.
+~~ The`base_32` library implements base32 encoding as specified by RFC 4648.
 
 import
 
@@ -7,7 +7,6 @@ golang "encoding/base32"
 newtype
 
 ~~ A 32-character string giving the encoding of the numbers 0 ... 31.
-
 Encoding = clone string :
     len that == 32 
 
@@ -15,24 +14,20 @@ const
 
 ~~ HexEncoding is the “Extended Hex Alphabet” defined in RFC 4648. It is typically used in
 ~~ DNS. 
-
 HEX_ENCODING = Encoding("0123456789ABCDEFGHIJKLMNOPQRSTUV")
 
 ~~ StdEncoding is the standard base32 encoding, as defined in RFC 4648. 
-
 STD_ENCODING = Encoding("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567")
 
 def 
 
 ~~ Encodes the plaintext using the given encoding.
-
 encode(encoding Encoding, plaintext string) -> string : golang {
     enc := base32.NewEncoding(string(encoding))
     return enc.EncodeToString([]byte(plaintext))
 }
 
 ~~ Decodes the coded text using the given encoding.
-
 decode(encoding Encoding, codedText string) -> string/error : golang {
     enc := base32.NewEncoding(string(encoding))
     bytes, err := enc.DecodeString(codedText)

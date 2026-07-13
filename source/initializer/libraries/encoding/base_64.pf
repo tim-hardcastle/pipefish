@@ -1,4 +1,4 @@
-~~ Package `base_64` implements base64 encoding as specified by RFC 4648.
+~~ The `base_64` library implements base64 encoding as specified by RFC 4648.
 
 import
 
@@ -8,36 +8,30 @@ newtype
 
 ~~ Contains the data specifying how encoding and decoding should be done, i.e. whether the
 ~~ encoding is padded and which characters correspond to the numbers 0 ... 63.
-
 Encoding = struct(padding bool, key string) :
     len key == 64 
 
 const 
 
 ~~ `STD_ENCODING` is the standard base64 encoding, as defined in RFC 4648. 
-
 STD_ENCODING = Encoding(true, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
 
 ~~ `URL_ENCODING` is the alternate base64 encoding defined in RFC 4648. It is typically 
 ~~ used in URLs and file names. 
-
 URL_ENCODING = Encoding(true, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
 
 ~~ `RAW_STD_ENCODING` is the standard raw, unpadded base64 encoding, as defined in RFC 4648 
 ~~ section 3.2. This is the same as `STD_ENCODING` but omits padding characters. 
-
 RAW_STD_ENCODING = Encoding(false, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
 
 ~~ `RAW_URL_ENCODING` is the unpadded alternate base64 encoding defined in RFC 4648. It is 
 ~~ typically used in URLs and file names. This is the same as URLEncoding but omits padding 
 ~~ characters. 
-
 RAW_URL_ENCODING = Encoding(false, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
 
 def 
 
 ~~ Encodes the plaintext using the given encoding.
-
 encode(encoding Encoding, plaintext string) -> string : golang {
     pad := base64.NoPadding
     if encoding.Padding {
@@ -48,7 +42,6 @@ encode(encoding Encoding, plaintext string) -> string : golang {
 }
 
 ~~ Decodes the coded text using the given encoding.
-
 decode(encoding Encoding, codedText string) -> string/error : golang {
     pad := base64.NoPadding
     if encoding.Padding {

@@ -1,4 +1,4 @@
-~~ Package json implements semantic processing of JSON as specified in RFC 8259.
+~~ The `json` library implements semantic processing of JSON as specified in RFC 8259.
 
 import
 
@@ -7,14 +7,12 @@ import
 newtype
 
 ~~ A type for containing fragments of Json together with values to be injected in it.
-
 Json = clone snippet 
 
 def 
 
 ~~ Converts the `Json` type to a `string` by injecting the values, performing sanitation
 ~~ as it does so.
-
 string(J Json) -> string :
     from a = "" for i::el = range J :
         i mod 2 == 0 :
@@ -27,25 +25,20 @@ def
 // We pass this off to the VM for speed and convenience.
 
 ~~ Default decoding of Json.
-
 decode(j string) : builtin "get_pf_from_json"
 
 ~~ Decodes Json to type `T`.
-
 decode(j string) as (T type) : builtin "get_pf_from_json_as"
 
 ~~ Decodes Json like type `T`: i.e. if `T` is list{MyStructType}, then the result will be 
 ~~ of type `list` with elements of type `MyStructType`.
-
 decode(j string) like (T type) : builtin "get_pf_from_json_like"
 
 ~~ Encodes the given value as Json.
-
 encode(x any?) -> string :
     encode x 
 
 ~~ Encodes the given value as Json with indentation.
-
 prettyEncode(x any) :
     prettyEncodeR(x, "")
 

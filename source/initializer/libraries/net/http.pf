@@ -1,4 +1,4 @@
-~~ Package `http` supplies an HTTP client implementation.
+~~ The `http` library supplies an HTTP client implementation.
 ~~
 ~~ Acting as a server is built into Pipefish services and there is no good reason to 
 ~~ duplicate this functionality. 

@@ -1,4 +1,4 @@
-~~ Implements the Simple Mail Transfer Protocol (SMTP).
+~~ The `smtp` library implements the Simple Mail Transfer Protocol (SMTP).
 
 import private
 

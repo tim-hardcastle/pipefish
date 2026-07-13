@@ -1,4 +1,4 @@
-~~ Package `sql` provides access to SQL databases.
+~~ The `sql` library provides access to SQL databases.
 
 import 
 
@@ -7,32 +7,27 @@ golang "database/sql"
 newtype
 
 ~~ The available drivers for creating a SQL connection.
-
 SqlDriver = enum COCKROACHDB, FIREBIRD_SQL, MARIADB, MICROSOFT_SQL_SERVER, MYSQL, ORACLE, 
               .. POSTGRESQL, SNOWFLAKE, SQLITE, TIDB
 
 ~~ A type templace corresponding to SQL's `VARCHAR(i)`, and automatically converted to and 
 ~~ from it.
-
 Varchar{i int} = clone string :
     len that <= i 
 
 ~~ A connection to a SQL database. This is a non-standard type, a wrapper around Golang's
 ~~ `*sql.DB` type, and does not implement `==`, `!=`, or serialization.
-
 SqlDb = wrapper *sql.DB
 
 def
 
 ~~ Returns a SQL connection.
-
 SqlDb(driver SqlDriver, hostpath string, port int, hostname, username, password string) -> SqlDb/error :
     goMakeSqlConnection(string(driver), "host="+hostpath + " port=" + string(port) + " dbname=" + hostname ..
                             ..  + " user=" + username + " password=" + password + " sslmode=disable")
 
 ~~ Supplies a transient in-memory version of the given database. Currently only works for 
 ~~ `SQLITE`, until someone writes another one. 
-
 SqlDb(driver SqlDriver) :
     driver != SQLITE : // Someone might make another one.
         error "only Sqlite can be used in-memory"

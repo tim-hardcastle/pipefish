@@ -1,3 +1,5 @@
+~~ The `image` library supplies an `Image` type and some basic functions to handle it.
+
 import 
 
 golang "fmt" // TODO --- we only need this 'cos we can't handle escapes properly in the lexer.
