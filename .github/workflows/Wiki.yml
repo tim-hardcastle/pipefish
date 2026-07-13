@@ -16,6 +16,9 @@ jobs:
         with:
           go-version: '1.26'
 
+      - name: Build Pipefish
+        run: go build -o pipefish 
+
       - name: Build updatewiki
         run: go build -o updatewiki ./cmd/updatewiki
 
