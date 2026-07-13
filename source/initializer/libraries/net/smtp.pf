@@ -7,17 +7,36 @@ golang "errors"
 
 newtype
 
+CRAMMD5Auth returns 
+func PlainAuth ¶
+
+func PlainAuth(identity, username, password, host string) Auth
+
+
+~~ An `Auth` that implements the CRAM-MD5 authentication mechanism as defined in RFC 2195. 
+~~ The returned Auth uses the given username and secret to authenticate to the server using 
+~~ the challenge-response mechanism.
 Crammd_5_Auth = struct(username, password string)
+
+~~ An `Auth` that implements the PLAIN authentication mechanism as defined in RFC 4616. The
+~~ returned `Auth` uses the given username and password to authenticate to host. Usually 
+~~ `identity` should be the empty string, to act as username. 
 PlainAuth = struct(identity, username, password, host string)
+
+~~ Authorization to use a mail server.
 Auth = abstract Crammd_5_Auth/PlainAuth
+
+~~ Data structure containing information about the sender of the email.
 Mailer = struct(addr string, auth Auth, sender string)
 
 cmd 
 
+~~ Emails a message to the given recipient.
 post from (m Mailer) to (recipient string, msg snippet) :
     post from m to [recipient], msg
 
 // TODO --- it's not clear why this needs the return types to make the previous function compile.
+~~ Emails a message to the given list of recipients.
 post from (m Mailer) to (recipients list, msg snippet) -> ok/error :
     type m[auth] == Crammd_5_Auth :
         goCrammd(m[addr], m[auth][username], m[auth][password], m[sender], 

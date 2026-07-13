@@ -1,3 +1,8 @@
+~~ Package `url` parses URLs and implements query escaping.
+~~
+~~ See RFC 3986. This package generally follows RFC 3986, except where it deviates for 
+~~ compatibility reasons. RFC 6874 is followed for IPv6 zone literals. 
+
 import 
 
 golang "net/url"
@@ -6,120 +11,16 @@ golang "errors"
 
 newtype
 
+~~ Data structure containing the name and password of a user.
 UserInfo = struct(username, password string)
 
 // TODO --- it is currently a syntax error to use , newline .. in cases like these.
+~~ Data structure containing a parsed URL.
 Url = struct(scheme, opaque string, user UserInfo, host, path, rawPath string, omitHost, forceQuery bool, rawQuery, fragment, rawFragment string) 
 
 def
 
-joinPath(base string, elem ... string) -> string/error : 
-    goJoinPathToString(base, elem)
-
-pathEscape(s string) -> string : golang {
-    return url.PathEscape(s)
-}
-
-pathUnescape(s string) -> string/error  : golang {
-    r, e := url.PathUnescape(s)
-    if e != nil {
-        return e 
-    }
-    return r 
-}
-
-queryEscape(s string) -> string : golang {
-    return url.QueryEscape(s)
-}
-
-queryUnescape(s string) -> string/error : golang {
-    r, e := url.QueryUnescape(s)
-    if e != nil {
-        return e 
-    }
-    return r 
-}
-
-parse(rawUrl string) -> Url/error : golang {
-    u, err := url.Parse(rawUrl)
-    if err != nil {
-        return err 
-    } else {
-        return urlUrlToUrl(u)
-    }
-}
-
-parseInContext(v Url, rawUrl string) -> Url/error : golang {
-    u, err := urlToUrlUrl(v).Parse(rawUrl)
-    if err != nil {
-        return err 
-    } else {
-        return urlUrlToUrl(u)
-    }
-}
-
-parseRequestUri(rawUrl string) -> Url/error : golang {
-    u, err := url.ParseRequestURI(rawUrl)
-    if err != nil {
-        return err 
-    } else {
-        return urlUrlToUrl(u)
-    }
-}
-
-escapedFragment(u Url) -> string : golang {
-    return urlToUrlUrl(u).EscapedFragment()
-}
-
-escapedPath(u Url) -> string : golang {
-    return urlToUrlUrl(u).EscapedPath()
-}
-
-hostname(u Url) -> string : golang {
-    return urlToUrlUrl(u).Hostname()
-}
-
-isAbs(u Url) -> bool : golang {
-    return urlToUrlUrl(u).IsAbs()
-}
-
-joinPath(u Url, elem ... string): golang {
-    return urlToUrlUrl(u).JoinPath(elem ...)
-}
-
-port(u Url) -> string : golang {
-    return urlToUrlUrl(u).Port()
-}
-
-query(u Url) : golang {
-    return urlToUrlUrl(u).Query()
-}
-
-redacted(u Url) -> string : golang {
-    return urlToUrlUrl(u).Redacted()
-}
-
-requestUri(u Url) -> string : golang {
-    return urlToUrlUrl(u).RequestURI()
-}
-
-resolveReference(u, v Url) -> Url : golang {
-    return urlUrlToUrl(urlToUrlUrl(u).ResolveReference(urlToUrlUrl(v)))
-}
-
-string(u Url) -> string : golang {
-    return urlToUrlUrl(u).String()
-}
-
-parseQuery(query string) -> map/error : golang {
-    r, err := url.ParseQuery(query)
-    if err != nil {
-        return err 
-    } else {
-        return r
-    }
-}
-
+~~ Encodes the `map` into “URL encoded” form ("bar=baz&foo=quux") sorted by key. 
 encode(values map) -> string/error : golang {
     goMap := url.Values{}
     for key, list := range values {
@@ -143,6 +44,171 @@ encode(values map) -> string/error : golang {
     }
     return goMap.Encode()
 }
+
+~~ Returns the escaped form of `u[fragment]`.
+escapedFragment(u Url) -> string : golang {
+    return urlToUrlUrl(u).EscapedFragment()
+}
+
+~~ Returns the escaped form of `u[path]`.
+escapedPath(u Url) -> string : golang {
+    return urlToUrlUrl(u).EscapedPath()
+}
+
+~~ Returns the hostname of the `Url`.
+hostname(u Url) -> string : golang {
+    return urlToUrlUrl(u).Hostname()
+}
+
+~~ Tests whether the `Url` is absolute.
+isAbs(u Url) -> bool : golang {
+    return urlToUrlUrl(u).IsAbs()
+}
+
+~~ `joinPath` with a `Url` as the first parameter returns a new URL with the provided path elements 
+~~ joined to any existing path and the resulting path cleaned of any ./ or ../ elements. Any 
+~~ sequences of multiple / characters will be reduced to a single /. Path elements must already be in
+~~ escaped form, as produced by `pathEscape`. 
+joinPath(u Url, elem ... string) -> Url : golang {
+    return urlToUrlUrl(u).JoinPath(elem ...)
+}
+
+~~ `joinPath` with a `string` as the first parameter returns a URL string with the provided path 
+~~ elements joined to the existing path of base and the resulting path cleaned of any ./ or ../ 
+~~ elements. Path elements must already be in escaped form, as produced by `pathEscape`. 
+joinPath(base string, elem ... string) -> string/error : 
+    goJoinPathToString(base, elem)
+
+~~ Parses a raw url into a `URL` structure.
+~~
+~~ The url may be relative (a path, without a host) or absolute (starting with a scheme).
+~~ Trying to parse a hostname and path without a scheme is invalid but may not necessarily
+~~ return an error, due to parsing ambiguities. 
+parse(rawUrl string) -> Url/error : golang {
+    u, err := url.Parse(rawUrl)
+    if err != nil {
+        return err 
+    } else {
+        return urlUrlToUrl(u)
+    }
+}
+
+~~ Parses a `string` into a `Url` in the context of `v`. The URL may be relative or 
+~~ absolute. 
+parseInContext(v Url, rawUrl string) -> Url/error : golang {
+    u, err := urlToUrlUrl(v).Parse(rawUrl)
+    if err != nil {
+        return err 
+    } else {
+        return urlUrlToUrl(u)
+    }
+}
+
+~~ ParseQuery parses the URL-encoded query string and returns a map listing the values 
+~~ specified for each key. `parseQuery` always returns a non-nil map containing all the 
+~~ valid query parameters found. If the string is ill-formed, the function will return an
+~~ `error` describing the first decoding problem encountered.
+~~
+~~ The `query` parameter is expected to be a list of key=value settings separated by 
+~~ ampersands. A setting without an equals sign is interpreted as a key set to an empty
+~~ value. Settings containing a non-URL-encoded semicolon are considered invalid.
+parseQuery(query string) -> map/error : golang {
+    r, err := url.ParseQuery(query)
+    if err != nil {
+        return err 
+    } else {
+        return r
+    }
+}
+
+~~ ParseRequestURI parses a raw url into a `Url` structure. It assumes that the url was 
+~~ received in an HTTP request, so the url is interpreted only as an absolute URI or an 
+~~ absolute path. The string url is assumed not to have a #fragment suffix. (Web browsers
+~~ strip #fragment before sending the URL to a web server.) 
+parseRequestUri(rawUrl string) -> Url/error : golang {
+    u, err := url.ParseRequestURI(rawUrl)
+    if err != nil {
+        return err 
+    } else {
+        return urlUrlToUrl(u)
+    }
+}
+
+~~ `pathEscape` escapes the string so it can be safely placed inside a URL path segment,
+~~ replacing special characters (including /) with %XX sequences as needed. 
+pathEscape(s string) -> string : golang {
+    return url.PathEscape(s)
+}
+
+~~ `pathUnescape` does the inverse transformation of PathEscape, converting each 3-byte 
+~~ encoded substring of the form "%AB" into the hex-decoded byte 0xAB. It returns an error
+~~ if any % is not followed by two hexadecimal digits.
+~~
+~~ `pathUnescape` is identical to `queryUnescape` except that it does not unescape '+' to
+~~ ' ' (space). 
+pathUnescape(s string) -> string/error  : golang {
+    r, e := url.PathUnescape(s)
+    if e != nil {
+        return e 
+    }
+    return r 
+}
+
+~~ Returns the port part of `u[host]`, without the leading colon.
+~~
+~~ If `u[host]` doesn't contain a valid numeric port, `port` returns an empty string. 
+port(u Url) -> string : golang {
+    return urlToUrlUrl(u).Port()
+}
+
+~~ `query` parses the raw query of the `Url` and returns the corresponding values. It 
+~~ silently discards malformed value pairs. To check errors use `parseQuery`. 
+query(u Url) : golang {
+    return urlToUrlUrl(u).Query()
+}
+
+~~ `queryEscape` escapes the string so it can be safely placed inside a URL query. 
+queryEscape(s string) -> string : golang {
+    return url.QueryEscape(s)
+}
+
+~~ `queryUnescape` does the inverse transformation of `queryEscape`, converting each 3-byte 
+~~ encoded substring of the form "%AB" into the hex-decoded byte 0xAB. It returns an error
+~~ if any % is not followed by two hexadecimal digits. 
+queryUnescape(s string) -> string/error : golang {
+    r, e := url.QueryUnescape(s)
+    if e != nil {
+        return e 
+    }
+    return r 
+}
+
+~~ `redacted` is like `string` but replaces any password with "xxxxx". Only the password in
+~~ `u[user]` is redacted. 
+redacted(u Url) -> string : golang {
+    return urlToUrlUrl(u).Redacted()
+}
+
+~~ Returns the encoded path?query or opaque?query string that would be used in an HTTP
+~~ request for u. 
+requestUri(u Url) -> string : golang {
+    return urlToUrlUrl(u).RequestURI()
+}
+
+~~ Resolves a URI reference to an absolute URI from an absolute base URI `u`, per RFC 3986
+~~ Section 5.2. The URI reference may be relative or absolute.
+resolveReference(u, v Url) -> Url : golang {
+    return urlUrlToUrl(urlToUrlUrl(u).ResolveReference(urlToUrlUrl(v)))
+}
+ 
+~~ Reassembles the URL into a valid URL string.
+string(u Url) -> string : golang {
+    return urlToUrlUrl(u).String()
+}
+
+
+
+
 
 golang {
     func urlUrlToUrl(u *url.URL) Url {

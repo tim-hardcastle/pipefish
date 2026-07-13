@@ -1,3 +1,8 @@
+~~ Package `http` supplies an HTTP client implementation.
+~~
+~~ Acting as a server is built into Pipefish services and there is no good reason to 
+~~ duplicate this functionality. 
+
 import
 
 golang "io"
@@ -6,22 +11,30 @@ golang "strings"
 
 newtype
 
+~~ Data structure saying where to post and what to post to.
 Http = struct(url, contentType string?)
+
+~~ Data type containing an HTTP response.
 Response = struct(body string)
 
 def 
 
+~~ Overloads the `Http` constructor to default to a `NULL` value for the `contentType`
+~~ field when only the url is supplied.
 Http(url string) :
     Http(url, NULL)
 
 cmd
 
-post to (h Http, s snippet) :
+~~ Posts `body` to the url specified in the `url` field of `h`.
+post to (h Http, body snippet) :
     goPost h[url], h[contentType], parseSnippetForHttp s
 
-post to (h Http, a any) :
+~~ Posts `body` to the url specified in the `url` field of `h`.
+post to (h Http, body any) :
     goPost h[url], h[contentType], string(a)
 
+~~ Gets an HTTP response from the url specified in the `url` field of `h`.
 get (x ref) from (h Http) :
     x = goGet h[url]
 

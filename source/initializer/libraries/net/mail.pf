@@ -1,3 +1,15 @@
+~~ Package `mail` implements parsing of mail messages.
+~~
+~~ For the most part, this package follows the syntax as specified by RFC 5322 and extended
+~~ by RFC 6532. Notable divergences:
+~~
+~~ - Obsolete address formats are not parsed, including addresses with embedded route information.
+~~ - The full range of spacing (the CFWS syntax element) is not supported, such as breaking addresses across lines.
+~~ - No unicode normalization is performed.
+~~ - A leading `from` line is permitted, as in mbox format (RFC 4155).
+
+
+
 import
 
 NULL::"time"
@@ -9,25 +21,15 @@ golang "errors"
 
 newtype
 
+~~ The name and address of the addressee of an email.
 Address = struct(name, address string)
+
+~~ The header and body of an email.
 Message = struct(header map, body string)
 
 def
 
-parseAddress(address string) -> Address/error : golang {
-    ad, err := mail.ParseAddress(address)
-    if err != nil{
-        return err
-    }
-    return Address{ad.Name, ad.Address}
-}
-
-// Given the existence of the `>>` operator there is no need for a seperate `parseAddressList`.
-
-string(ad Address) -> string : golang {
-    return (&mail.Address{ad.Name, ad.Address}).String()
-}
-
+~~ Extracts a list of `Address`es from a header.
 addressList(header map, key string) -> list/error : golang {
     g, err1 := pfToGoHeader(header)
     if err1 != nil {
@@ -44,6 +46,7 @@ addressList(header map, key string) -> list/error : golang {
     return pfAddresses
 }
 
+~~ Parses a `map` to a `Time`.
 date(h map) -> Time/error : golang {
     g, err1 := pfToGoHeader(h)
     if err1 != nil {
@@ -56,6 +59,16 @@ date(h map) -> Time/error : golang {
     return goToPfTime(t)
 }
 
+~~ Parses a `string` to an `Address`.
+parseAddress(address string) -> Address/error : golang {
+    ad, err := mail.ParseAddress(address)
+    if err != nil{
+        return err
+    }
+    return Address{ad.Name, ad.Address}
+}
+
+~~ Parses a string to a `Time`.
 parseDate(s string) -> Time/error : golang {
     t, err := mail.ParseDate(s)
     if err != nil {
@@ -64,6 +77,7 @@ parseDate(s string) -> Time/error : golang {
     return goToPfTime(t)
 }
 
+~~ Converts a raw string to a `Message` value.
 readMessage(raw string) -> Message/error : golang {
     m, err := mail.ReadMessage(strings.NewReader(raw))
     if err != nil {
@@ -74,7 +88,14 @@ readMessage(raw string) -> Message/error : golang {
         return e
     }
     return Message{goToPfHeader(m.Header), string(body)}
+} 
+
+~~ Represents an `Address` as a string.
+string(ad Address) -> string : golang {
+    return (&mail.Address{ad.Name, ad.Address}).String()
 }
+
+private
 
 // TODO --- this forces compilation of Message for the function above.
 iotaM(m Message) -> Message : golang {
