@@ -1,3 +1,5 @@
+~~ Package `exec` supplies access to OS commands.
+
 import
 
 golang "os/exec"
@@ -5,13 +7,16 @@ golang "github.com/google/shlex"
 
 newtype
 
+~~ A snippet for containing fragments of OS commands and values to inject into them.
 Os = clone snippet 
 
 cmd 
 
+~~ Populates the reference variable with the result of executing the command.
 get (x ref) from (command Os) :
     x = goGet(string command)
 
+~~ Executes the command.
 post to (command Os) :
     goPost(string command)
 
