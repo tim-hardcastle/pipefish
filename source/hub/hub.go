@@ -938,6 +938,10 @@ func (h *Hub) createService(name, scriptFilepath string, forceUpdate bool) bool 
 }
 
 func StartServiceFromCli() {
+	if len(os.Args) != 3 {
+		println("Wrong number of argumetns for `run`.")
+		os.Exit(6)
+	}
 	filename := os.Args[2]
 	newService := pf.NewService()
 	// This ought to get the `$_env` settings.
@@ -964,6 +968,26 @@ func StartServiceFromCli() {
 	if !newService.PostHappened() {
 		fmt.Print(newService.ToString(val)) // Which will be `OK`.
 	}
+	os.Exit(0)
+}
+
+func GetWiki() {
+	if len(os.Args) != 3 {
+		println("Wrong number of argumetns for `wiki`.")
+		os.Exit(6)
+	}
+	filename := os.Args[2]
+	newService := pf.NewService()
+	newService.InitializeFromFilepathWithStore(filename, values.Map{})
+	if newService.IsBroken() {
+		fmt.Println("\nThere were errors running the script " + text.CYAN + "\"" + filename + "\"" + text.RESET + ".\n")
+		s, _ := newService.GetErrorReport()
+		mdFunc := newService.GetMarkdowner("", 92, values.Map{})
+		fmt.Println(mdFunc(s))
+		fmt.Println()
+		os.Exit(3)
+	}
+	print(newService.Wiki([]string{}))
 	os.Exit(0)
 }
 
@@ -1311,7 +1335,9 @@ const HELP = "\nUsage: pipefish [-v | --version] [-h | --help]\n" +
 	"                <command> [args]\n\n" +
 	"Commands are:\n\n" +
 	"  tui           Starts the Pipfish TUI (text user interface).\n" +
-	"  run <file>    Runs a Pipefish script if it has a `main` command.\n\n"
+	"  run <file>    Runs a Pipefish script if it has a `main` command.\n" +
+	"  wiki <file>   Returns a description of the file's API in GitHub wiki format.\n\n"
+
 
 func Red(s string) string {
 	return "\033[31m" + s + "\033[0m"

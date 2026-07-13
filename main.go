@@ -42,6 +42,8 @@ func main() {
 		case "-r", "--run", "run":
 			hub.StartServiceFromCli()
 		case "-t", "--tui", "tui": // Left blank to avoid the default.
+		case "-w", "--w", "wiki":  
+			hub.GetWiki()
 		default:
 			os.Stdout.WriteString("\nPipefish doesn't recognize the command '" + os.Args[1] + "'.\n")
 			println()
