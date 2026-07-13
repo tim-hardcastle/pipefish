@@ -39,7 +39,7 @@ goHash(s string, cost int) -> string/error : golang {
     return e 
 }
 
-goCompare(hashedPassword, plaintext string) -> bool/error : : golang {
+goCompare(hashedPassword, plaintext string) -> bool/error : golang {
     e := CompareHashAndPassword(hashedPassword, password []byte)
     if e == nil {
         return true
