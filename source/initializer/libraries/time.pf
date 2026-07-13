@@ -1,64 +1,93 @@
+~~ The `time` library implements a `Time` type, functions to handle it, and a getter to get
+~~ the current time from the system clock.
+
 import
 
 golang "time"
 
 newtype
 
+~~ An enum containing the days of the week.
 Weekday = enum SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY
+
+~~ A data structure to pass to `get ... from` to get the current time.
 Clock = struct()
+
+~~ A data structure representing a time.
 Time = struct(year, month, day, hour, minute, second, nanosecond int, location string)
 
 cmd 
 
+~~ Populates the reference variable with a `Time` representing the current time.
 get (x ref) from (c Clock) :
     x = goGetClock() 
 
 def
 
+~~ `add(t, duration)` returns the time `t + duration`, with the duration given in
+~~ nanoseconds.
 add (t Time, duration int) -> Time : golang {
     return goToPf(pfToGo(t).Add(time.Duration(duration)))
 }
 
+~~ `addDate(t, years, months, days)` returns the time corresponding to adding the given
+~~ number of years, months, and days to `t`.
 addDate(t Time, years, months, days int) -> Time : golang {
     return goToPf(pfToGo(t).AddDate(years, months, days))
 } 
 
+~~ `after(t, u)` reports whether the time instant `t` is after `u`.
 after(t, u Time) -> bool : golang {
     return pfToGo(t).After(pfToGo(u))
 }
 
+~~ `before(t, u)` reports whether the time instant `t` is before `u`.
 before(t, u Time) -> bool : golang {
     return pfToGo(t).Before(pfToGo(u))
 }
 
+~~ `compare(t, u)` compares two times. The result is:
+~~
+~~ - `-1` if `t` is before `u`
+~~ - `0` if `t` is equal to `u`
+~~ - `+1` if `t` is after `u`
 compare(t, u Time) -> int : golang {
     return pfToGo(t).Compare(pfToGo(u))
 }
 
+~~ `equal(t, u)` reports whether `t` and `u` represent the same time instant.
 equal(t, u Time) -> bool : golang {
     return pfToGo(t).Equal(pfToGo(u))
 }
 
+~~ `format(t, layout)` returns a textual representation of `t` formatted according to
+~~ `layout`.
 format(t Time, layout string) -> string : golang {
     return pfToGo(t).Format(layout)
 }
 
+~~ `isDst(t)` reports whether `t` is in daylight saving time.
 isDst(t Time) -> bool : golang {
     return pfToGo(t).IsDST()
 }
 
+~~ `ISOWeek(t)` returns the ISO 8601 year and week number in which `t` occurs.
 ISOWeek(t Time) -> int, int : golang {
     return pfToGo(t).ISOWeek()
 }
 
+~~ `isZero(t)` reports whether `t` represents the zero time instant.
 isZero(t Time) -> bool : golang {
     return pfToGo(t).IsZero()
 }
 
+~~ `local(t)` returns `t` with its location set to the local time zone.
 local(t Time) -> Time : golang {
     return goToPf(pfToGo(t).Local())
 }
 
+~~ `parse(layout, value)` parses a formatted time string and returns a Time
+~~ value.
 parse(layout, value string) : golang {
     newTime, err := time.Parse(layout, value)
     if err != nil {
@@ -67,6 +96,7 @@ parse(layout, value string) : golang {
     return goToPf(newTime)
 }
 
+~~ `parseDuration(s)` parses a duration string.
 parseDuration(s string) : golang {
     dur, err := time.ParseDuration(s)
     if err != nil {
@@ -75,14 +105,19 @@ parseDuration(s string) : golang {
     return int(dur)
 }
 
+~~ `round(t, duration)` returns the result of rounding `t` to the nearest multiple of
+~~ `duration` since the zero time.
 round(t Time, duration int) -> Time : golang {
     return goToPf(pfToGo(t).Round(time.Duration(duration)))
 }
 
+~~ `sub(t, u)` returns the duration `t - u`.
 sub (t, u Time) -> int : golang {
     return int(pfToGo(t).Sub(pfToGo(u)))
 }
 
+~~ `timeIn(t, location)` returns `t` represented in the given IANA time zone
+~~ location.
 timeIn(t Time, location string) : golang {
     newLoc, err := time.LoadLocation(location)
     if err != nil {
@@ -91,49 +126,67 @@ timeIn(t Time, location string) : golang {
     return goToPf(pfToGo(t).In(newLoc))
 }
 
+~~ `timeToUnix(t)` returns the Unix time, the number of seconds elapsed since
+~~ January 1, 1970 UTC.
 timeToUnix(t Time) -> int : golang {
     return int(pfToGo(t).Unix())
 }
 
+~~ `timeToUnixMicro(t)` returns the Unix time in microseconds.
 timeToUnixMicro(t Time) -> int : golang {
     return int(pfToGo(t).UnixMicro())
 }
 
+~~ `timeToUnixMilli(t)` returns the Unix time in milliseconds.
 timeToUnixMilli(t Time) -> int : golang {
     return int(pfToGo(t).UnixMilli())
 }
 
+~~ `timeToUnixNano(t)` returns the Unix time in nanoseconds.
 timeToUnixNano(t Time) -> int : golang {
     return int(pfToGo(t).UnixNano())
 }
 
+~~ `truncate(t, duration)` returns the result of rounding `t` down to a
+~~ multiple of `duration` since the zero time.
 truncate(t Time, duration int) -> Time : golang {
     return goToPf(pfToGo(t).Truncate(time.Duration(duration)))
 }
 
-unixToTime(sec, usec int) -> Time : golang {
-    return goToPf(time.Unix(int64(sec), int64(usec)))
+~~ `unixToTime(sec, usec)` returns the local Time corresponding to the given
+~~ Unix time.
+unixToTime(sec, nsec int) -> Time : golang {
+    return goToPf(time.Unix(int64(sec), int64(nsec)))
 }
 
+~~ `unixMicroToTime(usec)` returns the local Time corresponding to the given
+~~ Unix time expressed in microseconds.
 unixMicroToTime(usec int) -> Time : golang {
     return goToPf(time.UnixMicro(int64(usec)))
 }
 
+~~ `unixMilliToTime(msec)` returns the local Time corresponding to the given
+~~ Unix time expressed in milliseconds.
 unixMilliToTime(msec int) -> Time : golang {
     return goToPf(time.UnixMilli(int64(msec)))
 }
 
+~~ `UTC(t)` returns `t` with its location set to UTC.
 UTC(t Time) -> Time : golang {
     return goToPf(pfToGo(t).UTC())
 }
 
+~~ `weekday(t)` returns the day of the week specified by `t`.
 weekday(t Time) -> Weekday :
     Weekday(goWeekday(t))
 
+~~ `goWeekday(t)` is an internal helper returning the weekday as an integer.
 goWeekday(t Time) -> int : golang {
     return int((pfToGo(t)).Weekday())
 }
 
+~~ `yearDay(t)` returns the day of the year specified by `t`, in the range
+~~ 1 through 365 or 366 inclusive.
 yearDay(t Time) -> int : golang {
     return (pfToGo(t)).YearDay()
 }

@@ -1,25 +1,33 @@
+~~ The `unicode` library provides data and functions to test some properties of Unicode
+~~ code points. 
+
 import
 
 golang "unicode"
 
 newtype
 
+~~ An enum representing the various sorts of case recognized by the Unicode standard.
 Case = enum UPPER_CASE, LOWER_CASE, TITLE_CASE, MAX_CASE
 
 def
 
+~~ `isControl(r)` reports whether `r` is a control character.
 isControl(r rune) -> bool : golang {
 	return unicode.IsControl(r)
 }
 
+~~ `isDigit(r)` reports whether `r` is a decimal digit.
 isDigit(r rune) -> bool : golang {
 	return unicode.IsDigit(r)
 }
 
+~~ `isGraphic(r)` reports whether `r` is defined as a Graphic character by Unicode.
 isGraphic(r rune) -> bool : golang {
 	return unicode.IsGraphic(r)
 }
 
+~~ `isIn` reports whether the rune lies within any of the bounds in `bounds`.
 isIn(r rune, bounds ... pair) : 
 	from flag = false for _::bound = range bounds :
 		bound[0] <= codepoint(r) and codepoint(r) < bound[1] :
@@ -27,65 +35,81 @@ isIn(r rune, bounds ... pair) :
 		else :
 			continue
 
+~~ `isLetter(r)` reports whether `r` is a Unicode letter.
 isLetter(r rune) -> bool : golang {
 	return unicode.IsLetter(r)
 }
 
+~~ `isLower(r)` reports whether `r` is a lower-case letter.
 isLower(r rune) -> bool : golang {
 	return unicode.IsLower(r)
 }
 
+~~ `isMark(r)` reports whether `r` is a Unicode mark character.
 isMark(r rune) -> bool : golang {
 	return unicode.IsMark(r)
 }
 
+~~ `isNumber(r)` reports whether `r` is a Unicode number.
 isNumber(r rune) -> bool : golang {
 	return unicode.IsNumber(r)
 }
 
+~~ `isPrint(r)` reports whether `r` is defined as printable by Pipefish.
 isPrint(r rune) -> bool : golang {
 	return unicode.IsPrint(r)
 }
 
+~~ `isPunct(r)` reports whether `r` is a Unicode punctuation character.
 isPunct(r rune) -> bool : golang {
 	return unicode.IsPunct(r)
 }
 
+~~ `isSpace(r)` reports whether `r` is a Unicode white space character.
 isSpace(r rune) -> bool : golang {
 	return unicode.IsSpace(r)
 }
 
+~~ `isSymbol(r)` reports whether `r` is a Unicode symbolic character.
 isSymbol(r rune) -> bool : golang {
 	return unicode.IsSymbol(r)
 }
 
+~~ `isTitle(r)` reports whether `r` is a title-case letter.
 isTitle(r rune) -> bool : golang {
 	return unicode.IsTitle(r)
 }
 
+~~ `isUpper(r)` reports whether `r` is an upper-case letter.
 isUpper(r rune) -> bool : golang {
 	return unicode.IsUpper(r)
 }
 
+~~ `simpleFold(r)` iterates over Unicode code points equivalent to `r` under Unicode simple case folding.
 simpleFold(r rune) -> rune : golang {
 	return unicode.SimpleFold(r)
 }
 
+~~ Converts `r` to the given case.
 toCase(c Case, r rune) -> rune : 
 	wrapToCase(int(c), r)
 
-wrapToCase(c int, r rune) -> rune : golang {
-	return unicode.To(c, r)
-}
-
+~~ `toLower(r)` maps the Unicode letter `r` to lower case.
 toLower(r rune) -> rune : golang {
 	return unicode.ToLower(r)
 }
 
+~~ `toTitle(r)` maps the Unicode letter `r` to title case.
 toTitle(r rune) -> rune : golang {
 	return unicode.ToTitle(r)
 }
 
+~~ `toUpper(r)` maps the Unicode letter `r` to upper case.
 toUpper(r rune) -> rune : golang {
 	return unicode.ToUpper(r)
+
+private 
+
+wrapToCase(c int, r rune) -> rune : golang {
+	return unicode.To(c, r)
 }
