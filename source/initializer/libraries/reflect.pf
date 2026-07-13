@@ -1,5 +1,10 @@
+~~ The `reflect` library allows you to find the properties of types, and so all the 
+~~ functions of the `reflect` library take as their arguments things of the built-in type
+~~ `type`.
+
 def
 
+~~ Tests whether the second type is a subtype of the first.
 contains(t, subtype type) -> bool :       //TODO --- it kinda seems like we should have a subset operator.
     from a = true for _::el = range typesInSubtype :
         el in typesInType :
@@ -10,6 +15,8 @@ given :
     typesInType = (getTypeInfo(t))[1]
     typesInSubtype = (getTypeInfo(subtype))[1]
 
+~~ Returns a list of the elements of an enum type; returns an error if the type is not
+~~ concrete or not an enum.
 elements(t type) -> list :
     concrete and info[4] :
         info[7]
@@ -19,9 +26,12 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ Tests whether the type is abstract, i.e. if it is the union of more than one (or of 
+~~ zero) concrete types.
 isAbstract(t type) -> bool :
     len (getTypeInfo(t))[1] != 1
 
+~~ Tests whether the given type is built-in.
 isBuiltin(t type) -> bool :
     concrete :
         info[2]
@@ -31,6 +41,7 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ Tests whether the given type is a clone.
 isClone(t type) -> bool :
     concrete :
         info[3]
@@ -40,12 +51,16 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ Tests whether the given type is concrete.
 isConcrete(t type) -> bool :
     len (getTypeInfo(t))[1] == 1
 
+~~ Tests whether the given type is `empty`, the abstract type formed from the union of no
+~~ concrete types.
 isEmpty(t type) -> bool :
     len (getTypeInfo(t))[1] == 0
 
+~~ Tests whether the given type is an enum.
 isEnum(t type) -> bool :
     concrete :
         info[4]
@@ -55,6 +70,7 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ Tests whether the given type is a struct.
 isStruct(t type) -> bool :
     concrete :
         info[5]
@@ -64,6 +80,8 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ If the type is a struct, this returns a list of the labels of its fields, and an error
+~~ otherwise.
 fieldLabels(t type) -> list :
     concrete and info[5] :
         info[8]
@@ -73,6 +91,8 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ If the type is a struct, this returns a list of the labels of its fields, and an error
+~~ otherwise.
 fieldTypes(t type) -> list :
     concrete and info[5] :
         info[9]
@@ -82,9 +102,12 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ Returns the name of the type as a string.
 name(t type) -> string :
     (getTypeInfo(t))[0]
 
+~~ Returns the operator of the type; that is, its name if it isn't parameterized and the
+~~ part before the parameters if it is.
 operator(t type) -> string :
     concrete :
         info[10]
@@ -94,6 +117,8 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ Returns the types of the type parameters (or an empty list if not parameterized) for
+~~ clone or struct types, otherwise returns an error.
 parameterTypes(t type) -> list :
     concrete and (info[3] or info[5]) :
         info[12]
@@ -103,6 +128,8 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ Returns the values of the type parameters (or an empty list if not parameterized) for
+~~ clone or struct types, otherwise returns an error.
 parameterValues(t type) -> list :
     concrete and (info[3] or info[5]) :
         info[11]
@@ -112,6 +139,7 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ Returns the parent of the type if it's a clone, and an error otherwise.
 parent(t type) -> type :
     concrete and info[3] :
         info[6]
@@ -121,5 +149,6 @@ given :
     info = getTypeInfo(t)
     concrete = len(info[1]) == 1
 
+~~ Returns a set of all the concrete types that are subtypes of the given type.
 subtypes(t type) -> set :
     (getTypeInfo(t))[1]

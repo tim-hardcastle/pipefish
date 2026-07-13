@@ -1,3 +1,9 @@
+~~ The `regexp` library implements regular expression search.
+~~
+~~ The syntax of the regular expressions accepted is the same general syntax used by Perl,
+~~ Python, and other languages. More precisely, it is the syntax accepted by RE2 and 
+~~ described at https://golang.org/s/re2syntax, except for \C. 
+
 import
 
 golang "regexp"
@@ -5,7 +11,8 @@ golang "errors"
 
 def
 
-match(pattern, text string) : golang {
+~~ Returns true if a match is found.
+match(pattern, text string) -> bool/error : golang {
 	regObj, err := regexp.Compile(pattern)
 	if err != nil {
 		return err
@@ -13,7 +20,8 @@ match(pattern, text string) : golang {
 	return regObj.MatchString(text)
 }
 
-find(pattern, text string) : golang {
+~~ Returns the first matching string.
+find(pattern, text string) -> string/error : golang {
 	regObj, err := regexp.Compile(pattern)
 	if err != nil {
 		return err
@@ -21,7 +29,8 @@ find(pattern, text string) : golang {
 	return regObj.FindString(text)
 }
 
-findAllString(pattern, text string, start int) : golang {
+~~ Returns a list of all the matching strings.
+findAllString(pattern, text string, start int) -> list/error: golang {
 	regObj, err := regexp.Compile(pattern)
 	if err != nil {
 		return err
@@ -29,6 +38,7 @@ findAllString(pattern, text string, start int) : golang {
 	return regObj.FindAllString(text, start)
 }
 
+~~ Returns a list of the indices of all the matching strings.
 findAllIndex(pattern, text string, start int) : golang {
 	regObj, err := regexp.Compile(pattern)
 	if err != nil {
@@ -38,6 +48,7 @@ findAllIndex(pattern, text string, start int) : golang {
     return indices
 }
 
+~~ Finds `pattern[0]` in `text` and replaces it with `pattern[1]`.
 replaceAll(pattern pair, text string) -> string/error : golang {
 	var (
 		lhs string

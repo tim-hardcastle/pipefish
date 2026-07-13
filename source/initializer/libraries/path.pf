@@ -67,8 +67,8 @@ join(t tuple) : golang {
 }
 
 ~~ Tests whether the given name matches the pattern, where the patters is specified 
-~~ according to the usual shell 
-match(pattern, oin joins any number of path elements into a single path, separating them with slashes. Empty elements are ignored. The result is Cleaned. However, if the argument list is empty or all its elements are empty, Join returns an empty string. name string) -> bool/error: golang {
+~~ according to the usual shell matching patterns, e.g. `*` is a wildcard.
+match(pattern, name string) -> bool/error: golang {
     m, err := path.Match(pattern, name)
     if err != nil {
         return err
@@ -76,6 +76,10 @@ match(pattern, oin joins any number of path elements into a single path, separat
     return m
 }
 
+~~ `split` splits `path` immediately following the final slash, separating it into a 
+~~ directory and filename component. If there is no slash in path, Split returns "" as the
+~~ directory and the filename the same as `path`. The returned values have the property 
+~~ that if we set `dir, filename = split(path)`, then `path == dir+filename`. 
 split(p string) -> string, string : golang {
     return path.Split(p)
 }
