@@ -107,6 +107,7 @@ toTitle(r rune) -> rune : golang {
 ~~ `toUpper(r)` maps the Unicode letter `r` to upper case.
 toUpper(r rune) -> rune : golang {
 	return unicode.ToUpper(r)
+}
 
 private 
 
