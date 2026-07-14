@@ -28,11 +28,11 @@ cmd
 
 ~~ Posts `body` to the url specified in the `url` field of `h`.
 post to (h Http, body snippet) :
-    goPost h[url], h[contentType], parseSnippetForHttp s
+    goPost h[url], h[contentType], parseSnippetForHttp body
 
 ~~ Posts `body` to the url specified in the `url` field of `h`.
 post to (h Http, body any) :
-    goPost h[url], h[contentType], string(a)
+    goPost h[url], h[contentType], string(body)
 
 ~~ Gets an HTTP response from the url specified in the `url` field of `h`.
 get (x ref) from (h Http) :
