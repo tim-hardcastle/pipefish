@@ -12,9 +12,9 @@ DEFAULT_COST = 10
 
 def
 
-~~ Compares a bcrypt hashed password with its possible plaintext equivalent. Returns `NULL` 
+~~ Compares a bcrypt hashed password with its possible plaintext equivalent.
 ~~ on success, or an error on failure. 
-compare(hashedPassword, plaintext string) -> NULL/error :
+compare(hashedPassword, plaintext string) -> bool :
     (goCompare hashedPassword, plaintext)
 
 ~~ Returns the bcrypt hash of the password using the default cost defined in this package.
@@ -39,12 +39,9 @@ goHash(s string, cost int) -> string/error : golang {
     return e 
 }
 
-goCompare(hashedPassword, plaintext string) -> bool/error : golang {
-    e := CompareHashAndPassword(hashedPassword, password)
-    if e == nil {
-        return true
-    }
-    return e 
+goCompare(hashedPassword, password string) -> bool : golang {
+    e := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+    return e == nil
 }
 
 
