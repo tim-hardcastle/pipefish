@@ -322,7 +322,7 @@ bitLen(z Int) -> int : golang {
 divMod(x, y) -> Int, Int : golang {
     z := big.NewInt(0)
     m := big.NewInt(0)
-    z.DivMod(x.(*big.Int), y.(*big.Int))
+    z.DivMod(x.(*big.Int), y.(*big.Int), m)
     return z, m
 }
 
