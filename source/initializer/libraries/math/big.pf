@@ -322,7 +322,7 @@ bitLen(z Int) -> int : golang {
 divMod(x, y) -> Int, Int : golang {
     z := big.NewInt(0)
     m := big.NewInt(0)
-    z.DivMod(x.(*big.Int), y.(*big.Int), m.(*big.Int))
+    z.DivMod(x.(*big.Int), y.(*big.Int))
     return z, m
 }
 
@@ -435,7 +435,7 @@ quo(x, y Int) -> Int : golang {
 quoRem(x, y Int) -> Int, Int : golang {
     z := big.NewInt(0) 
     r := big.NewInt(0)
-    z.QuoRem(x.(*big.Int), y.(*big.Int), r.(*big.Int))
+    z.QuoRem(x.(*big.Int), y.(*big.Int), r)
     return z, r
 }
 
