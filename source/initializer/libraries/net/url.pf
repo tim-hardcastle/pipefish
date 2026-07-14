@@ -70,7 +70,7 @@ isAbs(u Url) -> bool : golang {
 ~~ sequences of multiple / characters will be reduced to a single /. Path elements must already be in
 ~~ escaped form, as produced by `pathEscape`. 
 joinPath(u Url, elem ... string) -> Url : golang {
-    return urlToUrlUrl(u).JoinPath(elem ...)
+    return urlUrlToUrl(urlToUrlUrl(u).JoinPath(elem ...))
 }
 
 ~~ `joinPath` with a `string` as the first parameter returns a URL string with the provided path 
