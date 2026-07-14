@@ -646,7 +646,7 @@ denom(z Rat) -> Int : golang {
 float(z Rat) :
     bigRtolittlef z
 
-~~ returns a string representation of `x` in decimal form with `prec` digits of precision
+~~ Returns a string representation of `x` in decimal form with `prec` digits of precision
 ~~ after the radix point. The last digit is rounded to nearest, with halves rounded away 
 ~~ from zero. 
 floatString(z Rat, prec int) -> string : golang {

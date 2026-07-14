@@ -196,7 +196,6 @@ func StartCompiler(scriptFilepath, sourcecode string, hubServices map[string]*co
 		return result
 	}
 
-
 	iz.cmI("Making function tables.")
 	iz.makeFunctionTables()
 	if iz.errorsExist() {
@@ -624,7 +623,7 @@ func (iz *Initializer) createStructConstructors() {
 		if len(dec.params) > 0 {
 			continue
 		}
-		typeNo := iz.structDeclarationNumberToTypeNumber[i]		
+		typeNo := iz.structDeclarationNumberToTypeNumber[i]
 		fnNo := iz.addToBuiltins(sig, name, altType(typeNo), dec.private, indexToken)
 		fn := &parsedFunction{
 			decType:   functionDeclaration,
@@ -972,7 +971,7 @@ func (iz *Initializer) tweakValue(v values.Value) values.Value {
 // This is brittlely coupled with the descriptionTypes in the api.go file of the compiler module.
 var declarationDescriptors = [][]declarationType{
 	{importDeclaration, externalDeclaration},
-	{enumDeclaration, cloneDeclaration, structDeclaration, aliasDeclaration, abstractDeclaration, interfaceDeclaration},
+	{enumDeclaration, cloneDeclaration, wrapperDeclaration, structDeclaration, aliasDeclaration, abstractDeclaration, interfaceDeclaration},
 	{constantDeclaration},
 	{variableDeclaration},
 	{commandDeclaration},
@@ -1798,7 +1797,7 @@ const ( // Most of these names are self-explanatory.
 	interfaceDeclaration                 //
 	cloneDeclaration                     //
 	aliasDeclaration                     //
-	goTypeDeclaration                    //
+	wrapperDeclaration                   //
 	constantDeclaration                  //
 	variableDeclaration                  //
 	functionDeclaration                  //

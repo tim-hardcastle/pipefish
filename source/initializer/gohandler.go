@@ -81,7 +81,7 @@ func (iz *Initializer) compileGo() {
 	}
 
 	// And the Go types declared by `wrapper` in the `newtype` section.
-	for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
+	for _, tc := range iz.tokenizedCode[wrapperDeclaration] {
 		wrapper := tc.(*tokenizedWrapperDeclaration)
 		iz.goBucket.sources.Add(wrapper.op.Source)
 		iz.goBucket.types[wrapper.op.Source] = append(iz.goBucket.types[wrapper.op.Source],

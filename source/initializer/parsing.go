@@ -758,7 +758,7 @@ func (iz *Initializer) createEnums() {
 
 // We create the types that wrap around Go types.
 func (iz *Initializer) createWrapperTypes() {
-	for _, tc := range iz.tokenizedCode[goTypeDeclaration] {
+	for _, tc := range iz.tokenizedCode[wrapperDeclaration] {
 		dec := tc.(*tokenizedWrapperDeclaration)
 		var typeNo values.ValueType
 		info, typeExists := iz.getDeclaration(decWRAPPER, &dec.op, DUMMY)

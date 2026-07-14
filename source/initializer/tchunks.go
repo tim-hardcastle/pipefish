@@ -284,7 +284,7 @@ type tokenizedWrapperDeclaration struct {
 }
 
 func (tc *tokenizedWrapperDeclaration) getDeclarationType() declarationType {
-	return goTypeDeclaration
+	return wrapperDeclaration
 }
 
 func (tc *tokenizedWrapperDeclaration) indexToken() token.Token { return tc.op }
