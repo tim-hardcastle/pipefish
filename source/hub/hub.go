@@ -957,8 +957,8 @@ func StartServiceFromCli() {
 	}
 	val, _ := newService.CallMain()
 	if val.T == pf.UNDEFINED_TYPE {
-		fmt.Println("\nScript <C>\"" + filename + "\"</> has no `main` command.\n\n")
-		fmt.Print("\n\nClosing Pipefish.\n\n")
+		fmt.Println("\nScript \"" + filename + "\" has no `main` command.\n")
+		fmt.Print("Closing Pipefish.\n\n")
 		os.Exit(4)
 	}
 	if val.T == pf.ERROR {

@@ -91,9 +91,6 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 		return
 	}
 
-	iz.cmI("Making boilerplate in tokenized function form.")
-	iz.createBoilerplate()
-
 	// An unnamespaced import may itself contain imports, namespaced or unnamespaced.
 	// So we need to keep going round until we've pulled everything into the namespace.
 
@@ -138,6 +135,9 @@ func (iz *Initializer) parseEverything(scriptFilepath, sourcecode string) {
 			break
 		}
 	}
+
+	iz.cmI("Making boilerplate in tokenized function form.")
+	iz.createBoilerplate()
 
 	iz.cmI("Making reverse alias list.")
 	iz.makeReverseAliasList()
@@ -580,7 +580,6 @@ func (iz *Initializer) createBoilerplate() {
 		}
 		newBody.Append(token.Token{Type: token.RPAREN, Literal: "<-|"})
 		newOp := cmd.op
-		newOp.Source = newOp.Source + "/boilerplate"
 		newOp.Literal = "post"
 		newCmd := tokenizedFunctionDeclaration{
 			decType:       commandDeclaration,
