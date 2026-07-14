@@ -7,12 +7,6 @@ golang "errors"
 
 newtype
 
-CRAMMD5Auth returns 
-func PlainAuth ¶
-
-func PlainAuth(identity, username, password, host string) Auth
-
-
 ~~ An `Auth` that implements the CRAM-MD5 authentication mechanism as defined in RFC 2195. 
 ~~ The returned Auth uses the given username and secret to authenticate to the server using 
 ~~ the challenge-response mechanism.
