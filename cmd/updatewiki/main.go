@@ -19,7 +19,7 @@ const wikiURL = "https://github.com/tim-hardcastle/pipefish.wiki.git"
 
 const footer = `
 
----
+## Notes
 
 *This page is automatically generated from the Pipefish standard library. Any edits made directly to this wiki page will be overwritten the next time the documentation is regenerated.*
 `

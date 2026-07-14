@@ -86,8 +86,18 @@ type wikifier struct{}
 
 func (w wikifier) Render(lines []string) string {
 	result :=  ""
+	lastWasList := false
 	for _, line := range lines {
-		result = result + line + " "
+		if text.Head(line, "- ") {
+			if !lastWasList {
+				result = result + "\n"
+				lastWasList = true 
+			}
+			result = result + line + "\n"
+		} else {
+			result = result + line + " "
+			lastWasList = false
+		}
 	}
 	return result + "\n"
 }

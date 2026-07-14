@@ -88,9 +88,9 @@ isInt(z Float) -> bool : golang {
 
 ~~ `sign(z)` returns:
 ~~
-~~ `-1` if `z < 0`
-~~ `0` if `z == 0`
-~~ `1` if `z > 0`
+~~ - `-1` if `z < 0`
+~~ - `0` if `z == 0`
+~~ - `1` if `z > 0`
 sign(z Float) -> int :
     goSignF z 
 
@@ -455,9 +455,9 @@ rsh(x Int, n int) -> Int : golang {
 
 ~~ `sign(z)` returns:
 ~~
-~~ `-1` if `z < 0`
-~~ `0` if `z == 0`
-~~ `1` if `z > 0`
+~~ - `-1` if `z < 0`
+~~ - `0` if `z == 0`
+~~ - `1` if `z > 0`
 sign(z Int) -> int : golang {
     return z.(*big.Int).Sign()
 }
@@ -669,21 +669,21 @@ num(z Rat) -> Int : golang {
     return z.(*big.Rat).Num()
 }
 
-~~ Returns a string representation of `z` in the form `"a/b"`` if `b != 1``, and in the 
-~~ form "a" if b == 1. 
+~~ Returns a string representation of `z` in the form `"a/b"` if `b != 1`, and in the 
+~~ form `"a"` if `b == 1`. 
 ratString(z Rat) -> string : golang {
     return z.(*big.Rat).RatString()
 }
 
 ~~ `sign(z)` returns:
 ~~
-~~ `-1` if `z < 0`
-~~ `0` if `z == 0`
-~~ `1` if `z > 0`
+~~ - `-1` if `z < 0`
+~~ - `0` if `z == 0`
+~~ - `1` if `z > 0`
 sign(z Rat) -> int :
     goSignR z
 
-~~ Returns a string representation of `z`` in the form `"a/b"`` (even if `b == 1``). 
+~~ Returns a string representation of `z` in the form `"a/b"` (even if `b == 1`). 
 string(z Rat) :
     rtoa z
 
