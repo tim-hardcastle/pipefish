@@ -191,7 +191,7 @@ func (tc *tokenizedExternalOrImportDeclaration) api() (string, string, bool) {
 	if tc.private || settings.MandatoryImportSet().Contains(tc.name.Source) {
 		return "", "", false
 	}
-	return tc.name.Literal, tc.docString, true
+	return tc.name.Literal + " (\"" + tc.path.Literal +"\")", tc.docString, true
 }
 
 type tokenizedFunctionDeclaration struct {

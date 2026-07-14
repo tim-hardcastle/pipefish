@@ -297,6 +297,8 @@ func (iz *Initializer) parseImports(startAt int) []tokenizedCode {
 			unnamespacedImports = append(unnamespacedImports, dec)
 			continue
 		}
+		dec.name.Literal = name
+		dec.path.Literal = path
 		newIz := NewInitializer(iz.Common)
 		iz.initializers.Set(path, newIz)
 		newCp, e := newIz.ParseEverythingFromFilePath(iz.cp.Vm, iz.P.Common, iz.cp.Common, path, iz.P.NamespacePath+name+".")
@@ -332,6 +334,8 @@ func (iz *Initializer) initializeExternals(startAt int) {
 		name := dec.name.Literal
 		path := dec.path.Literal
 		name, path = TweakNameAndPath(name, path, dec.path.Source)
+		dec.name.Literal = name
+		dec.path.Literal = path
 		if path == "" { // Then this will work only if there's already an instance of a service of that name running on the hub.
 			externalCP, ok := iz.Common.serviceCompilers[name]
 			if !ok {
