@@ -197,7 +197,7 @@ given :
 sum(L clones{list}) :
     L == [] :
         error "can't take sum of empty list"
-    elsezip  :
+    else :
         from a = L[0] for _::el = range L[1::len L] :
             a + el
 
