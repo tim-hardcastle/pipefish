@@ -2,6 +2,8 @@
 
 Almost every important package has its own README by now, explaining the purpose of the files in it: in this document we will take a less detailed overview of the whole system.
 
+For a much longer overview, see the `architecture.md` file in the `docs` folder of the repo.
+
 ## `main` and `hub`
 
 The top layer of the application consists of the `main.go` file, which just starts up the REPL, and the `hub` package consisting of `hub.go`, `repl.go`, and `snap.go`. Of these `repl.go` just wraps lightly round the hub for reasons now moot, and will shortly be removed. `snap.go` provides facilities for making automated tests.
