@@ -38,8 +38,6 @@ The design of Pipefish has followed Go where this was sensible, Python as a fall
 
 * Everything is 0-indexed; all ranges are from-including-to-excluding.
 
-* Pipefish is named after a fish and so is Rob Pike.
-
 ## Design philosophy
 
 Pipefish shares Go's philosophy of being a small boring language learnable in a weekend where everyone can read everyone else's code because everyone's code is just using `for` loops over and over on a small set of built-in types.
@@ -47,3 +45,7 @@ Pipefish shares Go's philosophy of being a small boring language learnable in a 
 Like Go, the goal is a language that is permanently in version 1.x, and if anything more suspicious of additions. We will soon be able to say: "That's enough core language" and freeze development.
 
 Even more than Go, Pipefish is about developer experience and rapid development. Go has fast compile times for rapid iteration; Pipefish has livecoding and a REPL. Go made tests into a first-class feature of the language; Pipefish allows you to intersperse them among the code you're writing. Logging statements take everything you like about just sticking `println` in your code and make it as powerful as a debugger. Etc, etc.
+
+## Fish
+
+Pipefish is named after a fish and so is Rob Pike.
