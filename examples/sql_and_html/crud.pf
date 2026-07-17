@@ -16,6 +16,11 @@ newtype
 Person = struct(name Varchar{32}, age int) : 
     age >= 0
 
+cmd private 
+
+init :
+    post to SQL -- CREATE TABLE IF NOT EXISTS People |Person|
+
 cmd // Now let's add some public commands.
 
 ~~ Adds a person with the given name and age to the database.
@@ -49,7 +54,3 @@ show >= (minAge int) :
     post string Html --
         <h3>List of people aged <font style="color:Green;">|minAge|</font> and over</h3>
         |peopleList|
-
-private 
-init :
-    post to SQL -- CREATE TABLE IF NOT EXISTS People |Person|

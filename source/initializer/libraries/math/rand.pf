@@ -46,6 +46,7 @@ put (i int) into (seed Seed) :
 ~~ - If it's a pair of integers, it selects a random integer from the range.
 ~~ - If it's a pair of floats, it selects a random float from the range.
 get (x ref) from (r Random) :
+    post "called the thing"
     type r[elements] == int :
         x = goIntn(r[elements])
     type r[elements] == float :

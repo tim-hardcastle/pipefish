@@ -1,0 +1,197 @@
+import
+
+golang "github.com/ichiban/prolog"
+golang "github.com/ichiban/prolog/engine"
+"strings"
+NULL::"files"
+
+var pDb = Prolog()
+
+newtype 
+
+Prolog = wrapper *prolog.Interpreter
+Term = struct(functor string, args list)
+PrologFile = struct(filename string)
+
+def
+
+~~ Initializes an empty interpreter.
+Prolog() -> Prolog :
+    goProlog ""
+
+~~ Initializes the interpreter from a string.
+Prolog(s string) -> Prolog : 
+    goProlog s
+
+~~ Initializes the interpreter from a snippet.
+Prolog(S snippet) :
+    goProlog toString(S)
+
+string(t Term) :
+    string(t[functor]) + "(" + strings.join((t[args] >> string(that)), ", ") + ")"
+
+cmd
+
+~~ Adds a fact or a rule.
+add(P Prolog, s string) :
+    for _::str = range(strings.split(s, "\n")) :
+        _ = goQuery P, "assertz(" + strings.trimRight(str, ".") + ")."
+
+~~ Ditto.
+add(P Prolog, S snippet) :
+    add P, toString(S) 
+
+~~ Initializes the interpreter from a file.
+load(P ref) from (f PrologFile) :
+    get code from File("./test.plg")
+    P = Prolog(code)
+
+def 
+
+~~ Returns the result of a query.
+query(P Prolog, s string/snippet) :
+    goQuery P, toString(s)
+
+~~ Tests if solutions to a query exist.
+check(P Prolog, s string/snippet) -> bool/error :
+    count(P, s) > 0
+
+~~ Counts the number of solutions to a query.
+count(P Prolog, s string/snippet) -> int/error :
+    goCount P, toString(s)
+
+private
+
+// Needs the Prolog equivalent of sanitation.
+toString(S snippet/string) -> string :
+    S in string :
+        S 
+    else :
+        from a = "" for i::v = range S :
+            i mod 2 == 0 :
+                a + v 
+            else :
+                a + pfToPrologString(v)
+
+// Functions to convert values from Prolog to Go, and from Pipefish to Prolog.
+declare(t Term) : golang {
+    return nil
+}
+
+golang{ 
+
+    type Any struct {
+        Value any
+    }
+
+    func (a *Any) Scan(_ *engine.VM, t engine.Term, env *engine.Env) error {
+        a.Value = ToGo(env.Resolve(t))
+        return nil
+    }
+
+    type Compound interface {
+        Functor() engine.Atom
+        Arity() int
+        Arg(int) engine.Term
+    }
+
+    func ToGo(t engine.Term) any {
+        switch v := t.(type) {
+        case engine.Integer:
+            return int(v)
+        case engine.Atom:
+            if v.String() == "[]" {
+                return []any{}
+            }
+            if v.String() == "true" {
+                return true
+            }
+            if v.String() == "fail" {
+                return false
+            }
+            return v.String()
+        case Compound: 
+            if v.Functor().String() == "." {
+                head := ToGo(v.Arg(0))
+                tail := ToGo(v.Arg(1))
+                return append([]any{head}, tail.([]any)...)
+            }
+            args := make([]any, v.Arity())
+            for i := range args {
+                args[i] = ToGo(v.Arg(i))
+            }
+            return Term{
+                Functor: v.Functor().String(),
+                Args:    args,
+            }
+        default:
+            panic("unsupported type")
+        }
+    }
+
+}
+
+pfToPrologString(a any) -> string :
+    a in string :
+        a 
+    a in Term/int :
+        string a 
+    a in list :
+        "[" + strings.join((a >> pfToPrologString(that)), ", ") + "]"
+    a == true :
+        "true"
+    a == false :
+        "fail" 
+    else :
+        error "can't convert value to Prolog"
+
+goCount (P Prolog, s string) -> int/error : golang {
+    sols, err := P.(*prolog.Interpreter).Query(s)
+    if err != nil {
+        return err
+    }
+    defer sols.Close()
+    c := 0
+    for sols.Next() {
+        c = c + 1
+    }
+    if err := sols.Err(); err != nil {
+        return err
+    }
+    return c
+}
+
+goProlog (s string) -> Prolog/error : golang {
+    P := prolog.New(nil, nil)
+    err := P.Exec(s)
+    if err != nil {
+        return err
+    }
+    return P
+}
+
+goQuery(P Prolog, s string) -> list/error : golang {
+    sols, err := P.(*prolog.Interpreter).Query(s)
+    if err != nil {
+        return err
+    }
+    defer sols.Close()
+    result := []map[string]any{}
+    for sols.Next() {
+        plgVars := map[string]Any{}
+		if err := sols.Scan(&plgVars); err != nil {
+			return err
+		}
+        goVars := map[string]any{}
+        for k, v := range plgVars {
+            goVars[k] = v.Value
+        }
+        result = append(result, goVars) 
+    }
+    if err := sols.Err(); err != nil {
+        return err
+    }
+    return result
+}
+
+

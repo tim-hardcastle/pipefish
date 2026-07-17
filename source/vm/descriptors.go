@@ -162,7 +162,7 @@ func (vm *Vm) ToString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 	}
 	if typeInfo.IsWrapperType() {
 		if vm.GoLiteral == nil {
-			return "can't serialize value"
+			return "instance of " + typeInfo.GetName(LITERAL)
 		}
 		return vm.GoLiteral(v.V)
 	}

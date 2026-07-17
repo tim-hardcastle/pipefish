@@ -295,6 +295,8 @@ func (p *Parser) prettyPrint(node Node, ctxt printContext) string {
 		}
 	case *RuneLiteral:
 		out.WriteString(strconv.QuoteRune(node.Value))
+	case *SnippetLiteral:
+		out.WriteString("-- " + node.Value)
 	case *StringLiteral:
 		out.WriteString(strconv.Quote(node.Value))
 	case *SuffixExpression:
