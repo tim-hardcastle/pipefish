@@ -28,11 +28,11 @@ Pipefish is a delightful general-purpose language particularly suitable for rapi
 
 The core language is 97% feature-complete; it currently has [39 standard libraries](https://github.com/tim-hardcastle/pipefish/wiki/Imports-and-libraries#libraries); there is [tooling](https://github.com/tim-hardcastle/pipefish/wiki/Developing-in-Pipefish); there is [a wiki](https://github.com/tim-hardcastle/pipefish/wiki); there are plenty of features including some you've never heard or thought of.
 
-It benchmarks very competitively on [independent benchmarks](https://github.com/lac-dcc/BenchGen/wiki/Pipefish:-A-functional-and-indentation-sensitive-programming-language-on-BenchGen), despite having little in the way of optimization (scheduled for the next phase of the project.)
+It benchmarks very competitively on [independent benchmarks](https://github.com/lac-dcc/BenchGen/wiki/Pipefish:-A-functional-and-indentation-sensitive-programming-language-on-BenchGen), despite having little in the way of optimization (scheduled for the next and final phase of the project).
 
 It still requires work on optimzation, tooling, concurrency, and security before it should be used in production for its main purpose, but it can be used for personal projects. You can download it [here](https://github.com/tim-hardcastle/pipefish/wiki/Installing-and-using-Pipefish).
 
-It is intended that Pipefish itself will one day be used in productionI[batterie, or alternatively that this project will get enough attention that my ideas will be copied by people with more money and personnel and expertise, and that, if not Pipefish, then some Pipefish-style language will one day make people's lives easier. To this end, please add a star to the repo! Thank you!
+It is intended that Pipefish itself will one day be used in productionI, or alternatively that this project will get enough attention that my ideas will be copied by people with more money and personnel and expertise, and that, if not Pipefish, then some Pipefish-style language will one day make people's lives easier. To this end, please add a star to the repo! Thank you!
 
 Instructions for installing Pipefish can be found [here](https://github.com/tim-hardcastle/pipefish/wiki/Installing-and-using-Pipefish), as part of [a general manual/tutorial wiki](https://github.com/tim-hardcastle/pipefish/wiki) that tells you everything you need to know to code in Pipefish. There are [lots of other supporting documents](https://github.com/tim-hardcastle/pipefish/tree/main/docs).
 
