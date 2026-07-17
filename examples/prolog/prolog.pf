@@ -128,7 +128,6 @@ golang{
             panic("unsupported type")
         }
     }
-
 }
 
 pfToPrologString(a any) -> string :
