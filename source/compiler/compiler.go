@@ -1729,7 +1729,11 @@ func (cp *Compiler) compileForExpression(node *parser.ForExpression, ctxt Contex
 						cp.Throw("comp/for/exists/value", pairOfIdentifiers.Args[0].GetToken(), rightName)
 						return FAIL
 					}
-					cp.AddThatAsVariable(newEnv, rightName, FOR_LOOP_INDEX_VARIABLE, cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), rangeOver.GetToken())
+					valueType := cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)
+					if rangeCpResult.Types.isOnlyCloneOf(cp.Vm, values.STRING) {
+						valueType = AltType(values.RUNE)
+					}
+					cp.AddThatAsVariable(newEnv, rightName, FOR_LOOP_INDEX_VARIABLE, valueType, rangeOver.GetToken())
 				}
 				if len(rangeCpResult.Types.intersect(cp.Common.IsInfalliblyRangeable())) < len(rangeCpResult.Types) {
 					iteratorCreationError = cp.VmConditionalEarlyReturn(vm.Qtyp, iteratorLoc, uint32(values.ERROR), iteratorLoc)
