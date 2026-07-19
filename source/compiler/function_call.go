@@ -308,7 +308,7 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 
 	// Now we can recurse along the branch.
 	// If we know whether we're looking at a singleton or a tuple, we can erase this and act accordingly, otherwise we generate a conditional.
-	var typesFromGoingAcross, typesFromGoingDown AlternateType
+	var typesFromGoingAcross, typesFromGoingDown, typesFromError AlternateType
 	var overrideFromGoingAcross, overrideFromGoingDown bool
 
 	if isVarargs { // Then we don't want to move along the branch of the function tree, just get a new argument and continue.
@@ -353,6 +353,12 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 				typesFromTuples, overrideFromTuples = cp.generateMoveAlongBranchViaSingleOrTupleValue(&newBindle)
 			} else {
 				singleCheck := cp.vmIf(vm.Qsnq, b.valLocs[b.argNo])
+				if b.targetList.containsAnyOf(values.ERROR) {
+					typesFromError = AltType(values.ERROR)
+					cp.Emit(vm.Qtyp, b.valLocs[b.argNo], uint32(values.ERROR), cp.CodeTop()+3)
+					cp.Emit(vm.Asgm, b.outLoc, b.valLocs[b.argNo])
+					cp.Emit(vm.Ret)
+				}
 				cp.cmP("Generating branch to check out single values.", b.tok)
 				typesFromSingles, overrideFromSingles = cp.generateMoveAlongBranchViaSingleOrTupleValue(&newBindle)
 				skipElse = cp.vmGoTo()
@@ -380,7 +386,7 @@ func (cp *Compiler) generateBranch(b *bindle) (AlternateType, bool) {
 	}
 	cp.cmP("We return from generateBranch.", b.tok)
 	cp.cmP("Types from going down are "+typesFromGoingDown.describe(cp.Vm), b.tok)
-	return typesFromGoingAcross.Union(typesFromGoingDown), overrideFromGoingAcross || overrideFromGoingDown
+	return typesFromGoingAcross.Union(typesFromGoingDown).Union(typesFromError), overrideFromGoingAcross || overrideFromGoingDown
 }
 
 func (cp *Compiler) emitTypeComparisonFromAltType(typeAsAlt AlternateType, mem uint32, tok *token.Token) bkGoto { // TODO --- more of this.
@@ -519,10 +525,15 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 					if b.access == CMD {              // TODO --- this all seems kludgy.
 						return AltType(values.UNSATISFIED_CONDITIONAL, values.SUCCESSFUL_VALUE, values.ERROR), true
 					}
-					return cp.rtnTypesToTypeScheme(branch.Node.CallInfo.Compiler.MakeAbstractSigFromAstSig(branch.Node.CallInfo.ReturnTypes)), true
+					// We have to add in an error here because it *might* be there and we can't tell.
+					return cp.rtnTypesToTypeScheme(branch.Node.CallInfo.Compiler.MakeAbstractSigFromAstSig(branch.Node.CallInfo.ReturnTypes)).Union(AltType(values.ERROR)), true
 				}
 				// So this exists.
 				F := resolvingCompiler.Fns[fNo]
+				// This is a function recursing with itself. The error may be there bu undeclared.
+				if fNo == uint32(len(resolvingCompiler.Fns))-1 && cp == resolvingCompiler {
+					F.RtnTypes = F.RtnTypes.Union(AltType(values.ERROR))
+				}
 				// Perhaps we're compiling mutually recursive functions and we *have* compiled the one we're calling.
 				// In that case we can nearly treat this like a normal function call except that we have to push any
 				// data that needs saving.

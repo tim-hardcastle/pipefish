@@ -998,7 +998,8 @@ func (h *Hub) GetAndReportErrors(sv *pf.Service) {
 }
 
 func (h *Hub) CurrentServiceIsBroken() bool {
-	return h.Services[h.CurrentServiceName()].IsBroken()
+	return h.Services[h.CurrentServiceName()] == nil ||
+	    h.Services[h.CurrentServiceName()].IsBroken()
 }
 
 func (h *Hub) saveHubFile() string {

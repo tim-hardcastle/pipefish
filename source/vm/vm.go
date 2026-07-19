@@ -1544,7 +1544,7 @@ loop:
 				continue
 			case Qsnq: // Test singleton (mem loc)
 				// Jumps to location n#1 if v#2 is a tuple.
-				if vm.Mem[args[0]].T >= values.NULL {
+				if vm.Mem[args[0]].T != values.TUPLE {
 					loc = loc + 1
 				} else {
 					loc = args[1]
@@ -2529,6 +2529,40 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

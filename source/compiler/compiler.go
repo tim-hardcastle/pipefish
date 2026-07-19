@@ -2472,13 +2472,13 @@ func (cp *Compiler) compilePipe(lhsTypes AlternateType, lhsConst bool, rhs parse
 	var envWithThat *Environment
 	// If we have an identifier `foo`, we desugar it into `foo(that)`.
 	rhs = desugar(rhs)
-	var whatAccess VarAccess // TODO --- why?
+	var whatAccess VarAccess
 	if lhsConst {
 		whatAccess = VERY_LOCAL_CONSTANT
 	} else {
 		whatAccess = VERY_LOCAL_VARIABLE
 	}
-	envWithThat = &Environment{Data: map[string]Variable{"that": {MLoc: cp.That(), Access: whatAccess, Types: lhsTypes}}, Ext: env}
+	envWithThat = &Environment{Data: map[string]Variable{"that": {MLoc: cp.That(), Access: whatAccess, Types: lhsTypes, Token: &token.Token{Literal: "that"}}}, Ext: env}
 	newContext := ctxt
 	newContext.Env = envWithThat
 	return cp.CompileNode(rhs, newContext)
@@ -2522,7 +2522,7 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 	}
 	rhs = desugar(rhs)
 	thatLoc = cp.Reserve(values.UNDEFINED_TYPE, DUMMY, rhs.GetToken())
-	envWithThat = &Environment{Data: map[string]Variable{"that": {MLoc: cp.That(), Access: VERY_LOCAL_VARIABLE, Types: cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST)}}, Ext: env}
+	envWithThat = &Environment{Data: map[string]Variable{"that": {MLoc: cp.That(), Access: VERY_LOCAL_VARIABLE, Types: cp.GetAlternateTypeFromTypeAst(parser.ANY_NULLABLE_TYPE_AST), Token: &token.Token{Literal: "that"}}}, Ext: env}
 	cp.Put(vm.Asgm, values.C_ZERO)
 	counter := cp.That()
 	cp.Put(vm.Asgm, values.C_EMPTY_TUPLE)
@@ -2585,7 +2585,7 @@ func (cp *Compiler) compileMappingOrFilter(lhsTypes AlternateType, lhsConst bool
 // into `foo(that)`
 func desugar(node parser.Node) parser.Node {
 	if ident, ok := node.(*parser.Identifier); ok && !(ident.Value == "that") {
-		thatIdent := &parser.Identifier{token.Token{}, "that"}
+		thatIdent := &parser.Identifier{token.Token{Literal: "that"}, "that"}
 		prefix := &parser.PrefixExpression{ident.Token, ident.Value, []parser.Node{thatIdent}}
 		return prefix
 	}
