@@ -400,7 +400,6 @@ func (p *Parser) ParseExpression(precedence int) Node {
 		foundInfix := nativeInfixes.Contains(p.PeekToken.Type) ||
 			lazyInfixes.Contains(p.PeekToken.Type) ||
 			ok
-		// TODO --- find some way of eliciting this error or prove that this can't happen.
 		if !foundInfix {
 			p.Throw("parse/wut", &p.PeekToken)
 			return nil

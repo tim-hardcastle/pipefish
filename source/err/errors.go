@@ -89,7 +89,6 @@ func GetErrorCreator(id string) (ErrorCreator, bool) {
 func CreateErr(errorId string, tok *token.Token, args ...any) *Error {
 	errorCreator, ok := GetErrorCreator(errorId)
 	if !ok {
-		panic(errorId)
 		return CreateErr("err/misdirect/", tok, errorId)
 	}
 	return &Error{ErrorId: errorId,

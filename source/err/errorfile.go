@@ -1951,6 +1951,15 @@ var errorCreatorMap = map[string]ErrorCreator{
 		},
 	},
 
+	"parse/wut": {
+		Message: func(tok *token.Token, args ...any) string {
+			return "found unexpected " + DescribeTok(tok)
+		},
+		Explanation: func(tok *token.Token, args ...any) string {
+			return "Pipefish just doesn't understand your syntax here."
+		},
+	},
+
 	"sigs/expect": {
 		Message: func(tok *token.Token, args ...any) string {
 			return "found " + DescribeTok(tok) + " in function declaration, expected `:` or `->`"

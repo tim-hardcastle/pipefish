@@ -1,0 +1,196 @@
+
+// Parser for sound changes 
+
+newtype 
+
+PhonemeNode = struct(token Token, phoneme string)
+ClassNode = struct(token Token, class string)
+NumberNode = struct(token Token, value int)
+BinaryNode = struct(token Token, operator string, left, right Node)
+PrefixNode = struct(token Token, prefix string, argument Node)
+EmptyNode = struct(token Token)
+
+Node = abstract PhonemeNode/ClassNode/NumberNode/BinaryNode/PrefixNode/EmptyNode
+
+const 
+
+EMPTY_NODE = EmptyNode(Token(EMPTY, NULL, 0))
+AND_TOKEN = Token(OPERATOR, "&", 0) // For adding as an implicit "&".
+LOWEST_PRECEDENCE = 0
+INFIXES = map(">"::1,
+           .. ","::2,
+           .. "."::3,
+           .. "or"::5,
+           .. "&"::6,
+           .. "/"::7)
+PREFIX_PRECEDENCE = 4
+PREFIXES = map("any"::ANY,
+            .. "initial"::INITIAL, 
+            .. "medial"::MEDIAL,
+            .. "final"::FINAL,
+            .. "non-initial"::NON_INITIAL, 
+            .. "non-final"::NON_FINAL)
+
+def
+
+~~ Parses a snippet into an AST.
+// We need to wrap the recursive `parseExpression` function in this non-recursive function so
+// that we can recognize if/when there are still tokens left over after the recursion terminates.
+// This function knows where it is in the call tree and no instance of `parseExpression` does.
+parse(sn snippet) -> Node :
+    len leftovers > 0 :
+        error "unexpected '" + string(head[value]) + "' at line " + string(head[lineNumber])
+    else :
+        result 
+given :
+    leftovers, result = sn -> tokenize -> that[0::len(that)-1] -> ..
+                        .. parseExpression(that, LOWEST_PRECEDENCE)
+    head = leftovers[0]
+
+// A well-formed expression consists of "the start" and the "the rest", where the 
+// start is itself be an expression, and the rest will either be nothing at all, 
+// or will be a binary operation followed by an expression.
+//
+// The essence of a Pratt parser is that if we have an expression like `3 + 4 * 5`
+// it will see `3` as the start and `+ 4 * 5` as the rest, but it we instead have
+// `3 * 4 + 5` it will see `3 * 4` as the start and `+ 5` as the rest. 
+//
+// `parseExpression` uses `parseStart` to parse the subexpression that starts the
+// expression  and then puts the returned reduced list of tokens and AST into 
+// `parseRest`, with the same precedence that was passed into `parseExpression`.
+//
+parseExpression(tokens list, prec int) -> list, Node :  
+    parseStart(tokens) -> parseRest(that[0], that[1], prec)
+
+// The start of an expression will be either :
+//   (A) a prefix followed by an expression, followed by the rest of the expression.
+//   (B) an expression in parentheses, followed by the rest of the expression
+//   (C) a literal followed by the rest of the expression.
+//   (D) a literal followed by the start of another expression.
+//   (E) an infix or `)`, *if* the expression is ill-formed.
+//
+// Case (D) is peculiar to the syntax of this DSL, in that there is an 
+// implicit `&` between the literal and whatever follows it, which we insert 
+// into the AST between them.
+//
+// Case (E) will cause an error in `parseLiteral` and so doesn't need explicit
+// handling here.
+//
+parseStart(tokens list) -> list, Node :  
+    head[value] in keys PREFIXES :
+        parsePrefixExpression(tokens)
+    head[tokenType] == L_PAREN :
+        parseGroupedExpression(tail)
+    else : // Otherwise it's a literal, or if not the `makeNode` function will throw an error.
+        valid nextValue and not nextValue in keys(INFIXES) & ")" :
+            parseImplicitAnd(tail, parseLiteral(head))
+        else :
+            tail, parseLiteral(head)
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    nextValue = tokens[1][value]
+
+// We parse the various cases in the branches of parseStart.
+
+parsePrefixExpression(tokens list) -> list, Node: 
+    tail, PrefixNode(head, head[value], rightNode)
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    newTail, rightNode = parseExpression(tail, PREFIX_PRECEDENCE)
+
+parseGroupedExpression(tokens list) -> list, Node : 
+    shouldBeRparen[tokenType] == R_PAREN :
+        newTail, node 
+    else : // The rparen will go on failing to be dealt with 'til it triggers the error in `parse`.
+        rparenAndNewTail, EMPTY_NODE 
+given :
+    rparenAndNewTail, node = parseExpression(tokens, 0)
+    shouldBeRparen = rparenAndNewTail[0]
+    newTail = rparenAndNewTail[1::len rparenAndNewTail]
+
+parseImplicitAnd(tokens list, leftNode Node) -> list, Node :
+    parseRest(newTail, BinaryNode(AND_TOKEN, "&", leftNode, rightNode), LOWEST_PRECEDENCE)
+given :
+    newTail, rightNode = parseExpression(tokens, INFIXES["&"])
+
+// Makes a literal node from a token.
+parseLiteral(aToken Token) -> Node : 
+    aToken[tokenType] == NUMBER :
+        NumberNode(aToken, val)
+    val in pho.PHONEME :
+        PhonemeNode(aToken, val)
+    val in keys pho.MAP :
+        ClassNode(aToken, val)
+    else :
+        error "can't parse " + string(val) + " at line " + string(aToken[lineNumber])
+given :
+    val = aToken[value]
+
+// So when we reach this point our leftNode is a well-formed expression, and the rest
+// of the expression may be:
+//   (A) An infix operation of higher precedence than is passed to the function, followed by 
+//       an expression.
+//   (B) An infix operation with lower or equal precedence, followed by an expression.
+//   (C) A closing right parenthesis.
+//   (D) Nothing at all.
+//   (E) Something else, *if* the expression is ill-formed.
+//   
+// If it's followed by an infix operation of a higher precedence, we need to parse the 
+// right-hand side with the appropriate precedence, and construct a binary node from the
+// `leftNode` and the newly-parsed `rightNode`, returning that together with the remaining
+// tokens after parsing `tokens` into `rightNode`.
+// If it's followed by an infix operation but not of a higher precedence, then the 
+// `leftNode` is an expression which we need to return together with the list of tokens
+// so that `parseExpression` can pass them into `parseInfix` again.
+// If it's followed by a closing `)`, then we return the tokens and node, presumably to 
+// `parseGroupedExpression`, which will remove the `)` from the head of the tokens before 
+// returning. If it wasn't called from `parseGroupedExpression`, then the `)` will cause
+// a syntax error somewhere else --- in `parse`, if nowhere earlier.
+// If it's followed by nothing at all, we've finished parsing an expression and indeed
+// all the tokens and can return the (empty) list of tokens and the node.
+// If it's followed by something else, and is therefore ill-formed, we can return the 
+// (non-empty) list of tokens and the node, and the fact that it's non-empty will allow
+// the `parse` function to return an appropriate error.
+//
+// So in all of the last four cases, we do exactly the same thing, though for different
+// reasons and with different consequences. Our function therefore breaks down into case
+// (A) and everything else.
+//
+parseRest(tokens list, leftNode Node, prec int) -> list, Node : 
+    valid headPrec and headPrec >= prec : 
+        parseRest(newTail, BinaryNode(head, head[value], leftNode, rightNode), headPrec) 
+    else : 
+        tokens, leftNode 
+given :
+    head = tokens[0]
+    headPrec = INFIXES[head[value]]
+    newTail, rightNode = parseExpression(tokens[1::len tokens], prec)
+
+// The code in the `given` block above shows the joys of laziness. If either `head` doesn't
+// exist, or its value isn't an infix, then this will coalesce into one error tested for by
+// `valid headPrec`, and then the remaining values in the `given` block will only be computed
+// if there's no error, since if there is an error the path through the code won't mention them.
+
+// -------------------------------------------------------------------------------------------
+
+// For parsing lists of words for 'add' or 'retcon'.
+
+def
+
+parseWordList(toks list) -> map :
+    from result = map() for _::i = range 0::(len(toks) div 4) :
+        4 * i + 3 > len(toks) or toks[4 * i + 3][tokenType] != EOL :
+            error "malformed definition at line " + line + " of snippet"
+        toks[4 * i][tokenType] != WORD :
+            error "expected a word at start of line " + line + " of snippet"
+        toks[4 * i + 1][tokenType] != WORD or  toks[4 * i + 1][value] != "-" :
+            error "expected a '-' to separate words at " + line + " of snippet"
+        toks[4 * i + 2][tokenType] != WORD :
+            error "expected a word after '-' at line " + line + " of snippet" 
+        else :
+            result with toks[4 * i][value]::toks[4 * i + 2][value]
+    given : 
+        line = string(toks[4 * i][lineNumber])
+

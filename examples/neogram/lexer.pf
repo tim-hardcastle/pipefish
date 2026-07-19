@@ -1,0 +1,73 @@
+newtype
+
+Token = struct(tokenType TokenType, value any?, lineNumber int)
+TokenType = enum EMPTY, WORD, NUMBER, OPERATOR, L_PAREN, R_PAREN, EOL
+RuneType = enum ALPHABETIC, NUMERAL, SYMBOL, WHITESPACE, NEWLINE
+
+def
+
+tokenize(sn snippet) :
+    sn -> glue -> lex
+
+glue(sn snippet) :
+    from str = "" for _::el = range sn :
+        str + string(el)
+
+lex(s string) :
+    first from L, word, line = [], "", 1 for _::r = range (s + "\n"):
+        word == "" :
+            rType == WHITESPACE :
+                continue
+            rType == NEWLINE :
+                L + [Token(EOL, null, line)], "", line + 1
+            else :
+                L, word & r, line
+        else :
+            rType == SYMBOL :
+                L + [makeTok(word, line)], "" & r, line
+            rType != wType :
+                rType == WHITESPACE :
+                    L + [makeTok(word, line)], "", line 
+                rType == NEWLINE :
+                    L + [makeTok(word, line), makeTok("\n", line)], "", line + 1
+                else :
+                    L + [makeTok(word, line)], "" & r, line   
+            else :
+                L, word & r, line 
+    given :
+        rType = runeType(r)
+        wType = runeType(word[0])        
+
+makeTok(word string, line int) :
+    word in keys(INFIXES) :
+        Token(OPERATOR, word, line)
+    word == "(" :
+        Token(L_PAREN, "(", line)
+    word == ")" :
+        Token(R_PAREN, ")", line)
+    wType == NEWLINE :
+        Token(EOL, NULL, line)
+    wType == NUMERAL :
+        Token(NUMBER, int(word), line)
+    wType == ALPHABETIC :
+        Token(WORD, word, line)
+    else :
+        error "Can't lex '" + word + "'"
+given :
+    wType = runeType word[0]
+
+runeType(r rune) :
+    r in set(' ', '\t', '\r') :
+        WHITESPACE
+    r == '\n' :
+        NEWLINE
+    r in set('(', ')', '+', '/', ',', '&', '.') :
+        SYMBOL
+    48 <= cp and cp < 58 :
+        NUMERAL
+    r == '-' :        
+        ALPHABETIC         // So we can kebab-case things.
+    else :
+        ALPHABETIC         // Yes, I know I said `ALPHABETIC` twice. It's to remind me of the -
+given :                    // if I change the implementation.
+    cp = codepoint r

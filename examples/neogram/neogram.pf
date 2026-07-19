@@ -1,0 +1,34 @@
+import 
+
+pho::"phonemes.pf"
+
+include
+
+"lexer.pf"
+"printer.pf"
+"evaluator.pf"
+"parser.pf"
+
+var 
+
+words = map()
+
+cmd
+
+add(sn snippet) :
+    words = combine words, (sn -> tokenize -> parseWordList)
+
+vocab :
+    post display words
+
+def 
+
+phonemes(sn snippet) :
+    sn -> parse -> evaluateSet
+
+combine(M, N map) :
+    from m = M for k::v = range N :
+        m with k::v
+
+
+

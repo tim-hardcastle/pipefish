@@ -1,0 +1,46 @@
+~~ Prints things out for the user or for debugging.
+
+const private
+
+COLUMNS = 3
+WIDTH = 25
+
+def
+
+~~ Displays word lists.
+display(M map) :
+    len(M) == 0 :
+        "Vocab list is empty."
+    else :
+        first from result, c = "", 1 for k::v = range M :
+            c mod COLUMNS == 0 :
+                result + str + "\n", c + 1
+            else :
+                result + str, c + 1
+        given :
+            str = pad("▪ " + k + " - " + v)
+
+pad(s string) :
+    len(s) > WIDTH :
+        error "string too wide to pad"
+    else :
+        from result = s for _::i = range 0::(WIDTH - len s) :
+            result + " "
+
+~~ Prettyprints an AST.
+pp(node Node) :
+    type node == NumberNode :
+        string(node[value])
+    type node == PhonemeNode :
+        node[phoneme]
+    type node == ClassNode :
+        node[class]
+    type node == BinaryNode :
+        "(" + pp(node[left]) + ") " + node[operator] ..
+        .. + " (" + pp(node[right]) + ")"
+    type node == PrefixNode :
+        node[prefix] + " (" + pp(node[argument]) + ")"
+    type node == EmptyNode :
+        "<EMPTY NODE>"
+    else :
+        error "unknown node type"

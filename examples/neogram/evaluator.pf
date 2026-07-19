@@ -1,0 +1,64 @@
+// The Neogram DSL is structured, and not every expression makes sense in every 
+// context.
+
+// This evaluates the description of a set of phonemes. Therefore the allowed
+// literals are individual phonemes and phoneme classes, and the allowed operators
+// are '/','or', and '&'. Parentheses will already have been parsed away to 
+// produce the AST/ Note that as '/' and 'or' are distinguished only by their
+// precedence, and since this distinction will have already been made by the parser,
+// we can by this point treat them the same.
+
+def
+
+ev(sn snippet) :
+    sn -> parse -> evaluateCommaSeparatedSets(that, WITH_NUMBER)
+
+evaluateSet(node Node) -> set :
+    type node == PhonemeNode :
+        set(node[phoneme])
+    type node == ClassNode :
+        pho.MAP[node[class]]
+    type node == BinaryNode :
+        node[operator] in set("/", "or") :
+            evaluateSet(node[left]) + evaluateSet(node[right])
+        node[operator] == "&" :
+            evaluateSet(node[left]) /\ evaluateSet(node[right])
+    else :
+        error "can't evaluate '" + string(node[token][value]) + ..
+           .. "' as part of definition of set of phonemes at line " + ..
+           .. string(node[token][lineNumber])
+
+newtype 
+
+// On the left-hand-side of a phonetic change, the phoneme sets may optionally
+// be decorated with a prefix giving the position : initial, medial, final,
+// non-initial, non-final, any. Whereas on the right-hand side it may optionally 
+// be decorated with a number saying which capture group we're referring to, in 
+// case we use them out of order, e.g. : 'unvoiced fricative . 2'
+
+SetFlavor = enum WITH_POSITION, WITH_NUMBER 
+Position = enum ANY, INITIAL, MEDIAL, FINAL, NON_INITIAL, NON_FINAL
+TaggedSet = struct(phSet set, position Position)
+NumberedSet = struct(phSet set, number int)
+
+def
+
+evaluateCommaSeparatedSets(node Node, flavor SetFlavor) -> list :
+    (type node == BinaryNode) and (node[operator] == ",") :
+        evaluateCommaSeparatedSets(node[left], flavor) ..
+        .. + evaluateCommaSeparatedSets(node[right], flavor)
+    else :
+        [evaluateSetWithPositionOrNumber(node, flavor)]
+
+evaluateSetWithPositionOrNumber(node Node, flavor SetFlavor) :
+    flavor == WITH_NUMBER :
+        (type node == BinaryNode) and (node[operator] == ".") .. 
+        .. and (type node[right] == NumberNode) :
+            NumberedSet(evaluateSet(node[left]), node[right][value])
+        else :
+            NumberedSet(evaluateSet(node), -1)
+    else :
+        type node == PrefixNode :
+            TaggedSet(evaluateSet(node[argument]), PREFIXES[node[prefix]])
+        else :
+            TaggedSet(evaluateSet(node), ANY)
