@@ -14,7 +14,7 @@ func (h *Hub) Repl() {
 	colonOrEmdash, _ := regexp.Compile(`.*[\w\s]*(:|--)[\s]*$`)
 	rline := readline.NewInstance()
 	rline.SyntaxHighlighter = func(code []rune) string {
-		return h.Services[h.CurrentServiceName()].Highlight(code, h.getFonts())
+		return h.Services["hub"].Highlight(code, h.getFonts())
 	}
 	for {
 

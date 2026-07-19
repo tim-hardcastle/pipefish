@@ -620,9 +620,11 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		h.WritePretty("Starting script <C>\"" + displayName + "\"</> as service <C>\"" + sname + "\"</>.\n")
 		ext := h.getSV("$_external").V.(bool) // Note that we need to do this before createService, which may do external things.
 		h.createService(sname, fname, true)
-		h.setServiceName(sname)
-		if h.Services[sname] != nil && !h.Services[sname].IsBroken() && !ext {
-			h.tryMain()
+		if h.Services[sname] != nil && h.Services[sname].IsInitialized() {
+			h.setServiceName(sname)
+			if !ext {
+				h.tryMain()
+			}
 		}
 	case "serialize":
 		h.WriteString(h.Services[args[0]].SerializeApi())
@@ -655,6 +657,10 @@ Your replacement password for your account ` + args[0] + ` is ` + newPassword + 
 		sname := args[0]
 		if h.administered() && !isAdmin && !userHasService(h.Db, username, sname) {
 			h.WriteError("you have no access to any service named <C>" + sname + "</>.")
+			break
+		}
+		if h.Services[sname] == nil || !h.Services[sname].IsInitialized() {
+			h.WriteError("service <C>" + sname + "</> is not initialized.")
 			break
 		}
 		_, ok := h.Services[sname]
@@ -917,7 +923,7 @@ func (h *Hub) createService(name, scriptFilepath string, forceUpdate bool) bool 
 			}
 			panic("That's all folks!")
 		}
-		if !newService.IsInitialized() {
+		if newService == nil || !newService.IsInitialized() {
 			h.WriteError("unable to open <C>\"" + scriptFilepath + "\"</> with error `" + e.Error() + "`.")
 			h.Sources = map[string][]string{}
 			h.makeEmptyServiceCurrent()

@@ -188,7 +188,7 @@ func TestServices(t *testing.T) {
 		{`foo 2`, `4`},
 		{`hub live off`, `OK`},
 		{`hub live on`, `OK`},
-		{`hub switch "qux"`, "\x1b[31mHub error\x1b[39m: service \x1b[36mqux\x1b[39m doesn't exist."},
+		{`hub switch "qux"`, "\x1b[31mHub error\x1b[39m: service \x1b[36mqux\x1b[39m is not initialized."},
 		{`hub halt "foo"`, `OK`},
 		{`hub halt "bar"`, `OK`},
 		{`hub quit`, "[32mOK[0m\n" + text.Logo() + "Thank you for using Pipefish. Have a nice day!"},
