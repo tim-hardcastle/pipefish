@@ -1,0 +1,51 @@
+include
+
+"lexer.pf"  
+"fac.pf"   // A file that just contains a factorial function, so the various scripts can all share it.
+
+newtype 
+
+~~ Our stack machine's state will just consist of a stack of integers, of course, and
+~~ a list of tokens still to be processed.
+State = struct(stack, tokens list)
+
+~~ This will contain information about what a given operator does, as a value in the
+
+Info = struct(arity int, fn func)
+
+const
+
+OPERATOR_INFO = map('+'::Info(2, func(L) : L[0] + L[1]),
+                 .. '*'::Info(2, func(L) : L[0] * L[1]),
+                 .. '*'::Info(2, func(L) : L[0] * L[1]),
+                 .. '/'::Info(2, func(L) : L[0] * L[1]),
+                 .. '~'::Info(1, func(L) : - L[0]),
+                 .. '!'::Info(1, func(L) : fac(L[0])),)
+
+def
+
+ev(code string) :
+    code -> lex -> exec(State([], that)) -> that[stack] -> validate
+
+exec(S State) -> State :
+    S[tokens] == [] :
+        S
+    head in int :
+        exec State(S[stack] & head, tail)
+    else :
+        exec State(poppedStack & newHead, tail)
+given :
+    head = S[tokens][0]
+    tail = S[tokens][1::len S[tokens]]
+    info = OPERATOR_INFO[head]
+    poppedStack = S[stack][0::len(S[stack])-info[arity]]
+    F = info[fn]
+    args = S[stack][(len(S[stack])-info[arity])::len(S[stack])]
+    newHead = F(args)
+
+validate(stack list) -> int :
+    len stack != 1 :
+        error "ill-formed expression"
+    else :
+        stack[0]  
+        

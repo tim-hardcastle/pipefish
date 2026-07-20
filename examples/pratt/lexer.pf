@@ -1,0 +1,43 @@
+const 
+
+WHITESPACE = set(' ', '\t')
+SYMBOLS = set('+', '-', '*', '/', '~', '!', '(', ')')
+NUMERALS = set('0', '1', '2', '3', '4', '5', '6', '7', '8', '9') 
+
+// We wrap our recursive function with two parameters inside a non-recursive function
+// with just one, so we can conveniently call it.
+def
+
+lex(code string) :
+    first lexHead [], code
+
+// And now the recursive function.
+lexHead(tokens list, code string) -> list, string :
+    code == "" :
+        tokens, ""
+    head in WHITESPACE :
+        lexHead tokens, tail 
+    head in SYMBOLS :
+        lexHead tokens & head, tail 
+    head in NUMERALS :
+        lexHead tokens & number, numberTail
+    else :
+        error "unexpected rune `'" + string(head) + "'`"
+given :    
+    head = code[0]
+    tail = code[1::len code]
+    number, numberTail = lexNumber tokens, code
+    
+lexNumber(tokens, code) -> int, string :
+    int(numString), tail
+given :
+    numString = slurpNumber(code)
+    tail = code[len(numString)::len(code)]
+
+slurpNumber(code) -> string :
+    from numString = "" for _::digit = range code :
+        digit in NUMERALS :
+            numString & digit 
+        else :
+            break numString
+         
