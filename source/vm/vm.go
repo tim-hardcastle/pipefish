@@ -260,6 +260,9 @@ loop:
 				loc++
 				continue loop
 			}
+			
+				
+			
 			if settings.PEEK_VM && vm.IsSet("c") || (vm.IsSet("k") && vm.IsCompiling) {
 				vm.Dump("! " + vm.DescribeCode(loc))
 			}
@@ -2529,6 +2532,39 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

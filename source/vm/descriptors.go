@@ -301,8 +301,7 @@ func (vm *Vm) ToString(v values.Value, flavor descriptionFlavor, cpNumber uint32
 	case values.REF:
 		return "REFERENCE VARIABLE"
 	}
-	println("Undescribable value", v.T)
-	panic("can't describe value")
+	return "Undescribable value " + strconv.Itoa(int(v.T))
 }
 
 func (vm *Vm) DescribeAbstractType(aT values.AbstractType, flavor descriptionFlavor, cpNumber uint32) string {

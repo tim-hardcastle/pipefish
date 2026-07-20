@@ -1349,20 +1349,18 @@ func (iz *Initializer) compileGlobalConstantOrVariable(declarations declarationT
 	}
 	rollbackTo := iz.cp.GetState() // Unless the assignment generates code, i.e. we're creating a lambda function or a snippet, then we can roll back the declarations afterwards.
 	ctxt := compiler.Context{Env: iz.cp.GlobalVars, Access: compiler.INIT, LowMem: DUMMY, TrackingFlavor: compiler.LF_INIT}
-	iz.cp.CompileNode(rhs, ctxt)
-	if iz.errorsExist() {
+	cpResult := iz.cp.CompileNode(rhs, ctxt)
+	if cpResult.Failed {
 		return
 	}
 	iz.cp.Emit(vm.Ret)
 	iz.cp.Cm("Calling Run from initializer's compileGlobalConstantOrVariable method.", asgn.indexTok)
 	iz.cp.Vm.Run(uint32(rollbackTo.Code))
 	result := iz.cp.Vm.Mem[iz.cp.That()]
-	if !iz.cp.Common.CodeGeneratingTypes.Contains(result.T) { // We don't want to roll back the code generated when we make a lambda or a snippet.
+	if cpResult.Foldable { // We don't want to roll back the code generated when we make a lambda or a snippet.
 		iz.cp.Rollback(rollbackTo, asgn.indexTok)
 	}
-
 	envToAddTo, vAcc := iz.getEnvAndAccessForConstOrVarDeclaration(declarations, v)
-
 	last := len(sig) - 1
 	_, lastIsVarargs := sig[last].VarType.(*parser.TypeDotDotDot)
 	rhsIsTuple := result.T == values.TUPLE
