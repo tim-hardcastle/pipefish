@@ -1,0 +1,22 @@
+~~ A couple of integer math functions that all the interpreters will need to
+~~ evaluate the expressions.
+
+def 
+
+~~ A factorial function
+fac(i int) -> int/error :
+    i < 0 :
+        error "can't take the factorial of a negative number"
+    i == 0 :
+        1
+    else : 
+        i * fac i-1
+
+~~ An exponential function.
+exp(i, j int) -> int :
+    j < 0 :
+        error "can't take inverse exponents"
+    j == 0 :
+        1
+    else :
+        i * exp(i, j-1)

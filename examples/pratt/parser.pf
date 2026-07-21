@@ -96,13 +96,16 @@ given :
     shouldBeRparen = rparenAndNewTail[0]
     newTail = rparenAndNewTail[1::len rparenAndNewTail]
 
-parseRest(leftNode Node, tokens list, prec int) -> Node, list : 
-    valid headPrec and headPrec > prec : 
+parseRest(leftNode Node, tokens list, prec int) -> Node, list :
+    valid headPrec and headPrec > prec :
         parseRest(InfixNode(head, leftNode, rightNode), newTail, prec) 
+    valid suffixPrec and suffixPrec > prec :
+        parseRest(SuffixNode(head, leftNode), tail, prec)
     else : 
         leftNode, tokens
 given :
     head = tokens[0]
     tail = tokens[1::len tokens]
     headPrec = INFO[InfixNode][head]
-    rightNode, newTail = parseExpression(tail, prec)
+    suffixPrec = INFO[SuffixNode][head]
+    rightNode, newTail = parseExpression(tail, headPrec)
