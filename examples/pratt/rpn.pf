@@ -30,21 +30,22 @@ exec(code string) :
 
 private
 
-run(S State) -> State :
-    S[tokens] == [] :
-        S
-    head in int :
-        run State(S[stack] & head, tail)
-    else :
-        run State(poppedStack & newHead, tail)
-given :
-    head = S[tokens][0]
-    tail = S[tokens][1::len S[tokens]]
-    info = RPN_INFO[head]
-    poppedStack = S[stack][0::len(S[stack])-info[arity]]
-    F = info[fn]
-    args = S[stack][(len(S[stack])-info[arity])::len(S[stack])]
-    newHead = F(args)
+run(initial State) -> State :
+    from S = initial for :
+        S[tokens] == [] :
+            break
+        head in int :
+            State(S[stack] & head, tail)
+        else :
+            State(poppedStack & newHead, tail)
+    given :
+        head = S[tokens][0]
+        tail = S[tokens][1::len S[tokens]]
+        info = RPN_INFO[head]
+        poppedStack = S[stack][0::len(S[stack])-info[arity]]
+        F = info[fn]
+        args = S[stack][(len(S[stack])-info[arity])::len(S[stack])]
+        newHead = F(args)
 
 validate(stack list) -> int :
     len stack != 1 :
