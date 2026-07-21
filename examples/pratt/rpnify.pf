@@ -1,0 +1,16 @@
+include
+
+"parser.pf"
+
+def 
+
+rpnf(n Node) -> list :
+    n in NumberNode :
+        [n[value]]
+    n in InfixNode : 
+        rpnf(n[leftArg]) + rpnf(n[rightArg]) & n[op]
+    else :
+        rpnf(n[arg]) & tweakOp
+given :
+    tweakOp = (n in PrefixNode and n[op] == '-' : '~' ; else : n[op])
+

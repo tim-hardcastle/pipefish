@@ -1,0 +1,11 @@
+include 
+
+"parser.pf"
+"rpn.pf"
+"rpnify.pf"
+
+def 
+
+do(code string) :
+    code -> parse -> rpnf -> transition(State([], that)) ..
+      .. -> that[stack] -> validate
