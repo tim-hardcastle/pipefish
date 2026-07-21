@@ -96,7 +96,7 @@ given :
     shouldBeRparen = rparenAndNewTail[0]
     newTail = rparenAndNewTail[1::len rparenAndNewTail]
 
-parseRest(leftNode Node, tokens list, prec int) -> Node, list :
+parseRest(leftNode Node, tokens list, prec int) -> Node, list : 
     valid headPrec and headPrec > prec :
         parseRest(InfixNode(head, leftNode, rightNode), newTail, prec) 
     valid suffixPrec and suffixPrec > prec :

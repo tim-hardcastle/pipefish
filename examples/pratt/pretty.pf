@@ -1,0 +1,38 @@
+~~ Prettyprinter.
+
+include 
+
+"parser.pf"
+
+def 
+
+~~ Prettyprints the given node.
+print(n Node) -> string :
+    ppr(n, 0) 
+
+private
+
+ppr(n Node, prec int) : 
+    n in NumberNode :    
+        string n[value]   
+    prec <= INFO[type n][n[op]] :   
+        describe n, INFO[type n][n[op]]   
+    else :   
+        "(" + (describe n, INFO[type n][n[op]]) + ")" 
+
+describe(n InfixNode, prec int) -> string : 
+    ppr(n[leftArg], newPrec) + " " + string(n[op]) + " " + ppr(n[rightArg], newPrec) 
+given :
+    newPrec = INFO[InfixNode][n[op]] 
+
+describe(n PrefixNode, prec int) -> string : 
+    n[op] & ppr(n[arg], newPrec) 
+given :
+    newPrec = INFO[PrefixNode][n[op]] 
+
+describe(n SuffixNode, prec int) -> string : 
+    ppr(n[arg], newPrec) & n[op] 
+given :
+    newPrec = INFO[SuffixNode][n[op]] 
+
+
