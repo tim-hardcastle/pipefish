@@ -1,0 +1,75 @@
+~~ Pratt interpreter for evaluating arithmetic expressions in PEMDAS form.
+// This is so similar to the parser and the second compiler that most of the refactoring was 
+// done by search-and-replace, and so the comments on this are minimal.
+
+include
+
+// We will re-use the `OPS` map in the treewalker, and the map of precedences from the parser
+// (which the treewalker already includes).
+"treew.pf"
+
+def
+
+~~ Evaluates a string in PEMDAS form into an integer.
+evaluate(code string) -> int :
+    len leftovers > 0 :
+        error "unexpected `" + string(head) + "`"
+    else :
+        result 
+given :
+    result, leftovers = code -> lex -> evaluateExpression(that, 0)
+    head = leftovers[0]
+
+private
+
+evaluateExpression(tokens list, prec int) -> int, list : 
+    evaluateStart(tokens) -> evaluateRest(that[0], that[1], prec)
+
+evaluateStart(tokens list) -> int, list :  
+    head in keys INFO[PrefixNode] :
+        evaluatePrefixExpression(tokens)
+    head in rune and head == '(' :
+        evaluateGroupedExpression(tail)
+    head in int : 
+        head, tail  
+    else :
+        error "unexpected token `" + string(head) + "`"
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+
+// We evaluate the various cases in the branches of evaluateStart.
+
+evaluatePrefixExpression(tokens list) -> int, list: 
+    P(rightVal), newTail 
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    P = OPS[PrefixNode][head]
+    rightVal, newTail = evaluateExpression(tail, INFO[PrefixNode][head])
+
+evaluateGroupedExpression(tokens list) -> int, list : 
+    shouldBeRparen == ')' :
+        val, newTail 
+    else : 
+        error "expected `)`"
+given :
+    val, rparenAndNewTail = evaluateExpression(tokens, 0)
+    shouldBeRparen = rparenAndNewTail[0]
+    newTail = rparenAndNewTail[1::len rparenAndNewTail]
+
+evaluateRest(leftVal int, tokens list, prec int) -> int, list : 
+    valid headPrec and headPrec > prec :
+        evaluateRest(I(leftVal, rightVal), newTail, prec) 
+    valid suffixPrec and suffixPrec > prec :
+        evaluateRest(S(leftVal), tail, prec)
+    else : 
+        leftVal, tokens
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    headPrec = INFO[InfixNode][head]
+    suffixPrec = INFO[SuffixNode][head]
+    I = OPS[InfixNode][head]
+    S = OPS[SuffixNode][head]
+    rightVal, newTail = evaluateExpression(tail, headPrec)
