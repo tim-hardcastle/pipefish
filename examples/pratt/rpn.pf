@@ -9,12 +9,12 @@ newtype
 State = struct(stack, tokens list)
 
 ~~ This will contain information about what a given operator does, as a value in the
-~~ `OPERATOR_INFO` map below.
+~~ `RPN_INFO` map below.
 Info = struct(arity int, fn func)
 
 const
 
-OPERATOR_INFO = map('+'::Info(2, func(L) : L[0] + L[1]),
+RPN_INFO = map('+'::Info(2, func(L) : L[0] + L[1]),
                  .. '-'::Info(2, func(L) : L[0] - L[1]),
                  .. '*'::Info(2, func(L) : L[0] * L[1]),
                  .. '/'::Info(2, func(L) : L[0] div L[1]),
@@ -24,20 +24,20 @@ OPERATOR_INFO = map('+'::Info(2, func(L) : L[0] + L[1]),
 
 def
 
-ev(code string) :
-    code -> lex -> exec(State([], that)) -> that[stack] -> validate
+exec(code string) :
+    code -> lex -> transition(State([], that)) -> that[stack] -> validate
 
-exec(S State) -> State :
+transition(S State) -> State :
     S[tokens] == [] :
         S
     head in int :
-        exec State(S[stack] & head, tail)
+        transition State(S[stack] & head, tail)
     else :
-        exec State(poppedStack & newHead, tail)
+        transition State(poppedStack & newHead, tail)
 given :
     head = S[tokens][0]
     tail = S[tokens][1::len S[tokens]]
-    info = OPERATOR_INFO[head]
+    info = RPN_INFO[head]
     poppedStack = S[stack][0::len(S[stack])-info[arity]]
     F = info[fn]
     args = S[stack][(len(S[stack])-info[arity])::len(S[stack])]

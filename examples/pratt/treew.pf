@@ -1,0 +1,37 @@
+include 
+
+"mathfns.pf"
+"parser.pf"
+
+const 
+
+OPS = map(..
+    .. PrefixNode::map(..
+        .. '-'::(func(x int) : -x),
+        .. ),
+    .. InfixNode::map(..
+        .. '+'::(func(x, y int) : x + y),
+        .. '-'::(func(x, y int) : x - y),
+        .. '*'::(func(x, y int) : x * y),
+        .. '/'::(func(x, y int) : x div y),
+        .. '^'::(func(x, y int) : exp(x, y)),
+        .. ),
+    .. SuffixNode::map(..
+        .. '!'::(func(x int) : fac(x)),
+        .. ),
+..)
+
+def
+
+ev(n Node) -> int :
+    n in NumberNode :
+        n[value]
+    n in InfixNode : 
+        fnForOperation(ev(n[leftArg]), ev(n[rightArg]))
+    else :
+        fnForOperation(ev(n[arg]))
+given :
+    fnForOperation = OPS[type n][n[op]]
+
+
+
