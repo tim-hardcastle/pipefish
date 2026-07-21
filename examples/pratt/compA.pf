@@ -6,6 +6,11 @@ include
 
 def 
 
-do(code string) :
-    code -> parse -> rpnf -> transition(State([], that)) ..
+~~ Evaluates a string in PEMDAS form, returning an integer.
+ev(code string) -> int :
+    code -> compile -> run(State([], that)) ..
       .. -> that[stack] -> validate
+
+~~ Compiles a string in PEMDAS form to a list in RPN form.
+compile(code string) -> list :
+    code -> parse -> rpnf

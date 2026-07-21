@@ -24,16 +24,19 @@ RPN_INFO = map('+'::Info(2, func(L) : L[0] + L[1]),
 
 def
 
+~~ Excutes code given as a string in RPN form.
 exec(code string) :
-    code -> lex -> transition(State([], that)) -> that[stack] -> validate
+    code -> lex -> run(State([], that)) -> that[stack] -> validate
 
-transition(S State) -> State :
+private
+
+run(S State) -> State :
     S[tokens] == [] :
         S
     head in int :
-        transition State(S[stack] & head, tail)
+        run State(S[stack] & head, tail)
     else :
-        transition State(poppedStack & newHead, tail)
+        run State(poppedStack & newHead, tail)
 given :
     head = S[tokens][0]
     tail = S[tokens][1::len S[tokens]]
@@ -48,4 +51,4 @@ validate(stack list) -> int :
         error "ill-formed expression"
     else :
         stack[0]  
-        
+
