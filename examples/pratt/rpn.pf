@@ -1,24 +1,24 @@
 include
 
 "lexer.pf"  
-"fac.pf"   // A file that just contains a factorial function, so the various scripts can all share it.
+"mathfns.pf"  
 
 newtype 
 
-~~ Our stack machine's state will just consist of a stack of integers, of course, and
-~~ a list of tokens still to be processed.
+~~ The state of the VM: a stack of integers, and a list of tokens still to be processed.
 State = struct(stack, tokens list)
 
 ~~ This will contain information about what a given operator does, as a value in the
-
+~~ `OPERATOR_INFO` map below.
 Info = struct(arity int, fn func)
 
 const
 
 OPERATOR_INFO = map('+'::Info(2, func(L) : L[0] + L[1]),
+                 .. '-'::Info(2, func(L) : L[0] - L[1]),
                  .. '*'::Info(2, func(L) : L[0] * L[1]),
-                 .. '*'::Info(2, func(L) : L[0] * L[1]),
-                 .. '/'::Info(2, func(L) : L[0] * L[1]),
+                 .. '/'::Info(2, func(L) : L[0] div L[1]),
+                 .. '^'::Info(2, func(L) : exp(L[0], L[1])),
                  .. '~'::Info(1, func(L) : - L[0]),
                  .. '!'::Info(1, func(L) : fac(L[0])),)
 

@@ -1,7 +1,7 @@
 const 
 
 WHITESPACE = set(' ', '\t')
-SYMBOLS = set('+', '-', '*', '/', '~', '!', '(', ')')
+SYMBOLS = set('+', '-', '*', '/', '^', '~', '!', '(', ')')
 NUMERALS = set('0', '1', '2', '3', '4', '5', '6', '7', '8', '9') 
 
 // We wrap our recursive function with two parameters inside a non-recursive function

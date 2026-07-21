@@ -1,0 +1,108 @@
+~~ Simple Pratt parser for arithmetic expressions.
+
+include
+
+"lexer.pf"
+
+newtype 
+
+// We declare the nodes out of which we will build our AST.
+
+NumberNode = struct(value int)
+PrefixNode = struct(op rune, arg Node)
+InfixNode = struct(op rune, leftArg, rightArg Node)
+SuffixNode = struct(op rune, arg Node)
+EmptyNode = struct()
+
+Node = abstract NumberNode/PrefixNode/InfixNode/SuffixNode/EmptyNode
+
+const 
+
+~~ Information about the precedence of operations.
+// The great thing about the Pratt parser is that what in other parsers would rely
+// on a bunch of function calls and `if` statements and switches can be summarized
+// in a data structure. This is it.
+INFO = map(..
+    .. PrefixNode::map(..
+        .. '-'::4,
+        .. ),
+    .. InfixNode::map(..
+        .. '+'::1,
+        .. '-'::1,
+        .. '*'::2,
+        .. '/'::2,
+        .. '^'::3,
+        .. ),
+    .. SuffixNode::map(..
+        .. '!'::5,
+        .. ),
+    ..)
+
+def
+
+~~ Parses a string into an AST.
+// We need to wrap the recursive `parseExpression` function in this non-recursive function so
+// that we can recognize if/when there are still tokens left over after the recursion terminates.
+// This function knows where it is in the call tree and no instance of `parseExpression` can.
+parse(code string) -> Node :
+    len leftovers > 0 :
+        error "unexpected `" + string(head) + "`"
+    else :
+        result 
+given :
+    result, leftovers = code -> lex -> parseExpression(that, 0)
+    head = leftovers[0]
+
+private
+
+parseExpression(tokens list, prec int) -> Node, list : 
+    parseStart(tokens) -> parseRest(that[0], that[1], prec)
+
+// The start of an expression will be either :
+//   (A) a prefix followed by an expression, followed by the rest of the expression.
+//   (B) an expression in parentheses, followed by the rest of the expression
+//   (C) a number followed by the rest of the expression.
+//   (D) an infix or `)`, *if* the expression is ill-formed.
+//
+parseStart(tokens list) -> Node, list :  
+    head in keys INFO[PrefixNode] :
+        parsePrefixExpression(tokens)
+    head in rune and head == '(' :
+        parseGroupedExpression(tail)
+    head in int : 
+        NumberNode(head), tail  
+    else :
+        error "unexpected token `" + string(head) + "`"
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+
+// We parse the various cases in the branches of parseStart.
+
+parsePrefixExpression(tokens list) -> Node, list: 
+    PrefixNode(head, rightNode), newTail 
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    rightNode, newTail = parseExpression(tail, INFO[PrefixNode][head])
+
+parseGroupedExpression(tokens list) -> Node, list : 
+    shouldBeRparen == ')' :
+        node, newTail 
+    else : 
+        error "expected `)`"
+given :
+    node, rparenAndNewTail = parseExpression(tokens, 0)
+    shouldBeRparen = rparenAndNewTail[0]
+    newTail = rparenAndNewTail[1::len rparenAndNewTail]
+
+parseRest(leftNode Node, tokens list, prec int) -> Node, list : 
+    valid headPrec and headPrec > prec : 
+        parseRest(InfixNode(head, leftNode, rightNode), newTail, prec) 
+    else : 
+        leftNode, tokens
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    headPrec = INFO[InfixNode][head]
+    rightNode, newTail = parseExpression(tail, prec)

@@ -1,4 +1,4 @@
-Let's write a Pratt parser! (and a lexer, three interpreters, and two compilers)
+Let's write a Pratt parser! (and a lexer, a prettyprinter, three interpreters, and two compilers)
 
 ## Introduction
 
@@ -10,9 +10,9 @@ Let's define some terms.
 
 * A **lexer** (and/or **tokenizer**) takes code considered just as a string of characters, and converts it into the next higher unit of structure, the `token`, for example turning the string `"(-42 + 99) * 4!"` into the list `["(", "-", "42", "+", "99", ")", "*", "4", "!"]`.
 
-* Normally instead of the tokens being a list of mere bare strings they have **metadata** to say where in the code they came from: in a mature language, the name of the source code file, the line number, and the position in the line.
+* Normally instead of the tokens being a list of mere bare strings they have **metadata** to say where in the code they came from: in a mature language, the name of the source code file, the line number, and the position in the line. (We're not going to do this.)
 
-* A **parser** takes this string of tokens and turns it into a data structure that more accurately represents the *syntactic* structure of the code. The most usual form, and the one we will use here, is to turn the expression into an **abstract syntax tree**, or **AST**, which assigns the tokens to nodes of a tree such that the branches of a node are the arguments of an operation. For example, from the tokens `["(", "-", "42", "+", "99", ")", "*", "4", "!"]`, the AST would be:
+* A **parser** takes this string of tokens and turns it into a data structure that more closely represents the *syntactic* structure of the code. The most usual form, and the one we will use here, is to turn the expression into an **abstract syntax tree**, or **AST**, which assigns the tokens to nodes of a tree such that the branches of a node are the arguments of an operation. For example, from the tokens `["(", "-", "42", "+", "99", ")", "*", "4", "!"]`, the AST would be:
 ```
                  *
                 / \
@@ -32,17 +32,19 @@ Let's define some terms.
 
 An **interpreter** generally is something that executes code *other than* machine code. However, some people use that term to mean only a treewalker, and would call something that executes bytecode a **virtual machine** or **VM**.
 
-If I had to explain what makes it a "virtual machine", I would say the distinction is that since the treewalker is just a collection of recursive functions calling one another, it never explicitly has to represent *state*, because the intermediate calculations are automatically pushed onto the stack as stack frames at each function call. By contrast, the virtual machine must model its execution as the operations it executes modifying the **state** of the machine until it contains our final result.
+If I had to explain what makes it a "virtual machine", I would say the distinction is that since the treewalker is just a collection of recursive functions calling one another, it never explicitly has to represent *state*, because the intermediate calculations are automatically pushed onto the stack as stack frames at each function call. By contrast, the virtual machine must model its execution as the operations it executes modifying the state of the machine until it contains our final result.
 
 ## Note on Pipefish
 
 I will be using Pipefish to illustrate these concepts not only because it is objectively The Bestest Language In The Whole World™, but because it shares with Python the quality of being runnable pseudocode, while being simpler and having a proper type system and having pure and referentially transparent functions and immutable values. You should have no trouble reading it in combination with the explanations of what each bit of code does.
 
+It also has the advantage that it is easy to peek inside the workings of it as it runs and see what it's up to.
+
 ## The lexer
 
 We will first need a lexer to produce a string of tokens. These will consist of numbers, the operations `+`, `-` (both as infix and prefix) `*`, `/`, `^` and `!`, plus numbers `42`, `99`, etc. A number like `-42` will be analysed as the prefix `-` followed by the number `42`, as in our previous examples.
 
-We have no need for metadata, and every need for simplicity, so we will in fact just get our tokens as a list of strings and integers. This is our lexer. This is a very unsophisticated technique wich doesn't scale, because lexers are boring and I have no interest in teaching you how to do a good one. Let's get this over with and get onto the good stuff.
+We have no need for metadata, and every need for simplicity, so we will just get our tokens as a list of runes (the symbols) and integers. This is our lexer.
 
 ```
 

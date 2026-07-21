@@ -260,9 +260,6 @@ loop:
 				loc++
 				continue loop
 			}
-			
-				
-			
 			if settings.PEEK_VM && vm.IsSet("c") || (vm.IsSet("k") && vm.IsCompiling) {
 				vm.Dump("! " + vm.DescribeCode(loc))
 			}
@@ -1927,18 +1924,15 @@ loop:
 				// Token n#3 can be used to return an error if the conversion is impossible.
 				abtype := vm.Mem[args[2]].V.(values.AbstractType).Types
 				if len(abtype) != 1 {
-					println("concrete.b")
 					vm.Mem[args[0]] = vm.makeError("vm/cast/concrete.b", args[3])
 					break Switch
 				}
 				typeNo := vm.Mem[args[2]].V.(values.AbstractType).Types[0]
 				if info, ok := vm.ConcreteTypeInfo[typeNo].(CloneType); !ok {
-					println("unsafe/clone")
 					vm.Mem[args[0]] = vm.makeError("vm/unsafe/clone", args[3])
 						break Switch
 				} else {
 					if info.Parent != vm.Mem[args[1]].T {
-						println("cast/parent")
 						vm.Mem[args[0]] = vm.makeError("vm/cast/parent", args[3])
 						break Switch
 					}
@@ -2532,6 +2526,59 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1499,7 +1499,6 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 	if iz.errorsExist() { // TODO --- why?
 		return nil
 	}
-	iz.cp.StartPushMem() // !!! Anything that early-returned from this function would have to clean up the PushMem artefacts.
 	if izFn.body.GetToken().Type == token.XCALL {
 		Xargs := izFn.body.(*parser.PrefixExpression).Args
 		cpFn.Xcall = &compiler.XBindle{ExternalServiceOrdinal: uint32(Xargs[0].(*parser.IntegerLiteral).Value),
@@ -1638,8 +1637,8 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 		if autoOn {
 			iz.cp.TrackOrLog(vm.TR_FNCALL, areWeTracking, &izFn.op, functionName, izFn.sig, cpFn.LoReg)
 		}
-		// We compile a check on the return types.
 		bodyContext := compiler.Context{fnenv, functionName, ac, cpFn.LoReg, trackingOn, compiler.LF_NONE, altType(), &compiler.ReturnTypeCheck{&izFn.op, iz.cp.ReturnSigToAlternateType(izFn.callInfo.ReturnTypes), compiler.CHECK_GIVEN_ASSIGNMENTS}, false}
+		iz.cp.Unthunks = map[uint32]uint32{}
 		bodyResult := iz.cp.CompileNode(izFn.body, bodyContext) // TODO --- could we in fact do anything useful if we knew it was a constant?
 		if bodyResult.Failed {
 			return nil
@@ -1649,7 +1648,6 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 			cpFn.RtnTypes = cpFn.RtnTypes.Union(altType(values.ERROR))
 		}
 		cpFn.OutReg = iz.cp.That()
-		iz.cp.ResolveMemPush(iz.cp.That() - 1)
 		// We check the return types.
 		if izFn.callInfo.ReturnTypes != nil && !(izFn.body.GetToken().Type == token.GOLANG) {
 			iz.cp.EmitTypeChecks(cpFn.OutReg, izFn.body, cpFn.RtnTypes, fnenv, iz.cp.AstSigToAltSig(izFn.callInfo.ReturnTypes), &izFn.op, compiler.CHECK_RETURN_TYPES)
@@ -1662,6 +1660,17 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 		// And we're out!
 		iz.cp.VmComeFrom(paramChecks...)
 		iz.cp.Emit(vm.Ret)
+	}
+	for unthunkAddr, cTop := range iz.cp.Unthunks {
+		unthunkLoc := iz.cp.Vm.Code[unthunkAddr].Args[0]
+		thunkAddr := iz.cp.Vm.Mem[unthunkLoc].V.(values.Thunk).CAddr
+		for _, push :=  range iz.cp.RpushMap[thunkAddr] {
+			iz.cp.Vm.Code[push].Args[1] = cTop
+		}
+	}
+	iz.cp.Unthunks = nil
+	for _, thunk := range iz.cp.ThunkList {
+		delete(iz.cp.RpushMap, thunk.Value.CAddr)
 	}
 	cpFn.Top = iz.cp.CodeTop()
 	iz.cp.Fns = append(iz.cp.Fns, &cpFn)

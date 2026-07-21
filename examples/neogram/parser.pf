@@ -3,8 +3,6 @@
 
 newtype 
 
-PhonemeNode = struct(token Token, phoneme string)
-ClassNode = struct(token Token, class string)
 NumberNode = struct(token Token, value int)
 BinaryNode = struct(token Token, operator string, left, right Node)
 PrefixNode = struct(token Token, prefix string, argument Node)
