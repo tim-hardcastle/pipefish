@@ -726,7 +726,7 @@ func (iz *Initializer) makeFunctionTable() {
 			}
 			iz.parsedCode[j][i].(*parsedFunction).callInfo = functionToAdd.callInfo
 			conflictingFunction := iz.Add(functionName, functionToAdd)
-			if conflictingFunction != nil && conflictingFunction != functionToAdd {
+			if conflictingFunction != nil && !(*conflictingFunction.getToken() == *functionToAdd.getToken()) {
 				iz.throw("init/overload.a", &fn.op, functionName, &conflictingFunction.op)
 				return
 			}
@@ -1070,6 +1070,11 @@ func (iz *Initializer) compileEverythingElse() [][]labeledParsedCodeChunk { // T
 	for dT := constantDeclaration; dT <= variableDeclaration; dT++ {
 		for i, pc := range iz.parsedCode[dT] {
 			parsedDec := pc.(*parsedAssignment)
+			// Imports and includes and so on mean that we may already have done this.
+			if _, declarationHasBeenMade := iz.getDeclaration(decASSIGN, parsedDec.indexTok, DUMMY); declarationHasBeenMade {
+				continue
+			}
+			iz.setDeclaration(decASSIGN, parsedDec.indexTok, DUMMY, DUMMY)
 			names := iz.P.GetVariablesFromAstSig(parsedDec.sig)
 			for _, name := range names {
 				existingName, alreadyExists := namesToDeclarations.Get(name)
@@ -1840,6 +1845,7 @@ const (
 	decFUNCTION
 	decPARAMETERIZED
 	decWRAPPER
+	decASSIGN
 )
 
 type labelInfo struct {
