@@ -607,28 +607,94 @@ compile(code string) -> list :
 
 That was easy, wasn't it?
 
-Now, what was the point of that? Well, the RPN version is *faster*. Instead of having to make a bunch of recursive calls and returns to walk around the tree, we're now using a `for` loop to iterate through a list. For real languages, the speed-up in execution is trival, and the implementation of a VM is not particularly challenging.
+Now, what was the point of that? Well, the RPN version is *faster*. Instead of having to make a bunch of recursive calls and returns to walk around the tree, we're now using a `for` loop to iterate through a list. For real languages, the speed-up in execution is significant, and the implementation of a VM is not particularly challenging.
 
 ## A Pratt compiler
 
 However, now we're not walking the tree, we didn't really need to create the AST. It may help us to think about the process of compilation, but it's not essential. All we need to do is change our parser so that instead of constructing an AST, it outputs a list of tokens in RPN form. This requires some minimal systematic changes to the code.
 
 ```
-include 
+~~ Pratt compiler into RPN form.
 
+// This is so similar to the parser that most of the refactoring was done by search-and-
+// replace, and so the comments on this are minimal.
+
+include
+
+// We want to re-use the table of precedences. We will also re-use the various `Node` types 
+// with which we index them, since they're there, even though we're no longer *constructing*
+// any actual nodes.
 "parser.pf"
+// As in `compA.pf`, we will use `rpn.pf` to execute the RPN once we have it.
 "rpn.pf"
-"rpnify.pf"
 
-def 
+def
 
 ~~ Evaluates a string in PEMDAS form, returning an integer.
+// This is exactly the same code as in `compA.pf`.
 ev(code string) -> int :
     code -> compile -> run(State([], that)) -> that[stack][0]
 
-~~ Compiles a string in PEMDAS form to a list in RPN form.
+~~ Compiles a string into a list of tokens in RPN form.
 compile(code string) -> list :
-    code -> parse -> rpnf
+    len leftovers > 0 :
+        error "unexpected `" + string(head) + "`"
+    else :
+        result 
+given :
+    result, leftovers = code -> lex -> compileExpression(that, 0)
+    head = leftovers[0]
+
+private
+
+compileExpression(tokens list, prec int) -> list, list : 
+    compileStart(tokens) -> compileRest(that[0], that[1], prec)
+
+compileStart(tokens list) -> list, list :  
+    head in keys INFO[PrefixNode] :
+        compilePrefixExpression(tokens)
+    head in rune and head == '(' :
+        compileGroupedExpression(tail)
+    head in int : 
+        [head], tail  
+    else :
+        error "unexpected token `" + string(head) + "`"
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+
+// We compile the various cases in the branches of compileStart.
+
+compilePrefixExpression(tokens list) -> list, list: 
+    rightRpn & head, newTail 
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    rightRpn, newTail = compileExpression(tail, INFO[PrefixNode][head])
+
+compileGroupedExpression(tokens list) -> list, list : 
+    shouldBeRparen == ')' :
+        rpn, newTail 
+    else : 
+        error "expected `)`"
+given :
+    rpn, rparenAndNewTail = compileExpression(tokens, 0)
+    shouldBeRparen = rparenAndNewTail[0]
+    newTail = rparenAndNewTail[1::len rparenAndNewTail]
+
+compileRest(leftRpn list, tokens list, prec int) -> list, list : 
+    valid headPrec and headPrec > prec :
+        compileRest(leftRpn + rightRpn & head, newTail, prec) 
+    valid suffixPrec and suffixPrec > prec :
+        compileRest(leftRpn & head, tail, prec)
+    else : 
+        leftRpn, tokens
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    headPrec = INFO[InfixNode][head]
+    suffixPrec = INFO[SuffixNode][head]
+    rightRpn, newTail = compileExpression(tail, headPrec)
 ```
 
 ## A Pratt interpreter
