@@ -719,4 +719,4 @@ given :
 
 ## And that's it
 
-One parser, one lexer, one prettyprinter, three interpreters, and two compilers, exactly as promised. I hope you had fun. If so, please leave a star on [the Pipefish repo](https://github.com/tim-hardcastle/Pipefish). Have a nice day!
+One parser, one lexer, one prettyprinter, three interpreters, and two compilers, exactly as promised. I hope you had fun. If so, please leave a star on the repo. Have a nice day!
