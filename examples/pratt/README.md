@@ -40,7 +40,7 @@ I will be using Pipefish to illustrate these concepts not only because it is obj
 
 It also has the advantage that it is easy to peek inside the workings of it as it runs and see what it's up to.
 
-Writing an intepreter/compiler allows us to structure our code very nicely with modularity and encapsulation. For convenience, we're *not* going to do that, and instead will use `include` statements to smoosh our little files together into programs that promiscuously share even their `private` functions.
+Writing an interpreter/compiler allows us to structure our code very nicely with modularity and encapsulation. For convenience, we're *not* going to do that, and instead will use `include` statements to smoosh our little files together into programs that promiscuously share even their `private` functions.
 
 All the files can be found in the [examples/pratt folder of the Pipefish repo](https://github.com/tim-hardcastle/pipefish/tree/main/examples/pratt).
 
@@ -118,10 +118,10 @@ The more usual way to evaluate RPN expressions, however, is with a *stack machin
 The algorithm is this. We start at the head of our list of tokens with an empty stack, and then iteratively:
 
 * If the head of the tokens is a number, remove it from the head and push it onto the stack.
-* If the thead of the tokens is a number is a symbol of arity `n`, remove it from the head, pop `n` numbers off the stack, apply the operation to them, and push the result (necessarily another number) onto the stack. If there *aren't* `n` numbers on the stack, the expression is ill-formed and we throw an error.
+* If the head of the tokens is a number is a symbol of arity `n`, remove it from the head, pop `n` numbers off the stack, apply the operation to them, and push the result (necessarily another number) onto the stack. If there *aren't* `n` numbers on the stack, the expression is ill-formed and we throw an error.
 * We repeat this until we run out of symbols. At that point if we have exactly one number on the stack, this is the correct answer, and if we don't have exactly one number on the stack, then the expression was ill-formed to start with.
 
-This description of the algorithm should give you some insight into the advantages of RPN. There is a sense in which it is in the "right" order, in that we obviously need to put our values into the memory of our machine before we can apply an operation to them. Given the RPN form, we can just move linearly along the tokens processing them one at a time. To emphasize this point, I will write the main body of this algorithm using a `for` loop (a [pure, referentially trasparent `for` loop in which all the variables are immutable](https://github.com/tim-hardcastle/Pipefish/wiki/For-loops)).
+This description of the algorithm should give you some insight into the advantages of RPN. There is a sense in which it is in the "right" order, in that we obviously need to put our values into the memory of our machine before we can apply an operation to them. Given the RPN form, we can just move linearly along the tokens processing them one at a time. To emphasize this point, I will write the main body of this algorithm using a `for` loop (a [pure, referentially transparent `for` loop in which all the variables are immutable](https://github.com/tim-hardcastle/Pipefish/wiki/For-loops)).
 
 ```
 include
@@ -150,7 +150,7 @@ RPN_INFO = map('+'::Info(2, func(L) : L[0] + L[1]),
 
 def
 
-~~ Excutes code given as a string in RPN form.
+~~ Executes code given as a string in RPN form.
 exec(code string) :
     code -> lex -> run(State([], that)) -> that[stack][0]
 
@@ -172,35 +172,40 @@ run(initial State) -> State :
         newHead = F(args)
 ```
 
-We can get Pipefish to tell us what it's doing. Let's put in `exec "2 3 + 4 *"` and see the workings of the main loop as it goes round.
+We can get Pipefish to tell us what it's doing. Let's put in `exec "2 3 * 4 +"` and see the workings of the main loop as it goes round.
 
 ```
-  ▪ We called function run (defined at line 33) with initial = `State([], [2, 3, '+', 4, 
-    '*']). 
-  ▪ We entered the loop at line 34 with S = `State([20], []). 
-  ▪ At line 35 we evaluated the condition head in int. The condition succeeded. 
-  ▪ At line 36 the body of the for loop evaluated to `State([2], [3, '+', 4, '*']). 
-  ▪ We entered the loop at line 34 with S = `State([20], []). 
-  ▪ At line 35 we evaluated the condition head in int. The condition succeeded. 
-  ▪ At line 36 the body of the for loop evaluated to `State([2, 3], ['+', 4, '*']). 
-  ▪ We entered the loop at line 34 with S = `State([20], []). 
-  ▪ At line 35 we evaluated the condition head in int. The condition failed. 
-  ▪ At line 37 we took the else branch, so at line 38 the body of the for loop evaluated 
-    to `State([5], [4, '*']). 
-  ▪ We entered the loop at line 34 with S = `State([20], []). 
-  ▪ At line 35 we evaluated the condition head in int. The condition succeeded. 
-  ▪ At line 36 the body of the for loop evaluated to `State([5, 4], ['*']). 
-  ▪ We entered the loop at line 34 with S = `State([20], []). 
-  ▪ At line 35 we evaluated the condition head in int. The condition failed. 
-  ▪ At line 37 we took the else branch, so at line 38 the body of the for loop evaluated 
-    to `State([20], []). 
+▪ We called function run (defined at line 33) with initialState = 
+    State([], [2, 3, '*', 4, '+']). 
+  ▪ We entered the loop at line 34 with S = State([], [2, 3, '*', 4, '+']). 
+  ▪ At line 35 we evaluated the condition head in int. 
+  ▪ The condition succeeded. 
+  ▪ At line 36 the body of the for loop evaluated to State([2], [3, '*', 4, '+']). 
+  ▪ We entered the loop at line 34 with S = State([2], [3, '*', 4, '+']). 
+  ▪ At line 35 we evaluated the condition head in int. 
+  ▪ The condition succeeded. 
+  ▪ At line 36 the body of the for loop evaluated to State([2, 3], ['*', 4, '+']). 
+  ▪ We entered the loop at line 34 with S = State([2, 3], ['*', 4, '+']). 
+  ▪ At line 35 we evaluated the condition head in int. 
+  ▪ The condition failed. 
+  ▪ At line 37 we took the else branch. 
+  ▪ At line 38 the body of the for loop evaluated to State([6], [4, '+']). 
+  ▪ We entered the loop at line 34 with S = State([6], [4, '+']). 
+  ▪ At line 35 we evaluated the condition head in int. 
+  ▪ The condition succeeded. 
+  ▪ At line 36 the body of the for loop evaluated to State([6, 4], ['+']). 
+  ▪ We entered the loop at line 34 with S = State([6, 4], ['+']). 
+  ▪ At line 35 we evaluated the condition head in int. 
+  ▪ The condition failed. 
+  ▪ At line 37 we took the else branch. 
+  ▪ At line 38 the body of the for loop evaluated to State([10], []). 
 ```
 
 Note that our stack machine makes no mention of our parenthesis tokens, because RPN doesn't need or use them. Let's move on to conventional PEMDAS notation, which does.
 
 ## A Pratt parser
 
-There are many ways to write a parser: the Pratt parser is particuarly beautiful and simple.
+There are many ways to write a parser: the Pratt parser is particularly beautiful and simple.
 
 First, let's quickly define recursively what it means for one of our PEMDAS expressions to be well-formed.
 
@@ -220,15 +225,15 @@ So, to parse a list of tokens into an AST, we recursively do this:
 
 * We then look at the rest of the list of tokens to see what we should do next, where, from the definition of a well-formed expression, the rest of the tokens must consist of nothing at all (we've finished parsing and should return) or an infix or suffix operator which will have to be consumed eventually.
 
-The crucial thing to note is this. Suppose we have something like `3 ^ 4 + 2`. Then if we just naively analyzed it as a node `3`, an infix expression `^`, and a list of tokens `4 + 2`, and then parsed the rest of the tokens into a node and joined the result together using the infix, we'd get  `3 * (4 + 2)`, which is a different expression.
+The crucial thing to note is this. Suppose we have something like `2 * 3 + 4`. Then if we just naively analyzed it as a node `2`, an infix expression `*`, and a list of tokens `3 + 4`, and then parsed the rest of the tokens into a node and joined the result together using the infix, we'd get  a node representing `2 * (3 + 4)`, which is a different expression.
 
-What we do instead is recursively parse the remainder of the tokens just enough to turn that too into a node and a shorter tail of tokens, and then we have a node `3` and the infix `*`, and a node `4`, and a remaining list of tokens `+ 2`.
+What we do instead is recursively parse the remainder of the tokens just enough to turn that too into a node and a shorter tail of tokens, and then we have a node `2` and the infix `*`, and a node `3`, and a remaining list of tokens `+ 4`.
 
-Now we can join `3` together with `4` by the infix to get a binary node `3 * 4`, and continue with the algorithm.
+Now we can join `2` together with `3` by the infix to get a binary node `2 * 3`, and continue with the algorithm.
 
-The algorithm decides when it needs to do perform this trick (call it the "Pratt manoeuvre") and when it can just proceed naively, according to whether the precedence of the operator is strictly higher than the precedence of the last operator we looked at (starting with this set at 0). So in the example above, we start with the prcedence at 0, see that `*` has a higher precedence than 0, carry out the Pratt manoeuvre, see that `+` has a lower precedence than `*`, and proceed naively, returning from our recursive function calls until we're looking at the tail of the tokens with a precdence of 0 again.
+The algorithm decides when it needs to do perform this trick (call it the "Pratt manoeuvre") and when it can just proceed naively, according to whether the precedence of the operator is strictly higher than the precedence of the last operator we looked at (starting with this set at 0). So in the example above, we start with the precedence at 0, see that `*` has a higher precedence than 0, carry out the Pratt manoeuvre, see that `+` has a lower precedence than `*`, and proceed naively, returning from our recursive function calls until we're looking at the tail of the tokens with a precedence of 0 again.
 
-If on the other hand our expression was `3 * 4 ^ 2`, then when the parser arrives at the `^` it will see that this has a higher precedence than `*` and will perform the Pratt manouvre again.
+If on the other hand our expression was `2 * 3 ^ 4`, then when the parser arrives at the `^` it will see that this has a higher precedence than `*` and will perform the Pratt manoeuvre again.
 
 Let's express this as code.
 
@@ -346,11 +351,81 @@ given :
     rightNode, newTail = parseExpression(tail, headPrec)
 ```
 
-Again we can ask Pipefish to give us some insight into what it's doing:
+Again we can ask Pipefish to talk us through what it's doing if we do `parse "2 * 3 + 4"`.
 
 ```
-
-
+  ▪ We called function parseExpression (defined at line 58) with tokens = 
+    [2, '*', 3, '+', 4], prec = 0. 
+  ▪ We called function parseStart (defined at line 67) with tokens = [2, '*', 3, '+', 4]
+    . 
+  ▪ At line 68 we evaluated the condition head in keys INFO[PrefixNode]. 
+  ▪ The condition failed. 
+  ▪ At line 70 we evaluated the condition head in rune and head == '('. 
+  ▪ The condition failed. 
+  ▪ At line 72 we evaluated the condition head in int. 
+  ▪ The condition succeeded. 
+  ▪ At line 73 function parseStart returned (NumberNode(2), ['*', 3, '+', 4]). 
+  ▪ We called function parseRest (defined at line 99) with leftNode = NumberNode(2), 
+    tokens = ['*', 3, '+', 4], prec = 0. 
+  ▪ At line 100 we evaluated the condition valid headPrec and headPrec > prec. 
+  ▪ The condition succeeded. 
+  ▪ We called function parseExpression (defined at line 58) with tokens = [3, '+', 4], 
+    prec = 2. 
+  ▪ We called function parseStart (defined at line 67) with tokens = [3, '+', 4]. 
+  ▪ At line 68 we evaluated the condition head in keys INFO[PrefixNode]. 
+  ▪ The condition failed. 
+  ▪ At line 70 we evaluated the condition head in rune and head == '('. 
+  ▪ The condition failed. 
+  ▪ At line 72 we evaluated the condition head in int. 
+  ▪ The condition succeeded. 
+  ▪ At line 73 function parseStart returned (NumberNode(3), ['+', 4]). 
+  ▪ We called function parseRest (defined at line 99) with leftNode = NumberNode(3), 
+    tokens = ['+', 4], prec = 2. 
+  ▪ At line 100 we evaluated the condition valid headPrec and headPrec > prec. 
+  ▪ The condition failed. 
+  ▪ At line 102 we evaluated the condition valid suffixPrec and suffixPrec > prec. 
+  ▪ The condition failed. 
+  ▪ At line 104 we took the else branch. 
+  ▪ At line 105 function parseRest returned (NumberNode(3), ['+', 4]). 
+  ▪ At line 59 function parseExpression returned (NumberNode(3), ['+', 4]). 
+  ▪ We called function parseRest (defined at line 99) with leftNode = 
+    InfixNode('*', NumberNode(2), NumberNode(3)), tokens = ['+', 4], prec = 0. 
+  ▪ At line 100 we evaluated the condition valid headPrec and headPrec > prec. 
+  ▪ The condition succeeded. 
+  ▪ We called function parseExpression (defined at line 58) with tokens = [4], prec = 1. 
+  ▪ We called function parseStart (defined at line 67) with tokens = [4]. 
+  ▪ At line 68 we evaluated the condition head in keys INFO[PrefixNode]. 
+  ▪ The condition failed. 
+  ▪ At line 70 we evaluated the condition head in rune and head == '('. 
+  ▪ The condition failed. 
+  ▪ At line 72 we evaluated the condition head in int. 
+  ▪ The condition succeeded. 
+  ▪ At line 73 function parseStart returned (NumberNode(4), []). 
+  ▪ We called function parseRest (defined at line 99) with leftNode = NumberNode(4), 
+    tokens = [], prec = 1. 
+  ▪ At line 100 we evaluated the condition valid headPrec and headPrec > prec. 
+  ▪ The condition failed. 
+  ▪ At line 102 we evaluated the condition valid suffixPrec and suffixPrec > prec. 
+  ▪ The condition failed. 
+  ▪ At line 104 we took the else branch. 
+  ▪ At line 105 function parseRest returned (NumberNode(4), []). 
+  ▪ At line 59 function parseExpression returned (NumberNode(4), []). 
+  ▪ We called function parseRest (defined at line 99) with leftNode = 
+    InfixNode('+', InfixNode('*', NumberNode(2), NumberNode(3)), NumberNode(4)), tokens = 
+    [], prec = 0. 
+  ▪ At line 100 we evaluated the condition valid headPrec and headPrec > prec. 
+  ▪ The condition failed. 
+  ▪ At line 102 we evaluated the condition valid suffixPrec and suffixPrec > prec. 
+  ▪ The condition failed. 
+  ▪ At line 104 we took the else branch. 
+  ▪ At line 105 function parseRest returned 
+    (InfixNode('+', InfixNode('*', NumberNode(2), NumberNode(3)), NumberNode(4)), []). 
+  ▪ At line 101 function parseRest returned 
+    (InfixNode('+', InfixNode('*', NumberNode(2), NumberNode(3)), NumberNode(4)), []). 
+  ▪ At line 101 function parseRest returned 
+    (InfixNode('+', InfixNode('*', NumberNode(2), NumberNode(3)), NumberNode(4)), []). 
+  ▪ At line 59 function parseExpression returned 
+    (InfixNode('+', InfixNode('*', NumberNode(2), NumberNode(3)), NumberNode(4)), []). 
 ```
 
 ## A treewalker
@@ -400,10 +475,35 @@ given :
     fnForOperation = OPS[type n][n[op]]
 ```
 
-Let's watch Pipefish at work again.
+Let's watch Pipefish at work again, as we do `ev "2 * 3 + 4"`.
 
 ```
-
+  ▪ We called function walk (defined at line 31) with n = 
+    InfixNode('+', InfixNode('*', NumberNode(2), NumberNode(3)), NumberNode(4)). 
+  ▪ At line 32 we evaluated the condition n in NumberNode. 
+  ▪ The condition failed. 
+  ▪ At line 34 we evaluated the condition n in InfixNode. 
+  ▪ The condition succeeded. 
+  ▪ We called function walk (defined at line 31) with n = 
+    InfixNode('*', NumberNode(2), NumberNode(3)). 
+  ▪ At line 32 we evaluated the condition n in NumberNode. 
+  ▪ The condition failed. 
+  ▪ At line 34 we evaluated the condition n in InfixNode. 
+  ▪ The condition succeeded. 
+  ▪ We called function walk (defined at line 31) with n = NumberNode(2). 
+  ▪ At line 32 we evaluated the condition n in NumberNode. 
+  ▪ The condition succeeded. 
+  ▪ At line 33 function walk returned 2. 
+  ▪ We called function walk (defined at line 31) with n = NumberNode(3). 
+  ▪ At line 32 we evaluated the condition n in NumberNode. 
+  ▪ The condition succeeded. 
+  ▪ At line 33 function walk returned 3. 
+  ▪ At line 35 function walk returned 6. 
+  ▪ We called function walk (defined at line 31) with n = NumberNode(4). 
+  ▪ At line 32 we evaluated the condition n in NumberNode. 
+  ▪ The condition succeeded. 
+  ▪ At line 33 function walk returned 4. 
+  ▪ At line 35 function walk returned 10. 
 ```
 
 ## A pretty-printer
@@ -458,7 +558,7 @@ Even if you aren't going to pursue langdev, it is still sometimes a useful fact 
 To RPN-ify a node, the algorithm goes like this:
 
 * If the node is a number, return a list containing only that number.
-* If the node is an operator, recursively RPN-ify its argument(s), concatentate the resulting lists together if there's more than one, and append the operator to the list. In code:
+* If the node is an operator, recursively RPN-ify its argument(s), concatenate the resulting lists together if there's more than one, and append the operator to the list. In code:
 
 ```
 include

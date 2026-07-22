@@ -1331,7 +1331,7 @@ NodeTypeSwitch:
 	_, isLazyInfix := node.(*parser.LazyInfixExpression)
 	_, isLoggingOperation := node.(*parser.LogExpression)
 	if !(isLazyInfix || isLoggingOperation) && (cp.autoOn(ctxt)) && ac == DEF &&
-		!(node.GetToken().Type == token.BREAK || node.GetToken().Type == token.CONTINUE) {
+		!(node.GetToken().Type == token.BREAK || node.GetToken().Type == token.CONTINUE) && ctxt.Typecheck != nil {
 		if len(cp.forData) == 0 {
 			cp.TrackOrLog(vm.TR_RETURN, cp.trackingOnAndIsReturn(ctxt), node.GetToken(), ctxt.FName, cp.That())
 		} else {
@@ -2480,7 +2480,7 @@ func (cp *Compiler) compilePipe(lhsTypes AlternateType, lhsConst bool, rhs parse
 		whatAccess = VERY_LOCAL_VARIABLE
 	}
 	envWithThat = &Environment{Data: map[string]Variable{"that": {MLoc: cp.That(), Access: whatAccess, Types: lhsTypes, Token: &token.Token{Literal: "that"}}}, Ext: env}
-	newContext := ctxt
+	newContext := ctxt.x()
 	newContext.Env = envWithThat
 	return cp.CompileNode(rhs, newContext)
 }
