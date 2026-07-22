@@ -464,13 +464,18 @@ OPS = map(..
 
 def
 
-ev(n Node) -> int :
+ev(code string) :
+    code -> parse -> walk
+
+private
+
+walk(n Node) -> int :
     n in NumberNode :
         n[value]
-    n in InfixNode : 
-        fnForOperation(ev(n[leftArg]), ev(n[rightArg]))
+    n in InfixNode :
+        fnForOperation(walk(n[leftArg]), walk(n[rightArg]))
     else :
-        fnForOperation(ev(n[arg]))
+        fnForOperation(walk(n[arg]))
 given :
     fnForOperation = OPS[type n][n[op]]
 ```

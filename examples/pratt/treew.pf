@@ -37,6 +37,3 @@ walk(n Node) -> int :
         fnForOperation(walk(n[arg]))
 given :
     fnForOperation = OPS[type n][n[op]]
-
-
-
