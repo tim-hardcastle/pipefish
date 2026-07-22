@@ -1,4 +1,4 @@
-Let's write a parser! (and a lexer, a prettyprinter, three interpreters, and two compilers).
+# Let's write a parser! (and a lexer, a prettyprinter, three interpreters, and two compilers).
 
 ## Introduction
 
