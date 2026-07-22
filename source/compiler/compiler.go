@@ -1258,7 +1258,7 @@ NodeTypeSwitch:
 				cp.Throw("comp/type/concrete", node.GetToken())
 				return FAIL
 			}
-			result = cp.CompileNode(constructor, ctxt)
+			result = cp.CompileNode(constructor, ctxt.x())
 			if result.Failed {
 				return FAIL
 			}
@@ -1268,7 +1268,7 @@ NodeTypeSwitch:
 			argsWithType := append([]parser.Node{typeNode}, node.Args...)
 			node.Token.Literal = node.Token.Literal + "{}" // TODO --- this is heinous. Anything looking at a PrefixExpression should be looking at the operator, not the token literal.
 			constructor := &parser.PrefixExpression{node.Token, node.Operator + "{}", argsWithType}
-			result = cp.CompileNode(constructor, ctxt)
+			result = cp.CompileNode(constructor, ctxt.x())
 			if result.Failed {
 				return FAIL
 			}
@@ -1280,7 +1280,7 @@ NodeTypeSwitch:
 			// which can then be compiled.
 			suffix := &parser.SuffixExpression{node.Token, ty.OperatorName, node.Args}
 			resolvingCompiler := cp.getResolvingCompiler(node.GetToken(), ac)
-			result = resolvingCompiler.CompileNode(suffix, ctxt)
+			result = resolvingCompiler.CompileNode(suffix, ctxt.x())
 			if result.Failed {
 				return FAIL
 			}

@@ -46,11 +46,16 @@ type ForData struct {
 	Rhs []TrackingVar
 }
 
-func (vm *Vm) trackingIs(i int, tf TrackingFlavor) bool {
+func (vm *Vm) trackingIs(i int, tfs ... TrackingFlavor) bool {
 	if i < 0 || i >= len(vm.LiveTracking) {
 		return false
 	}
-	return vm.LiveTracking[i].Flavor == tf
+	for _, tf := range tfs {
+		if vm.LiveTracking[i].Flavor == tf {
+			return true
+		}
+	}
+	return false
 }
 
 func (vm *Vm) TrackingToString(tdL []TrackingData) string {
@@ -130,7 +135,7 @@ func (vm *Vm) TrackingToString(tdL []TrackingData) string {
 			out.WriteString(" we took the ")
 			out.WriteString(text.Emph("else"))
 			out.WriteString(" branch")
-			if !vm.trackingIs(i+1, TR_RETURN) {
+			if !(vm.trackingIs(i+1, TR_RETURN, TR_FOR_RETURN, TR_BREAK, TR_BREAK_WITH_VALUE, TR_CONTINUE)) {
 				out.WriteString(".\n")
 			}
 		case TR_FNCALL:

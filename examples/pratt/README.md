@@ -157,9 +157,7 @@ exec(code string) :
 private
 
 run(initial State) -> State :
-    from S = initial for :
-        S[tokens] == [] :
-            break
+    from S = initial for S[tokens] != [] :
         head in int :
             State(S[stack] & head, tail)
         else :
@@ -174,12 +172,28 @@ run(initial State) -> State :
         newHead = F(args)
 ```
 
-We can get Pipefish to tell us what it's doing. Let's put in ***** and see the workings of the interpreter.
+We can get Pipefish to tell us what it's doing. Let's put in `exec "2 3 + 4 *"` and see the workings of the main loop as it goes round.
 
 ```
-
-
-
+  ▪ We called function run (defined at line 33) with initial = `State([], [2, 3, '+', 4, 
+    '*']). 
+  ▪ We entered the loop at line 34 with S = `State([20], []). 
+  ▪ At line 35 we evaluated the condition head in int. The condition succeeded. 
+  ▪ At line 36 the body of the for loop evaluated to `State([2], [3, '+', 4, '*']). 
+  ▪ We entered the loop at line 34 with S = `State([20], []). 
+  ▪ At line 35 we evaluated the condition head in int. The condition succeeded. 
+  ▪ At line 36 the body of the for loop evaluated to `State([2, 3], ['+', 4, '*']). 
+  ▪ We entered the loop at line 34 with S = `State([20], []). 
+  ▪ At line 35 we evaluated the condition head in int. The condition failed. 
+  ▪ At line 37 we took the else branch, so at line 38 the body of the for loop evaluated 
+    to `State([5], [4, '*']). 
+  ▪ We entered the loop at line 34 with S = `State([20], []). 
+  ▪ At line 35 we evaluated the condition head in int. The condition succeeded. 
+  ▪ At line 36 the body of the for loop evaluated to `State([5, 4], ['*']). 
+  ▪ We entered the loop at line 34 with S = `State([20], []). 
+  ▪ At line 35 we evaluated the condition head in int. The condition failed. 
+  ▪ At line 37 we took the else branch, so at line 38 the body of the for loop evaluated 
+    to `State([20], []). 
 ```
 
 Note that our stack machine makes no mention of our parenthesis tokens, because RPN doesn't need or use them. Let's move on to conventional PEMDAS notation, which does.

@@ -30,12 +30,12 @@ exec(code string) :
 
 private
 
-run(initial State) -> State :         \\
-    from S = initial for S[tokens] != [] :    
-        head in int :  \\
-            State(S[stack] & head, tail)  \\
-        else :  \\
-            State(poppedStack & newHead, tail) \\
+run(initialState State) -> State :
+    from S = initialState for S[tokens] != [] :
+        head in int :
+            State(S[stack] & head, tail)
+        else :
+            State(poppedStack & newHead, tail)
     given :
         head = S[tokens][0]
         tail = S[tokens][1::len S[tokens]]

@@ -324,10 +324,11 @@ loop:
 					trackingString := vm.TrackingToString([]TrackingData{newData})
 					switch vm.Mem[staticData.LogToLoc].T {
 					case vm.UsefulTypes.LogTo:
+						mdStr := text.NewMarkdown("", 92, func(s string) string { return s }).Render([]string{trackingString})
 						if vm.Mem[staticData.LogToLoc].V.(int) == 0 {
-							println(text.NewMarkdown("", 92, func(s string) string { return s }).Render([]string{trackingString}))
+							println(strings.TrimLeft(mdStr, "\n"))
 						} else {
-							vm.OutHandle.Write(text.NewMarkdown("", 92, func(s string) string { return s }).Render([]string{trackingString}))
+							vm.OutHandle.Write(mdStr)
 						}
 					case values.STRING:
 						filename := vm.Mem[staticData.LogToLoc].V.(string)
@@ -2526,6 +2527,63 @@ func (vit *ValueIterator) get() (values.Value, bool) {
 func (vm *Vm) NewValueIterator(locs []uint32) *ValueIterator {
 	return &ValueIterator{vm: vm, locs: locs}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
