@@ -1,8 +1,8 @@
-Let's write a Pratt parser! (and a lexer, a prettyprinter, three interpreters, and two compilers)
+Let's write a parser! (and a lexer, a prettyprinter, three interpreters, and two compilers).
 
 ## Introduction
 
-This document is suitable as an introduction to some basic concepts for langdev beginners, but it may also give more experienced people things to think about. For one thing, a Pratt parser in a purely functional style is a thing of almost inconceivable simplicity and beauty; and also you may not have seen some of the tricks I can do with them.
+This exercise is suitable as an introduction to some basic concepts for langdev beginners, but it may also give more experienced langdevs some things to think about. For one thing, a Pratt parser in a purely functional style is a thing of almost inconceivable simplicity and beauty; and also you may not have seen some of the tricks I can do with them.
 
 ## Terminology
 
@@ -10,9 +10,9 @@ Let's define some terms.
 
 * A **lexer** (and/or **tokenizer**) takes code considered just as a string of characters, and converts it into the next higher unit of structure, the `token`, for example turning the string `"(-42 + 99) * 4!"` into the list `["(", "-", "42", "+", "99", ")", "*", "4", "!"]`.
 
-* Normally instead of the tokens being a list of mere bare strings they have **metadata** to say where in the code they came from: in a mature language, the name of the source code file, the line number, and the position in the line. (We're not going to do this.)
+* Normally instead of the tokens being a list of mere bare strings they have **metadata** to say where in the code they came from: in a mature language, the name of the source code file, the line number, and the position in the line. (We're not going to do this, but in a real language implementation you should tag *all* your artifacts with metadata showing where they come from: you *will* need it.)
 
-* A **parser** takes this string of tokens and turns it into a data structure that more closely represents the *syntactic* structure of the code. The most usual form, and the one we will use here, is to turn the expression into an **abstract syntax tree**, or **AST**, which assigns the tokens to nodes of a tree such that the branches of a node are the arguments of an operation. For example, from the tokens `["(", "-", "42", "+", "99", ")", "*", "4", "!"]`, the AST would be:
+* A **parser** takes this string of tokens and turns it into a data structure that more closely represents the syntactic structure of the code. The most usual form, and the one we will use here, is to turn the expression into an **abstract syntax tree**, or **AST**, which assigns the tokens to nodes of a tree such that the branches of a node are the arguments of an operation. For example, from the tokens `["(", "-", "42", "+", "99", ")", "*", "4", "!"]`, the AST would be:
 ```
                  *
                 / \
@@ -34,11 +34,15 @@ An **interpreter** generally is something that executes code *other than* machin
 
 If I had to explain what makes it a "virtual machine", I would say the distinction is that since the treewalker is just a collection of recursive functions calling one another, it never explicitly has to represent *state*, because the intermediate calculations are automatically pushed onto the stack as stack frames at each function call. By contrast, the virtual machine must model its execution as the operations it executes modifying the state of the machine until it contains our final result.
 
-## Note on Pipefish
+## Note on the code
 
-I will be using Pipefish to illustrate these concepts not only because it is objectively The Bestest Language In The Whole World™, but because it shares with Python the quality of being runnable pseudocode, while being simpler and having a proper type system and having pure and referentially transparent functions and immutable values. You should have no trouble reading it in combination with the explanations of what each bit of code does.
+I will be using Pipefish to illustrate these concepts not only because it is objectively The Bestest Language In The Whole World™, but because it shares with Python the quality of being runnable pseudocode, while being simpler and having a proper type system and having pure and referentially transparent functions and immutable values. You should have no trouble reading it in combination with the text and comments.
 
 It also has the advantage that it is easy to peek inside the workings of it as it runs and see what it's up to.
+
+Writing an intepreter/compiler allows us to structure our code very nicely with modularity and encapsulation. For convenience, we're *not* going to do that, and instead will use `include` statements to smoosh our little files together into programs that promiscuously share even their `private` functions.
+
+All the files can be found in the [examples/pratt folder of the Pipefish repo](https://github.com/tim-hardcastle/pipefish/tree/main/examples/pratt).
 
 ## The lexer
 
@@ -47,16 +51,57 @@ We will first need a lexer to produce a string of tokens. These will consist of 
 We have no need for metadata, and every need for simplicity, so we will just get our tokens as a list of runes (the symbols) and integers. This is our lexer.
 
 ```
+const 
 
+WHITESPACE = set(' ', '\t')
+SYMBOLS = set('+', '-', '*', '/', '^', '~', '!', '(', ')')
+NUMERALS = set('0', '1', '2', '3', '4', '5', '6', '7', '8', '9') 
+
+// We wrap our recursive function with two parameters inside a non-recursive function
+// with just one, so we can conveniently call it.
+def
+
+lex(code string) :
+    first lexHead [], code
+
+// And now the recursive function.
+lexHead(tokens list, code string) -> list, string :
+    code == "" :
+        tokens, ""
+    head in WHITESPACE :
+        lexHead tokens, tail 
+    head in SYMBOLS :
+        lexHead tokens & head, tail 
+    head in NUMERALS :
+        lexHead tokens & number, numberTail
+    else :
+        error "unexpected rune `'" + string(head) + "'`"
+given :    
+    head = code[0]
+    tail = code[1::len code]
+    number, numberTail = lexNumber tokens, code
+    
+lexNumber(tokens, code) -> int, string :
+    int(numString), tail
+given :
+    numString = slurpNumber(code)
+    tail = code[len(numString)::len(code)]
+
+slurpNumber(code) -> string :
+    from numString = "" for _::digit = range code :
+        digit in NUMERALS :
+            numString & digit 
+        else :
+            break numString
 ```
 
-## RPN
+## An RPN calculator
 
-I promised you an interpreter for proper arithmetic expressions, but first, for reasons that will become clear, we'll do an **RPN** calculator.
+I promised you an interpreter for proper arithmetic expressions, but first, for reasons that will become clear, we'll do an RPN calculator.
 
-RPN is a style of notation where we write the operator on the right-hand side of its operands. Instead of `5 + 3`, we write `5 3 +`.
+**RPN** (short for **Reverse Polish Notation**) is a style of notation where we write the operator on the right-hand side of its operands. Instead of `5 + 3`, we write `5 3 +`.
 
-The disadvantage of this is that complicated expressions become harder for humans to read than our traditional notation with infixes and parentheses. It has some advantages, though. One is that we need neither parentheses nor PEMDAS to express our intent without ambiguity: e.g. the infix expressions `(2 + 3) * 4!` and `2 + (3 * 4!)` in RPN are `2 3 + 4 ! *` and `2 3 4 ! * +` respectively.
+The disadvantage of this is that complicated expressions become harder for humans to read than our traditional notation with infixes and parentheses. It has some advantages, thoug, and one is that we need neither parentheses nor precedence to express our intent without ambiguity: e.g. the infix expressions `(2 + 3) * 4!` and `2 + (3 * 4!)` in RPN are `2 3 + 4 ! *` and `2 3 4 ! * +` respectively.
 
 We will however have to add an operator. In PEMDAS, we can tell the difference between `-` as a prefix and `-` as an infix. In RPN, we can't, we have to know the arity of the operator, and so we will add `~` for negation to our lexer.
 
@@ -64,7 +109,7 @@ An expression such as `1 +` would be **ill-formed**, since `+` requires two oper
 
 ## Evaluating RPN by rewriting
 
-There are a number of ways to evaluate such an expression. One is to look (at random if you like) for any sequence where n numbers are followed by an operator of arity n, e.g. when `!` follows one number or `*` follows two numbers. Then you calculate that bit of the expression and replace it. You continue doing that until you have one number left. (The proof that this must terminate with one number on the stack if the expression is well-formed is left as an exercise for the reader.) The fact that you can evaluate things by rewriting them can be used for serious purposes, [or for silly ones](****** rofl)
+There are a number of ways to evaluate such an expression. One is to look (at random if you like) for any sequence where n numbers are followed by an operator of arity n, e.g. when `!` follows one number or `*` follows two numbers. Then you calculate that bit of the expression and replace it. You continue doing that until you have one number left. (The proof that this must terminate with one number on the stack if the expression is well-formed is left as an exercise for the reader.) The fact that you can evaluate things by rewriting them can be used for serious purposes, [or for silly ones](https://github.com/tim-hardcastle/pipefish/tree/main/examples/rofl).
 
 ## Evaluating RPN with a stack machine
 
@@ -76,10 +121,57 @@ The algorithm is this. We start at the head of our list of tokens with an empty 
 * If the thead of the tokens is a number is a symbol of arity `n`, remove it from the head, pop `n` numbers off the stack, apply the operation to them, and push the result (necessarily another number) onto the stack. If there *aren't* `n` numbers on the stack, the expression is ill-formed and we throw an error.
 * We repeat this until we run out of symbols. At that point if we have exactly one number on the stack, this is the correct answer, and if we don't have exactly one number on the stack, then the expression was ill-formed to start with.
 
-So we can express that in code like this.
+This description of the algorithm should give you some insight into the advantages of RPN. There is a sense in which it is in the "right" order, in that we obviously need to put our values into the memory of our machine before we can apply an operation to them. Given the RPN form, we can just move linearly along the tokens processing them one at a time. To emphasize this point, I will write the main body of this algorithm using a `for` loop (a [pure, referentially trasparent `for` loop in which all the variables are immutable](https://github.com/tim-hardcastle/Pipefish/wiki/For-loops)).
 
 ```
+include
 
+"lexer.pf"  
+"mathfns.pf"  
+
+newtype 
+
+~~ The state of the VM: a stack of integers, and a list of tokens still to be processed.
+State = struct(stack, tokens list)
+
+~~ This will contain information about what a given operator does, as a value in the
+~~ `RPN_INFO` map below.
+Info = struct(arity int, fn func)
+
+const
+
+RPN_INFO = map('+'::Info(2, func(L) : L[0] + L[1]),
+                 .. '-'::Info(2, func(L) : L[0] - L[1]),
+                 .. '*'::Info(2, func(L) : L[0] * L[1]),
+                 .. '/'::Info(2, func(L) : L[0] div L[1]),
+                 .. '^'::Info(2, func(L) : exp(L[0], L[1])),
+                 .. '~'::Info(1, func(L) : - L[0]),
+                 .. '!'::Info(1, func(L) : fac(L[0])),)
+
+def
+
+~~ Excutes code given as a string in RPN form.
+exec(code string) :
+    code -> lex -> run(State([], that)) -> that[stack][0]
+
+private
+
+run(initial State) -> State :
+    from S = initial for :
+        S[tokens] == [] :
+            break
+        head in int :
+            State(S[stack] & head, tail)
+        else :
+            State(poppedStack & newHead, tail)
+    given :
+        head = S[tokens][0]
+        tail = S[tokens][1::len S[tokens]]
+        info = RPN_INFO[head]
+        poppedStack = S[stack][0::len(S[stack])-info[arity]]
+        F = info[fn]
+        args = S[stack][(len(S[stack])-info[arity])::len(S[stack])]
+        newHead = F(args)
 ```
 
 We can get Pipefish to tell us what it's doing. Let's put in ***** and see the workings of the interpreter.
@@ -94,57 +186,150 @@ Note that our stack machine makes no mention of our parenthesis tokens, because 
 
 ## A Pratt parser
 
-There are many ways to write a parser: the Pratt parser is particuarly beautiful and simple. My presentation of it will be different from others, because if we think about and write the parser in a functional style, it becomes very simple indeed.
+There are many ways to write a parser: the Pratt parser is particuarly beautiful and simple.
 
-First, let's quickly define recursively what it means for one of our expressions to be well-formed.
+First, let's quickly define recursively what it means for one of our PEMDAS expressions to be well-formed.
 
 * For any valid number (a sequence of the digits `0` ... `9` not beginning with `0`), that number on its own is a well-formed expression.
-* If `E` and `F` are well-formed expressions, and if `p`, `i` and `s` are a prefix, and infix, and a suffix respectively, then `p E`, `E i F`, and `E s` are well-formed expressions, where in this case:
-   * Our only prefix is `-`.
-   * Our infixes are `+`, `-`, `*`, `/`, and `^`.
-   * Our only suffix is `!`.
+* If `E` and `F` are well-formed expressions, and if `p`, `i` and `s` are a prefix, and infix, and a suffix respectively, then `p E`, `E i F`, and `E s` are well-formed expressions.
 * If `E` is a well-formed expression, so is `(E)`.
 
-Such definitions can be made more precise with formal descriptions such as [**Backus-Naur form**]() (**BNF**), and indeed such descriptions can then be fed into a **parser generator** which will write a parser for you. For our purposes, BNF would be a sledgehammer to crack a nut.
+In our explanation of how a Pratt parser works, we will assume that the expression we're working on is well-formed: the actual code will throw various errors if it isn't.
 
-Now, we may divide any well-formed expression (hereafter just "expression" 'cos that's all we really care about) into an **onset** and a **coda**, where an **onset** is a well-formed expression and a coda consists either of:
+So, to parse a list of tokens into an AST, we recursively do this:
 
-* An infix followed by an expression.
-* A suffix.
-* Nothing at all.
+* We look at the start of the list of tokens, the smallest number of tokens which, taken on its own would make a well-formed expression, and we turn that into a node. Given our definitions above, this will either consist of:
 
-It is trivially true that an expression can be analysed this way given that the coda can be empty. But our algorithm will recursively find the shortest possible onset, then look at its coda, and if its an infix followed by an expression, will analyse that into the shortest possible onset followed by its coda, etc, until the whole expression has been analysed that way.
+  * A number.
+  * A prefix expression.
+  * An expression grouped by parentheses.
 
-What we mean by "the shortest possible onset" is the one that would still be well-formed if we put in parentheses to show the order of operations. For example, if we have `3 + 4 + 5`, we could group that as `3 + (4 + 5)`, and say that `3` is the onset and `+ (4 + 5)` is the coda, and we then analyse the expression `4 + 5` into the onset `4` and the coda `+ 5`.
+* We then look at the rest of the list of tokens to see what we should do next, where, from the definition of a well-formed expression, the rest of the tokens must consist of nothing at all (we've finished parsing and should return) or an infix or suffix operator which will have to be consumed eventually.
 
-But if we had `3 * 4 + 5`, then the parentheses would have to go like this: `(3 * 4) + 5`, and so `3 * 4` is the shortest possible onset and `+ 5` is the remaining coda; and we would then analyze `3 * 4` into an onset of `3` and a coda of `* 4`.
+The crucial thing to note is this. Suppose we have something like `3 ^ 4 + 2`. Then if we just naively analyzed it as a node `3`, an infix expression `^`, and a list of tokens `4 + 2`, and then parsed the rest of the tokens into a node and joined the result together using the infix, we'd get  `3 * (4 + 2)`, which is a different expression.
 
-And the way we can tell that the onset of `3 * 4 + 5` has to be `3 * 4` and not `3` is that the precedence of `*` is higher than the precedence of `+`. That's the supposedly difficult bit of a Pratt parser. It isn't. The rule is: to find out if an infix can be the start of the coda or must be part of the onset, we compare its precedence with that of the next operator.
+What we do instead is recursively parse the remainder of the tokens just enough to turn that too into a node and a shorter tail of tokens, and then we have a node `3` and the infix `*`, and a node `4`, and a remaining list of tokens `+ 2`.
 
-So a short way of summarizing the Pratt algorithm looks like this:
+Now we can join `3` together with `4` by the infix to get a binary node `3 * 4`, and continue with the algorithm.
 
-* Start off by representing the expression as a dummy empty placeholder AST node representing the onset, and a list of all the tokens representing the coda; and with a current precedence of 0, the lowest possible.
-* Find the smallest number of tokens that *could be* the onset of the expression. These will necessarily be an expression themself, call it `E`. We will call the remaining tokens [T] `E` will be either:
-   * An expression grouped by parentheses.
-   * An expression consisting of a prefix and an expression.
-   * A number followed by nothing.
-   * A number followed by a suffix.
-   * A number followed by an infix.
-In the first three cases, `E` is definitely the onset, and if they're followed by an operation that's the start of the coda. We will leave suffixes alone for now: they will be easy to understand once we've done infixes.
+The algorithm decides when it needs to do perform this trick (call it the "Pratt manoeuvre") and when it can just proceed naively, according to whether the precedence of the operator is strictly higher than the precedence of the last operator we looked at (starting with this set at 0). So in the example above, we start with the prcedence at 0, see that `*` has a higher precedence than 0, carry out the Pratt manoeuvre, see that `+` has a lower precedence than `*`, and proceed naively, returning from our recursive function calls until we're looking at the tail of the tokens with a precdence of 0 again.
 
-And in the last case, that of infixes, we need to consider what precedence we were using as determined by the previous operator we used (and so we must pass this around from function to function), and of the infix we're looking at now, call it `i` = `T[0]`, to determine whether  `i` really belongs to the start of the coda or the middle of the onset.
+If on the other hand our expression was `3 * 4 ^ 2`, then when the parser arrives at the `^` it will see that this has a higher precedence than `*` and will perform the Pratt manouvre again.
 
-If the precedence of `i` is no higher than the one we passed into the function, then we can treat `i` as the start of the coda.
-
-If it *is* higher, we need to set our current precedence level to the precedence of that `i`, parse whatever's to the right of `i` (`T[1::len T]`)into an onset `F` and coda `C`, and then say that the result of this whole manouvre is that our *onset* is `E i F` and our *coda* is `C`.
-
-This is the only "clever bit" of the Pratt parser: we get it to *wrongly* analyse the expression as a node `E`, followed by tokens `T` consisting of `i F C`, where `F` is the onset and `C` is the coda of `F C`. We then rearrange these bits and pieces to get the *right* analysis of the expression, which consists of an onset `E i F` and its coda `C`.
-
-Let's look at the code!
+Let's express this as code.
 
 ```
+~~ Simple Pratt parser for arithmetic expressions.
 
+include
 
+"lexer.pf"
+
+newtype 
+
+// We declare the nodes out of which we will build our AST.
+
+NumberNode = struct(value int)
+PrefixNode = struct(op rune, arg Node)
+InfixNode = struct(op rune, leftArg, rightArg Node)
+SuffixNode = struct(op rune, arg Node)
+EmptyNode = struct()
+
+Node = abstract NumberNode/PrefixNode/InfixNode/SuffixNode/EmptyNode
+
+const 
+
+~~ Information about the precedence of operations.
+// The great thing about the Pratt parser is that what in other parsers would rely
+// on a bunch of function calls and `if` statements and switches can be summarized
+// in a data structure. This is it.
+INFO = map(..
+    .. PrefixNode::map(..
+        .. '-'::4,
+        .. ),
+    .. InfixNode::map(..
+        .. '+'::1,
+        .. '-'::1,
+        .. '*'::2,
+        .. '/'::2,
+        .. '^'::3,
+        .. ),
+    .. SuffixNode::map(..
+        .. '!'::5,
+        .. ),
+    ..)
+
+def
+
+~~ Parses a string into an AST.
+// We need to wrap the recursive `parseExpression` function in this non-recursive function so
+// that we can recognize if/when there are still tokens left over after the recursion terminates.
+// This function knows where it is in the call tree and no instance of `parseExpression` can.
+parse(code string) -> Node :
+    len leftovers > 0 :
+        error "unexpected `" + string(head) + "`"
+    else :
+        result 
+given :
+    result, leftovers = code -> lex -> parseExpression(that, 0)
+    head = leftovers[0]
+
+private
+
+parseExpression(tokens list, prec int) -> Node, list : 
+    parseStart(tokens) -> parseRest(that[0], that[1], prec)
+
+// The start of an expression will be either :
+//   (A) a prefix followed by an expression, followed by the rest of the expression.
+//   (B) an expression in parentheses, followed by the rest of the expression
+//   (C) a number followed by the rest of the expression.
+//   (D) an infix or `)`, *if* the expression is ill-formed.
+//
+parseStart(tokens list) -> Node, list :  
+    head in keys INFO[PrefixNode] :
+        parsePrefixExpression(tokens)
+    head in rune and head == '(' :
+        parseGroupedExpression(tail)
+    head in int : 
+        NumberNode(head), tail  
+    else :
+        error "unexpected token `" + string(head) + "`"
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+
+// We parse the various cases in the branches of parseStart.
+
+parsePrefixExpression(tokens list) -> Node, list: 
+    PrefixNode(head, rightNode), newTail 
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    rightNode, newTail = parseExpression(tail, INFO[PrefixNode][head])
+
+parseGroupedExpression(tokens list) -> Node, list : 
+    shouldBeRparen == ')' :
+        node, newTail 
+    else : 
+        error "expected `)`"
+given :
+    node, rparenAndNewTail = parseExpression(tokens, 0)
+    shouldBeRparen = rparenAndNewTail[0]
+    newTail = rparenAndNewTail[1::len rparenAndNewTail]
+
+parseRest(leftNode Node, tokens list, prec int) -> Node, list : 
+    valid headPrec and headPrec > prec :
+        parseRest(InfixNode(head, leftNode, rightNode), newTail, prec) 
+    valid suffixPrec and suffixPrec > prec :
+        parseRest(SuffixNode(head, leftNode), tail, prec)
+    else : 
+        leftNode, tokens
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    headPrec = INFO[InfixNode][head]
+    suffixPrec = INFO[SuffixNode][head]
+    rightNode, newTail = parseExpression(tail, headPrec)
 ```
 
 Again we can ask Pipefish to give us some insight into what it's doing:
@@ -154,11 +339,9 @@ Again we can ask Pipefish to give us some insight into what it's doing:
 
 ```
 
-We skipped over suffixes. Now you understand what it's doing, it's very easy to see that all we need to do is change ***** to read like this:
-
 ## A treewalker
 
-So now we can put PEMDAS expressions into an AST, we can consider writing a treewalker to get them out.
+So now we can put PEMDAS expressions into an AST, we can consider writing a treewalker to evaluate them.
 
 The algorithm is childishly simple. We evaluate a node as follows:
 * If the node is a number, that's its value
@@ -166,63 +349,255 @@ The algorithm is childishly simple. We evaluate a node as follows:
 
 Here's the code:
 
+```
+include 
+
+"mathfns.pf"
+"parser.pf"
+
+const 
+
+OPS = map(..
+    .. PrefixNode::map(..
+        .. '-'::(func(x int) : -x),
+        .. ),
+    .. InfixNode::map(..
+        .. '+'::(func(x, y int) : x + y),
+        .. '-'::(func(x, y int) : x - y),
+        .. '*'::(func(x, y int) : x * y),
+        .. '/'::(func(x, y int) : x div y),
+        .. '^'::(func(x, y int) : exp(x, y)),
+        .. ),
+    .. SuffixNode::map(..
+        .. '!'::(func(x int) : fac(x)),
+        .. ),
+..)
+
+def
+
+ev(n Node) -> int :
+    n in NumberNode :
+        n[value]
+    n in InfixNode : 
+        fnForOperation(ev(n[leftArg]), ev(n[rightArg]))
+    else :
+        fnForOperation(ev(n[arg]))
+given :
+    fnForOperation = OPS[type n][n[op]]
+```
 
 Let's watch Pipefish at work again.
 
+```
 
+```
 
+## A pretty-printer
 
+We can always ugly-print our AST by putting parentheses around every operator and its arguments, for example turning `(-42 + 99) * 4!` into `(((-42) + 99) * (4!))`. For the purposes of debugging your parser and seeing where it's going wrong, this may be the most useful form: for other purposes it's ugly and confusing.
 
+The rule we need is that each operator should put parentheses around any of its child nodes that has a lower operator than it does, as follows:
 
+```
+~~ Prettyprinter.
+
+include 
+
+"parser.pf"
+
+def 
+
+~~ Prettyprints the given node.
+print(n Node) -> string :
+    ppr(n, 0) 
+
+private
+
+ppr(n Node, prec int) : 
+    n in NumberNode :    
+        string n[value]   
+    prec <= INFO[type n][n[op]] :   
+        describe n, INFO[type n][n[op]]   
+    else :   
+        "(" + (describe n, INFO[type n][n[op]]) + ")" 
+
+describe(n InfixNode, prec int) -> string : 
+    ppr(n[leftArg], newPrec) + " " + string(n[op]) + " " + ppr(n[rightArg], newPrec) 
+given :
+    newPrec = INFO[InfixNode][n[op]] 
+
+describe(n PrefixNode, prec int) -> string : 
+    n[op] & ppr(n[arg], newPrec) 
+given :
+    newPrec = INFO[PrefixNode][n[op]] 
+
+describe(n SuffixNode, prec int) -> string : 
+    ppr(n[arg], newPrec) & n[op] 
+given :
+    newPrec = INFO[SuffixNode][n[op]] 
+```
 
 ## RPN-ification
 
-Even if you aren't going to pursue langdev, it may still sometimes be a useful fact that a tree structure can be serialized into a nice linear sequence of RPN, by a procedure we might call "pushing the tree gently over to the right".
+Even if you aren't going to pursue langdev, it is still sometimes a useful fact that a tree structure can be serialized into a nice linear sequence of RPN, by a procedure we might call "pushing the tree gently over to the right".
 
 To RPN-ify a node, the algorithm goes like this:
 
 * If the node is a number, return a list containing only that number.
 * If the node is an operator, recursively RPN-ify its argument(s), concatentate the resulting lists together if there's more than one, and append the operator to the list. In code:
 
+```
+include
 
+"parser.pf"
 
-And we'll watch Pipefish RPN-ify our usual expression.
+def 
 
-
+rpnf(n Node) -> list :
+    n in NumberNode :
+        [n[value]]
+    n in InfixNode : 
+        rpnf(n[leftArg]) + rpnf(n[rightArg]) & n[op]
+    else :
+        rpnf(n[arg]) & tweakOp
+given :
+    tweakOp = (n in PrefixNode and n[op] == '-' : '~' ; else : n[op])
+```
 
 ## Writing a compiler and a VM
 
 We've already written both of these things. All we need is to join them together.
 
+```
+include 
 
+"parser.pf"
+"rpn.pf"
+"rpnify.pf"
+
+def 
+
+~~ Evaluates a string in PEMDAS form, returning an integer.
+ev(code string) -> int :
+    code -> compile -> run(State([], that)) -> that[stack][0]
+
+~~ Compiles a string in PEMDAS form to a list in RPN form.
+compile(code string) -> list :
+    code -> parse -> rpnf
+```
 
 That was easy, wasn't it?
 
+Now, what was the point of that? Well, the RPN version is *faster*. Instead of having to make a bunch of recursive calls and returns to walk around the tree, we're now using a `for` loop to iterate through a list. For real languages, the speed-up in execution is trival, and the implementation of a VM is not particularly challenging.
+
 ## A Pratt compiler
 
-However, we didn't really need to create the AST. It may help us thing about the process, but its entirely dispensable. All we need to do is change our parser so that instead of representing the onset as a node and the coda as a list of tokens in PEMDAS form, it represents the onset as a list of tokens in RPN form instead. This is very easy to do.
+However, now we're not walking the tree, we didn't really need to create the AST. It may help us to think about the process of compilation, but it's not essential. All we need to do is change our parser so that instead of constructing an AST, it outputs a list of tokens in RPN form. This requires some minimal systematic changes to the code.
 
 ```
+include 
 
+"parser.pf"
+"rpn.pf"
+"rpnify.pf"
+
+def 
+
+~~ Evaluates a string in PEMDAS form, returning an integer.
+ev(code string) -> int :
+    code -> compile -> run(State([], that)) -> that[stack][0]
+
+~~ Compiles a string in PEMDAS form to a list in RPN form.
+compile(code string) -> list :
+    code -> parse -> rpnf
 ```
 
 ## A Pratt interpreter
 
-If we were writing a full-scale programming language, what we just did might be a useful start on a bytecode interpreter. A number of real virtual machines work very like this, storing their bytecode in RPN form for rapid execution and executing it on a stack machine.
+However, since we're just writing a calculator, what we did was kind of pointless. Bytecode is useful because we can execute it again and again with different variables, having compiled it only once. If we do that with arithmetic expressions, we'll get the same answer each time, so we don't need RPN bytecode as an artifact.
 
-The reason the bytecode is useful in a real language is that because it can have variables in it, it can do something different each time it executes. Our calculator doesn't need to do this, and so we can dispense with any more structured representation at all of our code beyond the list of tokens, and rewrite our Pratt parser one more time into a **Pratt interpreter** which recursively analyses the tokens into a coda consisting of a list of tokens and an *integer* representing the onset.
+And so we can dispense any more structured representation at all of our code beyond the original list of tokens, and rewrite our Pratt parser one final time into a **Pratt interpreter** which recursively analyses the tokens into an integer representing the intermediate result and a list of tokens still to be processed.
 
-```
-
-
-
-
-
-
+By this point you can probably imagine what the code looks like, but here it is for completeness.
 
 ```
+~~ Pratt interpreter for evaluating arithmetic expressions in PEMDAS form.
+// This is so similar to the parser and the second compiler that most of the refactoring was 
+// done by search-and-replace, and so the comments on this are minimal.
+
+include
+
+// We will re-use the `OPS` map in the treewalker, and the map of precedences from the parser
+// (which the treewalker already includes).
+"treew.pf"
+
+def
+
+~~ Evaluates a string in PEMDAS form into an integer.
+evaluate(code string) -> int :
+    len leftovers > 0 :
+        error "unexpected `" + string(head) + "`"
+    else :
+        result 
+given :
+    result, leftovers = code -> lex -> evaluateExpression(that, 0)
+    head = leftovers[0]
+
+private
+
+evaluateExpression(tokens list, prec int) -> int, list : 
+    evaluateStart(tokens) -> evaluateRest(that[0], that[1], prec)
+
+evaluateStart(tokens list) -> int, list :  
+    head in keys INFO[PrefixNode] :
+        evaluatePrefixExpression(tokens)
+    head in rune and head == '(' :
+        evaluateGroupedExpression(tail)
+    head in int : 
+        head, tail  
+    else :
+        error "unexpected token `" + string(head) + "`"
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+
+// We evaluate the various cases in the branches of evaluateStart.
+
+evaluatePrefixExpression(tokens list) -> int, list: 
+    P(rightVal), newTail 
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    P = OPS[PrefixNode][head]
+    rightVal, newTail = evaluateExpression(tail, INFO[PrefixNode][head])
+
+evaluateGroupedExpression(tokens list) -> int, list : 
+    shouldBeRparen == ')' :
+        val, newTail 
+    else : 
+        error "expected `)`"
+given :
+    val, rparenAndNewTail = evaluateExpression(tokens, 0)
+    shouldBeRparen = rparenAndNewTail[0]
+    newTail = rparenAndNewTail[1::len rparenAndNewTail]
+
+evaluateRest(leftVal int, tokens list, prec int) -> int, list : 
+    valid headPrec and headPrec > prec :
+        evaluateRest(I(leftVal, rightVal), newTail, prec) 
+    valid suffixPrec and suffixPrec > prec :
+        evaluateRest(S(leftVal), tail, prec)
+    else : 
+        leftVal, tokens
+given :
+    head = tokens[0]
+    tail = tokens[1::len tokens]
+    headPrec = INFO[InfixNode][head]
+    suffixPrec = INFO[SuffixNode][head]
+    I = OPS[InfixNode][head]
+    S = OPS[SuffixNode][head]
+    rightVal, newTail = evaluateExpression(tail, headPrec)
+```
+
 ## And that's it
 
-One lexer, one parser, three interpreters, and two compilers, exactly as promised. I hope you all had fun. If so, please leave a star on [the Pipefish repo](). Have a nice day!
-
-
+One parser, one lexer, one prettyprinter, three interpreters, and two compilers, exactly as promised. I hope you had fun. If so, please leave a star on [the Pipefish repo](https://github.com/tim-hardcastle/Pipefish). Have a nice day!

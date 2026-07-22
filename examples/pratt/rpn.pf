@@ -26,18 +26,16 @@ def
 
 ~~ Excutes code given as a string in RPN form.
 exec(code string) :
-    code -> lex -> run(State([], that)) -> that[stack] -> validate
+    code -> lex -> run(State([], that)) -> that[stack][0] 
 
 private
 
-run(initial State) -> State :
-    from S = initial for :
-        S[tokens] == [] :
-            break
-        head in int :
-            State(S[stack] & head, tail)
-        else :
-            State(poppedStack & newHead, tail)
+run(initial State) -> State :         \\
+    from S = initial for S[tokens] != [] :    
+        head in int :  \\
+            State(S[stack] & head, tail)  \\
+        else :  \\
+            State(poppedStack & newHead, tail) \\
     given :
         head = S[tokens][0]
         tail = S[tokens][1::len S[tokens]]
@@ -46,10 +44,4 @@ run(initial State) -> State :
         F = info[fn]
         args = S[stack][(len(S[stack])-info[arity])::len(S[stack])]
         newHead = F(args)
-
-validate(stack list) -> int :
-    len stack != 1 :
-        error "ill-formed expression"
-    else :
-        stack[0]  
-
+  

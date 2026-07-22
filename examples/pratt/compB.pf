@@ -17,8 +17,7 @@ def
 ~~ Evaluates a string in PEMDAS form, returning an integer.
 // This is exactly the same code as in `compA.pf`.
 ev(code string) -> int :
-    code -> compile -> run(State([], that)) ..
-      .. -> that[stack] -> validate
+    code -> compile -> run(State([], that)) -> that[stack][0]
 
 ~~ Compiles a string into a list of tokens in RPN form.
 compile(code string) -> list :
