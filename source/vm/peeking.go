@@ -118,7 +118,7 @@ func init() {
 			eatComments = true
 			continue
 		}
-		result = result + line + "\n"
+		result = strings.Trim(result + line, "\n") + "\n" 
 	}
 	os.WriteFile(vmFile, []byte(result), 0666)
 

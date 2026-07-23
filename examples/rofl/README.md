@@ -39,7 +39,7 @@ An *expression* is any other newline-terminated string. (As sugar, strings may b
 
 An **arrow** is the substring ` -> `. An expression with at least one arrow is called a *rule*, otherwise it is a *value*.
 
-For a rule with *n* arrows, its *main arrow* is the ⌈n/2⌉ᵗʰ. This divides a rule into a left-hand and right-hand side: `lhs -> rhs`.
+For a rule with *n* arrows, its **main arrow** is the ⌈n/2⌉ᵗʰ. This divides a rule into a left-hand and right-hand side: `lhs -> rhs`.
 
 A rule can be applied to an expression by treating the lhs as a regex, the rhs as the replacement string, and using this to perform a "replace all" on the expression.
 

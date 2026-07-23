@@ -1623,6 +1623,7 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 		}
 		if izFn.given != nil {
 			iz.cp.ThunkList = []compiler.ThunkData{}
+			iz.cp.GivenNames = map[string][]uint32{}
 			givenContext := compiler.Context{fnenv, functionName, compiler.DEF, cpFn.LoReg, trackingOn, compiler.LF_NONE, altType(), nil, false}
 			ok := iz.cp.CompileGivenBlock(izFn.given, givenContext)
 			if !ok {
@@ -1666,17 +1667,47 @@ func (iz *Initializer) compileFunction(decType declarationType, decNo int, outer
 		iz.cp.VmComeFrom(paramChecks...)
 		iz.cp.Emit(vm.Ret)
 	}
+	// The following is tidying up after potential recursiveness. Anything that called this function
+	// from inside its own `given` block, directly or indirectly, will have produced `Rpush` values
+	// which may and probably will have one of two problems:
+	// (a) After a `given` statement is unthunked, that result may be combined with any memory location
+	// allocated in the main body of the function prior to the unthunk.
+	// (b) The `given` statement may refer to a variable that may get overwritten.
+	// We therefore store and use these data structures to kludge in the right values after the 
+	// fact. If neither of these things has happened then the value we assigned while first compiling
+	// will be correct.
+	// TODO --- what happens if a command recursively mutates a global variable? 
+	// We deal with the unthunks.
 	for unthunkAddr, cTop := range iz.cp.Unthunks {
 		unthunkLoc := iz.cp.Vm.Code[unthunkAddr].Args[0]
 		thunkAddr := iz.cp.Vm.Mem[unthunkLoc].V.(values.Thunk).CAddr
 		for _, push :=  range iz.cp.RpushMap[thunkAddr] {
-			iz.cp.Vm.Code[push].Args[1] = cTop
+			if cTop > iz.cp.Vm.Code[push].Args[1] {
+				iz.cp.Vm.Code[push].Args[1] = cTop
+			}
 		}
 	}
+	// And the variables in the chunk.
+	for name := range iz.cp.GivenNames {
+		v, _ := fnenv.GetVar(name)
+		callingThunkAddresses := iz.cp.GivenNames[name]
+		for _, addr := range callingThunkAddresses {
+			for _, push := range iz.cp.RpushMap[addr] {
+				if v.MLoc + 1 > iz.cp.Vm.Code[push].Args[1] { // +1 because the range excludes the top.
+					iz.cp.Vm.Code[push].Args[1] = v.MLoc + 1
+				}
+				if v.MLoc  < iz.cp.Vm.Code[push].Args[0] {
+					iz.cp.Vm.Code[push].Args[0] = v.MLoc
+				}
+			} 
+		}
+	}
+	// And then clean up the data.
 	iz.cp.Unthunks = nil
 	for _, thunk := range iz.cp.ThunkList {
 		delete(iz.cp.RpushMap, thunk.Value.CAddr)
 	}
+	iz.cp.GivenNames = map[string][]uint32{}
 	cpFn.Top = iz.cp.CodeTop()
 	iz.cp.Fns = append(iz.cp.Fns, &cpFn)
 	// The equivalent checks for functions happen elsewhere, for Reasons.

@@ -30,5 +30,13 @@ combine(M, N map) :
     from m = M for k::v = range N :
         m with k::v
 
+match(word string, pattern snippet) :
+    pattern -> parse -> listify
 
+// This splits the node into pieces at the commas.
+listify(n Node) :
+    n in BinaryNode and n[operator] == "," :
+        listify(n[left]) + listify(n[right])
+    else :
+        [n]
 

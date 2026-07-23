@@ -51,8 +51,9 @@ type Compiler struct {
 
 	// Temporary state.
 	ThunkList          []ThunkData                   // Records what thunks we made so we know what to unthunk at the top of the function.
-	Unthunks           map[uint32]uint32                      // If non-nil, records where we perform unthunks
+	Unthunks           map[uint32]uint32             // If non-nil, records where we perform unthunks
 	Rpushes            []uint32                      // If non-nil, keeps track of where we emit an `Rpsh`.
+	GivenNames         map[string][]uint32           // A map of the names a `given` block refers to, to the starts of the bytecode of the specific `given` statements they're mentioned in. We use this with the map below to resolve the `Rpsh` operands.
 	RpushMap           map[uint32][]uint32           // After constructing the list of Rpshs for one given declaration, we map from its call loc to its Rpshs.
 	RecursionStore     []BkRecursion                 // Places in the code where we need to go back and doctor it to make the recursion work for outer functions.
 	RecurringFunctions map[uint32]dtypes.Set[uint32] // Records dependencies of mutually recurring functions at initialization.
@@ -80,6 +81,7 @@ func NewCompiler(p *parser.Parser, ccb *CommonCompilerBindle) *Compiler {
 		Pool:                     make(InclusionPool),
 		PrivateNullImports:       make(dtypes.Set[string]),
 		RpushMap:                 make(map[uint32][]uint32, 0),
+		GivenNames:               make(map[string][]uint32),
 	}
 	for name := range ClonableTypes {
 		newC.GeneratedAbstractTypes.Add("clones{" + name + "}")
@@ -2257,9 +2259,18 @@ func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt
 		return false
 	}
 	thunkStart := cp.Next()
+	// This might be a given chunk in a recursive function, and so we may need to know which
+	// variables the chunk depends on so we can `Rpsh` them. 
+	// Note --- we did `parser.GetVariableNames` in `CompileGivenBlock` and then discarded it. 
+	// We might try to find a way to keep it, for speed.
 	cp.Rpushes = []uint32{}
 	result := cp.CompileNode(node.Right, ctxt.x())
-	cp.RpushMap[thunkStart] = cp.Rpushes 
+	if cp.RpushMap != nil {
+		cp.RpushMap[thunkStart] = cp.Rpushes 
+		for varName := range parser.GetVariableNames(node.Right) {
+			cp.GivenNames[varName] = append(cp.GivenNames[varName], thunkStart)
+		}
+	} 
 	cp.Rpushes = nil
 	if result.Failed {
 		return false
