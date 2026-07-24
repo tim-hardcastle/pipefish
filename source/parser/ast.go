@@ -108,11 +108,11 @@ func (fl *FloatLiteral) Children() []Node       { return []Node{} }
 func (fl *FloatLiteral) GetToken() *token.Token { return &fl.Token }
 func (fl *FloatLiteral) String() string         { return fl.Token.Literal }
 
-type ForLog int 
+type ForLog int
 
-const(
+const (
 	NONE ForLog = iota
-	AUTO 
+	AUTO
 	CUSTOM
 )
 
@@ -487,8 +487,8 @@ func (se *SuffixExpression) String() string {
 }
 
 type TestExpression struct {
-	Token   token.Token
-	Body   Node
+	Token token.Token
+	Body  Node
 }
 
 func (t *TestExpression) Children() []Node       { return []Node{t.Body} }
@@ -636,8 +636,8 @@ func GetVariablesFromLhsAndRhsOfAssignments(n Node) (dtypes.Set[string], dtypes.
 	case *LazyInfixExpression: // I.e. the ';' dividing asignments in a 'given' block.
 		lhs1, rhs1 := GetVariablesFromLhsAndRhsOfAssignments(n.Left)
 		lhs2, rhs2 := GetVariablesFromLhsAndRhsOfAssignments(n.Right)
-		lhs1.AddSet(lhs2)
-		rhs1.AddSet(rhs2)
+		lhs1.Union(lhs2)
+		rhs1.Union(rhs2)
 		return lhs1, lhs2
 	default:
 		return dtypes.Set[string]{}, dtypes.Set[string]{}
@@ -662,11 +662,11 @@ func GetVariableNames(n Node) dtypes.Set[string] {
 		locals, rhs := GetVariablesFromLhsAndRhsOfAssignments(n.Given)
 		// Find all the variable names in the body.
 		bodyNames := GetVariableNames(n.Body)
-		rhs.AddSet(bodyNames)
+		rhs.Union(bodyNames)
 		return rhs.SubtractSet(params).SubtractSet(locals)
 	default:
 		for _, v := range n.Children() {
-			result.AddSet(GetVariableNames(v))
+			result.Union(GetVariableNames(v))
 		}
 		return result
 	}
@@ -680,8 +680,8 @@ func GetPrefixesFromLhsAndRhsOfAssignments(n Node) (dtypes.Set[string], dtypes.S
 	case *LazyInfixExpression:
 		lhs1, rhs1 := GetPrefixesFromLhsAndRhsOfAssignments(n.Left)
 		lhs2, rhs2 := GetPrefixesFromLhsAndRhsOfAssignments(n.Right)
-		lhs1.AddSet(lhs2)
-		rhs1.AddSet(rhs2)
+		lhs1.Union(lhs2)
+		rhs1.Union(rhs2)
 		return lhs1, lhs2
 	default:
 		return dtypes.Set[string]{}, dtypes.Set[string]{}
@@ -694,7 +694,7 @@ func GetPrefixes(n Node) dtypes.Set[string] {
 	switch n := n.(type) {
 	case *PrefixExpression:
 		for _, v := range n.Children() {
-			result.AddSet(GetPrefixes(v))
+			result.Union(GetPrefixes(v))
 		}
 		return result.Add(n.Operator)
 	case *FuncExpression:
@@ -706,11 +706,11 @@ func GetPrefixes(n Node) dtypes.Set[string] {
 		locals, rhs := GetPrefixesFromLhsAndRhsOfAssignments(n.Given)
 		// Find all the variable names in the body.
 		bodyNames := GetPrefixes(n.Body)
-		rhs.AddSet(bodyNames)
+		rhs.Union(bodyNames)
 		return rhs.SubtractSet(params).SubtractSet(locals)
 	default:
 		for _, v := range n.Children() {
-			result.AddSet(GetPrefixes(v))
+			result.Union(GetPrefixes(v))
 		}
 		return result
 	}
@@ -724,27 +724,27 @@ func ExtractAllNames(node Node) dtypes.Set[string] {
 		return result
 	case *PrefixExpression:
 		for _, v := range n.Children() {
-			result.AddSet(ExtractAllNames(v))
+			result.Union(ExtractAllNames(v))
 		}
 		return result.Add(n.Operator)
 	case *TypePrefixExpression:
 		for _, v := range n.Children() {
-			result.AddSet(ExtractAllNames(v))
+			result.Union(ExtractAllNames(v))
 		}
 		return result.Add(n.Operator)
 	case *InfixExpression:
 		for _, v := range n.Children() {
-			result.AddSet(ExtractAllNames(v))
+			result.Union(ExtractAllNames(v))
 		}
 		return result.Add(n.Operator)
 	case *SuffixExpression:
 		for _, v := range n.Children() {
-			result.AddSet(ExtractAllNames(v))
+			result.Union(ExtractAllNames(v))
 		}
 		return result.Add(n.Operator)
 	case *TypeSuffixExpression:
 		for _, v := range n.Children() {
-			result.AddSet(ExtractAllNames(v))
+			result.Union(ExtractAllNames(v))
 		}
 		return result.Add(n.Operator.String())
 	case *UnfixExpression:
@@ -762,11 +762,11 @@ func ExtractAllNames(node Node) dtypes.Set[string] {
 		locals, rhs := ExtractNamesFromLhsAndRhsOfGivenBlock(n.Given)
 		// Find all the variable names in the body.
 		bodyNames := ExtractAllNames(n.Body)
-		rhs.AddSet(bodyNames)
+		rhs.Union(bodyNames)
 		return rhs.SubtractSet(params).SubtractSet(locals)
 	default:
 		for _, v := range n.Children() {
-			result.AddSet(ExtractAllNames(v))
+			result.Union(ExtractAllNames(v))
 		}
 		return result
 	}
@@ -779,8 +779,8 @@ func ExtractNamesFromLhsAndRhsOfGivenBlock(n Node) (dtypes.Set[string], dtypes.S
 	case *LazyInfixExpression:
 		lhs1, rhs1 := ExtractNamesFromLhsAndRhsOfGivenBlock(n.Left)
 		lhs2, rhs2 := ExtractNamesFromLhsAndRhsOfGivenBlock(n.Right)
-		lhs1.AddSet(lhs2)
-		rhs1.AddSet(rhs2)
+		lhs1.Union(lhs2)
+		rhs1.Union(rhs2)
 		return lhs1, rhs1
 	default:
 		return dtypes.Set[string]{}, dtypes.Set[string]{}

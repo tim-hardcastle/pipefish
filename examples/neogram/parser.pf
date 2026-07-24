@@ -48,10 +48,10 @@ given :
     head = leftovers[0]
 
 
-parseExpression(tokens list, prec int) -> list, Node :        
-    parseStart(tokens) -> parseRest(that[0], that[1], prec)     
+parseExpression(tokens list, prec int) -> list, Node :   
+    parseStart(tokens) -> parseRest(that[0], that[1], prec)
 
-parseStart(tokens list) -> list, Node :  
+parseStart(tokens list) -> list, Node :
     head[value] in keys PREFIXES :       
         parsePrefixExpression(tokens)    
     head[tokenType] == L_PAREN :         
@@ -68,9 +68,9 @@ given :
 
 // We parse the various cases in the branches of parseStart.
 
-parsePrefixExpression(tokens list) -> list, Node:       
+parsePrefixExpression(tokens list) -> list, Node:     
     newTail, PrefixNode(head, head[value], rightNode)    
-given : 
+given :                                                  
     head = tokens[0]
     tail = tokens[1::len tokens]
     newTail, rightNode = parseExpression(tail, PREFIX_PRECEDENCE)
@@ -103,10 +103,10 @@ parseLiteral(aToken Token) -> Node :
 given :
     val = aToken[value]
 
-parseRest(tokens list, leftNode Node, prec int) -> list, Node : 
+parseRest(tokens list, leftNode Node, prec int) -> list, Node :
     valid headPrec and headPrec >= prec :  
         parseRest(newTail, BinaryNode(head, head[value], leftNode, rightNode), prec) 
-    else : 
+    else :               
         tokens, leftNode   
 given :
     head = tokens[0]

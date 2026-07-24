@@ -53,7 +53,6 @@ type Compiler struct {
 	ThunkList          []ThunkData                   // Records what thunks we made so we know what to unthunk at the top of the function.
 	Unthunks           map[uint32]uint32             // If non-nil, records where we perform unthunks
 	Rpushes            []uint32                      // If non-nil, keeps track of where we emit an `Rpsh`.
-	GivenNames         map[string][]uint32           // A map of the names a `given` block refers to, to the starts of the bytecode of the specific `given` statements they're mentioned in. We use this with the map below to resolve the `Rpsh` operands.
 	RpushMap           map[uint32][]uint32           // After constructing the list of Rpshs for one given declaration, we map from its call loc to its Rpshs.
 	RecursionStore     []BkRecursion                 // Places in the code where we need to go back and doctor it to make the recursion work for outer functions.
 	RecurringFunctions map[uint32]dtypes.Set[uint32] // Records dependencies of mutually recurring functions at initialization.
@@ -81,7 +80,6 @@ func NewCompiler(p *parser.Parser, ccb *CommonCompilerBindle) *Compiler {
 		Pool:                     make(InclusionPool),
 		PrivateNullImports:       make(dtypes.Set[string]),
 		RpushMap:                 make(map[uint32][]uint32, 0),
-		GivenNames:               make(map[string][]uint32),
 	}
 	for name := range ClonableTypes {
 		newC.GeneratedAbstractTypes.Add("clones{" + name + "}")
@@ -91,12 +89,25 @@ func NewCompiler(p *parser.Parser, ccb *CommonCompilerBindle) *Compiler {
 	return newC
 }
 
+func (cp *Compiler) AddRecursionRelation(x, y uint32) {
+	if _, ok := cp.RecurringFunctions[x]; !ok {
+		cp.RecurringFunctions[x] = dtypes.SetOf(x, y)
+	}
+	if _, ok := cp.RecurringFunctions[y]; !ok {
+		cp.RecurringFunctions[y] = dtypes.SetOf(x, y)
+	}
+	cp.RecurringFunctions[x].Union(cp.RecurringFunctions[y])
+	for z := range cp.RecurringFunctions[x] {
+		cp.RecurringFunctions[z] = cp.RecurringFunctions[x]
+	}
+}
+
 type CommonCompilerBindle struct {
 	SharedTypenameToTypeList map[string]AlternateType
 	AnyTypeScheme            AlternateType
 	AnyTuple                 AlternateType
 	IsRangeable              AlternateType
-	CodeGeneratingTypes      dtypes.Set[values.ValueType]  // TODO --- this is almost certainly unnecessary.
+	CodeGeneratingTypes      dtypes.Set[values.ValueType] // TODO --- this is almost certainly unnecessary.
 	LabelIsPrivate           []bool
 	AbstractTypesByName      TypeSys
 	CompilerCount            uint32
@@ -149,6 +160,7 @@ func (ccb *CommonCompilerBindle) AddTypeNumberToSharedAlternateTypes(typeNo valu
 type Context struct {
 	Env            *Environment     // The association of variable names to variable locations.
 	FName          string           // If we're compiling a function, the name of the function we're compiling.
+	FNumber        uint32           // If we're compiling a function, the number of the function we're compiling.
 	Access         CpAccess         // Whether we are compiling the body of a command; of a function; something typed into the REPL, etc.
 	LowMem         uint32           // Where the memory of the function we're compiling (if indeed we are) starts, and so the lowest point from which we may need to copy memory in case of recursion.
 	TrackingFlavor LogFlavor        // Whether we should be tracking something and if so what.
@@ -411,10 +423,10 @@ NodeTypeSwitch:
 			return FAIL
 		}
 		if (v.Access == GLOBAL_CONSTANT_PRIVATE || v.Access == GLOBAL_VARIABLE_PRIVATE) &&
-		   ((ac == REPL || resolvingCompiler != cp) ||
-			(cp.Pool != nil && resolvingCompiler == cp && v.Token != nil && v.Access == GLOBAL_CONSTANT_PRIVATE && !cp.Pool.Check(node.Token.Source, v.Token.Source)) ||
-			(ctxt.Access == REPL && v.Token != nil && cp.PrivateNullImports.Contains(v.Token.Source))) {
-				cp.Throw("comp/private/ident", node.GetToken())
+			((ac == REPL || resolvingCompiler != cp) ||
+				(cp.Pool != nil && resolvingCompiler == cp && v.Token != nil && v.Access == GLOBAL_CONSTANT_PRIVATE && !cp.Pool.Check(node.Token.Source, v.Token.Source)) ||
+				(ctxt.Access == REPL && v.Token != nil && cp.PrivateNullImports.Contains(v.Token.Source))) {
+			cp.Throw("comp/private/ident", node.GetToken())
 			cp.GlobalConsts.Ext = nil
 			return FAIL
 		}
@@ -2221,7 +2233,7 @@ func (cp *Compiler) CompileGivenBlock(given parser.Node, ctxt Context) bool {
 		v := partition[0]
 		node, ok := nameToNode[v]
 		if ok && !used.Contains(v) {
-			used.AddSet(dtypes.MakeFromSlice(cp.P.GetVariablesFromSig(node.Left)))
+			used.Union(dtypes.MakeFromSlice(cp.P.GetVariablesFromSig(node.Left)))
 			if !cp.compileOneGivenChunk(node, &ctxt) {
 				return false
 			}
@@ -2260,17 +2272,14 @@ func (cp *Compiler) compileOneGivenChunk(node *parser.AssignmentExpression, ctxt
 	}
 	thunkStart := cp.Next()
 	// This might be a given chunk in a recursive function, and so we may need to know which
-	// variables the chunk depends on so we can `Rpsh` them. 
-	// Note --- we did `parser.GetVariableNames` in `CompileGivenBlock` and then discarded it. 
+	// variables the chunk depends on so we can `Rpsh` them.
+	// Note --- we did `parser.GetVariableNames` in `CompileGivenBlock` and then discarded it.
 	// We might try to find a way to keep it, for speed.
 	cp.Rpushes = []uint32{}
 	result := cp.CompileNode(node.Right, ctxt.x())
 	if cp.RpushMap != nil {
-		cp.RpushMap[thunkStart] = cp.Rpushes 
-		for varName := range parser.GetVariableNames(node.Right) {
-			cp.GivenNames[varName] = append(cp.GivenNames[varName], thunkStart)
-		}
-	} 
+		cp.RpushMap[thunkStart] = cp.Rpushes
+	}
 	cp.Rpushes = nil
 	if result.Failed {
 		return false
@@ -2906,7 +2915,7 @@ type BkRecursion struct{ FunctionNumber, Address uint32 }
 // The compiler's representation of a function after the function has been compiled.
 type CpFunc struct {
 	CallTo                  uint32
-	LoReg                   uint32
+	LoMem                   uint32
 	HiReg                   uint32
 	OutReg                  uint32
 	LocOfTupleAndVarargData uint32
@@ -3080,7 +3089,7 @@ func (cp *Compiler) emitCallOpcode(funcNumber uint32, valLocs []uint32) {
 		cp.Emit(vm.Call, args...) // TODO --- find out from the sig whether this should be CalT.
 		return
 	}
-	args := append([]uint32{cp.Fns[funcNumber].CallTo, cp.Fns[funcNumber].LoReg, cp.Fns[funcNumber].HiReg}, valLocs...)
+	args := append([]uint32{cp.Fns[funcNumber].CallTo, cp.Fns[funcNumber].LoMem, cp.Fns[funcNumber].HiReg}, valLocs...)
 	if cp.Fns[funcNumber].LocOfTupleAndVarargData == DUMMY { // We specialize on whether we have to capture tuples or varargs.
 		cp.Emit(vm.Call, args...)
 	} else {

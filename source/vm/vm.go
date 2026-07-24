@@ -212,7 +212,7 @@ func (vm *Vm) Run(loc uint32) {
 // be edited there and not here. Other comments are safe to edit.
 //
 // For the meanings of the operand "flavors", `dst`, `mem`, etc, see `operations.md`.
-func (vm *Vm) run(loc uint32, ctx context.Context, cancel chan os.Signal) {
+func (vm *Vm) run(addr uint32, ctx context.Context, cancel chan os.Signal) {
 	// We exit the loop and this function when we perform a `ret` openeration and `stackHeight``
 	// equals the length of the callstack.
 	stackHeight := len(vm.callstack)
@@ -224,20 +224,20 @@ loop:
 			return
 		default:
 			// We do this now and by hand so as to avoid commenting Flpp when possible.
-			if settings.PEEK_VM && vm.Code[loc].Opcode == Flpp {
+			if settings.PEEK_VM && vm.Code[addr].Opcode == Flpp {
 				vm.PopPeeks()
-				loc++
+				addr++
 				continue loop
 			}
 			if settings.PEEK_VM && vm.IsSet("c") || (vm.IsSet("k") && vm.IsCompiling) {
-				vm.Dump("! " + vm.DescribeCode(loc))
+				vm.Dump("! " + vm.DescribeCode(addr))
 			}
 			if (settings.PEEK_VM && vm.IsSet("c") || (vm.IsSet("k") && vm.IsCompiling)) && !vm.IsSet("s") {
-				vm.Dump(vm.DescribeOperandValues(loc))
+				vm.Dump(vm.DescribeOperandValues(addr))
 			}
-			args := vm.Code[loc].Args
+			args := vm.Code[addr].Args
 		Switch:
-			switch vm.Code[loc].Opcode {
+			switch vm.Code[addr].Opcode {
 			case Addf: // Add floats (dst mem mem)
 				// Adds two floats, returning a float.
 				vm.Mem[args[0]] = values.Value{vm.Mem[args[1]].T, vm.Mem[args[1]].V.(float64) + vm.Mem[args[2]].V.(float64)}
@@ -342,8 +342,8 @@ loop:
 						argNumber++
 					}
 				}
-				vm.callstack = append(vm.callstack, loc)
-				loc = args[0]
+				vm.callstack = append(vm.callstack, addr)
+				addr = args[0]
 				continue
 			case CalT: // Function call with tuple capture (loc mem mem tup)
 				// This is like `call`, above, only with the possibility that it might be capturing a tuple, 
@@ -400,8 +400,8 @@ loop:
 						}
 					}
 				}
-				vm.callstack = append(vm.callstack, loc)
-				loc = args[0]
+				vm.callstack = append(vm.callstack, addr)
+				addr = args[0]
 				continue
 			case CasP: // Cast to parameterized clone type (dst tok mem mem)
 				// Casts the value v#3 to the type v#2, where v#2 is a parameterized clone type.
@@ -526,7 +526,7 @@ loop:
 						if len(vm.callstack) == stackHeight {
 							return
 						}
-						loc = vm.callstack[len(vm.callstack)-1]
+						addr = vm.callstack[len(vm.callstack)-1]
 						vm.callstack = vm.callstack[0 : len(vm.callstack)-1]
 					}
 				case values.ERROR:
@@ -540,7 +540,7 @@ loop:
 					if len(vm.callstack) == stackHeight {
 						return
 					}
-					loc = vm.callstack[len(vm.callstack)-1]
+					addr = vm.callstack[len(vm.callstack)-1]
 					vm.callstack = vm.callstack[0 : len(vm.callstack)-1]
 				}
 			case Chrf: // Check reference variable (dst mem)
@@ -1215,7 +1215,7 @@ loop:
 				// compile-time.
 				vm.Mem[args[0]] = vm.Mem[args[1]].V.([]values.Value)[args[2]]
 			case Jmp: // Jump (loc)
-				loc = args[0]
+				addr = args[0]
 				continue
 			case Json: // Json to Pipefish (dst mem mem num tok)
 				// Operands are :
@@ -1227,8 +1227,8 @@ loop:
 			case Jsr: // Jump to subroutine (loc)
 				// Pushes the location we're jumping from onto the stack, so that `rtn` will return to just after
 				// the jump.
-				vm.callstack = append(vm.callstack, loc)
-				loc = args[0]
+				vm.callstack = append(vm.callstack, addr)
+				addr = args[0]
 				continue
 			case KeyM: // Keys of map (dst mem)
 				// Returned as a list.
@@ -1440,83 +1440,83 @@ loop:
 				// Jumps to the location n#2 if the type of v#0 is not in the tuple of type numbers in #1.
 				for _, t := range args[1 : len(args)-1] {
 					if vm.Mem[args[0]].T == values.ValueType(t) {
-						loc = loc + 1
+						addr = addr + 1
 						continue loop
 					}
 				}
-				loc = args[len(args)-1]
+				addr = args[len(args)-1]
 				continue
 			case Qfls: // Test for false (mem loc)
 				// This jumps to the location number n#1 if v#0 is not false.
 				if vm.Mem[args[0]].V.(bool) {
-					loc = args[1]
+					addr = args[1]
 				} else {
-					loc = loc + 1
+					addr = addr + 1
 				}
 				continue
 			case Qitr: // Test for end of iterator (mem loc)
 				// This jumps to location number n#1 if the iterator v#0 hasn't finished iterating.
 				if vm.Mem[args[0]].V.(Iterator).Unfinished() {
-					loc = args[1]
+					addr = args[1]
 				} else {
-					loc = loc + 1
+					addr = addr + 1
 				}
 				continue
 			case QleT: // Test length of tuple <= n (mem num loc)
 				// Jumps to location number n#2 if the length of the tuple value v#0 isn't less than or equal to n#1.
 				if vm.Mem[args[0]].T == values.TUPLE && len(vm.Mem[args[0]].V.([]values.Value)) <= int(args[1]) {
-					loc = loc + 1
+					addr = addr + 1
 				} else {
-					loc = args[2]
+					addr = args[2]
 				}
 				continue
 			case QlnT: // Test length of tuple < n (mem num loc)
 				// Jumps to location number n#2 if the length of the tuple value v#0 isn't less than or equal to n#1.
 				if len(vm.Mem[args[0]].V.([]values.Value)) == int(args[1]) {
-					loc = loc + 1
+					addr = addr + 1
 				} else {
-					loc = args[2]
+					addr = args[2]
 				}
 				continue
 			case Qlog: // Jumps to location number n#0 if logging is turned off (loc)
 				if vm.logging {
-					loc = loc + 1
+					addr = addr + 1
 				} else {
-					loc = args[0]
+					addr = args[0]
 				}
 				continue
 			case Qnab: // Test not in abstract type  (mem tup loc)
 				// Jumps to the location n#2 if the type of v#0 is in the tuple of type numbers in #1.
 				for _, t := range args[1 : len(args)-1] {
 					if vm.Mem[args[0]].T == values.ValueType(t) {
-						loc = args[len(args)-1]
+						addr = args[len(args)-1]
 						continue loop
 					}
 				}
-				loc = loc + 1
+				addr = addr + 1
 				continue
 			case Qntp: // Test not of type  (mem typ loc)
 				// Jumps to the location n#2 if the type of v#0 is not the type numbers in n#1.
 				if vm.Mem[args[0]].T != values.ValueType(args[1]) {
-					loc = loc + 1
+					addr = addr + 1
 				} else {
-					loc = args[2]
+					addr = args[2]
 				}
 				continue
 			case Qsat: // Test not `UNSAT` (mem loc)
 				// Jumps to location n#1 if v#0 is an unsatisfied conditional.
 				if vm.Mem[args[0]].T != values.UNSATISFIED_CONDITIONAL {
-					loc = loc + 1
+					addr = addr + 1
 				} else {
-					loc = args[1]
+					addr = args[1]
 				}
 				continue
 			case Qsnq: // Test singleton (mem loc)
 				// Jumps to location n#1 if v#2 is a tuple.
 				if vm.Mem[args[0]].T != values.TUPLE {
-					loc = loc + 1
+					addr = addr + 1
 				} else {
-					loc = args[1]
+					addr = args[1]
 				}
 				continue
 			case Qtpt: // Test tuple types (mem num tup loc)
@@ -1536,26 +1536,26 @@ loop:
 						}
 					}
 					if !found {
-						loc = args[len(args)-1]
+						addr = args[len(args)-1]
 						continue loop
 					}
 				}
-				loc = loc + 1
+				addr = addr + 1
 				continue
 			case Qtru: // Test true (mem loc)
 				// Jumps to location n#1 if v#0 isn't true
 				if vm.Mem[args[0]].V.(bool) {
-					loc = loc + 1
+					addr = addr + 1
 				} else {
-					loc = args[1]
+					addr = args[1]
 				}
 				continue
 			case Qtyp: // Test type membership (mem typ loc)
 				// Jumps to location #2 if v#0 doesn't have type number n#1
 				if vm.Mem[args[0]].T == values.ValueType(args[1]) {
-					loc = loc + 1
+					addr = addr + 1
 				} else {
-					loc = args[2]
+					addr = args[2]
 				}
 				continue
 			case Ret: // Return ()
@@ -1565,7 +1565,7 @@ loop:
 				if len(vm.callstack) == stackHeight { // This is so that we can call "Run" when we have things on the stack and it will bottom out at the appropriate time.
 					break loop
 				}
-				loc = vm.callstack[len(vm.callstack)-1]
+				addr = vm.callstack[len(vm.callstack)-1]
 				vm.callstack = vm.callstack[0 : len(vm.callstack)-1]
 			case Rpop: // Pop recursion data ()
 				rData := vm.recursionStack[len(vm.recursionStack)-1]
@@ -1793,20 +1793,20 @@ loop:
 				case values.BOOL :
 					if vm.Mem[args[1]].V.(bool) {
 						vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
-						loc = loc + 1
+						addr = addr + 1
 					} else {
 						vm.Mem[args[0]] = vm.makeError("vm/test/nstd", args[4], vm.Mem[args[2]].V.(string))
-						loc = args[3]
+						addr = args[3]
 					}
 				case values.SUCCESSFUL_VALUE:
 					vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
-					loc = loc + 1
+					addr = addr + 1
 				case values.ERROR :					
 					vm.Mem[args[0]] = vm.Mem[args[1]]
-					loc = args[3]
+					addr = args[3]
 				default :
 					vm.Mem[args[0]] = vm.makeError("vm/test/bool.a", args[4], vm.Mem[args[2]].V.(string), args[1])
-					loc = args[3]
+					addr = args[3]
 				}
 				continue
 			case Tstd: // Standard test (dst mem mem mem mem loc tok)
@@ -1824,17 +1824,17 @@ loop:
 				case values.BOOL :
 					if vm.Mem[args[1]].V.(bool) {
 						vm.Mem[args[0]] = values.Value{values.SUCCESSFUL_VALUE, nil}
-						loc = loc + 1
+						addr = addr + 1
 					} else {
 						vm.Mem[args[0]] = vm.makeError("vm/test/std", args[6], vm.Mem[args[2]].V.(string), vm.Literal(vm.Mem[args[3]], 0), vm.Literal(vm.Mem[args[4]], 0))
-						loc = args[5]
+						addr = args[5]
 					}
 				case values.ERROR :					
 					vm.Mem[args[0]] = vm.Mem[args[1]]
-					loc = args[5]
+					addr = args[5]
 				default :
 					vm.Mem[args[0]] = vm.makeError("vm/test/bool.b", args[6], vm.Mem[args[2]].V.(string), args[1])
-					loc = args[5]
+					addr = args[5]
 				}
 				continue
 			case Tplf: // First element of tuple (dst mem tok)
@@ -2152,9 +2152,9 @@ loop:
 					vm.Mem[args[0]+uint32(i)] = v
 				}
 			default:
-				panic("Unhandled opcode '" + opInfo[vm.Code[loc].Opcode].opcode + "'")
+				panic("Unhandled opcode '" + opInfo[vm.Code[addr].Opcode].opcode + "'")
 			}
-			loc++
+			addr++
 		}
 	}
 }

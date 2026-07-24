@@ -1331,7 +1331,7 @@ func (iz *Initializer) createAliasTypes() {
 func (iz *Initializer) addToBuiltins(sig parser.AstSig, builtinTag string, returnTypes compiler.AlternateType, private bool, tok *token.Token) uint32 {
 	cpF := &compiler.CpFunc{RtnTypes: returnTypes, Builtin: builtinTag, Token: tok}
 	fnenv := compiler.NewEnvironment() // Note that we don't use this for anything, we just need some environment to pass to addVariables.
-	cpF.LoReg = iz.cp.MemTop()
+	cpF.LoMem = iz.cp.MemTop()
 	for _, pair := range sig {
 		iz.cp.AddThatAsVariable(fnenv, pair.VarName.Literal, compiler.FUNCTION_ARGUMENT, iz.cp.GetAlternateTypeFromTypeAst(pair.VarType), tok)
 	}

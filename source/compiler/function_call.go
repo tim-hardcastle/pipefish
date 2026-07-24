@@ -42,8 +42,8 @@ type bindle struct {
 	access       CpAccess        // Whether the function call is coming from the REPL, the cmd section, etc.
 	libcall      bool            // Are we in a namespace?
 	lowMem       uint32          // The lowest point in memory that the function uses. Hence the lowest point from which we could need to copy when putting memory on the recursionStack.
+	ctxt         *Context        // To remind us what we're compiling and help us keep track of recursion.
 }
-
 // This is where we come in. The `createFunctionCall` method initializes the bindle and then makes a call
 // `returnTypes := cp.generateNewArgument(b)` where `b` is the bindle. This starts off the whole recursive chain
 // of creating a function call by getting the (potential) type information for the first argument.
@@ -63,7 +63,9 @@ func (cp *Compiler) createFunctionCall(argCompiler *Compiler, node parser.Callab
 		types:        make(FiniteTupleType, len(args)),
 		access:       ac,
 		libcall:      libcall,
+		// TODO --- can remove lowMem not the whole context is included.
 		lowMem:       ctxt.LowMem, // Where the memory of the function we're compiling (if indeed we are) starts, and so the lowest point from which we may need to copy memory in case of recursion.
+		ctxt:         &ctxt,
 	}
 	backtrackList := make([]uint32, len(args))
 	cst := true
@@ -511,11 +513,7 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 				// one we're calling.
 				if fNo >= uint32(len(resolvingCompiler.Fns)) && cp == resolvingCompiler {
 					cp.cmP("Undefined function. We're doing recursion!", b.tok)
-					if dps, ok := cp.RecurringFunctions[fNo]; ok {
-						cp.RecurringFunctions[fNo] = dps.Add(uint32(len(cp.Fns)))
-					} else {
-						cp.RecurringFunctions[fNo] = dtypes.Set[uint32]{}.Add(uint32(len(cp.Fns)))
-					}
+					cp.AddRecursionRelation(fNo, b.ctxt.FNumber)
 					cp.Emit(vm.Rpsh, b.lowMem, cp.MemTop())
 					cp.RecursionStore = append(cp.RecursionStore, BkRecursion{fNo, cp.CodeTop()}) // So we can come back and doctor all the dummy variables.
 					cp.cmP("Emitting call opcode with dummy operands.", b.tok)
@@ -530,14 +528,21 @@ func (cp *Compiler) seekFunctionCall(b *bindle) (AlternateType, bool) { // The b
 				}
 				// So this exists.
 				F := resolvingCompiler.Fns[fNo]
-				// This is a function recursing with itself. The error may be there bu undeclared.
+				// It may have recursive relationships with other functions not yet declared, and 
+				// those must be added to the calling function's relationships.
+				for el := range cp.RecurringFunctions[fNo] {
+					if el >= uint32(len(resolvingCompiler.Fns)) && cp == resolvingCompiler {
+						cp.AddRecursionRelation(el, b.ctxt.FNumber)
+					}
+				}
+				// This is a function recursing with itself. The error may be there but undeclared.
 				if fNo == uint32(len(resolvingCompiler.Fns))-1 && cp == resolvingCompiler {
 					F.RtnTypes = F.RtnTypes.Union(AltType(values.ERROR))
 				}
 				// Perhaps we're compiling mutually recursive functions and we *have* compiled the one we're calling.
 				// In that case we can nearly treat this like a normal function call except that we have to push any
 				// data that needs saving.
-				if dps, ok := cp.RecurringFunctions[uint32(len(cp.Fns))]; ok && dps.Contains(fNo) {
+				if dps, ok := cp.RecurringFunctions[b.ctxt.FNumber]; ok && dps.Contains(fNo) {
 					cp.Emit(vm.Rpsh, b.lowMem, cp.MemTop())
 					cp.cmP("Emitting call opcode.", b.tok)
 					resolvingCompiler.emitCallOpcode(fNo, b.valLocs)

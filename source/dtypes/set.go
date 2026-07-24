@@ -35,7 +35,7 @@ func (S Set[E]) Add(e E) Set[E] {
 	return S
 }
 
-func (S Set[E]) AddSet(T Set[E]) {
+func (S Set[E]) Union(T Set[E]) {
 	for e := range T {
 		S.Add(e)
 	}

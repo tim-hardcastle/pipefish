@@ -107,7 +107,7 @@ func TestSet(t *testing.T) {
 	if len(st2.SubtractSet(st3)) != 2 {
 		t.Fatal("Can't suubtract sets.")
 	}
-	st2.AddSet(st3)
+	st2.Union(st3)
 	if len(st2) != 7 {
 		t.Fatal("Can't add sets.")
 	}

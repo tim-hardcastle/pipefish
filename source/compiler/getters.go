@@ -404,7 +404,7 @@ func (cp *Compiler) DumpFunction(name string, mem bool) string {
 				result = result + "\n"
 				if mem {
 					result = result + "### Memory dump for " + fn.sig + "`\n\n"
-					for addr := fn.fnData.LoReg; addr <= fn.fnData.OutReg; addr++ {
+					for addr := fn.fnData.LoMem; addr <= fn.fnData.OutReg; addr++ {
 						result = result + "m" + strconv.Itoa(int(addr)) + " : " + cp.Vm.DescribeTypeAndValue(cp.Vm.Mem[addr], vm.LITERAL, cp.Number) + "\n"
 					}
 					result = result + "\n"

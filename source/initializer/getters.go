@@ -169,7 +169,7 @@ func (iz *Initializer) extractNamesFromCodeChunk(dec labeledParsedCodeChunk) dty
 		}
 		bodyNames := parser.ExtractAllNames(pc.body)
 		lhsG, rhsG := parser.ExtractNamesFromLhsAndRhsOfGivenBlock(pc.given)
-		bodyNames.AddSet(rhsG)
+		bodyNames.Union(rhsG)
 		bodyNames = bodyNames.SubtractSet(lhsG)
 		result := bodyNames.SubtractSet(sigNames)
 		return result

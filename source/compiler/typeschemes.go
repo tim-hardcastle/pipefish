@@ -75,7 +75,7 @@ func lengths(t TypeScheme) dtypes.Set[int] {
 	case AlternateType:
 		for _, v := range t {
 			newSet := lengths(v)
-			result.AddSet(newSet)
+			result.Union(newSet)
 			if result.Contains(-1) {
 				return result
 			}
@@ -211,7 +211,7 @@ func recursiveTypesAtIndex(t TypeScheme, ix int) (AlternateType, dtypes.Set[int]
 		for _, v := range t {
 			newTypes, newSet := recursiveTypesAtIndex(v, ix)
 			resultTypes = resultTypes.Union(newTypes)
-			resultSet.AddSet(newSet)
+			resultSet.Union(newSet)
 		}
 		return resultTypes, resultSet
 	case FiniteTupleType:
@@ -222,7 +222,7 @@ func recursiveTypesAtIndex(t TypeScheme, ix int) (AlternateType, dtypes.Set[int]
 		for jx := range resultSet {
 			newTypes, newSet := recursiveTypesAtIndex(t[1:], ix-jx)
 			resultTypes = resultTypes.Union(newTypes)
-			resultSet.AddSet(newSet)
+			resultSet.Union(newSet)
 		}
 		return resultTypes, resultSet
 	}
